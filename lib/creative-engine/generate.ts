@@ -1,3 +1,4 @@
+import { checkPathProblem } from './console-ui';
 import fs from 'node:fs';
 import { relFromPublic } from '@/lib/creative-engine/migrate';
 import { engineEnv } from '@/lib/creative-engine/env';
@@ -171,9 +172,19 @@ function fileTypeFor(p: string): string {
   return ({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', gif: 'image/gif', mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', mp3: 'audio/mp3', wav: 'audio/wav', m4a: 'audio/m4a', aac: 'audio/aac', ogg: 'audio/ogg' } as Record<string, string>)[ext] ?? 'application/octet-stream';
 }
 
+/** References are paths a request names, then read and sent to Arcads. Only
+ *  absolute paths to a known media type pass, so a request cannot ship
+ *  .env.local or any other host file to a third party. */
+export function assertMediaRef(p: string): void {
+  const problem = checkPathProblem(p);
+  if (problem) throw new Error(`reference ${problem}: ${p}`);
+  if (fileTypeFor(p) === 'application/octet-stream') throw new Error(`reference is not an image, video or audio file: ${p}`);
+}
+
 /** Upload every reference fresh for ONE request (handles are single-use). */
 async function uploadRefs(client: ArcadsClient, c: ConsoleControls) {
   const up = async (p: string) => {
+    assertMediaRef(p);
     if (!fs.existsSync(p)) throw new Error(`reference file not found: ${p}`);
     return client.upload(new Uint8Array(fs.readFileSync(p)), fileTypeFor(p));
   };

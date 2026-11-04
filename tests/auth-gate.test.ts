@@ -139,3 +139,16 @@ describe('trusted hosts (filming aliases)', () => {
     ).toBe('cross-origin');
   });
 });
+
+describe('exposed bind with no password', () => {
+  test('refuses every request, whatever Host the client claims', async () => {
+    const { decideGate, exposedBind } = await import('@/lib/auth-gate');
+    expect(exposedBind('0.0.0.0')).toBe(true);
+    expect(exposedBind('100.64.0.7')).toBe(true);
+    expect(exposedBind(undefined)).toBe(false);
+    expect(exposedBind('127.0.0.1')).toBe(false);
+    const base = { pathname: '/api/keys', method: 'GET', hostname: 'localhost', origin: null, requestOrigin: 'http://localhost:4100', configured: false, authed: false };
+    expect(decideGate({ ...base, exposed: true }).kind).toBe('unconfigured-remote');
+    expect(decideGate({ ...base, exposed: false }).kind).toBe('pass');
+  });
+});

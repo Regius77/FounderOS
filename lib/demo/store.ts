@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { openDb } from '@/lib/db';
 import { seedDatabase } from '@/lib/seed';
 import { assertSeedTarget, dataDir, dataPath, filmingMode } from '@/lib/paths';
@@ -66,9 +67,26 @@ export function demoStoreStale(now = Date.now()): boolean {
   return at == null || !fs.existsSync(dataPath('glados.db')) || now - at > MAX_AGE_MS;
 }
 
+const demoDir = () => path.join(process.cwd(), 'demo-data');
+
 /** Build the demo store from scratch. Refuses to run outside demo mode. */
 export function buildDemoStore(now = Date.now()): { pages: number } {
   if (!filmingMode()) throw new Error('The demo store is built in demo mode only (demo-data/).');
+  // Every writer below resolves dataDir() again. Pin demo mode for the whole
+  // build so a Settings toggle mid-build cannot point them (or the rmSync)
+  // at data/.
+  const prior = process.env.DEMO_MODE;
+  process.env.DEMO_MODE = '1';
+  try {
+    if (path.resolve(dataDir()) !== demoDir()) throw new Error(`Refusing to build the demo store outside demo-data/ (${dataDir()}).`);
+    return buildDemoStoreIn(now);
+  } finally {
+    if (prior === undefined) delete process.env.DEMO_MODE;
+    else process.env.DEMO_MODE = prior;
+  }
+}
+
+function buildDemoStoreIn(now: number): { pages: number } {
   assertSeedTarget();
   const raw = company as unknown as Company;
   const site = shiftCompanyDates(raw, Math.round((now - Date.parse(raw.exportedAt)) / 86_400_000));
@@ -107,7 +125,7 @@ function sleepSync(ms: number): void {
  *  processes never build at once: `next build` prerenders in parallel workers,
  *  and each one would otherwise rm the directory another is writing. */
 function lockPath(): string {
-  return `${dataDir().replace(/[\\/]+$/, '')}.lock`;
+  return `${demoDir()}.lock`;
 }
 
 function acquireLock(): number | null {

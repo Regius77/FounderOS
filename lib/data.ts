@@ -11,6 +11,10 @@ import { ensureDemoStore } from '@/lib/demo/store';
  * repo-level change, not a UI rewrite.
  */
 let instance: GladosDb | null = null;
+/** The path `instance` was opened on. Settings → Filming mode switches the
+ *  data directory at runtime, so getDb() reopens when the path changes rather
+ *  than writing real work into the demo database (or demo rows into data/). */
+let instancePath: string | null = null;
 
 /**
  * Where the database lives. GLADOS_DB wins; otherwise `glados.db` in the data
@@ -29,12 +33,21 @@ export function resolveDbPath(env: Record<string, string | undefined> = process.
 }
 
 export function getDb(): GladosDb {
-  if (instance) return instance;
+  const pinned = Boolean(process.env.GLADOS_DB || process.env.FOUNDER_OS_DB);
+  if (instance && (pinned || resolveDbPath() === instancePath)) return instance;
+  if (instance) {
+    // Mode switched. A request still mid-await may hold the old handle, so it
+    // closes a little later instead of under that request's feet.
+    const old = instance;
+    setTimeout(() => old.close(), 30_000).unref?.();
+    instance = null;
+  }
   // Demo mode opens on the demo company: built on first use, rebuilt weekly.
-  if (!process.env.GLADOS_DB && !process.env.FOUNDER_OS_DB) ensureDemoStore();
+  if (!pinned) ensureDemoStore();
   const dbPath = resolveDbPath();
   if (dbPath !== ':memory:') fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   instance = openDb(dbPath);
+  instancePath = dbPath;
   // Seed the structural rows (departments) on first touch. Everything else
   // starts empty: a fresh install is a blank OS the operator fills in.
   if (instance.departments.all().length === 0) {

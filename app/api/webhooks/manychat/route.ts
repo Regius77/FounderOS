@@ -1,3 +1,4 @@
+import { sameSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/data';
 import { parseManyChatWebhook } from '@/lib/connectors/manychat-webhook';
@@ -25,7 +26,7 @@ export async function POST(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
-  if (request.headers.get('x-manychat-secret') !== secret) {
+  if (!sameSecret(request.headers.get('x-manychat-secret') ?? '', secret)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
@@ -39,13 +40,7 @@ export async function POST(request: Request): Promise<Response> {
   return NextResponse.json({ ok: true, id: message.id, subscriberId: message.subscriberId });
 }
 
-/** Lightweight health check: how many DMs are stored. */
+/** Liveness only: nothing about the secret or the stored DMs (this path is open). */
 export async function GET(): Promise<Response> {
-  const secret = process.env.MANYCHAT_WEBHOOK_SECRET;
-  return NextResponse.json({
-    ok: true,
-    endpoint: 'manychat-webhook',
-    secured: Boolean(secret),
-    stored: getDb().social.dmMessages('instagram').length,
-  });
+  return NextResponse.json({ ok: true });
 }

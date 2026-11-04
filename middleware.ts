@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { SESSION_COOKIE, UNCONFIGURED_REMOTE_MESSAGE, decideGate, isOpenPath, parseTrustedHosts, requestOriginOf } from '@/lib/auth-gate';
+import { SESSION_COOKIE, UNCONFIGURED_REMOTE_MESSAGE, decideGate, exposedBind, isOpenPath, parseTrustedHosts, requestOriginOf } from '@/lib/auth-gate';
 
 /**
  * The gate. With a password set, nothing in GladOS is reachable without the
@@ -75,6 +75,7 @@ export async function middleware(req: NextRequest) {
     configured,
     authed,
     trustedHosts: TRUSTED_HOSTS,
+    exposed: exposedBind(process.env.GLADOS_HOST),
   });
 
   switch (decision.kind) {
@@ -104,6 +105,9 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // everything except Next internals and static files
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|agents/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|ttf|woff2?)$).*)'],
+  // Everything except Next's static chunks and public image/font assets.
+  // API routes and operator media (content-media/) are gated even when the
+  // path ends in an image extension, and /_next/image is gated too (the image
+  // optimizer is off in next.config.mjs). tests/middleware-matcher.test.ts.
+  matcher: ['/((?!_next/static|favicon.ico|(?!api/|content-media/).*\\.(?:png|jpg|jpeg|webp|svg|ico|ttf|woff2?)$).*)'],
 };

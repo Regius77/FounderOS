@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { SESSION_COOKIE } from '@/lib/auth-gate';
+import { SESSION_COOKIE, exposedBind } from '@/lib/auth-gate';
 import {
   checkPassword,
   clearFailures,
@@ -81,6 +81,14 @@ export async function POST(req: Request) {
     case 'rotate':
       return withSession(rotateSession());
     case 'remove': {
+      // Off loopback the Host header is the only guard left once the password
+      // is gone, and any client can forge it (lib/auth-gate.ts, exposed).
+      if (exposedBind(process.env.GLADOS_HOST)) {
+        return NextResponse.json(
+          { error: 'the server listens on a network address; restart it without GLADOS_HOST before removing the password' },
+          { status: 409 },
+        );
+      }
       removePassword();
       const res = NextResponse.json({ ok: true, configured: false });
       res.cookies.set(SESSION_COOKIE, '', { path: '/', maxAge: 0 });

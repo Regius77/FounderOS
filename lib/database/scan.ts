@@ -89,9 +89,11 @@ export type FilePreview =
 export function previewFile(rel: string): FilePreview {
   const root = brainRoot();
   if (!root) return { ok: false, error: 'The brain folder is not configured.' };
-  const clean = rel.replace(/^\/+/, '');
-  const abs = path.resolve(root, clean);
-  if (abs !== root && !abs.startsWith(root + path.sep)) return { ok: false, error: 'Outside the brain folder.' };
+  const base0 = path.resolve(root);
+  const abs = path.resolve(base0, rel.replace(/^\/+/, ''));
+  if (abs !== base0 && !abs.startsWith(base0 + path.sep)) return { ok: false, error: 'Outside the brain folder.' };
+  // The normalised path, so `./Vault/x` or `a/../Vault/x` cannot slip past isPrivatePath.
+  const clean = path.relative(base0, abs).split(path.sep).join('/');
   let st;
   try { st = lstatSync(abs); } catch { return { ok: false, error: 'No such file.' }; }
   if (!st.isFile()) return { ok: false, error: 'Not a file.' };

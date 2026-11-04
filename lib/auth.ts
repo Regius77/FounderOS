@@ -133,7 +133,11 @@ const attempts = new Map<string, { n: number; at: number }>();
 const WINDOW_MS = 60_000;
 const MAX_TRIES = 8;
 
+/** X-Forwarded-For is client-supplied, so it only keys the throttle behind a
+ *  reverse proxy the operator vouches for (GLADOS_TRUST_PROXY=1). Otherwise
+ *  every client shares one bucket: rotating the header buys no extra guesses. */
 export function clientKey(req: Request): string {
+  if (process.env.GLADOS_TRUST_PROXY !== '1') return 'local';
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
 }
 
@@ -143,6 +147,7 @@ export function throttled(key: string, now = Date.now()): boolean {
 }
 
 export function recordFailure(key: string, now = Date.now()): void {
+  if (attempts.size >= 1000 && !attempts.has(key)) attempts.clear();
   const rec = attempts.get(key);
   attempts.set(key, rec && now - rec.at < WINDOW_MS ? { n: rec.n + 1, at: rec.at } : { n: 1, at: now });
 }

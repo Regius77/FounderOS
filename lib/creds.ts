@@ -96,6 +96,7 @@ export function upsertEnvLocal(values: Record<string, string>): void {
   while (next.length > 0 && next[next.length - 1] === '') next.pop();
   for (const [key, v] of pending) next.push(`${key}=${v}`);
   fs.writeFileSync(file, next.join('\n') + '\n', { mode: 0o600 });
+  fs.chmodSync(file, 0o600);
   // A key changed: the next render checks connectors (and the brain) for real (lib/swr.ts).
   invalidateSwr(CONNECTORS_SWR_PREFIX);
   invalidateSwr(BRAIN_SWR_PREFIX);

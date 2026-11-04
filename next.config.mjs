@@ -38,8 +38,11 @@ const nextConfig = {
       { source: '/content-media/ad-engine/:path*', destination: '/content-media/creative-engine/:path*' },
     ];
   },
+  // next/image only ever loads local files here. Serving them as-is keeps the
+  // /_next/image optimizer (several Next 14 advisories, no 14.x fix) out of play.
+  images: { unoptimized: true },
   experimental: {
-    serverComponentsExternalPackages: ['better-sqlite3', 'node-ical', 'nodemailer'],
+    serverComponentsExternalPackages: ['better-sqlite3', 'node-ical'],
     // instrumentation.ts: warms the live-read caches at boot (lib/warm.ts) and starts the cron tick when GLADOS_CRON=1 (SPEC O7).
     instrumentationHook: true,
   },

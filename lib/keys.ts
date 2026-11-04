@@ -88,5 +88,7 @@ export function upsertEnvLocal(filePath: string, key: string, value: string): vo
   }
 
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `${next.join('\n')}\n`, 'utf8');
+  fs.writeFileSync(filePath, `${next.join('\n')}\n`, { encoding: 'utf8', mode: 0o600 });
+  // mode only applies on create: tighten a file that already existed too.
+  fs.chmodSync(filePath, 0o600);
 }

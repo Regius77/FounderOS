@@ -102,6 +102,10 @@ export type GateInput = {
   authed: boolean;
   /** See parseTrustedHosts. Empty unless GLADOS_TRUSTED_HOSTS is set. */
   trustedHosts?: readonly string[];
+  /** The server listens beyond loopback (GLADOS_HOST is a LAN/Tailscale/0.0.0.0
+   *  address). Then the Host header proves nothing (any client can send
+   *  `Host: localhost`), so with no password set every request is refused. */
+  exposed?: boolean;
 };
 
 export type GateDecision =
@@ -120,6 +124,7 @@ export function decideGate(i: GateInput): GateDecision {
   const crossOrigin = mutating && i.origin !== null && i.origin !== i.requestOrigin;
 
   if (!i.configured) {
+    if (i.exposed) return { kind: 'unconfigured-remote' };
     const host = i.hostname.trim().toLowerCase();
     const local = isLoopbackHost(host) || (i.trustedHosts ?? []).includes(host);
     if (!local) return { kind: 'unconfigured-remote' };
@@ -133,4 +138,10 @@ export function decideGate(i: GateInput): GateDecision {
 
 export const UNCONFIGURED_REMOTE_MESSAGE =
   'This console has no operator password yet, so it only answers on the machine it runs on. ' +
-  'Open it there (http://localhost:<port>/setup) and set a password under Security, then come back.';
+  'Open it there (http://localhost:<port>/setup) and set a password under Security, then come back. ' +
+  'If it was started with GLADOS_HOST set to a network address, restart it without GLADOS_HOST first.';
+
+/** True when the bind address (GLADOS_HOST) is reachable from other machines. */
+export function exposedBind(bindHost: string | undefined): boolean {
+  return !isLoopbackHost(hostnameOf((bindHost || '127.0.0.1').trim()).toLowerCase());
+}

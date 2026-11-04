@@ -1,3 +1,4 @@
+import { assertMediaRef } from './generate';
 import fs from 'node:fs';
 import { relFromPublic } from '@/lib/creative-engine/migrate';
 import path from 'node:path';
@@ -211,10 +212,11 @@ function fileTypeFor(p: string): string {
 }
 
 async function uploadAll(client: ArcadsClient, list: { abs: string }[] | undefined): Promise<string[]> {
-  return Promise.all((list ?? []).map((f) => client.upload(new Uint8Array(fs.readFileSync(f.abs)), fileTypeFor(f.abs))));
+  return Promise.all((list ?? []).map((f) => (assertMediaRef(f.abs), client.upload(new Uint8Array(fs.readFileSync(f.abs)), fileTypeFor(f.abs)))));
 }
 
 function b64(abs: string): string {
+  assertMediaRef(abs);
   return `data:${fileTypeFor(abs)};base64,${fs.readFileSync(abs).toString('base64')}`;
 }
 
