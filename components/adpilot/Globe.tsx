@@ -4,6 +4,7 @@
    components/adpilot/Globe.tsx @ 3397780, MIT License, Copyright (c) 2026 FounderOS.
    That file is itself a port of this component's earlier three.js version. */
 
+import { t } from '@/lib/i18n';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useGc } from '@/components/system-g/style-context';
 import type { GeoPoint } from '@/lib/adpilot';
@@ -480,7 +481,7 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
         setTip({ key: hit.key, x: e.clientX - m.left, y: e.clientY - m.top });
         canvas.style.cursor = 'pointer';
       } else {
-        setTip((t) => (t && t.key !== live.current.preview ? null : t));
+        setTip((cur) => (cur && cur.key !== live.current.preview ? null : cur));
         canvas.style.cursor = dragging ? 'grabbing' : 'grab';
       }
     };
@@ -502,7 +503,7 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
       canvas.style.cursor = 'grab';
       kick();
     };
-    const onLeave = () => setTip((t) => (t && t.key !== live.current.preview ? null : t));
+    const onLeave = () => setTip((cur) => (cur && cur.key !== live.current.preview ? null : cur));
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
@@ -873,7 +874,7 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
       data-globe
       tabIndex={0}
       role="group"
-      aria-label="Lead globe. Arrow keys rotate it, Enter opens the city nearest the centre, Escape closes it."
+      aria-label={t('Lead globe. Arrow keys rotate it, Enter opens the city nearest the centre, Escape closes it.')}
       onKeyDown={onKey}
       className={gc('g-viz-globe ap-globe relative w-full outline-none', 'ap-globe relative w-full outline-none')}
       data-entered={entered ? '1' : '0'}
@@ -894,11 +895,11 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
             chipRefs.current[i] = el;
           }}
           onClick={() => onFocus(cityKey(g))}
-          title={`${g.city}, ${g.country}: open the City card`}
+          title={t('{city}, {country}: open the City card', { city: g.city, country: g.country })}
           className={gc('g-chip ap-globe-chip absolute left-0 top-0 z-20', 'ap-globe-chip absolute left-0 top-0 z-20 flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1')}
         >
           <span className="text-[12px] text-os-text">{g.city}</span>
-          <span className="text-[11px] tabular-nums text-os-muted">{g.leads} leads</span>
+          <span className="text-[11px] tabular-nums text-os-muted">{t('{n} leads', { n: g.leads })}</span>
         </button>
       ))}
       {tip && tipCity && (
@@ -907,12 +908,12 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
             {tipCity.city}, {tipCity.country}
           </div>
           <div className="text-[11.5px] tabular-nums text-os-muted">
-            {tipCity.leads} leads · {tipCity.bookings} booked
+            {t('{leads} leads · {booked} booked', { leads: tipCity.leads, booked: tipCity.bookings })}
           </div>
         </div>
       )}
       {/* Keyboard and screen-reader path to every city (F-G6). */}
-      <ul className="sr-only" aria-label="Cities by leads">
+      <ul className="sr-only" aria-label={t('Cities by leads')}>
         {listCities.map((g) => {
           const key = cityKey(g);
           return (
@@ -926,14 +927,14 @@ export function Globe({ geo, height = 560, focus, onFocus, emptyLabel }: Props) 
                 onBlur={() => preview(null)}
                 onClick={() => onFocus(key)}
               >
-                {g.city}, {g.country}: {g.leads} leads, {g.bookings} booked
+                {t('{city}, {country}: {leads} leads, {booked} booked', { city: g.city, country: g.country, leads: g.leads, booked: g.bookings })}
               </button>
             </li>
           );
         })}
       </ul>
       {landState === 'error' && (
-        <p className="absolute inset-x-0 bottom-1 z-10 text-center text-[11.5px] text-os-dim">Map outline unavailable</p>
+        <p className="absolute inset-x-0 bottom-1 z-10 text-center text-[11.5px] text-os-dim">{t('Map outline unavailable')}</p>
       )}
       {perf && <div ref={perfRef} className="ap-globe-perf absolute left-2 top-2 z-30 px-2 py-1 text-[11px] tabular-nums" />}
     </div>

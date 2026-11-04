@@ -28,6 +28,7 @@ import { GPage, GSectionHeader } from '@/components/g';
 import { GStyleProvider } from '@/components/system-g/style-context';
 import { BrainSection, DoctorHero, FolderBars, PillarHealth, RadialStage, StorageLayers } from '@/components/brain/BrainG';
 import { BrainAbout } from '@/components/brain/BrainAbout';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +42,11 @@ function relativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(ms) || ms < 0) return iso;
   const minutes = Math.floor(ms / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t('just now');
+  if (minutes < 60) return t('{n}m ago', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t('{n}h ago', { n: hours });
+  return t('{n}d ago', { n: Math.floor(hours / 24) });
 }
 
 function Stage({
@@ -191,7 +192,7 @@ export default async function BrainPage() {
         <GSectionHeader
           size="page"
           title="Optimal Engine"
-          caption={`Knowledge core · ${store.totalFiles} pages · ${store.totalFiles > 0 ? 'brain-store mounted' : 'brain-store not found'}`}
+          caption={`${t('Knowledge core')} · ${t('{n} pages', { n: store.totalFiles })} · ${store.totalFiles > 0 ? t('brain-store mounted') : t('brain-store not found')}`}
           action={
             <div className="kg-brain-head">
               {/* retrieval notices from the radial portal in here (GBrainRadial) */}
@@ -201,9 +202,9 @@ export default async function BrainPage() {
           }
         />
         <RadialStage data={observatory} />
-        <BrainSection id="kgraph-head" title="Knowledge graph" caption={`${knowledgeGraph.nodes.length} nodes: agents, departments, people, SOP tasks and the memory constellation`}>
+        <BrainSection id="kgraph-head" title={t('Knowledge graph')} caption={t('{n} nodes: agents, departments, people, SOP tasks and the memory constellation', { n: knowledgeGraph.nodes.length })}>
           <GStyleProvider>
-            <Suspense fallback={<CardSkeleton height={520} label="Loading the knowledge graph" />}>
+            <Suspense fallback={<CardSkeleton height={520} label={t('Loading the knowledge graph')} />}>
               <GraphWithClients
                 graph={knowledgeGraph}
                 agents={db.agents.all()}
@@ -237,7 +238,7 @@ export default async function BrainPage() {
           belong ABOVE the canvas window, level with the title, rather than
           sitting inside the frame competing with the graph. */}
       <PageHeader
-        eyebrow="Knowledge core"
+        eyebrow={t('Knowledge core')}
         title="Optimal Engine"
         caret
         rightWide
@@ -266,8 +267,8 @@ export default async function BrainPage() {
       </section>
 
       <section className="mt-8">
-        <SectionHead label="Knowledge graph" count={`${knowledgeGraph.nodes.length} nodes`} />
-        <Suspense fallback={<CardSkeleton height={520} label="Loading the knowledge graph" />}>
+        <SectionHead label={t('Knowledge graph')} count={t('{n} nodes', { n: knowledgeGraph.nodes.length })} />
+        <Suspense fallback={<CardSkeleton height={520} label={t('Loading the knowledge graph')} />}>
           <GraphWithClients
             graph={knowledgeGraph}
             agents={db.agents.all()}
@@ -287,8 +288,8 @@ export default async function BrainPage() {
       <div className="mt-5 grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
         <div className="glass-panel-violet flex min-h-[480px] flex-col overflow-hidden">
           <div className="flex items-baseline justify-between px-5 pt-4">
-            <span className="glass-label">Pillar health</span>
-            <span className="text-[11.5px] text-os-dim">live roster + runs + SOP coverage</span>
+            <span className="glass-label">{t('Pillar health')}</span>
+            <span className="text-[11.5px] text-os-dim">{t('live roster + runs + SOP coverage')}</span>
           </div>
           <PillarRadar
             axes={pillarRadarAxes(db.departments.all(), db.agents.all(), db.sopTasks.all(), runsByAgent)}
@@ -302,12 +303,12 @@ export default async function BrainPage() {
               corners collided with the radar's ring labels */}
           <div className="flex items-start justify-between px-5 pt-4 text-[11.5px] leading-normal text-os-dim">
             <div className="flex flex-col gap-1">
-              <span className="glass-label">Doctor</span>
-              <span>{doctor.connected ? (warnings.length > 0 ? 'warnings' : 'ok') : 'unreachable'} · {lastBrainRun ? `last run ${relativeTime(lastBrainRun.finishedAt)}` : 'no agent runs yet'}</span>
+              <span className="glass-label">{t('Doctor')}</span>
+              <span>{doctor.connected ? (warnings.length > 0 ? t('warnings') : 'ok') : t('unreachable')} · {lastBrainRun ? t('last run {when}', { when: relativeTime(lastBrainRun.finishedAt) }) : t('no agent runs yet')}</span>
             </div>
             <div className="flex flex-col gap-1 text-right">
-              <span className="glass-label">Hybrid search</span>
-              <span>{doctor.connected ? 'verified' : 'degraded'} · {fallbackActive ? 'local fallback' : 'Supabase reachable'}</span>
+              <span className="glass-label">{t('Hybrid search')}</span>
+              <span>{doctor.connected ? t('verified') : t('degraded')} · {fallbackActive ? t('local fallback') : t('Supabase reachable')}</span>
             </div>
           </div>
           <div className="grid flex-1 place-items-center">
@@ -330,7 +331,7 @@ export default async function BrainPage() {
       {/* Core status: storage layers + doctor-health footer, full width. */}
       <div className="glass-panel mt-5 flex flex-col overflow-hidden">
         <div className="glass-label border-b border-[var(--hairline)] px-5 py-4">
-          Storage layers
+          {t('Storage layers')}
         </div>
         <div className="flex flex-1 flex-col divide-y divide-os-border">
           {layers.map((layer) => (
@@ -340,30 +341,30 @@ export default async function BrainPage() {
                 <div className="truncate text-[13.5px] font-medium">{layer.name}</div>
                 <div className="truncate font-mono text-[11.5px] text-os-dim">{layer.sub}</div>
               </div>
-              <span className="shrink-0 text-[12.5px] text-os-muted">{layer.val}</span>
+              <span className="shrink-0 text-[12.5px] text-os-muted">{t(layer.val)}</span>
             </div>
           ))}
         </div>
         <div className="flex items-center justify-between border-t border-os-border px-3.5 py-3 text-[12.5px]">
           <span className="text-os-dim">
-            <b className="font-medium text-os-muted">Doctor</b> — health {doctor.healthScore ?? '—'}/100
+            <b className="font-medium text-os-muted">{t('Doctor')}</b> — {t('health {n}/100', { n: doctor.healthScore ?? '—' })}
           </span>
           <span className="flex items-center gap-2.5 text-os-muted">
             <span className={`dot ${warnings.length > 0 ? 'warn' : doctor.connected ? 'ok' : 'err'}`} />
-            {doctor.connected ? (warnings.length > 0 ? `${warnings.length} warnings` : 'all green') : 'offline'}
+            {doctor.connected ? (warnings.length > 0 ? t('{n} warnings', { n: warnings.length }) : t('all green')) : t('offline')}
           </span>
         </div>
       </div>
 
       {/* The pipeline: where knowledge lives and how it becomes searchable */}
       <section className="mt-8">
-        <SectionHead label="Pipeline" count={`${store.totalFiles} pages on disk`} />
+        <SectionHead label="Pipeline" count={t('{n} pages on disk', { n: store.totalFiles })} />
         <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
-          <Stage step="1" title="Markdown brain-store" caption={<span className="font-mono text-[12px]">{storeShort}</span>}>
+          <Stage step="1" title={t('Markdown brain-store')} caption={<span className="font-mono text-[12px]">{storeShort}</span>}>
             <div className="text-xs text-os-muted">
-              {store.totalFiles} pages on disk, plain <span className="font-mono text-os-text">.md</span> files —
-              the source of truth. <code className="font-mono text-[12.5px]">engine sync</code> walks the git repo and
-              pushes changed pages up.
+              {t('{n} pages on disk, plain', { n: store.totalFiles })} <span className="font-mono text-os-text">.md</span>{' '}
+              {t('files — the source of truth.')} <code className="font-mono text-[12.5px]">engine sync</code>{' '}
+              {t('walks the git repo and pushes changed pages up.')}
             </div>
             <ul className="mt-4 space-y-2.5">
               {store.folders.map((folder) => (
@@ -382,12 +383,12 @@ export default async function BrainPage() {
             </ul>
           </Stage>
 
-          <Arrow label="sync · import" />
+          <Arrow label={t('sync · import')} />
 
-          <Stage step="2" title="engine CLI" caption="chunk · embed · route — the engine between disk and database">
+          <Stage step="2" title="engine CLI" caption={t('chunk · embed · route — the engine between disk and database')}>
             <div className="flex items-baseline gap-3">
               <span className="text-[30px] font-normal tabular-nums">{doctor.healthScore ?? '—'}</span>
-              <span className="text-xs text-os-dim">/ 100 health{doctor.connected ? '' : ' · CLI unreachable'}</span>
+              <span className="text-xs text-os-dim">{t('/ 100 health')}{doctor.connected ? '' : ` · ${t('CLI unreachable')}`}</span>
             </div>
             <ul className="mt-4 space-y-2.5">
               {doctor.checks.map((check) => (
@@ -414,34 +415,33 @@ export default async function BrainPage() {
             </div>
           </Stage>
 
-          <Arrow label="embed · upsert" />
+          <Arrow label={t('embed · upsert')} />
 
-          <Stage step="3" title="Supabase Postgres + pgvector" caption='"Second Brain" · ZeroEntropy embeddings'>
+          <Stage step="3" title="Supabase Postgres + pgvector" caption={t('"Second Brain" · ZeroEntropy embeddings')}>
             {stats ? (
-              <div className="grid grid-cols-2 gap-3" title="From engine stats, read when this page loaded">
+              <div className="grid grid-cols-2 gap-3" title={t('From engine stats, read when this page loaded')}>
                 <div className="rounded-md-t border border-os-border bg-os-surface2 px-3 py-3.5">
                   <div className="text-[22px] font-normal tabular-nums">{formatCompact(stats.pages)}</div>
-                  <div className="text-[11.5px] text-os-dim">Pages · engine stats</div>
+                  <div className="text-[11.5px] text-os-dim">{t('Pages · engine stats')}</div>
                 </div>
                 <div className="rounded-md-t border border-os-border bg-os-surface2 px-3 py-3.5">
                   <div className="text-[22px] font-normal tabular-nums">{formatCompact(stats.chunks)}</div>
-                  <div className="text-[11.5px] text-os-dim">Chunks · engine stats</div>
+                  <div className="text-[11.5px] text-os-dim">{t('Chunks · engine stats')}</div>
                 </div>
               </div>
             ) : (
               <p className="rounded-md-t border border-dashed border-os-border px-3 py-3.5 text-[12.5px] text-os-dim">
-                Page and chunk counts unavailable: {doctor.connected ? 'engine stats did not answer' : 'the engine CLI is unreachable'}.
+                {t('Page and chunk counts unavailable: {reason}.', { reason: doctor.connected ? t('engine stats did not answer') : t('the engine CLI is unreachable') })}
               </p>
             )}
             <div className="mt-4 space-y-2.5 text-[12.5px] leading-relaxed text-os-muted">
               <p>
-                Each page is split into chunks; every chunk gets a ZeroEntropy embedding stored in a{' '}
-                <code className="font-mono">vector</code> column. Postgres holds both the text (tsvector) and the
-                vectors, so one database answers keyword and semantic queries.
+                {t('Each page is split into chunks; every chunk gets a ZeroEntropy embedding stored in a')}{' '}
+                <code className="font-mono">vector</code>{' '}
+                {t('column. Postgres holds both the text (tsvector) and the vectors, so one database answers keyword and semantic queries.')}
               </p>
               <p className="text-os-dim">
-                Free tier pauses on idle — when hybrid queries fail, unpause from the Supabase dashboard. The
-                brain-store on disk keeps working regardless.
+                {t('Free tier pauses on idle — when hybrid queries fail, unpause from the Supabase dashboard. The brain-store on disk keeps working regardless.')}
               </p>
             </div>
           </Stage>
@@ -450,30 +450,30 @@ export default async function BrainPage() {
 
       {/* How a query actually resolves */}
       <section className="mt-8">
-        <SectionHead label="Query path" />
+        <SectionHead label={t('Query path')} />
         <p className="mb-4 text-xs text-os-dim">
-          What happens when an agent calls <code className="font-mono">engine query</code> — hybrid retrieval with an
-          honest fallback.
+          {t('What happens when an agent calls')} <code className="font-mono">engine query</code>{' '}
+          {t('— hybrid retrieval with an honest fallback.')}
         </p>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
-          <FlowStep title="Question" detail="Natural-language query from you or an agent run." />
-          <Arrow label="expand" />
-          <FlowStep title="Query expansion" detail="The CLI rewrites the question into search variants (skip with --no-expand)." />
-          <Arrow label="fan out" />
+          <FlowStep title={t('Question')} detail={t('Natural-language query from you or an agent run.')} />
+          <Arrow label={t('expand')} />
+          <FlowStep title={t('Query expansion')} detail={t('The CLI rewrites the question into search variants (skip with --no-expand).')} />
+          <Arrow label={t('fan out')} />
           <div className="flex flex-1 flex-col gap-3">
-            <FlowStep title="Keyword search" detail="Postgres tsvector full-text match over chunk text." />
-            <FlowStep title="Vector search" detail="pgvector nearest-neighbor over ZeroEntropy embeddings." />
+            <FlowStep title={t('Keyword search')} detail={t('Postgres tsvector full-text match over chunk text.')} />
+            <FlowStep title={t('Vector search')} detail={t('pgvector nearest-neighbor over ZeroEntropy embeddings.')} />
           </div>
-          <Arrow label="merge" />
-          <FlowStep title="RRF fusion" detail="Reciprocal-rank fusion merges both result lists into one ranking." />
-          <Arrow label="answer" />
-          <FlowStep title="Ranked snippets" detail="Top pages with snippets, returned to the agent." />
+          <Arrow label={t('merge')} />
+          <FlowStep title={t('RRF fusion')} detail={t('Reciprocal-rank fusion merges both result lists into one ranking.')} />
+          <Arrow label={t('answer')} />
+          <FlowStep title={t('Ranked snippets')} detail={t('Top pages with snippets, returned to the agent.')} />
         </div>
         <div className="mt-3 flex flex-col gap-3 xl:flex-row xl:items-stretch">
           <FlowStep
             dashed
-            title="Fallback: local grep"
-            detail={`If Supabase is paused or unreachable, ${BRAND.name} greps the markdown brain-store directly — fewer smarts, zero downtime.`}
+            title={t('Fallback: local grep')}
+            detail={t('If Supabase is paused or unreachable, {brand} greps the markdown brain-store directly — fewer smarts, zero downtime.', { brand: BRAND.name })}
           />
         </div>
       </section>

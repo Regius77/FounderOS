@@ -10,6 +10,7 @@
 import { useCallback, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { LeadMagnet, LeadMagnetStatus } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 export type MagnetForm = {
   name: string;
@@ -26,8 +27,8 @@ export const EMPTY_FORM: MagnetForm = { name: '', offer: '', liveUrl: '', destin
 
 export const PLACEHOLDERS = {
   name: 'The Claude Trading Setup',
-  offer: 'The setup, the prompt and the guardrails',
-  campaign: 'IG reel (comment TRADE)',
+  offer: t('The setup, the prompt and the guardrails'),
+  campaign: t('IG reel (comment TRADE)'),
   liveUrl: 'https://…',
 } as const;
 
@@ -38,13 +39,13 @@ export function formFrom(m: LeadMagnet): MagnetForm {
 /** Field errors from the client before sending (the server checks again). */
 export function validateForm(f: MagnetForm): Partial<Record<keyof MagnetForm, string>> {
   const e: Partial<Record<keyof MagnetForm, string>> = {};
-  if (!f.name.trim()) e.name = 'Name the page.';
-  else if (f.name.trim().length > 120) e.name = 'Keep the name under 120 characters.';
+  if (!f.name.trim()) e.name = t('Name the page.');
+  else if (f.name.trim().length > 120) e.name = t('Keep the name under 120 characters.');
   try {
     const u = new URL(f.liveUrl.trim());
-    if (u.protocol !== 'https:') e.liveUrl = 'Use the https:// address of the page.';
+    if (u.protocol !== 'https:') e.liveUrl = t('Use the https:// address of the page.');
   } catch {
-    e.liveUrl = 'Paste the full https:// address of the page.';
+    e.liveUrl = t('Paste the full https:// address of the page.');
   }
   return e;
 }
@@ -55,8 +56,8 @@ type Issues = { fieldErrors?: Record<string, string[] | undefined> };
 function serverErrors(data: Record<string, unknown>): Partial<Record<keyof MagnetForm, string>> & { _form?: string } {
   const out: Partial<Record<keyof MagnetForm, string>> & { _form?: string } = {};
   const fe = (data.issues as Issues | undefined)?.fieldErrors ?? {};
-  for (const [k, v] of Object.entries(fe)) if (v?.[0]) out[k as keyof MagnetForm] = k === 'liveUrl' ? 'Use the https:// address of the page.' : v[0];
-  if (!Object.keys(out).length) out._form = typeof data.error === 'string' ? data.error : 'That did not save. Try again.';
+  for (const [k, v] of Object.entries(fe)) if (v?.[0]) out[k as keyof MagnetForm] = k === 'liveUrl' ? t('Use the https:// address of the page.') : v[0];
+  if (!Object.keys(out).length) out._form = typeof data.error === 'string' ? data.error : t('That did not save. Try again.');
   return out;
 }
 
@@ -91,7 +92,7 @@ export function useLeadMagnets() {
         router.refresh();
         return { ok: true };
       } catch {
-        return { ok: false, errors: { _form: 'The request failed. Try again.' } };
+        return { ok: false, errors: { _form: t('The request failed. Try again.') } };
       } finally {
         setBusy(null);
       }

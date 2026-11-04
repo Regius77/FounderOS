@@ -10,6 +10,7 @@ import { useBrainQuery } from '@/components/BrainQuery';
 import type { ObservatoryData } from '@/lib/gbrain-observatory';
 import type { PillarAxis } from '@/lib/pillar-radar';
 import type { StorageLayer } from '@/lib/brain-layers';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * /brain under the GladOS style (SPEC S05 F05.10 to F05.17). The radial keeps
@@ -28,7 +29,7 @@ export function RadialStage({ data }: { data: ObservatoryData }) {
   const [fs, setFs] = useState(false);
   return (
     <GVizStage
-      label="Optimal Engine radial"
+      label={t('Optimal Engine radial')}
       height="max(560px, calc(100vh - 180px))"
       fullscreen={fs}
       onFullscreenChange={setFs}
@@ -39,14 +40,14 @@ export function RadialStage({ data }: { data: ObservatoryData }) {
           <span className="kg-cap">{data.statusLine}</span>
         </>
       }
-      hudTopRight={data.mounted ? <span className="kg-cap" title="Embedded chunks across the brain-store">{data.totalChunks.toLocaleString('en-US')} chunks</span> : undefined}
+      hudTopRight={data.mounted ? <span className="kg-cap" title={t('Embedded chunks across the brain-store')}>{t('{n} chunks', { n: data.totalChunks.toLocaleString(localeTag()) })}</span> : undefined}
       bottomCenter={data.mounted ? <BrainDock g /> : undefined}
     >
       {data.mounted ? (
         <GBrainRadialLazy data={data} g fullscreen={fs} />
       ) : (
         <div className="kg-stage-empty">
-          <GEmpty kind="unconfigured" title="No brain-store mounted" body="The radial draws the brain-store's folders and pages once it is mounted." setupHref="/setup" setupHint="expected at ~/knowledge/brain-store (or GBRAIN_STORE)" />
+          <GEmpty kind="unconfigured" title={t('No brain-store mounted')} body={t("The radial draws the brain-store's folders and pages once it is mounted.")} setupHref="/setup" setupHint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
         </div>
       )}
     </GVizStage>
@@ -64,22 +65,22 @@ function HybridSearch({ fallbackActive }: { fallbackActive: boolean }) {
         }}
         className="kg-query"
       >
-        <GSearch value={q} onValueChange={setQ} size="md" placeholder="Query the second brain" aria-label="Query the second brain" />
-        <GButton type="submit" variant="ink" busy={state.phase === 'busy'} disabled={!q.trim()} disabledReason="Type a question first">
-          Search
+        <GSearch value={q} onValueChange={setQ} size="md" placeholder={t('Query the second brain')} aria-label={t('Query the second brain')} />
+        <GButton type="submit" variant="ink" busy={state.phase === 'busy'} disabled={!q.trim()} disabledReason={t('Type a question first')}>
+          {t('Search')}
         </GButton>
       </form>
-      {state.phase === 'busy' && <GProgress text="Querying: hybrid (local + ZeroEntropy)…" />}
-      {state.phase === 'error' && <GErrorLine align="left">Query failed: {state.message}</GErrorLine>}
+      {state.phase === 'busy' && <GProgress text={t('Querying: hybrid (local + ZeroEntropy)…')} />}
+      {state.phase === 'error' && <GErrorLine align="left">{t('Query failed: {message}', { message: state.message })}</GErrorLine>}
       {state.phase === 'done' && (
         <>
           <p className="kg-cap">
-            {state.hits.length} hits for “{state.query}”{fallbackActive ? ' · local fallback (Supabase paused)' : ''}
+            {t('{n} hits for “{query}”', { n: state.hits.length, query: state.query })}{fallbackActive ? t(' · local fallback (Supabase paused)') : ''}
           </p>
           {state.hits.length === 0 ? (
-            <GEmpty inline title="Nothing matched" body="Try a broader phrase." />
+            <GEmpty inline title={t('Nothing matched')} body={t('Try a broader phrase.')} />
           ) : (
-            <GList divided label="Results">
+            <GList divided label={t('Results')}>
               {state.hits.map((h) => (
                 <GRow key={h.title} title={h.title} meta={h.snippet} trailing={<span className="kg-cap">{h.source}</span>} />
               ))}
@@ -96,46 +97,46 @@ export function DoctorHero({ doctor, lastRun, fallbackActive }: { doctor: Doctor
   const [open, setOpen] = useState(false);
   const warnings = doctor.checks.filter((c) => c.status !== 'ok');
   const status = doctor.connected
-    ? `${warnings.length} warning${warnings.length === 1 ? '' : 's'} · ${lastRun ? `last run ${lastRun}` : 'no agent runs yet'}`
-    : 'CLI unreachable';
+    ? `${warnings.length === 1 ? t('{n} warning', { n: warnings.length }) : t('{n} warnings', { n: warnings.length })} · ${lastRun ? t('last run {when}', { when: lastRun }) : t('no agent runs yet')}`
+    : t('CLI unreachable');
   return (
     <>
       <GHeroCard
         variant="a"
-        caption="Doctor"
+        caption={t('Doctor')}
         value={doctor.connected ? doctor.healthScore : null}
-        label={doctor.connected && doctor.healthScore != null ? `Health ${doctor.healthScore} of 100` : 'Health unknown'}
-        title="Engine health score, 0 to 100. Opens the checks and hybrid search."
+        label={doctor.connected && doctor.healthScore != null ? t('Health {n} of 100', { n: doctor.healthScore }) : t('Health unknown')}
+        title={t('Engine health score, 0 to 100. Opens the checks and hybrid search.')}
         status={status}
-        strip={<GRuler value={doctor.connected ? doctor.healthScore : null} max={100} onHero label={`Health ${doctor.healthScore ?? 'unknown'} of 100`} />}
+        strip={<GRuler value={doctor.connected ? doctor.healthScore : null} max={100} onHero label={t('Health {n} of 100', { n: doctor.healthScore ?? t('unknown') })} />}
         onClick={() => setOpen(true)}
         className="kg-doctor"
       />
-      <GSheet open={open} onClose={() => setOpen(false)} title="Doctor · search" caption={doctor.connected ? `${warnings.length} of ${doctor.checks.length} checks need attention` : 'Doctor offline'} width={720}>
+      <GSheet open={open} onClose={() => setOpen(false)} title={t('Doctor · search')} caption={doctor.connected ? t('{n} of {total} checks need attention', { n: warnings.length, total: doctor.checks.length }) : t('Doctor offline')} width={720}>
         <div className="kg-stack">
           {!doctor.connected ? (
-            <GEmpty kind="unconfigured" title="The engine CLI is unreachable" body={doctor.detail} setupHref="/setup" setupHint={doctor.detail} />
+            <GEmpty kind="unconfigured" title={t('The engine CLI is unreachable')} body={doctor.detail} setupHref="/setup" setupHint={doctor.detail} />
           ) : (
-            <GList divided label="Doctor checks">
+            <GList divided label={t('Doctor checks')}>
               {doctor.checks.map((c) => (
                 <GRow
                   key={c.name}
                   title={<span className="kg-mono-inline" data-mono-ok="">{c.name}</span>}
                   meta={c.message}
-                  trailing={<GTag tone={CHECK_TONE[c.status] ?? 'err'} dot size="xs">{c.status === 'ok' ? 'OK' : c.status === 'warn' ? 'Warning' : 'Error'}</GTag>}
+                  trailing={<GTag tone={CHECK_TONE[c.status] ?? 'err'} dot size="xs">{c.status === 'ok' ? 'OK' : c.status === 'warn' ? t('Warning') : t('Error')}</GTag>}
                 />
               ))}
             </GList>
           )}
-          <section className="kg-stack-sm" aria-label="Hybrid search">
-            <GSectionHeader size={22} title="Hybrid search" caption="Keyword and vector search over the brain, with a local fallback." />
+          <section className="kg-stack-sm" aria-label={t('Hybrid search')}>
+            <GSectionHeader size={22} title={t('Hybrid search')} caption={t('Keyword and vector search over the brain, with a local fallback.')} />
             <HybridSearch fallbackActive={fallbackActive} />
             {fallbackActive && (
               <div className="kg-fallback">
                 <Zap size={14} strokeWidth={1.7} aria-hidden="true" />
-                <span className="kg-body">Supabase free tier is paused: hybrid queries fall back to local grep until revived.</span>
+                <span className="kg-body">{t('Supabase free tier is paused: hybrid queries fall back to local grep until revived.')}</span>
                 <GButton variant="sm" href="/roadmap">
-                  Roadmap
+                  {t('Roadmap')}
                 </GButton>
               </div>
             )}
@@ -147,10 +148,10 @@ export function DoctorHero({ doctor, lastRun, fallbackActive }: { doctor: Doctor
 }
 
 const LAYERS: { id: keyof Pick<PillarAxis, 'score' | 'roster' | 'freshness' | 'sop'>; label: string; color: VizColor }[] = [
-  { id: 'score', label: 'Overall', color: 'accent' },
-  { id: 'roster', label: 'Roster', color: 'series-2' },
-  { id: 'freshness', label: 'Run freshness', color: 'series-3' },
-  { id: 'sop', label: 'SOP coverage', color: 'series-4' },
+  { id: 'score', label: t('Overall'), color: 'accent' },
+  { id: 'roster', label: t('Roster'), color: 'series-2' },
+  { id: 'freshness', label: t('Run freshness'), color: 'series-3' },
+  { id: 'sop', label: t('SOP coverage'), color: 'series-4' },
 ];
 
 /** Pillar health (F05.15): the radar with its layers; the duplicated health footer is cut. */
@@ -158,12 +159,12 @@ export function PillarHealth({ axes }: { axes: PillarAxis[] }) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <GCard as="section" p={24} className="kg-pillar" aria-labelledby="pillar-head">
-      <GSectionHeader size={22} id="pillar-head" title="Pillar health" caption="Live roster, run freshness and SOP coverage per department" />
+      <GSectionHeader size={22} id="pillar-head" title={t('Pillar health')} caption={t('Live roster, run freshness and SOP coverage per department')} />
       {axes.length === 0 ? (
-        <GEmpty inline title="No departments yet" />
+        <GEmpty inline title={t('No departments yet')} />
       ) : (
         <GRadar
-          label="Pillar health radar"
+          label={t('Pillar health radar')}
           axes={axes.map((a) => ({ id: a.id, label: a.label }))}
           layers={LAYERS.map((l) => ({ id: l.id, label: l.label, color: l.color, values: axes.map((a) => a[l.id]) }))}
           activeLayer={active}
@@ -180,16 +181,16 @@ const LAYER_TONE: Record<string, GTagTone> = { connected: 'ok', available: 'warn
 export function StorageLayers({ layers }: { layers: StorageLayer[] }) {
   return (
     <GCard as="section" p={20} aria-labelledby="storage-head" className="kg-card-stack">
-      <GSectionHeader size={22} id="storage-head" title="Storage layers" caption="Where the knowledge lives, from disk to database" />
-      <GList divided label="Storage layers">
+      <GSectionHeader size={22} id="storage-head" title={t('Storage layers')} caption={t('Where the knowledge lives, from disk to database')} />
+      <GList divided label={t('Storage layers')}>
         {layers.map((l) => (
           <GRow
             key={l.name}
             leading={<span className="kg-dot" data-state={l.state} aria-hidden="true" />}
             title={l.name}
             meta={<span className="kg-trunc">{l.sub}</span>}
-            trailing={<GTag tone={LAYER_TONE[l.state] ?? 'neutral'} size="xs">{l.val}</GTag>}
-            hint={`${l.name}: ${l.val}`}
+            trailing={<GTag tone={LAYER_TONE[l.state] ?? 'neutral'} size="xs">{t(l.val)}</GTag>}
+            hint={`${l.name}: ${t(l.val)}`}
           />
         ))}
       </GList>
@@ -198,11 +199,11 @@ export function StorageLayers({ layers }: { layers: StorageLayer[] }) {
 }
 
 export function FolderBars({ folders, total }: { folders: { name: string; files: number }[]; total: number }) {
-  const rows = [...folders].sort((a, b) => b.files - a.files).map((f) => ({ id: f.name, label: f.name, value: f.files, title: `${f.files} pages in ${f.name}/` }));
+  const rows = [...folders].sort((a, b) => b.files - a.files).map((f) => ({ id: f.name, label: f.name, value: f.files, title: t('{n} pages in {folder}/', { n: f.files, folder: f.name }) }));
   return (
     <GCard as="section" p={20} aria-labelledby="folders-head" className="kg-card-stack">
-      <GSectionHeader size={22} id="folders-head" title="Brain-store by folder" caption={`${total} pages on disk, plain markdown`} />
-      <GDriverBars rows={rows} labelWidth={120} label="Pages per folder" />
+      <GSectionHeader size={22} id="folders-head" title={t('Brain-store by folder')} caption={t('{n} pages on disk, plain markdown', { n: total })} />
+      <GDriverBars rows={rows} labelWidth={120} label={t('Pages per folder')} />
     </GCard>
   );
 }

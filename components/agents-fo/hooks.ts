@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
 import type { Deliverable, ReviewView } from '@/lib/agent-review';
+import { t } from '@/lib/i18n';
 
 export function useReview(initial: ReviewView) {
   const router = useRouter();
@@ -30,17 +31,17 @@ export function useReview(initial: ReviewView) {
         });
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         if (!res.ok && res.status !== 409) {
-          toast({ text: body.error ?? 'The decision was not saved.', tone: 'err' });
+          toast({ text: body.error ?? t('The decision was not saved.'), tone: 'err' });
           return false;
         }
         // 409 = this run already had a decision (A-1): drop it from the queue either way.
         setPending((p) => p.filter((x) => x.runId !== item.runId));
         if (res.ok) setDecided((d) => [{ ...item, decision, reason: reason.trim(), at: new Date().toISOString() }, ...d].slice(0, 20));
-        toast({ text: res.ok ? `${decision === 'approved' ? 'Approved' : 'Rejected'}: ${item.agentName}` : 'This run was already decided.', tone: res.ok ? 'ok' : 'info' });
+        toast({ text: res.ok ? (decision === 'approved' ? t('Approved: {name}', { name: item.agentName }) : t('Rejected: {name}', { name: item.agentName })) : t('This run was already decided.'), tone: res.ok ? 'ok' : 'info' });
         router.refresh();
         return true;
       } catch {
-        toast({ text: 'The decision was not saved. Check the connection and try again.', tone: 'err' });
+        toast({ text: t('The decision was not saved. Check the connection and try again.'), tone: 'err' });
         return false;
       } finally {
         setBusy(null);
@@ -70,15 +71,15 @@ export function useFailover(agentId: string, agentName: string, initialModel: st
         });
         const body = (await res.json().catch(() => ({}))) as { error?: string; model?: string };
         if (!res.ok) {
-          toast({ text: body.error ?? 'Failover did not go through.', tone: 'err' });
+          toast({ text: body.error ?? t('Failover did not go through.'), tone: 'err' });
           return false;
         }
         setModel(next);
-        toast({ text: `${agentName} now runs on ${next}. Logged to its run history.`, tone: 'ok' });
+        toast({ text: t('{name} now runs on {model}. Logged to its run history.', { name: agentName, model: next }), tone: 'ok' });
         router.refresh();
         return true;
       } catch {
-        toast({ text: 'Failover did not go through. Check the connection and try again.', tone: 'err' });
+        toast({ text: t('Failover did not go through. Check the connection and try again.'), tone: 'err' });
         return false;
       } finally {
         setBusy(false);
@@ -93,8 +94,8 @@ export function useFailover(agentId: string, agentName: string, initialModel: st
 /** "3h ago" style age for a finished run. */
 export function age(iso: string, now = Date.now()): string {
   const m = Math.max(0, Math.round((now - Date.parse(iso)) / 60_000));
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return t('{n}m ago', { n: m });
   const h = Math.round(m / 60);
-  if (h < 48) return `${h}h ago`;
-  return `${Math.round(h / 24)}d ago`;
+  if (h < 48) return t('{n}h ago', { n: h });
+  return t('{n}d ago', { n: Math.round(h / 24) });
 }

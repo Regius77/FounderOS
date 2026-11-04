@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { PageHeader } from '@/components/PageHeader';
+import { t } from '@/lib/i18n';
 import { LegacyKitSpecimen } from './LegacyKitSpecimen';
 
 /**
@@ -10,7 +11,7 @@ import { LegacyKitSpecimen } from './LegacyKitSpecimen';
  * FounderOS v1 Trading slab, for screenshot review and scripts/l-audit.mjs.
  * Not in the nav, not served by a production build.
  */
-export const metadata = { title: 'Legacy kit' };
+export const metadata = { title: t('Legacy kit') };
 export const dynamic = 'force-dynamic';
 
 export default function LegacyKitPage() {
@@ -18,8 +19,8 @@ export default function LegacyKitPage() {
   if (treeFor(getAppearance(), '/dev/l-kit') === 'legacy') return <LegacyKitSpecimen />;
   return (
     <PageHeader
-      title="Legacy kit"
-      eyebrow="This specimen renders under the Bennett Legacy style. Switch to it in Settings, Appearance, to see the kit."
+      title={t('Legacy kit')}
+      eyebrow={t('This specimen renders under the Bennett Legacy style. Switch to it in Settings, Appearance, to see the kit.')}
     />
   );
 }

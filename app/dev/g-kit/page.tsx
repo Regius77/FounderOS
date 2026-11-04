@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { t } from '@/lib/i18n';
 import { KitGallery } from './KitGallery';
 
 /**
@@ -6,7 +7,7 @@ import { KitGallery } from './KitGallery';
  * every state, for screenshot review and the audit scripts. Not in the nav,
  * not served by a production build.
  */
-export const metadata = { title: 'Kit gallery' };
+export const metadata = { title: t('Kit gallery') };
 
 export default function GKitPage() {
   if (process.env.NODE_ENV === 'production') notFound();

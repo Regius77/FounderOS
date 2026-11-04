@@ -3,6 +3,7 @@
 import { Instagram, Send } from 'lucide-react';
 import type { DmThread } from '@/lib/social';
 import { initials, relativeTime, useDmInbox } from '@/components/social/use-dm-inbox';
+import { t } from '@/lib/i18n';
 
 /**
  * The Instagram DM inbox: thread list + conversation pane, with a reply box that
@@ -27,42 +28,42 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
         </div>
         <span className="ml-auto flex items-center gap-2 text-[12.5px] text-os-muted">
           <span className={`dot ${isLive ? 'ok' : 'off'}`} />
-          {isLive ? 'Live · ManyChat' : 'Seeded · goes live via the ManyChat webhook'}
+          {isLive ? t('Live · ManyChat') : t('Seeded · goes live via the ManyChat webhook')}
         </span>
       </div>
 
       {threads.length === 0 ? (
         <div className="rounded-lg-t border border-os-border bg-os-surface px-5 py-8 text-center text-[13px] text-os-dim">
-          No DMs yet. They appear here as ManyChat posts them to /api/webhooks/manychat.
+          {t('No DMs yet. They appear here as ManyChat posts them to /api/webhooks/manychat.')}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg-t border border-os-border bg-os-border md:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           {/* Thread list */}
           <div className="flex max-h-[520px] flex-col overflow-y-auto bg-os-surface">
-            {threads.map((t) => {
-              const on = t.subscriberId === active?.subscriberId;
+            {threads.map((thread) => {
+              const on = thread.subscriberId === active?.subscriberId;
               return (
                 <button
-                  key={t.subscriberId}
-                  onClick={() => setSelected(t.subscriberId)}
+                  key={thread.subscriberId}
+                  onClick={() => setSelected(thread.subscriberId)}
                   className={`flex items-center gap-4 border-b border-os-border px-3.5 py-3 text-left transition-colors ${
                     on ? 'bg-os-surface2' : 'hover:bg-os-surface2/50'
                   }`}
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-os-border-strong bg-os-bg text-[12.5px] font-medium text-os-muted">
-                    {initials(t.name)}
+                    {initials(thread.name)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-3">
-                      <span className="truncate text-[13.5px] font-medium text-os-text">{t.name}</span>
-                      <span className="ml-auto shrink-0 font-mono text-[11.5px] text-os-dim">{relativeTime(t.last.ts, nowMs)}</span>
+                      <span className="truncate text-[13.5px] font-medium text-os-text">{thread.name}</span>
+                      <span className="ml-auto shrink-0 font-mono text-[11.5px] text-os-dim">{relativeTime(thread.last.ts, nowMs)}</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <span className="truncate text-[12.5px] text-os-dim">
-                        {t.last.direction === 'out' ? 'You: ' : ''}
-                        {t.last.text}
+                        {thread.last.direction === 'out' ? t('You: ') : ''}
+                        {thread.last.text}
                       </span>
-                      {t.unreplied && <span className="dot warn ml-auto" title="needs reply" />}
+                      {thread.unreplied && <span className="dot warn ml-auto" title={t('needs reply')} />}
                     </div>
                   </div>
                 </button>
@@ -81,7 +82,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                   {active.unreplied && (
                     <span className="ml-auto flex items-center gap-1.5 text-[12px] text-os-muted">
                       <span className="dot warn" />
-                      Needs reply
+                      {t('Needs reply')}
                     </span>
                   )}
                 </div>
@@ -126,7 +127,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                         }
                       }}
                       rows={1}
-                      placeholder={`Reply to ${active.name}…  (⌘↵ to send)`}
+                      placeholder={t('Reply to {name}…  (⌘↵ to send)', { name: active.name })}
                       className="max-h-28 min-h-[38px] flex-1 resize-none rounded-md-t border border-os-border bg-os-bg px-3 py-3 text-[13px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
                     />
                     <button
@@ -135,7 +136,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                       className="c-btn c-btn-primary shrink-0"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      {sending ? 'Sending' : 'Send'}
+                      {sending ? t('Sending') : t('Send')}
                     </button>
                   </div>
                 </div>

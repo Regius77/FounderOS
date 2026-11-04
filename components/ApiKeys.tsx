@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { KeyRound, Check } from 'lucide-react';
 import type { KeyStatus } from '@/lib/keys';
+import { t } from '@/lib/i18n';
 
 export function ApiKeys() {
   const { groups, editing, setEditing, value, setValue, savedVar, error, setError, save } = useApiKeys();
@@ -26,7 +27,7 @@ export function useApiKeys() {
     fetch('/api/keys')
       .then((r) => r.json())
       .then((b) => setKeys(b.keys ?? []))
-      .catch(() => setError('could not load key statuses'));
+      .catch(() => setError(t('could not load key statuses')));
 
   useEffect(() => {
     load();
@@ -51,7 +52,7 @@ export function useApiKeys() {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(typeof body.error === 'string' ? body.error : 'save failed');
+      setError(typeof body.error === 'string' ? body.error : t('save failed'));
       return;
     }
     setValue('');
@@ -70,11 +71,10 @@ function ApiKeysClassic({
     <section className="mt-10">
       <div className="mb-1 flex items-center gap-3">
         <KeyRound className="h-4 w-4 text-os-muted" strokeWidth={1.6} />
-        <h2 className="text-[13px] font-medium text-os-muted">API keys</h2>
+        <h2 className="text-[13px] font-medium text-os-muted">{t('API keys')}</h2>
       </div>
       <p className="mb-4 text-xs text-os-dim">
-        Stored in <code className="font-mono">.env.local</code> (gitignored), applied live. Values shown masked — the OS never
-        echoes a secret back.
+        {t('Stored in')} <code className="font-mono">.env.local</code> {t('(gitignored), applied live. Values shown masked — the OS never echoes a secret back.')}
       </p>
       {error && (
         <p className="mb-4 flex items-center gap-2.5 text-[12.5px] text-os-muted">
@@ -94,7 +94,7 @@ function ApiKeysClassic({
                     <span className="w-40 truncate font-mono text-os-muted" title={slot.envVar}>
                       {slot.envVar}
                     </span>
-                    <span className="font-mono text-os-dim">{slot.present ? slot.masked : 'not set'}</span>
+                    <span className="font-mono text-os-dim">{slot.present ? slot.masked : t('not set')}</span>
                     {savedVar === slot.envVar && <Check className="h-3 w-3 text-os-text" />}
                     <button
                       onClick={() => {
@@ -104,7 +104,7 @@ function ApiKeysClassic({
                       }}
                       className="ml-auto text-[11.5px] text-os-dim hover:text-os-text"
                     >
-                      {editing === slot.envVar ? 'cancel' : slot.present ? 'rotate' : 'set'}
+                      {editing === slot.envVar ? t('cancel') : slot.present ? t('rotate') : t('set')}
                     </button>
                   </div>
                   {editing === slot.envVar && (
@@ -115,14 +115,14 @@ function ApiKeysClassic({
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && save(slot.envVar)}
-                        placeholder={slot.hint ?? 'paste value'}
+                        placeholder={slot.hint ?? t('paste value')}
                         className="flex-1 rounded-sm-t border border-os-border-strong bg-os-surface2 px-2 py-1 font-mono text-[12.5px] text-os-text placeholder:text-os-dim focus:border-os-dim focus:outline-none"
                       />
                       <button
                         onClick={() => save(slot.envVar)}
                         className="rounded-sm-t bg-os-accent px-2.5 py-1 text-[12px] font-medium text-os-ink transition-colors hover:bg-os-accent2"
                       >
-                        Save
+                        {t('Save')}
                       </button>
                     </div>
                   )}

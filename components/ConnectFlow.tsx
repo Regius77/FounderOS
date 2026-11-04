@@ -10,6 +10,7 @@
  */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { t } from '@/lib/i18n';
 
 export function ConnectFlow({
   slug,
@@ -47,12 +48,12 @@ export function useConnectFlow(slug: string) {
         body: JSON.stringify({ slug, values }),
       });
       const body = (await res.json()) as { ok: boolean; error?: string };
-      if (!body.ok) throw new Error(body.error ?? 'save failed');
+      if (!body.ok) throw new Error(body.error ?? t('save failed'));
       setOpen(false);
       setValues({});
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'save failed');
+      setError(e instanceof Error ? e.message : t('save failed'));
     } finally {
       setBusy(false);
     }
@@ -81,17 +82,17 @@ function ConnectFlowClassic({
   const statusChip = connected ? (
     <span className="flex items-center gap-2.5 text-[12px] text-os-muted">
       <span className="dot ok" />
-      Connected
+      {t('Connected')}
     </span>
   ) : keySaved ? (
     <span className="flex items-center gap-2.5 text-[12px] text-os-muted">
       <span className="dot warn" />
-      Key saved
+      {t('Key saved')}
     </span>
   ) : (
     <span className="flex items-center gap-2.5 text-[12px] text-os-dim">
       <span className="dot off" />
-      Not connected
+      {t('Not connected')}
     </span>
   );
 
@@ -123,7 +124,7 @@ function ConnectFlowClassic({
             }}
             className="rounded-sm-t px-2.5 py-1 text-[12px] text-os-dim transition-colors hover:text-os-text"
           >
-            Cancel
+            {t('Cancel')}
           </button>
           <button
             type="button"
@@ -131,7 +132,7 @@ function ConnectFlowClassic({
             onClick={() => void save()}
             className="rounded-sm-t bg-os-accent px-3 py-1 text-[12px] font-medium text-os-ink transition-colors hover:bg-os-accent2 disabled:opacity-40"
           >
-            {busy ? 'Saving…' : 'Save & connect'}
+            {busy ? t('Saving…') : t('Save & connect')}
           </button>
         </div>
       </div>
@@ -149,14 +150,14 @@ function ConnectFlowClassic({
             onClick={() => void disconnect()}
             className="rounded-sm-t px-2.5 py-1 text-[12px] text-os-dim transition-colors hover:text-os-text disabled:opacity-40"
           >
-            Disconnect
+            {t('Disconnect')}
           </button>
         ) : (
           <span
-            title="Credentials managed outside the console (canonical machine files)"
+            title={t('Credentials managed outside the console (canonical machine files)')}
             className="c-chip cursor-default"
           >
-            Managed
+            {t('Managed')}
           </span>
         )
       ) : keys.length > 0 ? (
@@ -165,14 +166,14 @@ function ConnectFlowClassic({
           onClick={() => setOpen(true)}
           className="rounded-sm-t border border-os-border-strong bg-os-surface2 px-3 py-1 text-[12px] text-os-text transition-colors hover:bg-os-surface3"
         >
-          Connect
+          {t('Connect')}
         </button>
       ) : (
         <span
-          title={guidance ?? 'Connects through local setup, not a pasted key'}
+          title={guidance ?? t('Connects through local setup, not a pasted key')}
           className="c-chip cursor-help"
         >
-          Setup
+          {t('Setup')}
         </span>
       )}
     </div>

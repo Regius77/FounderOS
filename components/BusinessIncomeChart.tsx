@@ -2,30 +2,31 @@
 
 import { useState } from 'react';
 import type { BusinessSeries, IncomeRange, MonthPoint } from '@/lib/bank-statements';
+import { localeTag, t } from '@/lib/i18n';
 
 const RANGES: { label: string; value: IncomeRange }[] = [
-  { label: '30 days', value: 1 },
-  { label: '60 days', value: 2 },
-  { label: '3 months', value: 3 },
-  { label: '6 months', value: 6 },
-  { label: '12 months', value: 12 },
-  { label: 'All time', value: 'all' },
+  { label: t('30 days'), value: 1 },
+  { label: t('60 days'), value: 2 },
+  { label: t('3 months'), value: 3 },
+  { label: t('6 months'), value: 6 },
+  { label: t('12 months'), value: 12 },
+  { label: t('All time'), value: 'all' },
 ];
 
 /** What the card plots: deposits, outflow, or what's left after outflow. */
 type Metric = 'in' | 'out' | 'net';
 const METRICS: { label: string; value: Metric }[] = [
-  { label: 'Money in', value: 'in' },
-  { label: 'Money out', value: 'out' },
-  { label: 'Net after out', value: 'net' },
+  { label: t('Money in'), value: 'in' },
+  { label: t('Money out'), value: 'out' },
+  { label: t('Net after out'), value: 'net' },
 ];
 const metricCents = (m: MonthPoint, metric: Metric): number =>
   metric === 'in' ? m.creditsCents : metric === 'out' ? m.debitsCents : m.netCents;
 
 const usd = (cents: number) =>
-  (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  (cents / 100).toLocaleString(localeTag(), { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const signedUsd = (cents: number) => `${cents < 0 ? '−' : '+'}${usd(Math.abs(cents))}`;
-const fmtMonth = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+const fmtMonth = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', timeZone: 'UTC' });
 
 /** Per-business bank-statement money with range + metric dropdowns — money
     in (deposits), money out (outflow), or the net that's left after it, as a
@@ -43,12 +44,12 @@ export function BusinessIncomeChart({ series }: { series: BusinessSeries }) {
 
   const subLabel =
     metric === 'in' ? (
-      <span className={`text-[12.5px] tabular-nums ${net >= 0 ? 'text-os-ok' : 'text-os-err'}`}>{signedUsd(net)} net</span>
+      <span className={`text-[12.5px] tabular-nums ${net >= 0 ? 'text-os-ok' : 'text-os-err'}`}>{t('{amount} net', { amount: signedUsd(net) })}</span>
     ) : metric === 'out' ? (
-      <span className="text-[12.5px] tabular-nums text-os-dim">of {usd(totalIn)} in</span>
+      <span className="text-[12.5px] tabular-nums text-os-dim">{t('of {amount} in', { amount: usd(totalIn) })}</span>
     ) : (
       <span className="text-[12.5px] tabular-nums text-os-dim">
-        {usd(totalIn)} in − {usd(totalOut)} out
+        {t('{in} in − {out} out', { in: usd(totalIn), out: usd(totalOut) })}
       </span>
     );
 
@@ -58,7 +59,7 @@ export function BusinessIncomeChart({ series }: { series: BusinessSeries }) {
         <div>
           <div className="text-sm font-medium">{series.business}</div>
           <div className="mt-0.5 text-[12.5px] text-os-muted">
-            {metric === 'in' ? 'Income · bank deposits' : metric === 'out' ? 'Outflow · bank debits' : 'Net · after money out'}
+            {metric === 'in' ? t('Income · bank deposits') : metric === 'out' ? t('Outflow · bank debits') : t('Net · after money out')}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2.5">
@@ -95,7 +96,7 @@ export function BusinessIncomeChart({ series }: { series: BusinessSeries }) {
       </div>
 
       {shown.length === 0 ? (
-        <div className="mt-5 text-[12.5px] text-os-muted">No statements in range</div>
+        <div className="mt-5 text-[12.5px] text-os-muted">{t('No statements in range')}</div>
       ) : (
         <div className="mt-5 flex items-end gap-1 sm:gap-2.5" style={{ height: 104 }}>
           {shown.map((m, i) => {

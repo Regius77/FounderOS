@@ -21,6 +21,7 @@ import { SetupFilming } from '@/components/SetupFilming';
 import { dataDir, filmingMode } from '@/lib/paths';
 import { getModulesOff } from '@/lib/modules-server';
 import { ModulesClassic, ModulesG } from '@/components/setup/Modules';
+import { t } from '@/lib/i18n';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,37 +41,37 @@ export default async function SetupPage() {
       <GPage className="kg-page kg-narrow">
         <GSectionHeader
           size="page"
-          title="Settings"
-          caption="Appearance, recording and security, then bring-up: keys, connectors and agents proven live."
+          title={t('Settings')}
+          caption={t('Appearance, recording and security, then bring-up: keys, connectors and agents proven live.')}
           action={
             <AboutButton>
               <p>
-                Everything auto-checked here reads the same live sources as the rest of the OS — keys, connector probes, agent
-                status, files on disk. Only the five human steps have boxes to tick. If a step looks done but is not verified,
-                the wiring is not actually proven yet.
+                {t(
+                  'Everything auto-checked here reads the same live sources as the rest of the OS — keys, connector probes, agent status, files on disk. Only the five human steps have boxes to tick. If a step looks done but is not verified, the wiring is not actually proven yet.',
+                )}
               </p>
             </AboutButton>
           }
         />
         <section className="kg-section" aria-labelledby="setup-appearance">
-          <GSectionHeader size={22} id="setup-appearance" title="Appearance" caption="How every page looks. Changes apply immediately." />
+          <GSectionHeader size={22} id="setup-appearance" title={t('Appearance')} caption={t('How every page looks. Changes apply immediately.')} />
           <AppearancePicker initial={getStoredAppearance()} rollout={rolloutProgress()} />
         </section>
         <section className="kg-section" id="modules" aria-labelledby="setup-modules">
-          <GSectionHeader size={22} id="setup-modules" title="Modules" caption="Which pages this OS shows. A module that is off leaves the sidebar, search and number keys; its data is kept." />
+          <GSectionHeader size={22} id="setup-modules" title={t('Modules')} caption={t('Which pages this OS shows. A module that is off leaves the sidebar, search and number keys; its data is kept.')} />
           <ModulesG initialOff={getModulesOff()} />
         </section>
-        <section className="kg-section" aria-label="Bring-up">
+        <section className="kg-section" aria-label={t('Bring-up')}>
           <BringUpHero totals={setup.totals} firstOpen={firstOpen} />
         </section>
         <div className="kg-section kg-grid-2">
           <SettingCard
-            title="Recording"
-            caption="Point the OS at the sample dataset for filming. Only the directory the stores read changes; real data is never seeded over or copied."
+            title={t('Recording')}
+            caption={t('Point the OS at the sample dataset for filming. Only the directory the stores read changes; real data is never seeded over or copied.')}
           >
             <FilmingG filming={filmingMode()} pinned={filmingPinned} dataDir={dataDir()} />
           </SettingCard>
-          <SettingCard title="Security" caption="Who can open this OS. Without a password it answers only on this machine.">
+          <SettingCard title={t('Security')} caption={t('Who can open this OS. Without a password it answers only on this machine.')}>
             <SecurityG configured={isConfigured()} />
           </SettingCard>
         </div>
@@ -86,13 +87,13 @@ export default async function SetupPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="System bring-up · keys, connectors and agents proven live"
-        title="Settings"
+        eyebrow={t('System bring-up · keys, connectors and agents proven live')}
+        title={t('Settings')}
         right={
           <div className="flex items-center gap-3">
-            <Badge tone="accent">{setup.totals.verified} verified</Badge>
-            <Badge tone="default">{setup.totals.marked} marked done</Badge>
-            <Badge tone={setup.totals.open > 0 ? 'warn' : 'ok'}>{setup.totals.open} open</Badge>
+            <Badge tone="accent">{t('{n} verified', { n: setup.totals.verified })}</Badge>
+            <Badge tone="default">{t('{n} marked done', { n: setup.totals.marked })}</Badge>
+            <Badge tone={setup.totals.open > 0 ? 'warn' : 'ok'}>{t('{n} open', { n: setup.totals.open })}</Badge>
           </div>
         }
       />
@@ -100,25 +101,25 @@ export default async function SetupPage() {
       {/* Appearance first (S05 F05.90): style, colour and mode for every page,
           applied the moment they are picked and kept per browser (S00 FR-13). */}
       <section className="mb-10 max-w-[860px]">
-        <Label rule>Appearance</Label>
-        <p className="mb-3 mt-2 text-[12.5px] text-os-dim">How every page looks. Changes apply immediately.</p>
+        <Label rule>{t('Appearance')}</Label>
+        <p className="mb-3 mt-2 text-[12.5px] text-os-dim">{t('How every page looks. Changes apply immediately.')}</p>
         <AppearancePicker initial={getStoredAppearance()} rollout={rolloutProgress()} />
       </section>
 
       {/* Modules: which sidebar views this install shows (lib/modules.ts). */}
       <section id="modules" className="mb-10 max-w-[860px]">
-        <Label rule>Modules</Label>
+        <Label rule>{t('Modules')}</Label>
         <p className="mb-3 mt-2 text-[12.5px] text-os-dim">
-          Which pages this OS shows. A module that is off leaves the sidebar, search and number keys; its data is kept.
+          {t('Which pages this OS shows. A module that is off leaves the sidebar, search and number keys; its data is kept.')}
         </p>
         <ModulesClassic initialOff={getModulesOff()} />
       </section>
 
       {/* Progress: verified fills solid, marked-done fills dimmer — the split stays visible. */}
-      <Label rule>Bring-up</Label>
+      <Label rule>{t('Bring-up')}</Label>
       <div className="mb-2 mt-3 flex items-baseline justify-between">
         <span className="text-[12.5px] tabular-nums text-os-muted">
-          {done} of {setup.totals.total} steps done
+          {t('{done} of {total} steps done', { done, total: setup.totals.total })}
         </span>
         <span className="text-[12.5px] tabular-nums text-os-dim">{Math.round(pct * 100)}%</span>
       </div>
@@ -132,10 +133,9 @@ export default async function SetupPage() {
 
       {/* Recording — which dataset the OS is reading. Switching never writes to the other one. */}
       <section className="mb-10 max-w-[860px]">
-        <Label rule>Recording</Label>
+        <Label rule>{t('Recording')}</Label>
         <p className="mb-3 mt-2 text-[12.5px] text-os-dim">
-          Point the OS at the sample dataset for filming. This only changes which directory the stores read; your real
-          data is never seeded over or copied.
+          {t('Point the OS at the sample dataset for filming. This only changes which directory the stores read; your real data is never seeded over or copied.')}
         </p>
         <SetupFilming
           filming={filmingMode()}
@@ -146,9 +146,9 @@ export default async function SetupPage() {
 
       {/* Security — who can open this OS. The password is set here, never in a config file. */}
       <section className="mb-10 max-w-[860px]">
-        <Label rule>Security</Label>
+        <Label rule>{t('Security')}</Label>
         <p className="mb-3 mt-2 text-[12.5px] text-os-dim">
-          Who can open this OS. Without a password it answers only on this machine; with one, every device signs in.
+          {t('Who can open this OS. Without a password it answers only on this machine; with one, every device signs in.')}
         </p>
         <SetupSecurity configured={isConfigured()} />
       </section>
@@ -159,7 +159,7 @@ export default async function SetupPage() {
           return (
             <section key={phase.n}>
               <Label rule count={`${phaseDone}/${phase.steps.length}`}>
-                Phase {phase.n} · {phase.title}
+                {t('Phase {n} · {title}', { n: phase.n, title: phase.title })}
               </Label>
               <p className="mb-4 mt-2 text-[12.5px] text-os-dim">{phase.blurb}</p>
               <div className="space-y-3">
@@ -186,11 +186,11 @@ export default async function SetupPage() {
                       <span className="text-[13.5px] font-medium">{step.title}</span>
                       {step.auto ? (
                         <span className="text-[11.5px] text-os-dim">
-                          {step.status === 'verified' ? 'auto-verified' : 'auto-checks'}
+                          {step.status === 'verified' ? t('auto-verified') : t('auto-checks')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[11.5px] text-os-dim">
-                          <UserRound size={11} strokeWidth={1.7} /> yours to confirm
+                          <UserRound size={11} strokeWidth={1.7} /> {t('yours to confirm')}
                         </span>
                       )}
                       <span className="ml-auto flex items-center gap-2.5">
@@ -200,7 +200,7 @@ export default async function SetupPage() {
                             href={step.href}
                             className="inline-flex items-center gap-1 text-[12.5px] text-os-dim transition-colors hover:text-os-text"
                           >
-                            open <ExternalLink size={11} strokeWidth={1.8} />
+                            {t('open')} <ExternalLink size={11} strokeWidth={1.8} />
                           </Link>
                         )}
                       </span>
@@ -224,9 +224,9 @@ export default async function SetupPage() {
       </div>
 
       <p className="mt-10 max-w-[860px] text-[12.5px] leading-relaxed text-os-dim">
-        Everything auto-checked here reads the same live sources as the rest of the OS — keys, connector probes, agent
-        status, files on disk. Only the five human steps have boxes to tick. If a step looks done but is not verified,
-        the wiring is not actually proven yet.
+        {t(
+          'Everything auto-checked here reads the same live sources as the rest of the OS — keys, connector probes, agent status, files on disk. Only the five human steps have boxes to tick. If a step looks done but is not verified, the wiring is not actually proven yet.',
+        )}
       </p>
     </div>
   );

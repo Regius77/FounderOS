@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -144,7 +145,7 @@ export function AdPilotDeck({
   const audience = useMemo(() => (active.length === 1 ? active[0].audience : aggregateAudience(active)), [active]);
   const daily = useMemo(() => aggregateDaily(active), [active]);
   const days = useMemo(() => periodDays(active), [active]);
-  const windowLabel = days ? `${days} day${days === 1 ? '' : 's'}` : null;
+  const windowLabel = days ? (days === 1 ? t('{n} day', { n: days }) : t('{n} days', { n: days })) : null;
 
   const [deckRef, deckWidth] = useElementWidth<HTMLDivElement>();
   const [vw, setVw] = useState<number | null>(null);
@@ -181,11 +182,11 @@ export function AdPilotDeck({
         {!empty && (
           <div className="ap-floaters">
             <StatFloat
-              label={windowLabel ? `Total leads · ${windowLabel}` : 'Total leads'}
+              label={windowLabel ? t('Total leads · {window}', { window: windowLabel }) : t('Total leads')}
               value={nf.format(metrics.leads)}
               onClick={showResults}
             />
-            <StatFloat label="Booked calls" value={nf.format(metrics.bookings)} onClick={showResults} />
+            <StatFloat label={t('Booked calls')} value={nf.format(metrics.bookings)} onClick={showResults} />
             {city && (
               <CityCard
                 city={city}
@@ -203,18 +204,18 @@ export function AdPilotDeck({
           height={globeHeight}
           focus={focusInGeo ? cityFocus : null}
           onFocus={setCityFocus}
-          emptyLabel={selectedName ? `No lead locations for ${selectedName}` : 'No lead locations yet'}
+          emptyLabel={selectedName ? t('No lead locations for {name}', { name: selectedName }) : t('No lead locations yet')}
         />
       </div>
 
       {empty ? (
         <div className="ap-panel mx-auto mt-4 max-w-xl px-4 py-6 text-center">
-          <p className="text-[13px] text-os-muted">No ad account connected.</p>
+          <p className="text-[13px] text-os-muted">{t('No ad account connected.')}</p>
           <p className="mt-1 text-[12px] text-os-dim">
-            Campaigns arrive automatically once a Meta ad account is connected. Nothing here is added by hand.
+            {t('Campaigns arrive automatically once a Meta ad account is connected. Nothing here is added by hand.')}
           </p>
           <div className="mt-3 flex justify-center">
-            <SetupLink href={setupHrefFor('meta-ads')} hint="Connect a Meta ad account" label="Connect Meta Ads" />
+            <SetupLink href={setupHrefFor('meta-ads')} hint={t('Connect a Meta ad account')} label={t('Connect Meta Ads')} />
           </div>
         </div>
       ) : (
@@ -274,25 +275,25 @@ function StatusChip({
     <div className="mb-6 flex justify-center">
       <div
         className="ap-chip flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-5 py-2"
-        title={syncedAt ? `Last ad-account sync ${syncedAt}` : undefined}
+        title={syncedAt ? t('Last ad-account sync {at}', { at: syncedAt }) : undefined}
       >
         <span aria-hidden className={`h-2 w-2 rounded-full ${dot}`} />
         {empty ? (
           <>
-            <span className="text-[13px] text-os-text">No ad account connected</span>
-            <SetupLink href={setupHrefFor('meta-ads')} hint="Connect a Meta ad account" />
+            <span className="text-[13px] text-os-text">{t('No ad account connected')}</span>
+            <SetupLink href={setupHrefFor('meta-ads')} hint={t('Connect a Meta ad account')} />
           </>
         ) : (
           <span className="text-[13px] text-os-text">
-            {liveCount} active campaign{liveCount === 1 ? '' : 's'}
+            {liveCount === 1 ? t('{n} active campaign', { n: liveCount }) : t('{n} active campaigns', { n: liveCount })}
             {syncedAt && (
-              <span className="text-os-muted"> · synced {relativeAgo(syncedAt, now)}{stale ? ' (stale)' : ''}</span>
+              <span className="text-os-muted">{t(' · synced {ago}', { ago: relativeAgo(syncedAt, now) })}{stale ? t(' (stale)') : ''}</span>
             )}
           </span>
         )}
         {filming && !empty && (
-          <span className="rounded-full border border-os-border px-2 py-[1px] text-[10.5px] text-os-dim" title="Staged Filming data, not a live ad account">
-            sample data
+          <span className="rounded-full border border-os-border px-2 py-[1px] text-[10.5px] text-os-dim" title={t('Staged Filming data, not a live ad account')}>
+            {t('sample data')}
           </span>
         )}
       </div>
@@ -306,8 +307,8 @@ function StatFloat({ label, value, onClick }: { label: string; value: string; on
     <button
       type="button"
       onClick={onClick}
-      aria-label={`${label}: ${value}. Show results breakdown`}
-      title="Show results breakdown"
+      aria-label={t('{label}: {value}. Show results breakdown', { label, value })}
+      title={t('Show results breakdown')}
       data-ap-floater
       className="ap-frost ap-lift block w-full px-4 py-3 text-left"
     >
@@ -343,13 +344,13 @@ function CityCard({
   const rate = city.bookingRate === null ? '—' : `${(city.bookingRate * 100).toFixed(1)}%`;
   const share = city.share === null ? '—' : `${(city.share * 100).toFixed(1)}%`;
   const facts: [string, string, string][] = [
-    ['Leads', nf.format(city.leads), 'Leads from this city in the current selection'],
-    ['Booked', nf.format(city.bookings), 'Booked calls from this city in the current selection'],
-    ['Booking rate', rate, 'Booked calls divided by leads'],
-    ['Share', share, 'This city’s share of all leads in the current selection'],
+    [t('Leads'), nf.format(city.leads), t('Leads from this city in the current selection')],
+    [t('Booked'), nf.format(city.bookings), t('Booked calls from this city in the current selection')],
+    [t('Booking rate'), rate, t('Booked calls divided by leads')],
+    [t('Share'), share, t('This city’s share of all leads in the current selection')],
   ];
   return (
-    <div ref={cardRef} data-ap-floater role="region" aria-label={`City: ${city.city}, ${city.country}`} className="ap-frost ap-city-card px-4 py-3">
+    <div ref={cardRef} data-ap-floater role="region" aria-label={t('City: {city}, {country}', { city: city.city, country: city.country })} className="ap-frost ap-city-card px-4 py-3">
       <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="truncate text-[12.5px] text-os-text">{city.city}</div>
@@ -358,8 +359,8 @@ function CityCard({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close city card"
-          title="Close (Esc)"
+          aria-label={t('Close city card')}
+          title={t('Close (Esc)')}
           className="-mr-1.5 -mt-0.5 shrink-0 rounded-full p-1 text-os-dim hover:text-os-text"
         >
           <X className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -375,7 +376,7 @@ function CityCard({
       </dl>
       {city.byCampaign.length > 0 && (
         <div className="ap-city-by ap-hair-soft relative mt-2.5 border-t pt-2">
-          <div className="text-[11px] text-os-dim">By campaign</div>
+          <div className="text-[11px] text-os-dim">{t('By campaign')}</div>
           <div className="ap-city-rows -mx-1.5 mt-1 flex flex-col gap-0.5">
             {city.byCampaign.map((r) => (
               <button
@@ -383,12 +384,12 @@ function CityCard({
                 type="button"
                 aria-pressed={selected === r.id}
                 onClick={() => onToggle(r.id)}
-                title={selected === r.id ? 'Show all campaigns' : `Show ${r.name}`}
+                title={selected === r.id ? t('Show all campaigns') : t('Show {name}', { name: r.name })}
                 className="ap-row block w-full px-1.5 py-1 text-left"
               >
                 <span className="block truncate text-[12px] text-os-muted">{r.name}</span>
                 <span className="block text-[11px] tabular-nums text-os-dim">
-                  {nf.format(r.leads)} leads · {nf.format(r.bookings)} booked
+                  {t('{leads} leads · {booked} booked', { leads: nf.format(r.leads), booked: nf.format(r.bookings) })}
                 </span>
               </button>
             ))}
@@ -396,7 +397,7 @@ function CityCard({
         </div>
       )}
       {nearby.length > 0 && (
-        <div className="relative mt-1.5 text-[11px] text-os-dim">Also here: {nearby.map((n) => n.city).join(', ')}</div>
+        <div className="relative mt-1.5 text-[11px] text-os-dim">{t('Also here: {cities}', { cities: nearby.map((n) => n.city).join(', ') })}</div>
       )}
     </div>
   );
@@ -477,14 +478,14 @@ function CampaignRail({
         tabIndex={tabStop === id ? 0 : -1}
         onFocus={() => setFocusId(id)}
         onClick={() => onSelect(id)}
-        title={paused ? `${label} · paused` : label}
+        title={paused ? t('{name} · paused', { name: label }) : label}
         className={`ap-pill relative flex shrink-0 snap-start items-center gap-2 rounded-full border px-3.5 py-2 text-[12.5px] transition-colors ${
           isActive ? 'text-os-text' : 'text-os-dim hover:text-os-muted'
         }`}
       >
         {live !== null && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${live ? 'ap-solid' : 'bg-os-dim'}`} />}
         <span className="max-w-[220px] truncate">{label}</span>
-        {paused && <span className="sr-only">(paused)</span>}
+        {paused && <span className="sr-only">{t('(paused)')}</span>}
       </button>
     );
   };
@@ -494,8 +495,8 @@ function CampaignRail({
   const showRight = narrow || edges.right;
 
   return (
-    <div ref={railRef} role="group" aria-label="Campaigns" onKeyDown={onKeyDown} className="ap-panel mt-6 flex items-center gap-2 p-2">
-      {pill('all', 'All campaigns', null)}
+    <div ref={railRef} role="group" aria-label={t('Campaigns')} onKeyDown={onKeyDown} className="ap-panel mt-6 flex items-center gap-2 p-2">
+      {pill('all', t('All campaigns'), null)}
       <div aria-hidden className="ap-rule h-6 w-px shrink-0" />
       {showLeft && (
         <button
@@ -503,8 +504,8 @@ function CampaignRail({
           tabIndex={-1}
           onClick={() => scrollBy(-1)}
           disabled={!edges.left}
-          aria-label="Scroll campaigns left"
-          title={edges.left ? 'Scroll campaigns left' : 'Already at the start'}
+          aria-label={t('Scroll campaigns left')}
+          title={edges.left ? t('Scroll campaigns left') : t('Already at the start')}
           className="shrink-0 rounded-full p-1 text-os-dim hover:text-os-text disabled:opacity-30"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={1.8} />
@@ -512,7 +513,7 @@ function CampaignRail({
       )}
       <div ref={scrollRef} onScroll={measure} data-fade={fade} className="ap-rail-scroll flex min-w-0 flex-1 snap-x gap-2 overflow-x-auto">
         {ordered.map((c) => pill(c.id, c.name, c.status === 'active'))}
-        {ordered.length === 0 && <span className="self-center px-2 text-[12px] text-os-dim">No campaign matches “{filter.trim()}”.</span>}
+        {ordered.length === 0 && <span className="self-center px-2 text-[12px] text-os-dim">{t('No campaign matches “{filter}”.', { filter: filter.trim() })}</span>}
       </div>
       {showRight && (
         <button
@@ -520,8 +521,8 @@ function CampaignRail({
           tabIndex={-1}
           onClick={() => scrollBy(1)}
           disabled={!edges.right}
-          aria-label="Scroll campaigns right"
-          title={edges.right ? 'Scroll campaigns right' : 'Already at the end'}
+          aria-label={t('Scroll campaigns right')}
+          title={edges.right ? t('Scroll campaigns right') : t('Already at the end')}
           className="shrink-0 rounded-full p-1 text-os-dim hover:text-os-text disabled:opacity-30"
         >
           <ChevronRight className="h-4 w-4" strokeWidth={1.8} />
@@ -539,8 +540,8 @@ function CampaignRail({
                 setFilter('');
               }
             }}
-            aria-label="Filter campaigns"
-            placeholder="filter"
+            aria-label={t('Filter campaigns')}
+            placeholder={t('filter')}
             className="w-24 bg-transparent text-[12px] text-os-text outline-none placeholder:text-os-dim"
           />
         </div>
@@ -566,7 +567,7 @@ function DeltaPill({ label, delta }: { label: string; delta: number | null }) {
   return (
     <span
       className="ap-hair ap-inset flex items-center gap-1 rounded-full border px-2.5 py-1"
-      title={`${label} over the last 7 days against the 7 days before`}
+      title={t('{label} over the last 7 days against the 7 days before', { label })}
     >
       <Icon aria-hidden className={`h-3 w-3 ${up ? 'text-[var(--accent)]' : 'text-os-dim'}`} strokeWidth={1.8} />
       <span className="text-[11px] tabular-nums text-os-muted">
@@ -597,11 +598,11 @@ function HeroSpend({
   const maxSpend = Math.max(...campaigns.map((c) => c.spend), 1);
   return (
     <div className="ap-panel ap-glow h-full p-5">
-      <div className="text-[12.5px] text-os-dim">{windowLabel ? `Ad spend · ${windowLabel}` : 'Ad spend'}</div>
+      <div className="text-[12.5px] text-os-dim">{windowLabel ? t('Ad spend · {window}', { window: windowLabel }) : t('Ad spend')}</div>
       <div className="mt-1 text-[36px] font-light tabular-nums leading-none text-os-text">{money(metrics.spend)}</div>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
-        <DeltaPill label="spend" delta={windowDelta(daily, (d) => d.spend)} />
-        <DeltaPill label="leads" delta={windowDelta(daily, (d) => d.leads)} />
+        <DeltaPill label={t('spend')} delta={windowDelta(daily, (d) => d.spend)} />
+        <DeltaPill label={t('leads')} delta={windowDelta(daily, (d) => d.leads)} />
       </div>
       <div className="-mx-2 mt-4 flex flex-col gap-1">
         {campaigns.map((c) => {
@@ -612,7 +613,7 @@ function HeroSpend({
               type="button"
               aria-pressed={selected === c.id}
               onClick={() => onToggle(c.id)}
-              title={selected === c.id ? `Show all campaigns` : `Show ${c.name}`}
+              title={selected === c.id ? t('Show all campaigns') : t('Show {name}', { name: c.name })}
               className={`ap-row block w-full px-2 py-1 text-left ${dimmed ? 'opacity-35' : ''}`}
             >
               <span className="flex items-baseline justify-between gap-2">
@@ -661,7 +662,7 @@ function DeliveryMatrix({
   if (rows.length === 0) {
     return (
       <div className="ap-panel flex h-full items-center justify-center p-5">
-        <span className="text-[12px] text-os-dim">Daily delivery arrives with the ad-account sync.</span>
+        <span className="text-[12px] text-os-dim">{t('Daily delivery arrives with the ad-account sync.')}</span>
       </div>
     );
   }
@@ -690,7 +691,7 @@ function DeliveryMatrix({
   return (
     <div ref={panelRef} className="ap-panel relative h-full p-5" onMouseLeave={leave}>
       <div className="flex items-baseline justify-between">
-        <div className="text-[12.5px] text-os-dim">Delivery · spend per day</div>
+        <div className="text-[12.5px] text-os-dim">{t('Delivery · spend per day')}</div>
         <div className="text-[11.5px] tabular-nums text-os-dim">
           {dates[0]?.slice(5)} — {dates[dates.length - 1]?.slice(5)}
         </div>
@@ -705,15 +706,15 @@ function DeliveryMatrix({
                 type="button"
                 aria-pressed={selected === c.id}
                 onClick={() => onToggle(c.id)}
-                title={selected === c.id ? 'Show all campaigns' : `Show ${c.name}`}
+                title={selected === c.id ? t('Show all campaigns') : t('Show {name}', { name: c.name })}
                 className="ap-row -mx-1.5 mb-1 flex w-[calc(100%+0.75rem)] items-baseline justify-between gap-2 px-1.5 py-0.5 text-left"
               >
                 <span className="truncate text-[12.5px] text-os-muted">{c.name}</span>
-                <span className="shrink-0 text-[11px] tabular-nums text-os-dim">peak {money(rowPeak)}/d</span>
+                <span className="shrink-0 text-[11px] tabular-nums text-os-dim">{t('peak {value}/d', { value: money(rowPeak) })}</span>
               </button>
               <div
                 role="img"
-                aria-label={`${c.name}: spend per day, ${dates.length} days, peak ${money(rowPeak)} a day`}
+                aria-label={t('{name}: spend per day, {n} days, peak {peak} a day', { name: c.name, n: dates.length, peak: money(rowPeak) })}
                 className="flex justify-between gap-[3px]"
               >
                 {cells.map((d, ci) => {
@@ -735,14 +736,14 @@ function DeliveryMatrix({
       </div>
       <div className="ap-hair-soft mt-4 flex items-center justify-between border-t pt-3">
         <span className="text-[11.5px] text-os-dim">
-          Peak day {peakAll.date.slice(5)} · {money(peakAll.spend)}
+          {t('Peak day {date} · {spend}', { date: peakAll.date.slice(5), spend: money(peakAll.spend) })}
         </span>
         <span className="flex items-center gap-1.5 text-[11px] text-os-dim">
-          quiet
-          {[0.15, 0.45, 0.7, 1].map((t) => (
-            <span key={t} aria-hidden className="ap-fill h-[9px] w-[9px] rounded-full" style={alpha(deliveryAlpha(t))} />
+          {t('quiet')}
+          {[0.15, 0.45, 0.7, 1].map((stop) => (
+            <span key={stop} aria-hidden className="ap-fill h-[9px] w-[9px] rounded-full" style={alpha(deliveryAlpha(stop))} />
           ))}
-          heavy
+          {t('heavy')}
         </span>
       </div>
       {hover && hovered && (
@@ -757,7 +758,7 @@ function DeliveryMatrix({
         >
           <div className="tabular-nums text-os-text">{hovered.date}</div>
           <div className="tabular-nums text-os-muted">
-            {money(hovered.spend)} · {nf.format(hovered.leads)} lead{hovered.leads === 1 ? '' : 's'}
+            {money(hovered.spend)} · {hovered.leads === 1 ? t('{n} lead', { n: nf.format(hovered.leads) }) : t('{n} leads', { n: nf.format(hovered.leads) })}
           </div>
         </div>
       )}
@@ -776,11 +777,11 @@ function RoasRing({ metrics }: { metrics: CampaignMetrics }) {
   const tickAngle = (1 / CAP) * 360 - 90;
   return (
     <div className="ap-panel flex h-full flex-col items-center justify-center p-5">
-      <div className="self-start text-[12.5px] text-os-dim">ROAS · revenue vs spend</div>
+      <div className="self-start text-[12.5px] text-os-dim">{t('ROAS · revenue vs spend')}</div>
       <div className="relative mt-1">
         <svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label={`ROAS ${times(roas)}`}>
           <title>
-            {`Return on ad spend ${times(roas)}. Ring scale 0 to ${CAP}x; the tick marks 1.00x, where revenue equals spend.`}
+            {t('Return on ad spend {value}. Ring scale 0 to {cap}x; the tick marks 1.00x, where revenue equals spend.', { value: times(roas), cap: CAP })}
           </title>
           <circle cx="75" cy="75" r={R} fill="none" className="ap-stroke-track" strokeWidth="10" />
           {frac > 0 && (
@@ -802,14 +803,14 @@ function RoasRing({ metrics }: { metrics: CampaignMetrics }) {
           <span className={`text-[27px] font-light tabular-nums ${roas !== null && roas >= 1 ? 'text-[var(--accent)]' : 'text-os-text'}`}>
             {times(roas)}
           </span>
-          <span className="text-[10.5px] text-os-dim">break-even 1.00x</span>
+          <span className="text-[10.5px] text-os-dim">{t('break-even 1.00x')}</span>
         </div>
       </div>
       <div className="mt-1.5 flex flex-wrap justify-center gap-x-4 text-[11.5px] tabular-nums text-os-dim">
-        <span>rev {money(metrics.revenue)}</span>
-        <span>spend {money(metrics.spend)}</span>
+        <span>{t('rev {value}', { value: money(metrics.revenue) })}</span>
+        <span>{t('spend {value}', { value: money(metrics.spend) })}</span>
       </div>
-      <div className="mt-0.5 text-[10.5px] text-os-dim">scale 0 to {CAP}x</div>
+      <div className="mt-0.5 text-[10.5px] text-os-dim">{t('scale 0 to {cap}x', { cap: CAP })}</div>
     </div>
   );
 }
@@ -826,16 +827,16 @@ function ResultsPanel({
   ring: boolean;
 }) {
   const items: [string, string][] = [
-    ['Leads', nf.format(metrics.leads)],
-    ['Bookings', nf.format(metrics.bookings)],
-    ['Cost / lead', money2(metrics.cpl)],
-    ['Cost / booking', money2(metrics.costPerBooking)],
-    ['Cost / result', money2(metrics.costPerResult)],
+    [t('Leads'), nf.format(metrics.leads)],
+    [t('Bookings'), nf.format(metrics.bookings)],
+    [t('Cost / lead'), money2(metrics.cpl)],
+    [t('Cost / booking'), money2(metrics.costPerBooking)],
+    [t('Cost / result'), money2(metrics.costPerResult)],
     ['CTR', pct(metrics.ctr)],
   ];
   return (
     <div ref={panelRef} id="ap-results" data-ring={ring ? '1' : undefined} className="ap-panel ap-results ap-ring h-full p-5">
-      <div className="text-[12.5px] text-os-dim">Results</div>
+      <div className="text-[12.5px] text-os-dim">{t('Results')}</div>
       <div className="ap-results-grid mt-3">
         {items.map(([label, value]) => (
           <div key={label} className="flex items-center gap-2.5">
@@ -862,11 +863,11 @@ function AudiencePanel({ audience }: { audience: Campaign['audience'] }) {
   const SEGMENTS = 18;
   return (
     <div className="ap-panel ap-audience h-full p-5">
-      <div className="text-[12.5px] text-os-dim">Audience</div>
+      <div className="text-[12.5px] text-os-dim">{t('Audience')}</div>
       <div className="ap-audience-grid mt-3">
         {groups.map(([title, data]) => (
           <div key={title} className={title === 'Age' ? 'ap-audience-age' : ''}>
-            <div className="text-[11px] text-os-dim">{title}</div>
+            <div className="text-[11px] text-os-dim">{t(title)}</div>
             <div className="ap-seg-rows mt-1.5">
               {Object.entries(data).map(([key, value]) => {
                 const filled = Math.round((value / 100) * SEGMENTS);

@@ -40,6 +40,7 @@ import { AgentSheetHost } from '@/components/agents/AgentSheet';
 import { openAgentSheet } from '@/components/agents/agent-param';
 import { useWizardWorkspace } from './useWizardWorkspace';
 import type { WizardTab } from './WizardHeader';
+import { t } from '@/lib/i18n';
 
 /**
  * /wizard under the GladOS style (glados-ui SPEC S04 §4.6, X5). Same state
@@ -87,19 +88,19 @@ export function WizardG({
       <GSectionHeader
         size="page"
         title="Wizard"
-        caption="Talk to the system. Every conversation becomes a project."
+        caption={t('Talk to the system. Every conversation becomes a project.')}
         action={
           <div className="wg-head-actions">
             <GButton onClick={() => w.setCreateOpen(true)}>
-              <Plus size={14} strokeWidth={1.75} aria-hidden /> New agent
+              <Plus size={14} strokeWidth={1.75} aria-hidden /> {t('New agent')}
             </GButton>
             <GSegmented<WizardTab>
-              label="View"
+              label={t('View')}
               value={w.tab}
               onChange={w.setTab}
               options={[
-                { value: 'workspace', label: 'Workspace' },
-                { value: 'sessions', label: 'Sessions' },
+                { value: 'workspace', label: t('Workspace') },
+                { value: 'sessions', label: t('Sessions') },
               ]}
             />
           </div>
@@ -112,10 +113,10 @@ export function WizardG({
           <div className="wg-wz-main">
             <div className="wg-wz-narrow">
               <GButton size="sm" onClick={() => setRailSheet(true)} className="wg-wz-only-sm">
-                Projects · {w.projects.length}
+                {t('Projects')} · {w.projects.length}
               </GButton>
               <GButton size="sm" onClick={() => setCrewSheet(true)}>
-                Performance
+                {t('Performance')}
               </GButton>
             </div>
             <ConversationG
@@ -138,10 +139,10 @@ export function WizardG({
         <SessionsG projects={w.projects} now={w.now} />
       )}
 
-      <GDrawer open={railSheet} onClose={() => setRailSheet(false)} title="Projects" width={380}>
+      <GDrawer open={railSheet} onClose={() => setRailSheet(false)} title={t('Projects')} width={380}>
         {rail}
       </GDrawer>
-      <GDrawer open={crewSheet} onClose={() => setCrewSheet(false)} title="Agent performance" width={400}>
+      <GDrawer open={crewSheet} onClose={() => setCrewSheet(false)} title={t('Agent performance')} width={400}>
         {crew}
       </GDrawer>
       <CreateAgentSheet open={w.createOpen} departments={departments} onClose={() => w.setCreateOpen(false)} onCreated={(a) => w.setCrew((c) => ({ ...c, designed: [a, ...c.designed] }))} />
@@ -170,42 +171,42 @@ function ProjectsRailG({
   onNew: () => void;
 }) {
   const [group, setGroup] = useState<'active' | 'done'>('active');
-  const owners = agents.filter((a) => projects.some((p) => p.tasks.some((t) => t.ownerId === a.id)));
-  const visible = ownerFilter ? projects.filter((p) => p.tasks.some((t) => t.ownerId === ownerFilter)) : projects;
+  const owners = agents.filter((a) => projects.some((p) => p.tasks.some((task) => task.ownerId === a.id)));
+  const visible = ownerFilter ? projects.filter((p) => p.tasks.some((task) => task.ownerId === ownerFilter)) : projects;
   const active = visible.filter((p) => p.status === 'active');
   const done = visible.filter((p) => p.status === 'done');
   const list = group === 'active' ? active : done;
   return (
     <GCard className="wg-wz-card">
-      <GSectionHeader size={22} title={`Projects · ${projects.length}`} />
+      <GSectionHeader size={22} title={`${t('Projects')} · ${projects.length}`} />
       <div className="wg-wz-rail-tools">
         <GButton variant="ink" onClick={onNew}>
-          <Plus size={14} strokeWidth={1.75} aria-hidden /> New project
+          <Plus size={14} strokeWidth={1.75} aria-hidden /> {t('New project')}
         </GButton>
         <GSelect
-          aria-label="Filter by owner"
+          aria-label={t('Filter by owner')}
           value={ownerFilter ?? ''}
           onChange={(e) => onOwnerFilter(e.target.value || null)}
-          options={[{ value: '', label: 'All owners' }, ...owners.map((a) => ({ value: a.id, label: a.name }))]}
+          options={[{ value: '', label: t('All owners') }, ...owners.map((a) => ({ value: a.id, label: a.name }))]}
         />
       </div>
       <GSegmented
-        label="Project status"
+        label={t('Project status')}
         value={group}
         onChange={setGroup}
         options={[
-          { value: 'active', label: `Active ${active.length}` },
-          { value: 'done', label: `Done ${done.length}` },
+          { value: 'active', label: `${t('Active')} ${active.length}` },
+          { value: 'done', label: `${t('Done')} ${done.length}` },
         ]}
       />
       <div className="wg-wz-list">
-        {list.length === 0 && <p className="wg-cap">{group === 'active' ? 'Nothing in flight. Start a project or ask in the composer.' : 'Nothing finished yet.'}</p>}
+        {list.length === 0 && <p className="wg-cap">{group === 'active' ? t('Nothing in flight. Start a project or ask in the composer.') : t('Nothing finished yet.')}</p>}
         {list.map((p) => {
           const progress = projectProgress(p);
           const sub = projectSubline(p);
           const chips = projectOwners(p);
           return (
-            <GCard key={p.id} p={16} onClick={() => onSelect(p.id)} className="wg-wz-proj" aria-label={`Open ${p.name}`}>
+            <GCard key={p.id} p={16} onClick={() => onSelect(p.id)} className="wg-wz-proj" aria-label={t('Open {name}', { name: p.name })}>
               <span className="wg-wz-proj-name" data-on={activeId === p.id || undefined}>
                 {p.name}
               </span>
@@ -222,7 +223,7 @@ function ProjectsRailG({
                   {chips.length > 2 && <GTag size="xs">+{chips.length - 2}</GTag>}
                   {progress && p.status !== 'done' && (
                     <span className="wg-wz-proj-prog">
-                      <GBar label={`${progress.done} of ${progress.total} tasks done`} value={progress.done} max={progress.total} />
+                      <GBar label={t('{done} of {total} tasks done', { done: progress.done, total: progress.total })} value={progress.done} max={progress.total} />
                       <span>
                         {progress.done}/{progress.total}
                       </span>
@@ -278,7 +279,7 @@ function ConversationG({
   if (!project) {
     return (
       <GCard className="wg-wz-card wg-wz-conv">
-        <GEmpty title="Start a project" body="Say what you want done. The Wizard plans it, hands work to the crew and tracks it here." action={{ label: 'New project', onClick: onNew }} />
+        <GEmpty title={t('Start a project')} body={t('Say what you want done. The Wizard plans it, hands work to the crew and tracks it here.')} action={{ label: t('New project'), onClick: onNew }} />
       </GCard>
     );
   }
@@ -286,14 +287,14 @@ function ConversationG({
   const progress = projectProgress(project);
   const sess = shortSessionId(project.sessionId);
   const diag = [
-    sess ? `Session ${sess}` : null,
-    project.model ? `Model ${project.model}` : null,
-    project.lastUsage ? `${tokensLabel(project.lastUsage.inputTokens + project.lastUsage.outputTokens)} tokens last turn` : null,
+    sess ? t('Session {id}', { id: sess }) : null,
+    project.model ? t('Model {model}', { model: project.model }) : null,
+    project.lastUsage ? t('{n} tokens last turn', { n: tokensLabel(project.lastUsage.inputTokens + project.lastUsage.outputTokens) }) : null,
   ]
     .filter(Boolean)
     .join(' · ');
-  const meta = [project.status === 'done' ? 'done' : 'active', project.totalCostUsd > 0 ? `$${project.totalCostUsd.toFixed(2)}` : null].filter(Boolean).join(' · ');
-  const engineDown = engineError != null && /unavailable|not found|claude/i.test(engineError);
+  const meta = [project.status === 'done' ? t('done') : t('active'), project.totalCostUsd > 0 ? `$${project.totalCostUsd.toFixed(2)}` : null].filter(Boolean).join(' · ');
+  const engineDown = engineError != null && /unavailable|not found|claude|non disponibile|non trovato/i.test(engineError);
 
   return (
     <GCard className="wg-wz-card wg-wz-conv">
@@ -310,7 +311,7 @@ function ConversationG({
               <GInput
                 autoFocus
                 value={nameDraft}
-                aria-label="Project name"
+                aria-label={t('Project name')}
                 onChange={(e) => setNameDraft(e.target.value)}
                 onBlur={() => {
                   setEditing(false);
@@ -325,7 +326,7 @@ function ConversationG({
               <GButton
                 variant="icon"
                 size="compact"
-                aria-label="Rename project"
+                aria-label={t('Rename project')}
                 onClick={() => {
                   setNameDraft(project.name);
                   setEditing(true);
@@ -340,9 +341,9 @@ function ConversationG({
           </span>
         </div>
         <GButton size="sm" onClick={() => onStatus(project.status === 'done' ? 'active' : 'done')}>
-          {project.status === 'done' ? 'Reopen' : 'Mark done'}
+          {project.status === 'done' ? t('Reopen') : t('Mark done')}
         </GButton>
-        <GButton variant="icon" aria-label="Delete project" disabled={pending} disabledReason="Wait for the Wizard to finish" onClick={() => setConfirm(true)}>
+        <GButton variant="icon" aria-label={t('Delete project')} disabled={pending} disabledReason={t('Wait for the Wizard to finish')} onClick={() => setConfirm(true)}>
           <Trash2 size={15} strokeWidth={1.6} aria-hidden />
         </GButton>
       </div>
@@ -352,17 +353,17 @@ function ConversationG({
           <span className="wg-cap wg-wz-taskcount">
             <ListChecks size={13} strokeWidth={1.6} aria-hidden /> {progress?.done}/{progress?.total}
           </span>
-          {project.tasks.map((t) => (
-            <GChip key={t.id} pressed={t.state === 'done'} onPressedChange={(on) => onTask(t.id, on ? 'done' : 'open')} title={`${t.ownerName} · ${t.state === 'done' ? 'reopen' : 'mark done'}`}>
-              {t.state === 'done' ? <Check size={12} strokeWidth={2} aria-hidden /> : <Circle size={12} strokeWidth={1.75} aria-hidden />}
-              {t.title}
+          {project.tasks.map((task) => (
+            <GChip key={task.id} pressed={task.state === 'done'} onPressedChange={(on) => onTask(task.id, on ? 'done' : 'open')} title={`${task.ownerName} · ${task.state === 'done' ? t('reopen') : t('mark done')}`}>
+              {task.state === 'done' ? <Check size={12} strokeWidth={2} aria-hidden /> : <Circle size={12} strokeWidth={1.75} aria-hidden />}
+              {task.title}
             </GChip>
           ))}
         </div>
       )}
 
       <div ref={scroller} className="wg-wz-msgs">
-        {project.messages.length === 0 && !pending && <p className="wg-cap wg-wz-hint">Say what you need. The first line names the project.</p>}
+        {project.messages.length === 0 && !pending && <p className="wg-cap wg-wz-hint">{t('Say what you need. The first line names the project.')}</p>}
         {project.messages.map((m, i) =>
           m.role === 'user' ? (
             <div key={i} className="wg-wz-msg" data-role="user">
@@ -386,13 +387,13 @@ function ConversationG({
             </div>
           ),
         )}
-        {pending && <GProgress text={`Wizard is working · ${elapsedLabel(pendingSeconds)}`} />}
+        {pending && <GProgress text={`${t('Wizard is working')} · ${elapsedLabel(pendingSeconds)}`} />}
         {engineError && (
           <div className="wg-wz-err">
             <GErrorLine align="left">{engineError}</GErrorLine>
             {engineDown && (
-              <GButton variant="sm" href="/setup" title="The Wizard engine (the claude binary) is not available on this host">
-                Set up
+              <GButton variant="sm" href="/setup" title={t('The Wizard engine (the claude binary) is not available on this host')}>
+                {t('Set up')}
               </GButton>
             )}
           </div>
@@ -405,8 +406,8 @@ function ConversationG({
         onValueChange={setDraft}
         minChars={1}
         busy={pending}
-        label="Ask the Wizard"
-        placeholder="Ask the Wizard"
+        label={t('Ask the Wizard')}
+        placeholder={t('Ask the Wizard')}
         onSubmit={(text) => {
           onSend(text);
           setDraft('');
@@ -416,15 +417,15 @@ function ConversationG({
       <GDialog
         open={confirm}
         onClose={() => setConfirm(false)}
-        title="Delete this project and its history?"
+        title={t('Delete this project and its history?')}
         tone="danger"
-        confirmLabel="Delete"
+        confirmLabel={t('Delete')}
         onConfirm={() => {
           setConfirm(false);
           onDelete();
         }}
       >
-        <p className="wg-cap">“{project.name}” and its conversation are removed for good.</p>
+        <p className="wg-cap">{t('“{name}” and its conversation are removed for good.', { name: project.name })}</p>
       </GDialog>
     </GCard>
   );
@@ -442,7 +443,7 @@ function CrewG({ crew, now }: { crew: CrewSnapshot; now: number }) {
     const last = runs[0];
     return (
       <li key={agent.id}>
-        <GCard p={16} onClick={() => openAgentSheet(agent.id)} className="wg-wz-crewrow" aria-label={`Open ${agent.name}`} title={last ? `${last.ok ? 'ok' : 'failed'} · ${last.summary} · ${relativeTime(last.startedAt, now)}` : 'No runs in the window'}>
+        <GCard p={16} onClick={() => openAgentSheet(agent.id)} className="wg-wz-crewrow" aria-label={t('Open {name}', { name: agent.name })} title={last ? `${last.ok ? t('ok') : t('failed')} · ${last.summary} · ${relativeTime(last.startedAt, now)}` : t('No runs in the window')}>
           <span className="wg-wz-crewtop">
             <span className="wg-wz-crewid">
               <span className="wg-wz-crewname">{agent.name}</span>
@@ -453,9 +454,9 @@ function CrewG({ crew, now }: { crew: CrewSnapshot; now: number }) {
           {runs.length > 0 && (
             <GTickStrip
               kind="runs"
-              label={`${agent.name}: ${runs.length} runs in ${crew.windowDays} days, ${percent(okRate)} ok`}
+              label={t('{name}: {n} runs in {days} days, {pct} ok', { name: agent.name, n: runs.length, days: crew.windowDays, pct: percent(okRate) })}
               states={ordered.map((r) => (r.ok ? 'ok' : 'failed'))}
-              titles={ordered.map((r) => `${r.ok ? 'ok' : 'failed'} · ${relativeTime(r.startedAt, now)} · ${r.summary}`)}
+              titles={ordered.map((r) => `${r.ok ? t('ok') : t('failed')} · ${relativeTime(r.startedAt, now)} · ${r.summary}`)}
             />
           )}
         </GCard>
@@ -464,13 +465,13 @@ function CrewG({ crew, now }: { crew: CrewSnapshot; now: number }) {
   };
   return (
     <GCard className="wg-wz-card">
-      <GSectionHeader size={22} title={`Agent performance · ${crew.windowDays} days`} caption={`${crew.totalRuns} runs · ${percent(crew.okRate)} ok`} />
+      <GSectionHeader size={22} title={`${t('Agent performance')} · ${t('{n} days', { n: crew.windowDays })}`} caption={t('{n} runs · {pct} ok', { n: crew.totalRuns, pct: percent(crew.okRate) })} />
       <ul className="wg-wz-crew-list">
         {ran.map(row)}
         {idle.length > 0 && (
           <li>
             <GButton size="sm" aria-expanded={showIdle} onClick={() => setShowIdle((v) => !v)}>
-              {idle.length} agent{idle.length === 1 ? '' : 's'} with no runs
+              {idle.length === 1 ? t('{n} agent with no runs', { n: idle.length }) : t('{n} agents with no runs', { n: idle.length })}
             </GButton>
           </li>
         )}
@@ -481,7 +482,7 @@ function CrewG({ crew, now }: { crew: CrewSnapshot; now: number }) {
               <span className="wg-wz-crewname">{d.name}</span>
               <span className="wg-cap">{d.purpose}</span>
             </span>
-            <GTag tone="outline">designed</GTag>
+            <GTag tone="outline">{t('designed')}</GTag>
           </li>
         ))}
       </ul>
@@ -512,7 +513,7 @@ function SessionsG({ projects, now }: { projects: WizardProject[]; now: number }
   const columns: GColumn<WizardProject>[] = [
     {
       key: 'name',
-      label: 'Project',
+      label: t('Project'),
       sortValue: (p) => p.name,
       render: (p) => (
         <span className="wg-wz-sess">
@@ -523,40 +524,40 @@ function SessionsG({ projects, now }: { projects: WizardProject[]; now: number }
         </span>
       ),
     },
-    { key: 'model', label: 'Model', sortValue: (p) => p.model ?? '', render: (p) => <span className="wg-cap">{p.model ?? '—'}</span> },
-    { key: 'tokens', label: 'Last turn', render: (p) => (p.lastUsage ? `${tokensLabel(p.lastUsage.inputTokens)} in · ${tokensLabel(p.lastUsage.outputTokens)} out` : '—') },
-    { key: 'msgs', label: 'Messages', numeric: true, sortValue: (p) => p.messages.length, render: (p) => p.messages.length },
-    { key: 'cost', label: 'Spend', numeric: true, sortValue: (p) => p.totalCostUsd, render: (p) => `$${p.totalCostUsd.toFixed(2)}` },
-    { key: 'when', label: 'Updated', sortValue: (p) => p.updatedAt, render: (p) => <span className="wg-cap">{relativeTime(p.updatedAt, now)}</span> },
+    { key: 'model', label: t('Model'), sortValue: (p) => p.model ?? '', render: (p) => <span className="wg-cap">{p.model ?? '—'}</span> },
+    { key: 'tokens', label: t('Last turn'), render: (p) => (p.lastUsage ? t('{input} in · {output} out', { input: tokensLabel(p.lastUsage.inputTokens), output: tokensLabel(p.lastUsage.outputTokens) }) : '—') },
+    { key: 'msgs', label: t('Messages'), numeric: true, sortValue: (p) => p.messages.length, render: (p) => p.messages.length },
+    { key: 'cost', label: t('Spend'), numeric: true, sortValue: (p) => p.totalCostUsd, render: (p) => `$${p.totalCostUsd.toFixed(2)}` },
+    { key: 'when', label: t('Updated'), sortValue: (p) => p.updatedAt, render: (p) => <span className="wg-cap">{relativeTime(p.updatedAt, now)}</span> },
   ];
   return (
     <div className="wg-wz-sessions">
       <div className="wg-wz-sess-side">
         <GCard>
-          <GSectionHeader size={22} title="Engine" action={<GTag tone={engine ? (engine.present ? 'ok' : 'err') : failed ? 'err' : 'neutral'} dot>{engine ? (engine.present ? 'Present' : 'Not found') : failed ? 'Unknown' : 'Checking'}</GTag>} />
+          <GSectionHeader size={22} title={t('Engine')} action={<GTag tone={engine ? (engine.present ? 'ok' : 'err') : failed ? 'err' : 'neutral'} dot>{engine ? (engine.present ? t('Present') : t('Not found')) : failed ? t('Unknown') : t('Checking')}</GTag>} />
           {engine && !engine.present ? (
-            <GEmpty inline kind="unconfigured" title="Claude binary not found on this host" body="The Wizard runs one exchange per message through it." setupHref="/setup" />
+            <GEmpty inline kind="unconfigured" title={t('Claude binary not found on this host')} body={t('The Wizard runs one exchange per message through it.')} setupHref="/setup" />
           ) : (
             <GKeyValue
               items={[
-                { label: 'Version', value: engine?.version ?? '—' },
-                { label: 'Host', value: engine?.host ?? '—' },
-                { label: 'Mode', value: 'one exchange per message, session resumed by id' },
+                { label: t('Version'), value: engine?.version ?? '—' },
+                { label: t('Host'), value: engine?.host ?? '—' },
+                { label: t('Mode'), value: t('one exchange per message, session resumed by id') },
               ]}
             />
           )}
         </GCard>
-        <GHeroCard variant="b" size="sm" caption="Spend" value={`$${spend.toFixed(2)}`} status={`across ${projects.length} projects`} title="Total reported cost of every Wizard session (the engine envelope's cost)." />
+        <GHeroCard variant="b" size="sm" caption={t('Spend')} value={`$${spend.toFixed(2)}`} status={t('across {n} projects', { n: projects.length })} title={t("Total reported cost of every Wizard session (the engine envelope's cost).")} />
         <GCard className="wg-wz-totals">
-          <GStat value={withSession.length} label="Sessions" source="Projects with a Claude session" />
-          <GStat value={projects.length} label="Projects" source="Every Wizard project" />
-          <GStat value={turns} label="Turns" source="Turns reported on each project's last exchange" />
+          <GStat value={withSession.length} label={t('Sessions')} source={t('Projects with a Claude session')} />
+          <GStat value={projects.length} label={t('Projects')} source={t('Every Wizard project')} />
+          <GStat value={turns} label={t('Turns')} source={t("Turns reported on each project's last exchange")} />
         </GCard>
       </div>
       <GCard>
-        <GSectionHeader size={22} title="Sessions" />
+        <GSectionHeader size={22} title={t('Sessions')} />
         <div className="wg-table-wrap">
-          <GTable caption="Wizard sessions" columns={columns} rows={withSession} rowKey={(p) => p.id} sort={{ key: 'when', dir: 'desc' }} empty="No sessions yet. The first message in a project opens one." />
+          <GTable caption={t('Wizard sessions')} columns={columns} rows={withSession} rowKey={(p) => p.id} sort={{ key: 'when', dir: 'desc' }} empty={t('No sessions yet. The first message in a project opens one.')} />
         </div>
       </GCard>
     </div>
@@ -579,7 +580,7 @@ function CreateAgentSheet({ open, departments, onClose, onCreated }: { open: boo
     try {
       const res = await fetch('/api/wizard/designed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, departmentId, purpose, tools }) });
       const body = await res.json();
-      if (!res.ok || !body.ok) throw new Error(body.error ?? `Filing failed (${res.status})`);
+      if (!res.ok || !body.ok) throw new Error(body.error ?? t('Filing failed ({status})', { status: res.status }));
       onCreated(body.agent as DesignedAgent);
       setName('');
       setPurpose('');
@@ -596,28 +597,28 @@ function CreateAgentSheet({ open, departments, onClose, onCreated }: { open: boo
       open={open}
       onClose={onClose}
       width={480}
-      title="New agent"
-      caption="Files a spec under designed agents. It shows in the crew and on the Blueprint until it is wired."
+      title={t('New agent')}
+      caption={t('Files a spec under designed agents. It shows in the crew and on the Blueprint until it is wired.')}
       footer={
         <>
-          <GButton onClick={onClose}>Cancel</GButton>
-          <GButton variant="ink" busy={busy} onClick={submit} disabled={!name.trim() || !purpose.trim()} disabledReason="Name and purpose are needed">
-            File as designed
+          <GButton onClick={onClose}>{t('Cancel')}</GButton>
+          <GButton variant="ink" busy={busy} onClick={submit} disabled={!name.trim() || !purpose.trim()} disabledReason={t('Name and purpose are needed')}>
+            {t('File as designed')}
           </GButton>
         </>
       }
     >
       <div className="wg-form">
-        <GField label="Name">
-          <GInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Invoice reconciler" />
+        <GField label={t('Name')}>
+          <GInput value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Invoice reconciler')} />
         </GField>
-        <GField label="Department">
+        <GField label={t('Department')}>
           <GSelect value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} options={departments.map((d) => ({ value: d.id, label: d.name }))} />
         </GField>
-        <GField label="Purpose">
-          <GTextarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="What would it actually do?" rows={4} />
+        <GField label={t('Purpose')}>
+          <GTextarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder={t('What would it actually do?')} rows={4} />
         </GField>
-        <GField label="Tools" hint="Comma separated, for example gmail, attio">
+        <GField label={t('Tools')} hint={t('Comma separated, for example gmail, attio')}>
           <GInput value={tools} onChange={(e) => setTools(e.target.value)} />
         </GField>
         {error && <GErrorLine align="left">{error}</GErrorLine>}

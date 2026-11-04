@@ -153,14 +153,14 @@ function DrawerPanel({ onClose, title, children, footer, onBack, backLabel = t('
 
   const touch = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: TouchEvent) => {
-    const t = e.touches[0];
-    touch.current = t ? { x: t.clientX, y: t.clientY } : null;
+    const touchPt = e.touches[0];
+    touch.current = touchPt ? { x: touchPt.clientX, y: touchPt.clientY } : null;
   };
   const onTouchEnd = (e: TouchEvent) => {
     const start = touch.current;
-    const t = e.changedTouches[0];
+    const touchPt = e.changedTouches[0];
     touch.current = null;
-    if (start && t && swipeCloses(t.clientX - start.x, t.clientY - start.y)) onClose();
+    if (start && touchPt && swipeCloses(touchPt.clientX - start.x, touchPt.clientY - start.y)) onClose();
   };
 
   const panelProps = modal
