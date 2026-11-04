@@ -117,14 +117,14 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
   useEffect(() => () => { if (retry.current) clearTimeout(retry.current); }, []);
 
   /** Open a sheet, optionally on one item (S07 §7.5, C20). A target in another campaign loads it first. */
-  const go = useCallback(async (t: SheetTarget) => {
-    if (t.campaignId && t.campaignId !== campaign?.id && !readOnly) {
-      const ok = await load(t.campaignId);
-      if (!ok) t = { sheet: 'runs' };
+  const go = useCallback(async (tg: SheetTarget) => {
+    if (tg.campaignId && tg.campaignId !== campaign?.id && !readOnly) {
+      const ok = await load(tg.campaignId);
+      if (!ok) tg = { sheet: 'runs' };
     }
-    setTarget(t);
-    if (t.sheet === 'console') setConsoleOpen(true);
-    else setSheetState(t.sheet);
+    setTarget(tg);
+    if (tg.sheet === 'console') setConsoleOpen(true);
+    else setSheetState(tg.sheet);
   }, [campaign?.id, load, readOnly]);
   const setSheet = useCallback((s: Sheet) => {
     setTarget(s ? { sheet: s } : null);
@@ -206,8 +206,8 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
         /* next tick */
       }
     };
-    const t = setInterval(tick, anyRunning ? 5_000 : 20_000);
-    return () => clearInterval(t);
+    const timer = setInterval(tick, anyRunning ? 5_000 : 20_000);
+    return () => clearInterval(timer);
   }, [anyRunning, consoleOpen, campaign, load, readOnly]);
 
   const onCampaign = useCallback((c: Campaign) => {
@@ -235,31 +235,31 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
     setDeleteError(null);
     setDeleteTarget({ id: c.id, name: c.name, files: c.assets, workflows: null, rendering: 0 });
     void Promise.all([api.workflows(c.id).catch(() => null), api.runs(c.id).catch(() => null)]).then(([w, rr]) => {
-      setDeleteTarget((t) => (t && t.id === c.id ? { ...t, workflows: w ? w.workflows.length : null, rendering: rr ? rr.runs.filter((x) => x.status === 'running').length : 0 } : t));
+      setDeleteTarget((cur) => (cur && cur.id === c.id ? { ...cur, workflows: w ? w.workflows.length : null, rendering: rr ? rr.runs.filter((x) => x.status === 'running').length : 0 } : cur));
     });
   }, []);
 
   const confirmDelete = async () => {
-    const t = deleteTarget;
-    if (!t || readOnly) return;
+    const del = deleteTarget;
+    if (!del || readOnly) return;
     setDeleteBusy(true);
     setDeleteError(null);
     try {
       // An in-flight run is abandoned first, as the confirm said (S03 edge 7).
-      const inFlight = await api.runs(t.id).then((x) => x.runs.filter((r) => r.status === 'running')).catch(() => []);
+      const inFlight = await api.runs(del.id).then((x) => x.runs.filter((r) => r.status === 'running')).catch(() => []);
       for (const r of inFlight) await api.abandon(r.id).catch(() => {});
-      await api.deleteCampaign(t.id);
-      const remaining = campaigns.filter((c) => c.id !== t.id);
+      await api.deleteCampaign(del.id);
+      const remaining = campaigns.filter((c) => c.id !== del.id);
       setCampaigns(remaining);
-      if (campaign?.id === t.id) {
+      if (campaign?.id === del.id) {
         const next = pickInitialCampaign(remaining, { dry: health.dryEnv, filming: health.filming });
         setCampaign(null);
         setRuns([]);
         if (next) void load(next.id);
       }
       setDeleteTarget(null);
-      setAnnounce(`Deleted ${t.name}`);
-      toast({ text: `Deleted "${t.name}"`, tone: 'ok' });
+      setAnnounce(`Deleted ${del.name}`);
+      toast({ text: `Deleted "${del.name}"`, tone: 'ok' });
       setTimeout(() => h1Ref.current?.focus({ preventScroll: true }), 0);
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Could not delete the campaign.');
@@ -356,8 +356,8 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
 
   const open = (key: Exclude<Sheet, null> | 'console') => (key === 'console' ? setConsoleOpen(true) : setSheet(key));
   // The open sheet's target, and a key that remounts the sheet when the target changes.
-  const t = target && (target.sheet === sheet || (target.sheet === 'console' && consoleOpen)) ? target : null;
-  const targetKey = t ? [t.sheet, t.briefId, t.runId, t.angleId, t.scriptId, t.assetId, t.focus].join('|') : 'none';
+  const tgt = target && (target.sheet === sheet || (target.sheet === 'console' && consoleOpen)) ? target : null;
+  const targetKey = tgt ? [tgt.sheet, tgt.briefId, tgt.runId, tgt.angleId, tgt.scriptId, tgt.assetId, tgt.focus].join('|') : 'none';
 
   // GP1 FR-GP1.4: the console card's rings are a readout. Lit rings = motion and UGC runs in flight (0 to 3);
   // the centre dot = Arcads: connected (a check has passed), key set but unverified, or not configured.
@@ -654,19 +654,19 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
       {/* ── sheets ── */}
       {sheet && sheet !== 'runs' && sheet !== 'proof' && sheet !== 'credits' && sheet !== 'connect' && (
         <EngineSheet title={nav.find((n) => n.key === sheet)?.label ?? ''} onClose={closeSheet} backLabel={backLabel}>
-          {sheet === 'generator' && <CreativeGenerator key={targetKey} fresh={genFresh} focus={t?.focus ?? (t?.angleId ? { angleId: t.angleId } : undefined)} proofOnly={t?.proofOnly ?? false} onProofOnly={(on) => setTarget((x) => (x?.sheet === 'generator' ? { ...x, proofOnly: on } : { sheet: 'generator', proofOnly: on }))} products={products} onConnect={() => setSheet('connect')} campaign={campaign} campaigns={campaigns} health={health} readOnly={readOnly} onCampaign={onCampaign} onSwitch={(id) => void load(id)} onContinue={() => setSheet('scripter')} />}
-          {sheet === 'scripter' && <Scripter key={targetKey} onGenerator={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} initialAngleId={t?.angleId} initialScriptId={t?.scriptId} campaign={campaign} readOnly={readOnly} onCampaign={onCampaign} onUgc={() => setSheet('ugc')} onMotion={() => { setSheet(null); setReturnTo(null); setConsoleOpen(true); }} onBrief={() => setSheet('briefings')} />}
-          {sheet === 'briefings' && <Briefings key={targetKey} onScripter={() => setSheet('scripter')} campaign={campaign} initialBriefId={t?.briefId} readOnly={readOnly} onStatus={(id, st) => void setBriefStatus(id, st)} />}
-          {sheet === 'ugc' && <UgcStudio key={targetKey} onScripter={() => setSheet('scripter')} highlightAssetId={t?.assetId} catalogOverride={sample?.catalog ?? null} campaign={campaign} health={health} readOnly={readOnly} onCampaign={onCampaign} onRuns={setRuns} onConnect={() => setSheet('connect')} />}
+          {sheet === 'generator' && <CreativeGenerator key={targetKey} fresh={genFresh} focus={tgt?.focus ?? (tgt?.angleId ? { angleId: tgt.angleId } : undefined)} proofOnly={tgt?.proofOnly ?? false} onProofOnly={(on) => setTarget((x) => (x?.sheet === 'generator' ? { ...x, proofOnly: on } : { sheet: 'generator', proofOnly: on }))} products={products} onConnect={() => setSheet('connect')} campaign={campaign} campaigns={campaigns} health={health} readOnly={readOnly} onCampaign={onCampaign} onSwitch={(id) => void load(id)} onContinue={() => setSheet('scripter')} />}
+          {sheet === 'scripter' && <Scripter key={targetKey} onGenerator={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} initialAngleId={tgt?.angleId} initialScriptId={tgt?.scriptId} campaign={campaign} readOnly={readOnly} onCampaign={onCampaign} onUgc={() => setSheet('ugc')} onMotion={() => { setSheet(null); setReturnTo(null); setConsoleOpen(true); }} onBrief={() => setSheet('briefings')} />}
+          {sheet === 'briefings' && <Briefings key={targetKey} onScripter={() => setSheet('scripter')} campaign={campaign} initialBriefId={tgt?.briefId} readOnly={readOnly} onStatus={(id, st) => void setBriefStatus(id, st)} />}
+          {sheet === 'ugc' && <UgcStudio key={targetKey} onScripter={() => setSheet('scripter')} highlightAssetId={tgt?.assetId} catalogOverride={sample?.catalog ?? null} campaign={campaign} health={health} readOnly={readOnly} onCampaign={onCampaign} onRuns={setRuns} onConnect={() => setSheet('connect')} />}
         </EngineSheet>
       )}
-      {sheet === 'runs' && <RunsDrawer onOpenRun={openRun} runs={runs} focusRunIds={t?.runIds ?? (t?.runId ? [t.runId] : undefined)} readOnly={readOnly} onClose={closeSheet} onChange={setRuns} campaignId={campaign?.id ?? null} kind={runsKind} onAllKinds={() => setRunsKind(null)} backLabel={backLabel} />}
+      {sheet === 'runs' && <RunsDrawer onOpenRun={openRun} runs={runs} focusRunIds={tgt?.runIds ?? (tgt?.runId ? [tgt.runId] : undefined)} readOnly={readOnly} onClose={closeSheet} onChange={setRuns} campaignId={campaign?.id ?? null} kind={runsKind} onAllKinds={() => setRunsKind(null)} backLabel={backLabel} />}
       {sheet === 'proof' && <ProofDrawer sample={readOnly} note={dryCampaign ? DRY_CAMPAIGN_TAG : null} saved={saved} watchlist={watchlist} signals={signals} onClose={() => setSheet(null)} />}
       {sheet === 'credits' && <CreditsDrawer health={health} readOnly={readOnly} onRefresh={refreshHealth} onConnect={() => setSheet('connect')} onClose={closeSheet} backLabel={backLabel} />}
       {sheet === 'connect' && <ConnectArcads health={health} readOnly={readOnly} onChanged={refreshHealth} onClose={closeSheet} backLabel={backLabel} />}
       {deleteTarget && <DeleteCampaignDialog target={deleteTarget} busy={deleteBusy} error={deleteError} onCancel={() => setDeleteTarget(null)} onConfirm={() => void confirmDelete()} />}
       <span className="sr-only" aria-live="polite">{announce}</span>
-      {consoleOpen && <MotionConsole initialAssetId={t?.sheet === 'console' ? t.assetId : undefined} campaign={campaign} health={health} runs={runs} readOnly={readOnly} onClose={closeConsole} onConnect={() => openFromConsole('connect')} onCampaign={onCampaign} onRuns={setRuns} campaigns={campaigns} onSwitchCampaign={(id) => void load(id)} onOpenSheet={openFromConsole} />}
+      {consoleOpen && <MotionConsole initialAssetId={tgt?.sheet === 'console' ? tgt.assetId : undefined} campaign={campaign} health={health} runs={runs} readOnly={readOnly} onClose={closeConsole} onConnect={() => openFromConsole('connect')} onCampaign={onCampaign} onRuns={setRuns} campaigns={campaigns} onSwitchCampaign={(id) => void load(id)} onOpenSheet={openFromConsole} />}
     </div>
   );
 }

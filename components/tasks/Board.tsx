@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Plus, ChevronDown, Check, X } from 'lucide-react';
 import { todoGroups, HORIZONS, TASK_STATUS_LABEL, type LinkedTask } from '@/lib/tasks-metrics';
 import type { AgentTask } from '@/lib/schemas';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * Zone 3 (docs/TASKS-REDESIGN.md §5.4): Staffly's two-pane board — a grouped
@@ -94,9 +95,9 @@ export function Board({
   };
 
   const cellTasks = (dayIndex: number, hour: number) =>
-    tasks.filter((t) => {
-      if (!t.dueAt || t.status === 'done') return false;
-      const d = new Date(t.dueAt);
+    tasks.filter((tk) => {
+      if (!tk.dueAt || tk.status === 'done') return false;
+      const d = new Date(tk.dueAt);
       const cell = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + dayIndex, hour);
       return (
         d.getFullYear() === cell.getFullYear() && d.getMonth() === cell.getMonth() &&
@@ -105,8 +106,8 @@ export function Board({
     });
 
   const todayIndex = (() => {
-    const t = new Date(now);
-    const diff = Math.floor((new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime() - weekStart.getTime()) / 86_400_000);
+    const tk = new Date(now);
+    const diff = Math.floor((new Date(tk.getFullYear(), tk.getMonth(), tk.getDate()).getTime() - weekStart.getTime()) / 86_400_000);
     return diff >= 0 && diff < 7 ? diff : -1;
   })();
 
@@ -115,11 +116,11 @@ export function Board({
       {/* ── To-Do rail ─────────────────────────────────────────────── */}
       <div className="shrink-0 border-b border-os-border p-4 lg:w-[248px] lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between">
-          <div className="text-[13.5px] font-medium">To-Do</div>
+          <div className="text-[13.5px] font-medium">{t('To-Do')}</div>
           <button
             onClick={() => { setAdding('week'); setDraft(''); }}
             className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)] transition-colors hover:bg-[var(--accent-line)]"
-            aria-label="Add a to-do"
+            aria-label={t('Add a to-do')}
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
@@ -133,8 +134,8 @@ export function Board({
               className="rounded-sm-t border border-[var(--accent-line)] bg-[var(--accent-soft)] px-2 py-1.5 text-[12px]"
             >
               <div className="flex items-center gap-1.5 text-[11px] text-os-muted">
-                Linked task
-                <button onClick={clearLinked} className="ml-auto flex h-4 w-4 items-center justify-center rounded-[4px] text-os-dim transition-colors hover:text-os-text" aria-label="Clear the linked task">
+                {t('Linked task')}
+                <button onClick={clearLinked} className="ml-auto flex h-4 w-4 items-center justify-center rounded-[4px] text-os-dim transition-colors hover:text-os-text" aria-label={t('Clear the linked task')}>
                   <X className="h-3 w-3" strokeWidth={1.8} />
                 </button>
               </div>
@@ -142,13 +143,13 @@ export function Board({
                 <>
                   <div className="mt-0.5 text-os-text">{linked.task.title}</div>
                   <div className="mt-0.5 text-[11px] text-os-muted">
-                    {linked.task.agentId ? agentNames[linked.task.agentId] ?? linked.task.agentId : 'You'} · {TASK_STATUS_LABEL[linked.task.status]}
-                    {linked.task.dueAt ? ` · due ${new Date(linked.task.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+                    {linked.task.agentId ? agentNames[linked.task.agentId] ?? linked.task.agentId : t('You')} · {t(TASK_STATUS_LABEL[linked.task.status])}
+                    {linked.task.dueAt ? t(' · due {date}', { date: new Date(linked.task.dueAt).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric' }) }) : ''}
                   </div>
                   {linked.task.detail && <p className="mt-1 line-clamp-3 text-[11.5px] leading-snug text-os-muted">{linked.task.detail}</p>}
                 </>
               ) : (
-                <div className="mt-0.5 text-os-muted">That task is no longer on the board.</div>
+                <div className="mt-0.5 text-os-muted">{t('That task is no longer on the board.')}</div>
               )}
             </div>
           )}
@@ -159,29 +160,29 @@ export function Board({
                 className="flex w-full items-center gap-1.5 text-[12px] text-os-muted transition-colors hover:text-os-text"
               >
                 <ChevronDown className={`h-3 w-3 transition-transform ${collapsed[g.id] ? '-rotate-90' : ''}`} strokeWidth={1.8} />
-                {g.label}
+                {t(g.label)}
                 <span className="ml-auto font-mono text-[10.5px] text-os-dim">{g.tasks.length}</span>
               </button>
               {!collapsed[g.id] && (
                 <div className="mt-1.5 flex flex-col gap-1">
-                  {g.tasks.map((t) => (
+                  {g.tasks.map((tk) => (
                     // a div, not a label element: the check is the row's only button,
                     // so one click completes once (H28)
                     <div
-                      key={t.id}
+                      key={tk.id}
                       className={`tasks-todo flex items-start gap-2 rounded-sm-t px-1 py-1 text-[12px] transition-colors hover:bg-os-surface2 ${
-                        busy === t.id ? 'tasks-todo-done' : ''
-                      } ${t.id === linkedId ? 'bg-os-surface2' : ''}`}
-                      aria-current={t.id === linkedId ? 'true' : undefined}
+                        busy === tk.id ? 'tasks-todo-done' : ''
+                      } ${tk.id === linkedId ? 'bg-os-surface2' : ''}`}
+                      aria-current={tk.id === linkedId ? 'true' : undefined}
                     >
                       <button
-                        onClick={() => void complete(t.id)}
+                        onClick={() => void complete(tk.id)}
                         className="mt-[3px] flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[4px] border border-os-border-bright transition-colors hover:border-[var(--accent)]"
-                        aria-label={`Complete ${t.title}`}
+                        aria-label={t('Complete {name}', { name: tk.title })}
                       >
-                        {busy === t.id && <Check className="h-2.5 w-2.5 text-[var(--accent)]" strokeWidth={3} />}
+                        {busy === tk.id && <Check className="h-2.5 w-2.5 text-[var(--accent)]" strokeWidth={3} />}
                       </button>
-                      <span className="min-w-0 flex-1 truncate text-os-muted">{t.title}</span>
+                      <span className="min-w-0 flex-1 truncate text-os-muted">{tk.title}</span>
                     </div>
                   ))}
                 </div>
@@ -196,7 +197,7 @@ export function Board({
                 onChange={(e) => setAdding(e.target.value)}
                 className="rounded-sm-t border border-os-border bg-os-surface2 px-2 py-1 text-[11.5px] text-os-muted outline-none"
               >
-                {HORIZONS.map((h) => <option key={h.id} value={h.id}>{h.label}</option>)}
+                {HORIZONS.map((h) => <option key={h.id} value={h.id}>{t(h.label)}</option>)}
               </select>
               <input
                 autoFocus
@@ -206,7 +207,7 @@ export function Board({
                   if (e.key === 'Enter') void create(adding);
                   if (e.key === 'Escape') { setAdding(null); setDraft(''); }
                 }}
-                placeholder="What needs doing?"
+                placeholder={t('What needs doing?')}
                 className="rounded-sm-t border border-[var(--accent-line)] bg-os-surface2 px-2 py-1.5 text-[12px] text-os-text outline-none placeholder:text-os-dim"
               />
             </div>
@@ -215,13 +216,13 @@ export function Board({
               onClick={() => { setAdding('week'); setDraft(''); }}
               className="self-start text-[12px] text-[var(--accent)] transition-opacity hover:opacity-75"
             >
-              + To-do
+              {t('+ To-do')}
             </button>
           )}
 
           {groups.length === 0 && adding == null && (
             <div className="rounded-md-t border border-dashed border-os-border px-3 py-5 text-center text-[11.5px] leading-relaxed text-os-dim">
-              Nothing on your own list.
+              {t('Nothing on your own list.')}
             </div>
           )}
         </div>
@@ -232,10 +233,10 @@ export function Board({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[13.5px] font-medium">
-              {weekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              {weekStart.toLocaleDateString(localeTag(), { month: 'long', year: 'numeric' })}
             </span>
             <button onClick={() => setWeekOffset((w) => w - 1)} className="rounded-sm-t border border-os-border px-1.5 py-0.5 text-[11px] text-os-dim transition-colors hover:text-os-text">‹</button>
-            <button onClick={() => setWeekOffset(0)} className="rounded-sm-t border border-os-border px-2 py-0.5 text-[11px] text-os-dim transition-colors hover:text-os-text">Today</button>
+            <button onClick={() => setWeekOffset(0)} className="rounded-sm-t border border-os-border px-2 py-0.5 text-[11px] text-os-dim transition-colors hover:text-os-text">{t('Today')}</button>
             <button onClick={() => setWeekOffset((w) => w + 1)} className="rounded-sm-t border border-os-border px-1.5 py-0.5 text-[11px] text-os-dim transition-colors hover:text-os-text">›</button>
           </div>
         </div>
@@ -246,7 +247,7 @@ export function Board({
               <span />
               {DAYS.map((d, i) => (
                 <span key={d} className={`px-1 pb-1.5 text-center ${i === todayIndex ? 'text-[var(--accent)]' : ''}`}>
-                  {d}
+                  {new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i).toLocaleDateString(localeTag(), { weekday: 'short' })}
                 </span>
               ))}
             </div>
@@ -264,15 +265,15 @@ export function Board({
                       className="group relative min-h-[46px] min-w-0 border-b border-r border-dashed p-0.5 first:border-l"
                       style={{ borderColor: 'var(--hairline)' }}
                     >
-                      {items.map((t) => {
-                        const color = t.agentId ? deptColorByAgent[t.agentId] ?? 'var(--accent)' : 'var(--accent)';
+                      {items.map((tk) => {
+                        const color = tk.agentId ? deptColorByAgent[tk.agentId] ?? 'var(--accent)' : 'var(--accent)';
                         return (
-                          <div key={t.id} className="tasks-card overflow-hidden rounded-md-t border border-os-border bg-os-surface shadow-sm">
+                          <div key={tk.id} className="tasks-card overflow-hidden rounded-md-t border border-os-border bg-os-surface shadow-sm">
                             <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 35%, transparent))` }} />
                             <div className="px-1.5 py-1">
-                              <div className="truncate text-[10.5px] text-os-text">{t.title}</div>
+                              <div className="truncate text-[10.5px] text-os-text">{tk.title}</div>
                               <div className="truncate font-mono text-[9px] text-os-dim">
-                                {t.agentId ? agentNames[t.agentId] ?? t.agentId : 'You'}
+                                {tk.agentId ? agentNames[tk.agentId] ?? tk.agentId : t('You')}
                               </div>
                             </div>
                           </div>
@@ -284,7 +285,7 @@ export function Board({
                           onClick={() => {
                             const cell = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + dayIndex, h);
                             setDraft('');
-                            const title = window.prompt(`New task — ${cell.toLocaleString('en-US', { weekday: 'short', hour: 'numeric' })}`);
+                            const title = window.prompt(t('New task — {when}', { when: cell.toLocaleString(localeTag(), { weekday: 'short', hour: 'numeric' }) }));
                             if (title?.trim()) {
                               setDraft(title);
                               void create(null, cell.toISOString());
@@ -292,7 +293,7 @@ export function Board({
                           }}
                           className="absolute inset-1 flex items-center justify-center rounded-sm-t bg-[var(--accent-soft)] text-[10.5px] text-[var(--accent)] opacity-0 transition-opacity group-hover:opacity-100"
                         >
-                          + Add
+                          {t('+ Add')}
                         </button>
                       )}
                     </div>
@@ -303,10 +304,9 @@ export function Board({
           </div>
         </div>
 
-        {tasks.every((t) => t.dueAt == null) && (
+        {tasks.every((tk) => tk.dueAt == null) && (
           <div className="mt-3 rounded-md-t border border-dashed border-os-border px-3 py-3 text-center text-[11.5px] leading-relaxed text-os-dim">
-            Idle — no task carries a due date yet. Add one from a cell, or set a
-            due date on an existing task.
+            {t('Idle — no task carries a due date yet. Add one from a cell, or set a due date on an existing task.')}
           </div>
         )}
       </div>

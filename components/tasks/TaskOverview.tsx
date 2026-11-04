@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { BarChart3, ChevronDown } from 'lucide-react';
 import { taskOverview, type Grain } from '@/lib/tasks-metrics';
 import type { AgentTask } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * The reference's Task overview (docs/TASKS-REDESIGN.md §5.2): a hatched
@@ -14,9 +15,9 @@ import type { AgentTask } from '@/lib/schemas';
  * not done, Completed counts tasks that reached done inside it.
  */
 const GRAINS: { id: Grain; label: string }[] = [
-  { id: 'daily', label: 'Daily' },
-  { id: 'monthly', label: 'Monthly' },
-  { id: 'yearly', label: 'Yearly' },
+  { id: 'daily', label: t('Daily') },
+  { id: 'monthly', label: t('Monthly') },
+  { id: 'yearly', label: t('Yearly') },
 ];
 
 const H = 190; // plot height in px
@@ -47,9 +48,9 @@ export function TaskOverview({ tasks, now }: { tasks: AgentTask[]; now: number }
     <div className="glass-panel flex flex-col overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
         <div>
-          <div className="text-[13.5px] font-medium">Task overview</div>
+          <div className="text-[13.5px] font-medium">{t('Task overview')}</div>
           <div className="mt-0.5 text-[12px] text-os-dim">
-            What the fleet took on, and what it finished.
+            {t('What the fleet took on, and what it finished.')}
           </div>
         </div>
 
@@ -82,7 +83,7 @@ export function TaskOverview({ tasks, now }: { tasks: AgentTask[]; now: number }
               className="flex items-center gap-1.5 whitespace-nowrap rounded-md-t border border-os-border bg-os-surface2 px-2.5 py-1 text-[12px] text-os-muted transition-colors hover:bg-os-surface3"
             >
               <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.6} />
-              {mode === 'bar' ? 'Bar chart' : 'Line chart'}
+              {mode === 'bar' ? t('Bar chart') : t('Line chart')}
               <ChevronDown className="h-3 w-3" strokeWidth={1.6} />
             </button>
             {menu && (
@@ -95,7 +96,7 @@ export function TaskOverview({ tasks, now }: { tasks: AgentTask[]; now: number }
                       mode === m ? 'text-[var(--accent)]' : 'text-os-muted'
                     }`}
                   >
-                    {m === 'bar' ? 'Bar chart' : 'Line chart'}
+                    {m === 'bar' ? t('Bar chart') : t('Line chart')}
                   </button>
                 ))}
               </div>
@@ -106,21 +107,21 @@ export function TaskOverview({ tasks, now }: { tasks: AgentTask[]; now: number }
 
       <div className="mt-3 flex items-center gap-4 px-5 text-[11.5px] text-os-dim">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: 'var(--accent)' }} /> Pending
+          <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: 'var(--accent)' }} /> {t('Pending')}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: 'var(--accent-soft)', backgroundImage: 'repeating-linear-gradient(45deg, var(--accent-line) 0 1px, transparent 1px 3px)' }} /> Completed
+          <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: 'var(--accent-soft)', backgroundImage: 'repeating-linear-gradient(45deg, var(--accent-line) 0 1px, transparent 1px 3px)' }} /> {t('Completed')}
         </span>
       </div>
 
       <div className="flex gap-3 px-5 pb-4 pt-3">
         <div className="flex flex-col justify-between py-0.5 font-mono text-[10px] text-os-dim" style={{ height: H }}>
-          {ticks.map((t) => <span key={t}>{t}</span>)}
+          {ticks.map((tick) => <span key={tick}>{tick}</span>)}
         </div>
 
         <div className="relative min-w-0 flex-1">
           <div className="absolute inset-0 flex flex-col justify-between">
-            {ticks.map((t) => <span key={t} className="h-px w-full" style={{ background: 'var(--hairline)' }} />)}
+            {ticks.map((tick) => <span key={tick} className="h-px w-full" style={{ background: 'var(--hairline)' }} />)}
           </div>
 
           {mode === 'bar' ? (
@@ -147,7 +148,7 @@ export function TaskOverview({ tasks, now }: { tasks: AgentTask[]; now: number }
                     }}
                   />
                   <div className="pointer-events-none absolute -top-8 z-10 whitespace-nowrap rounded-sm-t border border-os-border bg-os-surface px-2 py-1 font-mono text-[10px] text-os-muted opacity-0 transition-opacity group-hover:opacity-100">
-                    {b.pending} pending · {b.completed} done
+                    {t('{pending} pending · {done} done', { pending: b.pending, done: b.completed })}
                   </div>
                 </div>
               ))}

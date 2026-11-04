@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { GButton, GInput, GPopover } from '@/components/g';
 import type { AgentTask } from '@/lib/schemas';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * Week × hour grid (glados-ui SPEC S04 F-T6, X1 composite "TimeGrid"):
@@ -12,7 +13,7 @@ import type { AgentTask } from '@/lib/schemas';
  * when the visible week has no timed task (one line instead of ten empty
  * rows). A day header press filters the To-Do rail to that day.
  */
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS = [0, 1, 2, 3, 4, 5, 6];
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
 export const startOfWeek = (now: number): Date => {
@@ -29,7 +30,7 @@ function sameHour(iso: string, cell: Date): boolean {
 function CellAdd({ cell, onAdd, active, setActive }: { cell: Date; onAdd: (title: string, at: Date) => void; active: boolean; setActive: (on: boolean) => void }) {
   const [draft, setDraft] = useState('');
   const input = useRef<HTMLInputElement>(null);
-  const when = cell.toLocaleString('en-US', { weekday: 'short', hour: 'numeric' });
+  const when = cell.toLocaleString(localeTag(), { weekday: 'short', hour: 'numeric' });
   return (
     <GPopover
       open={active}
@@ -37,7 +38,7 @@ function CellAdd({ cell, onAdd, active, setActive }: { cell: Date; onAdd: (title
         setActive(o);
         if (!o) setDraft('');
       }}
-      label={`New task, ${when}`}
+      label={t('New task, {when}', { when })}
       initialFocus={input}
       className="wg-cell-pop"
       trigger={(p) => (
@@ -56,10 +57,10 @@ function CellAdd({ cell, onAdd, active, setActive }: { cell: Date; onAdd: (title
           setActive(false);
         }}
       >
-        <span className="wg-cap">New task · {when}</span>
-        <GInput ref={input} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="What needs doing?" aria-label="Task title" />
-        <GButton type="submit" variant="ink" size="sm" disabled={!draft.trim()} disabledReason="Type a title first">
-          Add
+        <span className="wg-cap">{t('New task · {when}', { when })}</span>
+        <GInput ref={input} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={t('What needs doing?')} aria-label={t('Task title')} />
+        <GButton type="submit" variant="ink" size="sm" disabled={!draft.trim()} disabledReason={t('Type a title first')}>
+          {t('Add')}
         </GButton>
       </form>
     </GPopover>
@@ -87,10 +88,10 @@ export function TimeGrid({
   const s = startOfWeek(now);
   const weekStart = new Date(s.getFullYear(), s.getMonth(), s.getDate() + weekOffset * 7);
   const dayDate = (i: number) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
-  const open = tasks.filter((t) => t.dueAt && t.status !== 'done');
+  const open = tasks.filter((tk) => tk.dueAt && tk.status !== 'done');
   const weekEnd = dayDate(7).getTime();
-  const timed = open.filter((t) => {
-    const at = Date.parse(t.dueAt!);
+  const timed = open.filter((tk) => {
+    const at = Date.parse(tk.dueAt!);
     return at >= weekStart.getTime() && at < weekEnd;
   });
   const today = new Date(now);
@@ -100,35 +101,35 @@ export function TimeGrid({
   return (
     <div className="wg-grid">
       <div className="wg-grid-head">
-        <span className="wg-grid-month">{weekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+        <span className="wg-grid-month">{weekStart.toLocaleDateString(localeTag(), { month: 'long', year: 'numeric' })}</span>
         <div className="wg-grid-nav">
-          <GButton variant="icon" size="compact" aria-label="Previous week" onClick={() => setWeekOffset((w) => w - 1)}>
+          <GButton variant="icon" size="compact" aria-label={t('Previous week')} onClick={() => setWeekOffset((w) => w - 1)}>
             <ChevronLeft size={14} strokeWidth={1.75} aria-hidden />
           </GButton>
-          <GButton size="compact" onClick={() => setWeekOffset(0)} disabled={weekOffset === 0} disabledReason="Already on this week">
-            Today
+          <GButton size="compact" onClick={() => setWeekOffset(0)} disabled={weekOffset === 0} disabledReason={t('Already on this week')}>
+            {t('Today')}
           </GButton>
-          <GButton variant="icon" size="compact" aria-label="Next week" onClick={() => setWeekOffset((w) => w + 1)}>
+          <GButton variant="icon" size="compact" aria-label={t('Next week')} onClick={() => setWeekOffset((w) => w + 1)}>
             <ChevronRight size={14} strokeWidth={1.75} aria-hidden />
           </GButton>
         </div>
       </div>
       <div className="wg-grid-scroll">
-        <div className="wg-grid-table" role="grid" aria-label="Week of timed tasks">
+        <div className="wg-grid-table" role="grid" aria-label={t('Week of timed tasks')}>
           <div className="wg-grid-row" role="row">
             <span role="columnheader" />
-            {DAYS.map((d, i) => {
+            {DAYS.map((i) => {
               const date = dayDate(i);
               const key = date.toDateString();
-              const label = `${d} ${date.getDate()}`;
+              const label = `${date.toLocaleDateString(localeTag(), { weekday: 'short' })} ${date.getDate()}`;
               return (
-                <span key={d} role="columnheader" className="wg-grid-day">
+                <span key={i} role="columnheader" className="wg-grid-day">
                   <GButton
                     size="compact"
                     aria-pressed={dayFilter === key}
                     data-today={key === todayKey || undefined}
                     className="wg-grid-daybtn"
-                    title={`Show what is due ${date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`}
+                    title={t('Show what is due {date}', { date: date.toLocaleDateString(localeTag(), { weekday: 'long', month: 'short', day: 'numeric' }) })}
                     onClick={() => onDay(dayFilter === key ? null : key, label)}
                   >
                     {label}
@@ -139,9 +140,9 @@ export function TimeGrid({
           </div>
           {collapsed ? (
             <div className="wg-grid-empty">
-              <span className="wg-cap">No timed tasks this week.</span>
+              <span className="wg-cap">{t('No timed tasks this week.')}</span>
               <GButton size="sm" onClick={() => setExpanded(true)}>
-                Show hours
+                {t('Show hours')}
               </GButton>
             </div>
           ) : (
@@ -153,13 +154,13 @@ export function TimeGrid({
                 {DAYS.map((_, i) => {
                   const cell = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i, h);
                   const key = cell.toISOString();
-                  const items = timed.filter((t) => sameHour(t.dueAt!, cell));
+                  const items = timed.filter((tk) => sameHour(tk.dueAt!, cell));
                   return (
                     <div key={i} role="gridcell" className="wg-grid-cell">
-                      {items.map((t) => (
-                        <span key={t.id} className="wg-grid-task" title={`${t.title} · ${t.agentId ? agentNames[t.agentId] ?? t.agentId : 'You'}`}>
-                          <span className="wg-grid-task-title">{t.title}</span>
-                          <span className="wg-grid-task-who">{t.agentId ? agentNames[t.agentId] ?? t.agentId : 'You'}</span>
+                      {items.map((tk) => (
+                        <span key={tk.id} className="wg-grid-task" title={`${tk.title} · ${tk.agentId ? agentNames[tk.agentId] ?? tk.agentId : t('You')}`}>
+                          <span className="wg-grid-task-title">{tk.title}</span>
+                          <span className="wg-grid-task-who">{tk.agentId ? agentNames[tk.agentId] ?? tk.agentId : t('You')}</span>
                         </span>
                       ))}
                       {items.length === 0 && <CellAdd cell={cell} onAdd={onAdd} active={activeCell === key} setActive={(o) => setActiveCell(o ? key : null)} />}

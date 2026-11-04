@@ -14,6 +14,7 @@ import {
   taskStats, formatRuntime, type LinkedTask, workloadRows, activityByWeekday, departmentRamp, sinceText,
 } from '@/lib/tasks-metrics';
 import type { AgentRun, AgentTask, Agent, Department } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * The page body (docs/TASKS-REDESIGN.md §4). Metrics are derived here from the
@@ -56,46 +57,46 @@ export function TasksView({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard
           icon={<ListChecks className="h-3.5 w-3.5" strokeWidth={1.6} />}
-          label="Total tasks"
+          label={t('Total tasks')}
           value={String(stats.total.value)}
           countTo={stats.total.value}
           delta={stats.total.delta}
-          caption={`Created in the ${rangeLabel.toLowerCase()}`}
+          caption={t('Created in the {range}', { range: t(rangeLabel).toLowerCase() })}
         />
         <StatCard
           icon={<Loader className="h-3.5 w-3.5" strokeWidth={1.6} />}
-          label="In progress"
+          label={t('In progress')}
           value={String(stats.inProgress)}
           countTo={stats.inProgress}
-          caption="Being worked on right now"
+          caption={t('Being worked on right now')}
         />
         <StatCard
           icon={<PauseCircle className="h-3.5 w-3.5" strokeWidth={1.6} />}
-          label="Needs you"
+          label={t('Needs you')}
           value={String(stats.needsYou)}
           countTo={stats.needsYou}
-          caption="Blocked until you act"
+          caption={t('Blocked until you act')}
           tone={stats.needsYou > 0 ? 'warn' : 'default'}
         />
         <StatCard
           icon={<Timer className="h-3.5 w-3.5" strokeWidth={1.6} />}
-          label="Agent runtime"
+          label={t('Agent runtime')}
           value={stats.runtimeMs && stats.runsInWindow > 0 ? formatRuntime(stats.runtimeMs.value) : '—'}
           delta={stats.runtimeMs?.delta ?? undefined}
           caption={
             !stats.lastRunAt
-              ? 'No agent has run yet'
+              ? t('No agent has run yet')
               : stats.runsInWindow === 0
-                ? `No runs in the ${rangeLabel.toLowerCase()} · last run ${sinceText(stats.lastRunAt, now)}`
-                : 'Time agents spent running'
+                ? t('No runs in the {range} · last run {since}', { range: t(rangeLabel).toLowerCase(), since: sinceText(stats.lastRunAt, now) })
+                : t('Time agents spent running')
           }
         />
         <StatCard
           icon={<AlertTriangle className="h-3.5 w-3.5" strokeWidth={1.6} />}
-          label="Overdue"
+          label={t('Overdue')}
           value={stats.overdue == null ? '—' : String(stats.overdue)}
           countTo={stats.overdue ?? undefined}
-          caption={stats.overdue == null ? 'No due dates set' : 'Past due and not done'}
+          caption={stats.overdue == null ? t('No due dates set') : t('Past due and not done')}
           tone={stats.overdue ? 'warn' : 'default'}
         />
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { VIDEO_MODELS, type VideoModel } from '@/lib/creative-engine/schemas';
@@ -11,8 +12,8 @@ import { capError, parseCap } from '@/lib/creative-engine/connect';
 import { useToast } from '@/components/ui/Toast';
 import { Btn, Input, PickPill, Select } from '@/components/creative-engine/skin';
 
-const SAMPLE_OFF = 'Sample data: actions are off';
-const FILMING_NO_PRODUCT = 'Filming mode: creating Arcads products is off';
+const SAMPLE_OFF = t('Sample data: actions are off');
+const FILMING_NO_PRODUCT = t('Filming mode: creating Arcads products is off');
 
 /**
  * Connect Arcads, inside the software (PLAN.md phase 5). Four steps, each
@@ -49,7 +50,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
       setState(s);
       setCap(String(s.settings.sessionCreditCap));
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Could not read the setup state.');
+      setLoadError(err instanceof Error ? err.message : t('Could not read the setup state.'));
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -63,7 +64,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
       await load();
       await onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Failed.');
+      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('Failed.'));
     } finally {
       setBusy(null);
     }
@@ -71,31 +72,31 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
 
   const saveKey = () => run('key', async () => {
     const v = key.trim();
-    if (!v) throw new Error('Paste the key first.');
+    if (!v) throw new Error(t('Paste the key first.'));
     await api.connectKey('arcads', { ARCADS_BASIC_AUTH: v });
     setKey('');
     const r = await api.setupAction({ action: 'verify' });
     const auth = r.health?.auth;
-    return auth?.ok ? 'Key saved and accepted by Arcads.' : `Key saved, but Arcads rejected it: ${auth?.error ?? 'unknown'}`;
+    return auth?.ok ? t('Key saved and accepted by Arcads.') : t('Key saved, but Arcads rejected it: {error}', { error: auth?.error ?? t('unknown') });
   });
   const verify = () => run('verify', async () => {
     const r = await api.setupAction({ action: 'verify' });
     const h = r.health ?? {};
     const bad = Object.entries(h).filter(([k, v]) => ['auth', 'catalog', 'credits'].includes(k) && !v.ok);
-    return bad.length ? `${bad.map(([k, v]) => `${k}: ${v.error}`).join('; ')}` : `Sign-in, catalog and balance all answered${r.credits?.creditsRemaining != null ? `: ${fmtCredits(r.credits.creditsRemaining)} credits remaining` : ''}.`;
+    return bad.length ? `${bad.map(([k, v]) => `${k}: ${v.error}`).join('; ')}` : `${t('Sign-in, catalog and balance all answered')}${r.credits?.creditsRemaining != null ? t(': {n} credits remaining', { n: fmtCredits(r.credits.creditsRemaining) }) : ''}.`;
   });
-  const pickProduct = (id: string, name: string) => run('product', async () => { await api.setupAction({ action: 'product', productId: id, productName: name }); return `Generations file under ${name}.`; });
+  const pickProduct = (id: string, name: string) => run('product', async () => { await api.setupAction({ action: 'product', productId: id, productName: name }); return t('Generations file under {name}.', { name }); });
   const createProduct = () => run('create', async () => {
     const name = newProduct.trim();
-    if (!name) throw new Error('Name the product first.');
+    if (!name) throw new Error(t('Name the product first.'));
     const r = await api.setupAction({ action: 'createProduct', name, description: '' });
     setNewProduct('');
-    return `Created ${r.product?.name ?? name} and selected it.`;
+    return t('Created {name} and selected it.', { name: r.product?.name ?? name });
   });
-  const saveSettings = (patch: { ugcPath?: 'v2' | 'v1'; sessionCreditCap?: number }) => run('settings', async () => { await api.setupAction({ action: 'settings', ...patch }); return 'Saved.'; });
+  const saveSettings = (patch: { ugcPath?: 'v2' | 'v1'; sessionCreditCap?: number }) => run('settings', async () => { await api.setupAction({ action: 'settings', ...patch }); return t('Saved.'); });
   const firstRun = () => run('probe', async () => {
     const r = await api.probeModel(probeModel, false);
-    return `Probe submitted (run ${r.runId}). The result lands in the health list when Arcads delivers; the raw reply is kept on the run.`;
+    return t('Probe submitted (run {id}). The result lands in the health list when Arcads delivers; the raw reply is kept on the run.', { id: r.runId });
   });
   /** A8: reset the counter, with Undo for five seconds (puts the previous session start back). */
   const newSession = () => {
@@ -104,12 +105,12 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
     void run('session', async () => {
       await api.setupAction({ action: 'newSession' });
       toast({
-        text: `Session count reset (was ${fmtCredits(spent)} ${spent === 1 ? 'credit' : 'credits'}).`,
+        text: t('Session count reset (was {credits}).', { credits: (spent === 1 ? t('{n} credit', { n: fmtCredits(spent) }) : t('{n} credits', { n: fmtCredits(spent) })) }),
         tone: 'ok',
         ms: 5000,
-        action: { label: 'Undo', onClick: () => void run('session', async () => { await api.setupAction({ action: 'settings', sessionStartedAt: before }); return 'Session count restored.'; }) },
+        action: { label: 'Undo', onClick: () => void run('session', async () => { await api.setupAction({ action: 'settings', sessionStartedAt: before }); return t('Session count restored.'); }) },
       });
-      return 'Session counter reset to zero.';
+      return t('Session counter reset to zero.');
     });
   };
 
@@ -126,133 +127,133 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
   );
 
   // Why each control is off right now (§3.1.3); null = enabled.
-  const busyWhy = busy !== null ? 'Wait for the step in progress' : null;
-  const keyWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (!key.trim() ? 'Paste the key first' : null);
-  const verifyWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (s && !s.configured ? 'Save the Arcads key first' : null);
+  const busyWhy = busy !== null ? t('Wait for the step in progress') : null;
+  const keyWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (!key.trim() ? t('Paste the key first') : null);
+  const verifyWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (s && !s.configured ? t('Save the Arcads key first') : null);
   const pickWhy = readOnly ? SAMPLE_OFF : busyWhy;
-  const createWhy = readOnly ? SAMPLE_OFF : filming ? FILMING_NO_PRODUCT : busyWhy ?? (s && !s.configured ? 'Save the Arcads key first' : !newProduct.trim() ? 'Name the product first' : null);
-  const probeWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (s && !s.configured ? 'Save the Arcads key first' : s && !s.settings.arcadsProductId ? 'Choose a product first' : null);
+  const createWhy = readOnly ? SAMPLE_OFF : filming ? FILMING_NO_PRODUCT : busyWhy ?? (s && !s.configured ? t('Save the Arcads key first') : !newProduct.trim() ? t('Name the product first') : null);
+  const probeWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (s && !s.configured ? t('Save the Arcads key first') : s && !s.settings.arcadsProductId ? t('Choose a product first') : null);
   const capValue = parseCap(cap);
   const capErr = capError(cap);
   const capUnchanged = s ? capValue === s.settings.sessionCreditCap : true;
-  const capWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (capErr ? capErr : capUnchanged ? 'The cap is unchanged' : null);
+  const capWhy = readOnly ? SAMPLE_OFF : busyWhy ?? (capErr ? capErr : capUnchanged ? t('The cap is unchanged') : null);
   const pathWhy = readOnly ? SAMPLE_OFF : busyWhy;
   const sessionWhy = readOnly ? SAMPLE_OFF : busyWhy;
   const probeCost = health.dry || filming
-    ? `${filming ? 'Filming' : 'Dry run'}: a fixture probe on ${probeModel}, nothing is charged.`
+    ? t('{mode}: a fixture probe on {model}, nothing is charged.', { mode: filming ? t('Filming') : t('Dry run'), model: probeModel })
     : `Spends credits on ${probeModel} (one request).`;
 
   return (
-    <Drawer title="Connect Arcads" onClose={onClose} back={back} backLabel={backLabel}>
+    <Drawer title={t('Connect Arcads')} onClose={onClose} back={back} backLabel={backLabel}>
       {!s ? (loadError ? (
         <div className="flex flex-wrap items-center gap-3 py-6" data-load-error>
-          <span className="text-[13px] text-[var(--p-red)]">Couldn&apos;t read the setup state.</span>
-          <Btn size="sm" onClick={() => void load()}>Retry</Btn>
+          <span className="text-[13px] text-[var(--p-red)]">{t("Couldn't read the setup state.")}</span>
+          <Btn size="sm" onClick={() => void load()}>{t('Retry')}</Btn>
           <span className="ae-faint w-full">{loadError}</span>
         </div>
-      ) : <Progress text="Reading the setup state" />) : (
+      ) : <Progress text={t('Reading the setup state')} />) : (
         <div className="space-y-4">
-          {readOnly && <p className="ae-cap">Sample data: the steps are shown but switched off.</p>}
-          {filming && !readOnly && <p className="ae-cap">Filming: requests run as fixtures and nothing is charged. Creating Arcads products is off.</p>}
+          {readOnly && <p className="ae-cap">{t('Sample data: the steps are shown but switched off.')}</p>}
+          {filming && !readOnly && <p className="ae-cap">{t('Filming: requests run as fixtures and nothing is charged. Creating Arcads products is off.')}</p>}
 
           <section className="ae-card-3 p-4">
-            {step(1, s.configured, s.configured ? 'Key on file' : 'Paste the API key')}
-            <p className="ae-faint mt-2 leading-snug">app.arcads.ai → settings → API. Paste the base64 value or the full “Basic …” header. It is written to .env.local and never shown again.</p>
+            {step(1, s.configured, s.configured ? t('Key on file') : t('Paste the API key'))}
+            <p className="ae-faint mt-2 leading-snug">{t('app.arcads.ai → settings → API. Paste the base64 value or the full “Basic …” header. It is written to .env.local and never shown again.')}</p>
             <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!keyWhy) void saveKey(); }}>
-              <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder={s.configured ? 'Replace the stored key' : 'Basic …'} aria-label="Arcads API key" className="min-w-0 flex-1" autoComplete="off" disabled={readOnly} title={readOnly ? SAMPLE_OFF : undefined} />
-              <Btn type="submit" tone="ink" disabled={!!keyWhy} title={keyWhy ?? 'Save the key and run the free checks'}>{busy === 'key' ? 'Saving' : s.configured ? 'Replace' : 'Save'}</Btn>
+              <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder={s.configured ? t('Replace the stored key') : 'Basic …'} aria-label={t('Arcads API key')} className="min-w-0 flex-1" autoComplete="off" disabled={readOnly} title={readOnly ? SAMPLE_OFF : undefined} />
+              <Btn type="submit" tone="ink" disabled={!!keyWhy} title={keyWhy ?? t('Save the key and run the free checks')}>{busy === 'key' ? t('Saving') : s.configured ? t('Replace') : t('Save')}</Btn>
             </form>
           </section>
 
           <section className="ae-card-3 p-4">
-            {step(2, !!auth?.ok && !!credits?.ok, 'Verify the connection')}
+            {step(2, !!auth?.ok && !!credits?.ok, t('Verify the connection'))}
             <div className="mt-3 grid gap-1.5 text-[12.5px]">
               {(['auth', 'catalog', 'credits'] as const).map((k) => {
                 const v = s.health[k];
                 return (
                   <div key={k} className="flex items-center gap-2">
                     <span className="h-[7px] w-[7px] rounded-full" style={{ background: !v ? 'var(--p-dim)' : v.ok ? 'var(--p-green)' : 'var(--p-red)' }} />
-                    <span className="w-16">{k === 'auth' ? 'Sign-in' : k === 'catalog' ? 'Catalog' : 'Balance'}</span>
-                    <span className="ae-faint min-w-0 truncate">{!v ? 'not checked' : v.ok ? `ok, ${ago(v.lastProbeAt)}` : v.error}</span>
+                    <span className="w-16">{k === 'auth' ? t('Sign-in') : k === 'catalog' ? t('Catalog') : t('Balance')}</span>
+                    <span className="ae-faint min-w-0 truncate">{!v ? t('not checked') : v.ok ? t('ok, {ago}', { ago: ago(v.lastProbeAt) }) : v.error}</span>
                   </div>
                 );
               })}
             </div>
             {balance && (
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[12.5px]">
-                <span>{balance.creditsRemaining != null ? fmtCredits(balance.creditsRemaining) : '—'} <span className="ae-faint">credits remaining</span></span>
-                <span>{balance.creditsIncluded != null ? fmtCredits(balance.creditsIncluded) : '—'} <span className="ae-faint">included this period</span></span>
-                {balance.plan && <span>{balance.plan} <span className="ae-faint">plan</span></span>}
-                {balance.periodEnd && <span className="ae-faint">renews {new Date(balance.periodEnd).toLocaleDateString()}</span>}
+                <span>{balance.creditsRemaining != null ? fmtCredits(balance.creditsRemaining) : '—'} <span className="ae-faint">{t('credits remaining')}</span></span>
+                <span>{balance.creditsIncluded != null ? fmtCredits(balance.creditsIncluded) : '—'} <span className="ae-faint">{t('included this period')}</span></span>
+                {balance.plan && <span>{balance.plan} <span className="ae-faint">{t('plan')}</span></span>}
+                {balance.periodEnd && <span className="ae-faint">{t('renews {date}', { date: new Date(balance.periodEnd).toLocaleDateString(localeTag()) })}</span>}
               </div>
             )}
-            <Btn onClick={() => void verify()} disabled={!!verifyWhy} title={verifyWhy ?? 'Sign-in, catalog and balance; free'} className="mt-3">{busy === 'verify' ? 'Checking' : 'Run the free checks'}</Btn>
+            <Btn onClick={() => void verify()} disabled={!!verifyWhy} title={verifyWhy ?? t('Sign-in, catalog and balance; free')} className="mt-3">{busy === 'verify' ? t('Checking') : t('Run the free checks')}</Btn>
           </section>
 
           <section className="ae-card-3 p-4">
-            {step(3, !!s.settings.arcadsProductId, s.settings.arcadsProductName ? `Product: ${s.settings.arcadsProductName}` : 'Choose the product')}
-            <p className="ae-faint mt-2 leading-snug">Every generation is filed under an Arcads product. Pick one from the workspace or create one.</p>
+            {step(3, !!s.settings.arcadsProductId, s.settings.arcadsProductName ? t('Product: {name}', { name: s.settings.arcadsProductName }) : t('Choose the product'))}
+            <p className="ae-faint mt-2 leading-snug">{t('Every generation is filed under an Arcads product. Pick one from the workspace or create one.')}</p>
             {s.productsError && <ErrorLine text={s.productsError} />}
-            <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Arcads product">
+            <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label={t('Arcads product')}>
               {s.products.map((p) => {
                 const on = s.settings.arcadsProductId === p.id;
-                return <PickPill key={p.id} on={on} onClick={() => void pickProduct(p.id, p.name)} disabled={!!pickWhy} title={pickWhy ?? (on ? 'Generations file under this product' : `File generations under ${p.name}`)}>{p.name}{on && <Check className="h-3.5 w-3.5" strokeWidth={2.2} />}</PickPill>;
+                return <PickPill key={p.id} on={on} onClick={() => void pickProduct(p.id, p.name)} disabled={!!pickWhy} title={pickWhy ?? (on ? t('Generations file under this product') : t('File generations under {name}', { name: p.name }))}>{p.name}{on && <Check className="h-3.5 w-3.5" strokeWidth={2.2} />}</PickPill>;
               })}
-              {s.products.length === 0 && !s.productsError && <span className="ae-faint">{s.configured ? 'No products in the workspace yet.' : 'Connect first.'}</span>}
+              {s.products.length === 0 && !s.productsError && <span className="ae-faint">{s.configured ? t('No products in the workspace yet.') : t('Connect first.')}</span>}
             </div>
             <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!createWhy) setAsk('create'); }}>
-              <Input value={newProduct} onChange={(e) => { setNewProduct(e.target.value); if (ask === 'create') setAsk(null); }} placeholder="New product name" aria-label="New product name" maxLength={80} disabled={readOnly || filming} title={readOnly ? SAMPLE_OFF : filming ? FILMING_NO_PRODUCT : undefined} className="min-w-0 flex-1" />
-              <Btn type="submit" disabled={!!createWhy || ask === 'create'} title={createWhy ?? 'Asks before it writes to your Arcads account'}>{busy === 'create' ? 'Creating' : 'Create'}</Btn>
+              <Input value={newProduct} onChange={(e) => { setNewProduct(e.target.value); if (ask === 'create') setAsk(null); }} placeholder={t('New product name')} aria-label={t('New product name')} maxLength={80} disabled={readOnly || filming} title={readOnly ? SAMPLE_OFF : filming ? FILMING_NO_PRODUCT : undefined} className="min-w-0 flex-1" />
+              <Btn type="submit" disabled={!!createWhy || ask === 'create'} title={createWhy ?? t('Asks before it writes to your Arcads account')}>{busy === 'create' ? t('Creating') : t('Create')}</Btn>
             </form>
             {ask === 'create' && (
-              <div className="ae-confirm text-[12.5px]" role="group" aria-label="Confirm creating the product">
+              <div className="ae-confirm text-[12.5px]" role="group" aria-label={t('Confirm creating the product')}>
                 <span className="min-w-0 flex-1">Creates “{newProduct.trim()}” in your Arcads account.</span>
-                <Btn size="sm" tone="ink" onClick={() => void createProduct()} autoFocus>Create</Btn>
-                <Btn size="sm" onClick={() => setAsk(null)}>Cancel</Btn>
+                <Btn size="sm" tone="ink" onClick={() => void createProduct()} autoFocus>{t('Create')}</Btn>
+                <Btn size="sm" onClick={() => setAsk(null)}>{t('Cancel')}</Btn>
               </div>
             )}
           </section>
 
           <section className="ae-card-3 p-4">
-            {step(4, VIDEO_MODELS.some((m) => s.health[m]?.ok), 'First run')}
-            <p className="ae-faint mt-2 leading-snug">One cheapest request on the chosen model, so the undocumented reply shape and the real charge are captured before anything else runs. This step costs credits, and it asks first.</p>
+            {step(4, VIDEO_MODELS.some((m) => s.health[m]?.ok), t('First run'))}
+            <p className="ae-faint mt-2 leading-snug">{t('One cheapest request on the chosen model, so the undocumented reply shape and the real charge are captured before anything else runs. This step costs credits, and it asks first.')}</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Select value={probeModel} onChange={(e) => { setProbeModel(e.target.value as VideoModel); setAsk(null); }} aria-label="Model to probe" className="min-w-0">{VIDEO_MODELS.map((m) => (<option key={m} value={m}>{m}{s.health[m] ? (s.health[m].ok ? ' · ok' : ' · failed') : ''}</option>))}</Select>
-              <Btn tone="ink" onClick={() => setAsk('probe')} disabled={!!probeWhy || ask === 'probe'} title={probeWhy ?? 'Asks before it spends'} data-probe-open>{busy === 'probe' ? 'Submitting' : 'Run the probe'}</Btn>
+              <Select value={probeModel} onChange={(e) => { setProbeModel(e.target.value as VideoModel); setAsk(null); }} aria-label={t('Model to probe')} className="min-w-0">{VIDEO_MODELS.map((m) => (<option key={m} value={m}>{m}{s.health[m] ? (s.health[m].ok ? t(' · ok') : t(' · failed')) : ''}</option>))}</Select>
+              <Btn tone="ink" onClick={() => setAsk('probe')} disabled={!!probeWhy || ask === 'probe'} title={probeWhy ?? t('Asks before it spends')} data-probe-open>{busy === 'probe' ? t('Submitting') : t('Run the probe')}</Btn>
             </div>
             {ask === 'probe' && (
-              <div className="ae-confirm text-[12.5px]" role="group" aria-label="Confirm the probe" data-probe-confirm>
+              <div className="ae-confirm text-[12.5px]" role="group" aria-label={t('Confirm the probe')} data-probe-confirm>
                 <span className="min-w-0 flex-1">{probeCost}</span>
-                <Btn size="sm" tone="ink" onClick={() => void firstRun()} autoFocus data-probe-run>Run</Btn>
-                <Btn size="sm" onClick={() => setAsk(null)}>Cancel</Btn>
+                <Btn size="sm" tone="ink" onClick={() => void firstRun()} autoFocus data-probe-run>{t('Run')}</Btn>
+                <Btn size="sm" onClick={() => setAsk(null)}>{t('Cancel')}</Btn>
               </div>
             )}
             <ul className="mt-3 space-y-1">
-              {VIDEO_MODELS.filter((m) => s.health[m]).map((m) => (<li key={m} className="flex items-center gap-2 text-[12.5px]"><span className="h-[7px] w-[7px] rounded-full" style={{ background: s.health[m].ok ? 'var(--p-green)' : 'var(--p-red)' }} /><span>{m}</span><span className="ae-faint min-w-0 truncate">{s.health[m].ok ? `delivered, ${ago(s.health[m].lastProbeAt)}` : s.health[m].error}</span></li>))}
+              {VIDEO_MODELS.filter((m) => s.health[m]).map((m) => (<li key={m} className="flex items-center gap-2 text-[12.5px]"><span className="h-[7px] w-[7px] rounded-full" style={{ background: s.health[m].ok ? 'var(--p-green)' : 'var(--p-red)' }} /><span>{m}</span><span className="ae-faint min-w-0 truncate">{s.health[m].ok ? t('delivered, {ago}', { ago: ago(s.health[m].lastProbeAt) }) : s.health[m].error}</span></li>))}
             </ul>
           </section>
 
           <section className="ae-card-3 p-4">
-            <h3 className="text-[15px] font-light">Engine settings</h3>
+            <h3 className="text-[15px] font-light">{t('Engine settings')}</h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <form className="block" onSubmit={(e) => { e.preventDefault(); if (!capWhy && capValue !== null) void saveSettings({ sessionCreditCap: capValue }); }}>
-                <label className="ae-cap" htmlFor="ae-cap-input">Session credit cap</label>
+                <label className="ae-cap" htmlFor="ae-cap-input">{t('Session credit cap')}</label>
                 <span className="mt-1 flex gap-2">
                   <Input id="ae-cap-input" value={cap} onChange={(e) => setCap(e.target.value.replace(/[^\d]/g, ''))} className="w-full" inputMode="numeric" disabled={readOnly} title={readOnly ? SAMPLE_OFF : undefined} aria-invalid={!!capErr || undefined} aria-describedby="ae-cap-help" />
-                  <Btn type="submit" disabled={!!capWhy} title={capWhy ?? 'Save the cap'}>Save</Btn>
+                  <Btn type="submit" disabled={!!capWhy} title={capWhy ?? t('Save the cap')}>{t('Save')}</Btn>
                 </span>
-                <span id="ae-cap-help" className={`mt-1 block ${capErr ? 'ae-field-err text-[11.5px]' : 'ae-faint'}`}>{capErr ?? `Spent this session: ${fmtCredits(health.arcads.sessionSpent)} of ${fmtCredits(health.arcads.sessionCap)}. The gate refuses past the cap without a second confirm.`}</span>
+                <span id="ae-cap-help" className={`mt-1 block ${capErr ? 'ae-field-err text-[11.5px]' : 'ae-faint'}`}>{capErr ?? t('Spent this session: {spent} of {cap}. The gate refuses past the cap without a second confirm.', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })}</span>
               </form>
               <div>
-                <span className="ae-cap">UGC path</span>
-                <div className="mt-1 flex flex-wrap gap-1.5" role="group" aria-label="UGC path">
-                  <PickPill on={s.settings.ugcPath === 'v2'} onClick={() => void saveSettings({ ugcPath: 'v2' })} disabled={!!pathWhy} title={pathWhy ?? 'Talking actors v2: documented statuses, no folders'}>Talking actors v2</PickPill>
-                  <PickPill on={s.settings.ugcPath === 'v1'} onClick={() => void saveSettings({ ugcPath: 'v1' })} disabled={!!pathWhy} title={pathWhy ?? 'Script chain v1: the older chain, for accounts without v2'}>Script chain v1</PickPill>
+                <span className="ae-cap">{t('UGC path')}</span>
+                <div className="mt-1 flex flex-wrap gap-1.5" role="group" aria-label={t('UGC path')}>
+                  <PickPill on={s.settings.ugcPath === 'v2'} onClick={() => void saveSettings({ ugcPath: 'v2' })} disabled={!!pathWhy} title={pathWhy ?? t('Talking actors v2: documented statuses, no folders')}>{t('Talking actors v2')}</PickPill>
+                  <PickPill on={s.settings.ugcPath === 'v1'} onClick={() => void saveSettings({ ugcPath: 'v1' })} disabled={!!pathWhy} title={pathWhy ?? t('Script chain v1: the older chain, for accounts without v2')}>{t('Script chain v1')}</PickPill>
                 </div>
-                <span className="ae-faint mt-1 block">v2 has documented statuses and no folders. v1 is the older chain, kept in case the account lacks v2.</span>
+                <span className="ae-faint mt-1 block">{t('v2 has documented statuses and no folders. v1 is the older chain, kept in case the account lacks v2.')}</span>
               </div>
             </div>
-            <Btn size="sm" onClick={newSession} disabled={!!sessionWhy} title={sessionWhy ?? 'Start counting this session from zero; Undo for five seconds'} className="mt-3">Reset session count ({fmtCredits(health.arcads.sessionSpent)} {health.arcads.sessionSpent === 1 ? 'credit' : 'credits'})</Btn>
+            <Btn size="sm" onClick={newSession} disabled={!!sessionWhy} title={sessionWhy ?? t('Start counting this session from zero; Undo for five seconds')} className="mt-3">{t('Reset session count ({credits})', { credits: health.arcads.sessionSpent === 1 ? t('{n} credit', { n: fmtCredits(health.arcads.sessionSpent) }) : t('{n} credits', { n: fmtCredits(health.arcads.sessionSpent) }) })}</Btn>
           </section>
 
           <p className="sr-only" aria-live="polite">{notice ?? ''}</p>
@@ -260,7 +261,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
           {error && <ErrorLine text={error} />}
           <div className="flex justify-end gap-2">
             {back && <Btn onClick={back.onClick}>{back.label}</Btn>}
-            <Btn onClick={onClose}><X className="h-3.5 w-3.5" strokeWidth={1.8} /> Done</Btn>
+            <Btn onClick={onClose}><X className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('Done')}</Btn>
           </div>
         </div>
       )}

@@ -314,7 +314,7 @@ function Ready({ v }: { v: UsageReadyView }) {
               <span className="block text-[34px] font-medium leading-none tabular-nums text-os-text">{v.topBurner.share}</span>
               <p className="mt-2 text-[12.5px] text-os-muted">{v.topBurner.caption}</p>
               <p className="mt-4 text-[13px] text-os-text">
-                <span className="font-mono">{v.topBurner.machine}</span> {t('on')} {v.topBurner.planLabel}
+                <span className="font-mono">{v.topBurner.machine}</span> {t('on {plan}', { plan: v.topBurner.planLabel })}
               </p>
               <p className="mt-1 text-[12.5px] text-os-muted">{t('{n} tokens', { n: v.topBurner.value })}</p>
             </div>

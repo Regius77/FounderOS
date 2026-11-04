@@ -37,7 +37,7 @@ export default async function ComputePage() {
           <GCard p={24}>
             <GEmpty
               kind="unconfigured"
-              title={t('No MIOSA key on this machine')}
+              title="No MIOSA key on this machine"
               body={t('Cloud computers and their live desktops show here once the key is set.')}
               setupHref="/setup"
               setupHint={t('Set MIOSA_API_KEY (create one with: miosa auth token create)')}
