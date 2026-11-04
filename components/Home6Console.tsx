@@ -36,6 +36,7 @@ import { isFilming } from '@/lib/demo-mode';
 import { runtimeEnv } from '@/lib/creds';
 import { demoIncomeCategories } from '@/lib/finance-demo';
 import { previewSandboxTasks, sandboxSpeed } from '@/lib/home-sandbox';
+import { locale, localeTag, t } from '@/lib/i18n';
 
 // The operator console in the Example-6 skin (Control AI dashboard) — the
 // real home page since 2026-08-23. Teal glass gradient cards, gold chrome,
@@ -53,10 +54,10 @@ const GOLD = 'var(--accent)'; // the app accent token — follows the OS theme
 // colourway shows a foreign hue.
 function greeting(): string {
   const hour = new Date().getHours();
-  if (hour < 5) return 'Late night';
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 5) return t('Late night');
+  if (hour < 12) return t('Good morning');
+  if (hour < 18) return t('Good afternoon');
+  return t('Good evening');
 }
 
 /** The port this server answers on: its env, else the request's Host header, else unknown (row hidden). */
@@ -91,13 +92,13 @@ function SandboxPreview({ tasks }: { tasks: ReturnType<typeof previewSandboxTask
     <section className="h6-card mt-4 p-4" aria-labelledby="h6-sandbox-title" data-sandbox-preview="">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 id="h6-sandbox-title" className="text-[14px] font-medium" style={{ color: 'var(--text)' }}>Sandbox activity*</h2>
-          <p className="mt-1 text-[11px]" style={{ color: 'var(--text-3)' }}>Simulated sandbox activity · sample timings</p>
+          <h2 id="h6-sandbox-title" className="text-[14px] font-medium" style={{ color: 'var(--text)' }}>{t('Sandbox activity*')}</h2>
+          <p className="mt-1 text-[11px]" style={{ color: 'var(--text-3)' }}>{t('Simulated sandbox activity · sample timings')}</p>
         </div>
-        <Link href="/org" className="text-[11px] hover:underline" style={{ color: GOLD }}>Team map <ArrowUpRight className="ml-0.5 inline h-3 w-3" aria-hidden="true" /></Link>
+        <Link href="/org" className="text-[11px] hover:underline" style={{ color: GOLD }}>{t('Team map')} <ArrowUpRight className="ml-0.5 inline h-3 w-3" aria-hidden="true" /></Link>
       </div>
 
-      <div className="mt-4 grid gap-x-5 gap-y-2 sm:grid-cols-3" aria-label="Relative sandbox speed, simulated sample">
+      <div className="mt-4 grid gap-x-5 gap-y-2 sm:grid-cols-3" aria-label={t('Relative sandbox speed, simulated sample')}>
         {speed.map((sample) => (
           <div key={sample.name} className="grid grid-cols-[44px_minmax(0,1fr)_48px] items-center gap-2 text-[11px]">
             <span style={{ color: 'var(--text-2)' }}>{sample.name}</span>
@@ -109,22 +110,22 @@ function SandboxPreview({ tasks }: { tasks: ReturnType<typeof previewSandboxTask
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Simulated team tasks">
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label={t('Simulated team tasks')}>
         {tasks.length ? tasks.map((item, index) => (
           <article key={`${item.agent}-${item.task}`} className="flex min-h-[112px] flex-col justify-between rounded-xl border p-3" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.13)', background: 'rgb(var(--mist-rgb) / 0.025)' }}>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] uppercase tracking-wide" style={{ color: GOLD }}>Sandbox {index + 1}*</span>
-              <span className="rounded-full border px-1.5 py-0.5 text-[9px]" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.16)', color: 'var(--text-3)' }}>Simulated</span>
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: GOLD }}>{t('Sandbox {n}*', { n: index + 1 })}</span>
+              <span className="rounded-full border px-1.5 py-0.5 text-[9px]" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.16)', color: 'var(--text-3)' }}>{t('Simulated')}</span>
             </div>
             <p className="my-3 line-clamp-2 text-[12px] leading-snug" style={{ color: 'var(--text)' }}>{item.task}</p>
             <p className="truncate text-[10px]" style={{ color: 'var(--text-3)' }}>{item.department} · {item.agent}</p>
           </article>
         )) : (
-          <p className="text-[11px]" style={{ color: 'var(--text-3)' }}>No team-map tasks are available for the preview.</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-3)' }}>{t('No team-map tasks are available for the preview.')}</p>
         )}
       </div>
 
-      <p className="mt-3 border-t pt-2.5 text-[10px]" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.1)', color: 'var(--text-3)' }}>* Simulated demo data · Powered by Miosa.</p>
+      <p className="mt-3 border-t pt-2.5 text-[10px]" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.1)', color: 'var(--text-3)' }}>{t('* Simulated demo data · Powered by Miosa.')}</p>
     </section>
   );
 }
@@ -137,13 +138,13 @@ function DotMatrix({ values, days }: { values: number[]; days: string[] }) {
   const COLS = values.length;
   const ROWS = 7;
   return (
-    <svg viewBox={`0 0 ${COLS * 11} ${ROWS * 9}`} className="h6-matrix shrink-0" role="img" aria-label="Runs per day, last 7 days">
+    <svg viewBox={`0 0 ${COLS * 11} ${ROWS * 9}`} className="h6-matrix shrink-0" role="img" aria-label={t('Runs per day, last 7 days')}>
       {values.map((v, x) => {
         const lit = Math.round((v / max) * ROWS);
-        const day = days[x] ? new Date(`${days[x]}T00:00:00Z`).toLocaleDateString('en-GB', DAY_FMT) : '';
+        const day = days[x] ? new Date(`${days[x]}T00:00:00Z`).toLocaleDateString(locale() === 'it' ? 'it-IT' : 'en-GB', DAY_FMT) : '';
         return (
           <g key={x}>
-            <title>{`${day} · ${v} run${v === 1 ? '' : 's'}`}</title>
+            <title>{`${day} · ${v === 1 ? t('{n} run', { n: v }) : t('{n} runs', { n: v })}`}</title>
             <rect x={x * 11} y={0} width={11} height={ROWS * 9} fill="transparent" />
             {Array.from({ length: ROWS }, (_, y) => (
               <circle key={y} cx={x * 11 + 4} cy={(ROWS - 1 - y) * 9 + 5} r={2.1} fill={y < lit ? GOLD : 'rgb(var(--mist-rgb) / 0.12)'} />
@@ -207,16 +208,16 @@ function NeedsYouCard({ needs }: { needs: NeedsYou }) {
               ? { background: 'color-mix(in srgb, var(--warn) 12%, transparent)', color: 'var(--warn)', border: '1px solid color-mix(in srgb, var(--warn) 45%, transparent)' }
               : { color: 'var(--text-2)', border: '1px solid rgb(var(--mist-rgb) / 0.16)' }
           }
-          title={`${needs.total} ${needs.total === 1 ? 'task is' : 'tasks are'} blocked until you act`}
+          title={needs.total === 1 ? t('{n} task is blocked until you act', { n: needs.total }) : t('{n} tasks are blocked until you act', { n: needs.total })}
         >
           {needs.total}
         </span>
         <h2 id="h6-needs-title" className="text-[13.5px] font-medium" style={{ color: 'var(--text)' }}>
-          Needs you
+          {t('Needs you')}
         </h2>
         {needs.total > needs.rows.length && (
           <Link href="/tasks" className="ml-auto whitespace-nowrap text-[11.5px] hover:underline" style={{ color: GOLD }}>
-            All {needs.total} →
+            {t('All {n}', { n: needs.total })} →
           </Link>
         )}
       </div>
@@ -226,25 +227,25 @@ function NeedsYouCard({ needs }: { needs: NeedsYou }) {
         </div>
       ) : (
         <ul className="h6-today-list">
-          {needs.rows.map((t) => (
-            <li key={t.id}>
+          {needs.rows.map((task) => (
+            <li key={task.id}>
               <Link
-                href={t.href}
+                href={task.href}
                 className="h6-row mb-1.5 flex items-center gap-2 rounded-[10px] border px-3 py-2"
                 style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)' }}
-                title={`${t.title}${t.agentId ? ` · ${t.agentId}` : ''} · waiting ${t.age}`}
+                title={`${task.title}${task.agentId ? ` · ${task.agentId}` : ''} · ${t('waiting {age}', { age: task.age })}`}
               >
                 <span
                   className="h6-led h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: t.priority === 'high' ? 'var(--err)' : 'var(--warn)' }}
+                  style={{ background: task.priority === 'high' ? 'var(--err)' : 'var(--warn)' }}
                   role="img"
-                  aria-label={t.priority === 'high' ? 'high priority' : 'blocked'}
+                  aria-label={task.priority === 'high' ? t('high priority') : t('blocked')}
                 />
                 <span className="min-w-0 flex-1 truncate text-[12px]" style={{ color: 'var(--text)' }}>
-                  {t.title}
+                  {task.title}
                 </span>
                 <span className="shrink-0 whitespace-nowrap font-mono text-[10px]" style={{ color: 'var(--text-2)' }}>
-                  {t.age}
+                  {task.age}
                 </span>
               </Link>
             </li>
@@ -261,14 +262,14 @@ function DoneTodayCard({ done }: { done: DoneToday }) {
     <section className="h6-card p-4" aria-labelledby="h6-done-title" data-home-done="">
       <div className="flex items-center justify-between gap-2">
         <h2 id="h6-done-title" className="text-[13.5px] font-medium" style={{ color: 'var(--text)' }}>
-          Done today
+          {t('Done today')}
         </h2>
         {done.failed > 0 && (
           <span
             className="whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]"
             style={{ borderColor: 'color-mix(in srgb, var(--err) 50%, transparent)', color: 'var(--err)' }}
           >
-            {done.failed} failed
+            {t('{n} failed', { n: done.failed })}
           </span>
         )}
       </div>
@@ -298,7 +299,7 @@ function DoneTodayCard({ done }: { done: DoneToday }) {
                   className="h6-run-dot h6-led h-1.5 w-1.5 rounded-full"
                   style={{ background: r.ok ? 'var(--h6-live-green)' : 'var(--err)' }}
                   role="img"
-                  aria-label={r.ok ? 'finished' : 'failed'}
+                  aria-label={r.ok ? t('finished') : t('failed')}
                 />
                 <span className="h6-run-id truncate font-mono text-[10.5px]" style={{ color: 'var(--text-2)' }}>
                   {r.kind}
@@ -421,8 +422,8 @@ export async function Home6Console() {
   // Filming mode keeps the home chart on the comms mix even when posting history exists.
   const usePosting = !isFilming() && totalPosts > 0;
   const chartTitle = usePosting
-    ? `Posting activity · 90 days · ${totalPosts} posts`
-    : `Inbound comms · 30 days · ${totalComms} messages`;
+    ? t('Posting activity · 90 days · {n} posts', { n: totalPosts })
+    : t('Inbound comms · 30 days · {n} messages', { n: totalComms });
   const chartHref = usePosting ? '/social' : '/inbox';
   const activeDays = usePosting ? days : commsAxis;
   const activeSeries = usePosting ? chartSeries : commsSeries;
@@ -458,11 +459,11 @@ export async function Home6Console() {
   const journal = db.journalMode().toUpperCase();
 
   const kpis = [
-    { label: 'Systems', value: connected, unit: `/${connections.length}`, tick: 'var(--h6-teal)', href: '/integrations' },
-    { label: 'Agents', value: activeAgents, unit: `/${agents.length}`, tick: GOLD, href: '/agents' },
-    { label: 'Inbound', value: inbound, unit: '24h', tick: 'var(--h6-indigo)', href: '/inbox' },
-    { label: 'Runs 7d', value: runs7Total, unit: failed > 0 ? `${failed} fail` : '', tick: 'var(--h6-gold)', href: '/agents' },
-    { label: 'Pages', value: store.markdownFiles, unit: '', tick: 'var(--h6-ice)', href: '/brain' },
+    { label: t('Systems'), value: connected, unit: `/${connections.length}`, tick: 'var(--h6-teal)', href: '/integrations' },
+    { label: t('Agents'), value: activeAgents, unit: `/${agents.length}`, tick: GOLD, href: '/agents' },
+    { label: t('Inbound'), value: inbound, unit: '24h', tick: 'var(--h6-indigo)', href: '/inbox' },
+    { label: t('Runs 7d'), value: runs7Total, unit: failed > 0 ? t('{n} fail', { n: failed }) : '', tick: 'var(--h6-gold)', href: '/agents' },
+    { label: t('Pages'), value: store.markdownFiles, unit: '', tick: 'var(--h6-ice)', href: '/brain' },
   ];
 
   // F2: what waits on the operator and what finished since local midnight.
@@ -498,8 +499,8 @@ export async function Home6Console() {
       },
       chart: {
         usePosting,
-        title: usePosting ? 'Posting activity' : 'Inbound comms',
-        caption: usePosting ? `90 days · ${totalPosts} posts` : `30 days · ${totalComms} messages`,
+        title: usePosting ? t('Posting activity') : t('Inbound comms'),
+        caption: usePosting ? t('90 days · {n} posts', { n: totalPosts }) : t('30 days · {n} messages', { n: totalComms }),
         href: chartHref,
         hasChart,
         days: activeDays,
@@ -509,7 +510,7 @@ export async function Home6Console() {
         perDay: runs7,
         days: runs7Days,
         lastRunText,
-        lastRunTitle: lastRun ? `Newest run: ${lastRun.agentId}, finished ${new Date(lastRun.finishedAt).toLocaleString('en-US')}` : null,
+        lastRunTitle: lastRun ? t('Newest run: {agent}, finished {when}', { agent: lastRun.agentId, when: new Date(lastRun.finishedAt).toLocaleString(localeTag()) }) : null,
         recent: lastRuns.map((r) => ({ id: r.id, agentId: r.agentId, ok: r.ok, summary: r.summary, age: relAge(r.finishedAt, now), at: r.finishedAt })),
       },
       freshness: { dated: dated.length, fresh: freshN, aging: agingN, stale: staleN },
@@ -523,7 +524,7 @@ export async function Home6Console() {
           last: pts[pts.length - 1]?.value ?? 0,
           spark: windowPoints(pts, win).map((p) => p.value),
           delta: change ? formatDelta(change.current, change.baseline) : null,
-          window: `${win.start} to ${win.end}`,
+          window: t('{start} to {end}', { start: win.start, end: win.end }),
           href: c.key === 'email' ? '/social/beehiiv' : SocialPlatformSchema.safeParse(c.key).success ? `/social/${c.key}` : '/social',
         };
       }),
@@ -553,7 +554,7 @@ export async function Home6Console() {
             <span
               className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px]"
               style={{ borderColor: pillStyle.rgb, color: pillStyle.text }}
-              title="Overall status from failed runs and connectors"
+              title={t('Overall status from failed runs and connectors')}
             >
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: pillStyle.dot }} />
               {pill.text}
@@ -573,7 +574,7 @@ export async function Home6Console() {
               ))}
             </span>
             {hero.some((s) => s.tone === 'warn' || s.tone === 'err') && (
-              <SetupLink href="/setup" hint="something needs wiring — open the guided setup" />
+              <SetupLink href="/setup" hint={t('something needs wiring — open the guided setup')} />
             )}
           </div>
         </div>
@@ -618,11 +619,11 @@ export async function Home6Console() {
                 <span className="min-w-0 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
                   {chartTitle}
                   <Link href={chartHref} className="ml-2.5 whitespace-nowrap text-[11.5px] hover:underline" style={{ color: GOLD }}>
-                    View all →
+                    {t('View all')} →
                   </Link>
                 </span>
                 {hasChart && (
-                  <div className="h6-chart-legend" aria-label="Legend">
+                  <div className="h6-chart-legend" aria-label={t('Legend')}>
                     {activeSeries.map((s) => (
                       <span key={s.key} className="flex items-center gap-1.5 whitespace-nowrap text-[10.5px]" style={{ color: 'var(--text-2)' }}>
                         <span className="h-2 w-2 rounded-[3px]" style={{ background: s.color }} />
@@ -636,8 +637,8 @@ export async function Home6Console() {
                 <Home6Chart days={activeDays} series={activeSeries} title={chartTitle} />
               ) : (
                 <div className="h6-chart-skeleton flex flex-col items-center justify-center gap-2 text-[12px]" style={{ color: 'var(--text-3)' }}>
-                  No posting or comms history yet
-                  <SetupLink href={setupHrefFor('zernio')} hint="connect Zernio for posting history" />
+                  {t('No posting or comms history yet')}
+                  <SetupLink href={setupHrefFor('zernio')} hint={t('connect Zernio for posting history')} />
                 </div>
               )}
             </div>
@@ -651,11 +652,11 @@ export async function Home6Console() {
             <Link
               href="/agents"
               className="h6-card p-4"
-              aria-label={`Agent activity: ${runs7Total} runs in 7 days, ${failed > 0 ? `${failed} failed` : 'all ok'}${lastRunText ? `, ${lastRunText}` : ''}`}
+              aria-label={`${t('Agent activity: {n} runs in 7 days', { n: runs7Total })}, ${failed > 0 ? t('{n} failed', { n: failed }) : t('all ok')}${lastRunText ? `, ${lastRunText}` : ''}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px]" style={{ color: 'var(--text-2)' }}>
-                  Agent activity
+                  {t('Agent activity')}
                 </span>
                 <span
                   className="whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]"
@@ -665,14 +666,14 @@ export async function Home6Console() {
                       : { borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', color: GOLD }
                   }
                 >
-                  {failed > 0 ? `${failed} failed` : 'all ok'}
+                  {failed > 0 ? t('{n} failed', { n: failed }) : t('all ok')}
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
                 <div className="h6-activity-num whitespace-nowrap font-normal tabular-nums leading-none" style={{ color: 'var(--text)' }}>
                   {runs7Total}
                   <span className="ml-1.5 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                    runs · 7d
+                    {t('runs · 7d')}
                   </span>
                 </div>
                 <DotMatrix values={runs7} days={runs7Days} />
@@ -680,21 +681,21 @@ export async function Home6Console() {
               <div
                 className="mt-2 text-[11px]"
                 style={{ color: 'var(--text-3)' }}
-                title={lastRun ? `Newest run: ${lastRun.agentId}, finished ${new Date(lastRun.finishedAt).toLocaleString('en-US')}` : undefined}
+                title={lastRun ? t('Newest run: {agent}, finished {when}', { agent: lastRun.agentId, when: new Date(lastRun.finishedAt).toLocaleString(localeTag()) }) : undefined}
               >
-                {lastRunText ?? 'No agent runs recorded yet'}
+                {lastRunText ?? t('No agent runs recorded yet')}
               </div>
             </Link>
 
             {/* brain freshness gauge */}
             <div className="h6-card p-4">
               <div className="mb-1 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
-                Brain freshness
+                {t('Brain freshness')}
               </div>
               {dated.length === 0 ? (
                 <div className="flex flex-col items-start gap-2 py-3 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  Brain store not mounted
-                  <SetupLink href="/setup" hint="expected at ~/knowledge/brain-store (or GBRAIN_STORE)" />
+                  {t('Brain store not mounted')}
+                  <SetupLink href="/setup" hint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
                 </div>
               ) : (
                 <>
@@ -705,20 +706,20 @@ export async function Home6Console() {
                       { pct: pct(staleN), color: 'var(--h6-stale)' },
                     ]}
                     center={`${brain.totalPages}`}
-                    sub="Pages tracked"
+                    sub={t('Pages tracked')}
                   />
                   <div className="h6-fresh mt-2">
                     {[
-                      { label: 'Fresh', n: freshN, color: GOLD, href: '/brain', hint: 'changed in the last 30 days' },
-                      { label: 'Aging', n: agingN, color: 'var(--text-2)', href: '/brain', hint: 'changed 31 to 89 days ago' },
-                      { label: 'Stale', n: staleN, color: 'var(--h6-stale)', href: '/drift', hint: 'untouched for 90 days or more' },
+                      { label: t('Fresh'), n: freshN, color: GOLD, href: '/brain', hint: t('changed in the last 30 days') },
+                      { label: t('Aging'), n: agingN, color: 'var(--text-2)', href: '/brain', hint: t('changed 31 to 89 days ago') },
+                      { label: t('Stale'), n: staleN, color: 'var(--h6-stale)', href: '/drift', hint: t('untouched for 90 days or more') },
                     ].map((s) => (
                       <Link
                         key={s.label}
                         href={s.href}
                         className="h6-fresh-tile h6-row rounded-[10px] border p-2"
                         style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)' }}
-                        title={`${s.label}: ${s.n} pages ${s.hint}`}
+                        title={t('{label}: {n} pages {hint}', { label: s.label, n: s.n, hint: s.hint })}
                       >
                         <div className="flex items-center gap-1.5 text-[10px]" style={{ color: 'var(--text-2)' }}>
                           <span className="h-2.5 w-[3px] rounded-full" style={{ background: s.color }} />
@@ -743,35 +744,35 @@ export async function Home6Console() {
             {/* audience */}
             <div className="h6-card p-4">
               <div className="mb-3 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
-                Audience
+                {t('Audience')}
               </div>
               {audienceTiles.length === 0 ? (
                 <div className="flex flex-col items-start gap-2 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  No audience history yet
-                  <SetupLink href={setupHrefFor('zernio')} hint="connect Zernio to track followers" />
+                  {t('No audience history yet')}
+                  <SetupLink href={setupHrefFor('zernio')} hint={t('connect Zernio to track followers')} />
                 </div>
               ) : (
                 <div className="h6-audience">
-                  {audienceTiles.map((t) => (
+                  {audienceTiles.map((tile) => (
                     <Link
-                      key={t.key}
-                      href={t.href}
+                      key={tile.key}
+                      href={tile.href}
                       className="h6-row min-w-0 rounded-[11px] border p-2.5"
                       style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)' }}
-                      aria-label={`${t.label} ${formatFull(t.last)}${t.delta != null ? `, ${t.delta >= 0 ? 'up' : 'down'} ${Math.abs(t.delta).toFixed(1)}%` : ''}`}
+                      aria-label={`${tile.label} ${formatFull(tile.last)}${tile.delta != null ? `, ${tile.delta >= 0 ? t('up {pct}%', { pct: Math.abs(tile.delta).toFixed(1) }) : t('down {pct}%', { pct: Math.abs(tile.delta).toFixed(1) })}` : ''}`}
                     >
-                      <div className="truncate text-[10.5px]" style={{ color: 'var(--text-2)' }} title={t.label}>
-                        {t.label}
+                      <div className="truncate text-[10.5px]" style={{ color: 'var(--text-2)' }} title={tile.label}>
+                        {tile.label}
                       </div>
-                      <div className="h6-audience-num mt-1.5 text-[16px] font-medium tabular-nums" style={{ color: 'var(--text)' }} title={formatFull(t.last)}>
-                        <span>{formatCompact(t.last)}</span>
-                        {t.delta != null && (
+                      <div className="h6-audience-num mt-1.5 text-[16px] font-medium tabular-nums" style={{ color: 'var(--text)' }} title={formatFull(tile.last)}>
+                        <span>{formatCompact(tile.last)}</span>
+                        {tile.delta != null && (
                           <span
                             className="whitespace-nowrap text-[10px] font-normal"
-                            style={{ color: Math.abs(t.delta) < 0.05 ? 'var(--text-3)' : t.delta > 0 ? 'var(--h6-live-green)' : 'var(--err)' }}
+                            style={{ color: Math.abs(tile.delta) < 0.05 ? 'var(--text-3)' : tile.delta > 0 ? 'var(--h6-live-green)' : 'var(--err)' }}
                           >
-                            {t.delta > 0 && Math.abs(t.delta) >= 0.05 ? '+' : ''}
-                            {Math.abs(t.delta) < 0.05 ? '0.0' : t.delta.toFixed(1)}%
+                            {tile.delta > 0 && Math.abs(tile.delta) >= 0.05 ? '+' : ''}
+                            {Math.abs(tile.delta) < 0.05 ? '0.0' : tile.delta.toFixed(1)}%
                           </span>
                         )}
                       </div>
@@ -784,11 +785,11 @@ export async function Home6Console() {
             {/* recent runs */}
             <div className="h6-card p-4">
               <div className="mb-2.5 text-[12.5px]" style={{ color: 'var(--text-2)' }}>
-                Recent runs
+                {t('Recent runs')}
               </div>
               {lastRuns.length === 0 && (
                 <div className="text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  no agent runs recorded yet
+                  {t('no agent runs recorded yet')}
                 </div>
               )}
               {lastRuns.map((r) => (
@@ -805,7 +806,7 @@ export async function Home6Console() {
                   <span className="h6-run-sum min-w-0 truncate" style={{ color: 'var(--text-3)' }} title={r.summary}>
                     {r.summary}
                   </span>
-                  <span className="h6-run-time whitespace-nowrap font-mono text-[10px]" style={{ color: 'var(--text-3)' }} title={new Date(r.finishedAt).toLocaleString('en-US')}>
+                  <span className="h6-run-time whitespace-nowrap font-mono text-[10px]" style={{ color: 'var(--text-3)' }} title={new Date(r.finishedAt).toLocaleString(localeTag())}>
                     {relAge(r.finishedAt)}
                   </span>
                 </Link>
@@ -817,14 +818,14 @@ export async function Home6Console() {
           <div className="h6-col h6-col-right">
             <div className="h6-card p-4">
               <div className="mb-1 text-[13.5px] font-medium" style={{ color: 'var(--text)' }}>
-                Details
+                {t('Details')}
               </div>
-              <DottedRow k="Store" v={storeShort}>
+              <DottedRow k={t('Store')} v={storeShort}>
                 <HomeCopyValue text={storeShort} copy={store.storePath} />
               </DottedRow>
-              <DottedRow k="Pages" v={formatFull(store.markdownFiles)} />
-              {journal && <DottedRow k="Database" v={`sqlite · ${journal}`} />}
-              {port && <DottedRow k="Port" v={port} />}
+              <DottedRow k={t('Pages')} v={formatFull(store.markdownFiles)} />
+              {journal && <DottedRow k={t('Database')} v={`sqlite · ${journal}`} />}
+              {port && <DottedRow k={t('Port')} v={port} />}
             </div>
 
             {/* F2 takes the slot the Optimal Engine health tile had (F1) */}
@@ -836,12 +837,12 @@ export async function Home6Console() {
                 <span
                   className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10.5px] tabular-nums"
                   style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: GOLD, border: '1px solid color-mix(in srgb, var(--accent) 35%, transparent)' }}
-                  title={`${activeAgents} of ${agents.length} agents active`}
+                  title={t('{n} of {total} agents active', { n: activeAgents, total: agents.length })}
                 >
                   {activeAgents}
                 </span>
                 <span className="text-[13.5px] font-medium" style={{ color: 'var(--text)' }}>
-                  Agents live
+                  {t('Agents live')}
                 </span>
               </div>
               {liveAgents.map((a) => (
@@ -864,13 +865,13 @@ export async function Home6Console() {
                   className="h6-row flex items-center rounded-[10px] border px-3 py-2 text-[12px]"
                   style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)', color: 'var(--text-2)' }}
                 >
-                  +{moreLive} more
+                  {t('+{n} more', { n: moreLive })}
                 </Link>
               )}
               {liveAgents.length === 0 && (
                 <div className="flex flex-col items-start gap-2 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  No agents live
-                  <SetupLink href="/agents" hint="no agent is active; open Agents to set one up" />
+                  {t('No agents live')}
+                  <SetupLink href="/agents" hint={t('no agent is active; open Agents to set one up')} />
                 </div>
               )}
             </div>
@@ -885,7 +886,7 @@ export async function Home6Console() {
                     {nowItems.length}
                   </span>
                   <span className="text-[13.5px] font-medium" style={{ color: 'var(--text)' }}>
-                    Now · {nowQuarter?.quarter}
+                    {t('Now')} · {nowQuarter?.quarter}
                   </span>
                 </div>
                 {nowItems.map((it) => (

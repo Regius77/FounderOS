@@ -7,6 +7,7 @@ import { Dot } from '@/components/terminal';
 import type { Agent, AgentRun, Department, Skill } from '@/lib/schemas';
 import type { Campaign } from '@/lib/content-campaigns';
 import type { HiggsfieldAccount } from '@/lib/higgsfield/account';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * Slim single-row studio header, replacing the Kanye hero block: a campaign
@@ -47,7 +48,7 @@ export function StudioBar({
     <div className="glass-panel flex flex-wrap items-center gap-3 px-5 py-3.5">
       {campaigns.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="glass-label mr-1">Campaign</span>
+          <span className="glass-label mr-1">{t('Campaign')}</span>
           {campaigns.map((c) => {
             const active = c.id === selectedCampaignId;
             return (
@@ -71,12 +72,12 @@ export function StudioBar({
         {account ? (
           <span
             className="glass-chip px-3 py-1.5 font-mono text-[11.5px] text-os-muted"
-            title={`Synced ${new Date(account.syncedAt).toLocaleString('en-US')}`}
+            title={t('Synced {date}', { date: new Date(account.syncedAt).toLocaleString(localeTag()) })}
           >
-            {account.credits} credits · {account.plan}
+            {t('{n} credits · {plan}', { n: account.credits, plan: account.plan })}
           </span>
         ) : (
-          <span className="glass-chip px-3 py-1.5 text-[11.5px] text-os-dim">Higgsfield not synced</span>
+          <span className="glass-chip px-3 py-1.5 text-[11.5px] text-os-dim">{t('Higgsfield not synced')}</span>
         )}
 
         {director && (
@@ -87,7 +88,7 @@ export function StudioBar({
           >
             <AgentAvatar src={avatarSrc} name={director.name} size={24} />
             <span className="font-medium text-os-text">{director.name}</span>
-            <span className="text-os-dim">creative director</span>
+            <span className="text-os-dim">{t('creative director')}</span>
             <Dot state={director.status === 'active' ? 'ok' : 'available'} pulse={director.status === 'active'} />
           </button>
         )}

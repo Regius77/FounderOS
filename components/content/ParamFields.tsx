@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { visibleParams, type HfModel, type HfParam } from '@/lib/higgsfield/catalog';
+import { t } from '@/lib/i18n';
 
 /**
  * Schema-driven parameter fields: renders a model's real parameter schema —
@@ -101,7 +102,7 @@ function Field({
           }
           className={inputCls}
         >
-          {current === '' && <option value="">Choose</option>}
+          {current === '' && <option value="">{t('Choose')}</option>}
           {param.options.map((opt) => (
             <option key={String(opt)} value={String(opt)}>
               {String(opt)}
@@ -202,7 +203,7 @@ export function ParamFields({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   if (primary.length === 0 && advanced.length === 0) {
-    return <p className="py-1 text-[12px] text-os-dim">This model takes no extra parameters.</p>;
+    return <p className="py-1 text-[12px] text-os-dim">{t('This model takes no extra parameters.')}</p>;
   }
 
   return (
@@ -221,7 +222,7 @@ export function ParamFields({
               className={`h-3.5 w-3.5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
               strokeWidth={1.7}
             />
-            Advanced
+            {t('Advanced')}
           </button>
           {showAdvanced && (
             <div className="mt-1 flex flex-col gap-1">

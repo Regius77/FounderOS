@@ -31,6 +31,7 @@ import { KnowledgeGraphFullscreen } from '@/components/KnowledgeGraphFullscreen'
 import { usePalette } from '@/lib/use-palette';
 import { useGc } from '@/components/system-g/style-context';
 import { OPERATOR_NAME } from '@/lib/operator';
+import { t } from '@/lib/i18n';
 
 // Team ("life area") node colors come from lib/life-map.ts's LIFE_AREAS,
 // which also feeds /api/life/map (Zod-validated as a plain hex string there),
@@ -88,12 +89,12 @@ const RIM_DELTA_DEG = (WHEEL_GEOM.delta * 180) / Math.PI;
 // tools and SOP tasks smallest and dimmest — radius scales further with
 // connection count (see nodeRadius / TIER_OPACITY).
 const CAT: Record<KGNodeKind, { color: string; Icon: LucideIcon; label: string; r: number }> = {
-  self: { color: 'var(--text)', Icon: Sparkles, label: 'Notes', r: 18 },
-  team: { color: 'var(--brain-1)', Icon: Users, label: 'Pillars', r: 15 },
-  task: { color: 'var(--muted)', Icon: ClipboardList, label: 'SOP tasks', r: 7 },
-  person: { color: 'var(--warn)', Icon: UserRound, label: 'Humans', r: 10 },
-  employee: { color: 'var(--accent)', Icon: User, label: 'AI agents', r: 10 },
-  tool: { color: 'var(--kg-tool)', Icon: Wrench, label: 'Tools', r: 7.5 },
+  self: { color: 'var(--text)', Icon: Sparkles, label: t('Notes'), r: 18 },
+  team: { color: 'var(--brain-1)', Icon: Users, label: t('Pillars'), r: 15 },
+  task: { color: 'var(--muted)', Icon: ClipboardList, label: t('SOP tasks'), r: 7 },
+  person: { color: 'var(--warn)', Icon: UserRound, label: t('Humans'), r: 10 },
+  employee: { color: 'var(--accent)', Icon: User, label: t('AI agents'), r: 10 },
+  tool: { color: 'var(--kg-tool)', Icon: Wrench, label: t('Tools'), r: 7.5 },
 };
 
 // Everything reads bright at rest .
@@ -133,11 +134,11 @@ const agoLabel = (iso: string): string => {
   const ms = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(ms) || ms < 0) return '';
   const m = Math.floor(ms / 60_000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t('just now');
+  if (m < 60) return t('{n}m ago', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return t('{n}h ago', { n: h });
+  return t('{n}d ago', { n: Math.floor(h / 24) });
 };
 
 // ── the operator memory core (Notes constellation) ────────────────────────────
@@ -295,7 +296,7 @@ export function KnowledgeGraph({
 
   const agentById = useMemo(() => new Map(agents.map((a) => [`emp:${a.id}`, a])), [agents]);
   const personById = useMemo(() => new Map(people.map((p) => [`person:${p.id}`, p])), [people]);
-  const taskById = useMemo(() => new Map(tasks.map((t) => [`task:${t.id}`, t])), [tasks]);
+  const taskById = useMemo(() => new Map(tasks.map((tt) => [`task:${tt.id}`, tt])), [tasks]);
 
   // adjacency + relationship maps for hover + pillar focus. The chain is
   // team —sop→ task —does→ worker —uses→ tool; teamOfWorker is derived through
@@ -380,7 +381,7 @@ export function KnowledgeGraph({
     if (node.kind === 'team') {
       set.add(SELF_ID);
       for (const w of workersOfTeam.get(id) ?? []) chainOfWorker(w, set);
-      for (const t of tasksOfTeam.get(id) ?? []) set.add(t);
+      for (const tt of tasksOfTeam.get(id) ?? []) set.add(tt);
     } else if (node.kind === 'task') {
       set.add(SELF_ID);
       const team = teamOfTask.get(id);
@@ -403,7 +404,7 @@ export function KnowledgeGraph({
   const focusSet = useMemo(() => {
     if (!focusTeamId) return null;
     const set = new Set<string>([SELF_ID, focusTeamId]);
-    for (const t of tasksOfTeam.get(focusTeamId) ?? []) set.add(t);
+    for (const tt of tasksOfTeam.get(focusTeamId) ?? []) set.add(tt);
     for (const w of workersOfTeam.get(focusTeamId) ?? []) {
       set.add(w);
       for (const tool of toolsOfWorker.get(w) ?? []) set.add(tool);
@@ -423,10 +424,10 @@ export function KnowledgeGraph({
       const taskIds = (tasksOfTeam.get(team.id) ?? []).slice().sort(byLabel);
       const workerByTask: Record<string, string> = {};
       const toolsByWorker: Record<string, string[]> = {};
-      for (const t of taskIds) {
-        const w = workerOfTask.get(t);
+      for (const tt of taskIds) {
+        const w = workerOfTask.get(tt);
         if (!w) continue;
-        workerByTask[t] = w;
+        workerByTask[tt] = w;
         toolsByWorker[w] = (toolsOfWorker.get(w) ?? []).slice().sort(byLabel);
       }
       m.set(
@@ -456,7 +457,7 @@ export function KnowledgeGraph({
     // Finances rides next to Sales on the graph (display order only).
     const teams = orderGraphDepartments(
       graph.nodes.filter((n) => n.kind === 'team'),
-      (t) => t.id.replace('team:', ''),
+      (tt) => tt.id.replace('team:', ''),
     );
     const toolsByPillar = new Map<string, string[]>();
     for (const n of graph.nodes) {
@@ -465,11 +466,11 @@ export function KnowledgeGraph({
       const team = users.length ? teamOfWorker.get(users[0]) ?? null : null;
       if (team) (toolsByPillar.get(team) ?? toolsByPillar.set(team, []).get(team)!).push(n.id);
     }
-    const pillars = teams.map((t) => ({
-      teamId: t.id,
-      taskIds: tasksOfTeam.get(t.id) ?? [],
-      workerIds: workersOfTeam.get(t.id) ?? [],
-      toolIds: toolsByPillar.get(t.id) ?? [],
+    const pillars = teams.map((tt) => ({
+      teamId: tt.id,
+      taskIds: tasksOfTeam.get(tt.id) ?? [],
+      workerIds: workersOfTeam.get(tt.id) ?? [],
+      toolIds: toolsByPillar.get(tt.id) ?? [],
     }));
     return radialRestLayout({ selfId: SELF_ID, pillars, ringR: RING_R, cx: CX, cy: CY });
   }, [graph, tasksOfTeam, workersOfTeam, workersOfTool, teamOfWorker]);
@@ -529,12 +530,12 @@ export function KnowledgeGraph({
     // cheaper rasterization while the viewBox is flying — full AA comes back
     // the moment the camera lands, so still frames stay crisp
     svg?.classList.add('kg-fast-raster');
-    const t = setTimeout(() => {
+    const tt = setTimeout(() => {
       el.classList.remove('kg-transitioning');
       svg?.classList.remove('kg-fast-raster');
     }, 1250);
     return () => {
-      clearTimeout(t);
+      clearTimeout(tt);
       el.classList.remove('kg-transitioning');
       svg?.classList.remove('kg-fast-raster');
     };
@@ -655,12 +656,12 @@ export function KnowledgeGraph({
       const stageForce = ((alpha: number) => {
         if (!focused()) return;
         for (const d of stageNodes) {
-          const t = targetOf(d);
-          if (!t) continue;
+          const tt = targetOf(d);
+          if (!tt) continue;
           // the apex tree holds firm; the tilted riders track a touch looser
           const k = (tgt(d) ? 0.9 : 0.65) * alpha;
-          d.vx = (d.vx ?? 0) + (t.x - (d.x ?? 0)) * k;
-          d.vy = (d.vy ?? 0) + (t.y - (d.y ?? 0)) * k;
+          d.vx = (d.vx ?? 0) + (tt.x - (d.x ?? 0)) * k;
+          d.vy = (d.vy ?? 0) + (tt.y - (d.y ?? 0)) * k;
         }
       }) as any;
       stageForce.initialize = (ns: SimNode[]) => {
@@ -715,7 +716,7 @@ export function KnowledgeGraph({
 
     // The sim may tick faster than the display; coalesce the React render to
     // one per animation frame (d3's physics keep ticking freely underneath).
-    const renderTick = rafThrottle(() => setTick((t) => (t + 1) % 1_000_000));
+    const renderTick = rafThrottle(() => setTick((tt) => (tt + 1) % 1_000_000));
     const sim = forceSimulation(nodes)
       // extra friction + a slow cool-down → nodes drift floatily into place
       // instead of snapping or overshooting
@@ -784,8 +785,8 @@ export function KnowledgeGraph({
     const justOpened = coreExpanded && !prevExpandedRef.current;
     prevExpandedRef.current = coreExpanded;
     if (justOpened) {
-      const t = setTimeout(() => simRef.current?.alpha(0.16).restart(), 950);
-      return () => clearTimeout(t);
+      const tt = setTimeout(() => simRef.current?.alpha(0.16).restart(), 950);
+      return () => clearTimeout(tt);
     }
     sim.alpha(0.16).restart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -912,10 +913,10 @@ export function KnowledgeGraph({
             const el = sparkRefs.current[i];
             if (!el) continue;
             const period = 2400 + ((i * 379) % 1700);
-            const t = nowT + i * 911;
-            const cycle = Math.floor(t / period);
+            const tt = nowT + i * 911;
+            const cycle = Math.floor(tt / period);
             const seg = segs[(cycle * 131 + i * 37) % segs.length];
-            const u = (t % period) / period;
+            const u = (tt % period) / period;
             el.setAttribute('cx', String(seg[0] + (seg[2] - seg[0]) * u));
             el.setAttribute('cy', String(seg[1] + (seg[3] - seg[1]) * u));
             el.setAttribute('opacity', String(0.95 * Math.sin(Math.PI * u)));
@@ -1031,8 +1032,8 @@ export function KnowledgeGraph({
     if (prevTreeRef.current) {
       setExitTree(prevTreeRef.current);
       prevTreeRef.current = null;
-      const t = setTimeout(() => setExitTree(null), 280);
-      return () => clearTimeout(t);
+      const tt = setTimeout(() => setExitTree(null), 280);
+      return () => clearTimeout(tt);
     }
   }, [focusTree]);
 
@@ -1057,9 +1058,9 @@ export function KnowledgeGraph({
     for (const e of memory.edges) {
       if (!ids.has(e.source) || !ids.has(e.target)) continue;
       const s = memLayout.get(e.source);
-      const t = memLayout.get(e.target);
-      if (!s || !t) continue;
-      segs.push([s.x, s.y, t.x, t.y]);
+      const tt = memLayout.get(e.target);
+      if (!s || !tt) continue;
+      segs.push([s.x, s.y, tt.x, tt.y]);
     }
     return segs;
   }, [memoryOn, memory, memLayout, coreExpanded]);
@@ -1093,8 +1094,8 @@ export function KnowledgeGraph({
     () =>
       orderGraphDepartments(
         graph.nodes.filter((n) => n.kind === 'team'),
-        (t) => t.id.replace('team:', ''),
-      ).map((t) => ({ id: t.id, color: t.color ?? 'var(--brain-1)' })),
+        (tt) => tt.id.replace('team:', ''),
+      ).map((tt) => ({ id: tt.id, color: tt.color ?? 'var(--brain-1)' })),
     [graph],
   );
   const commRefs = useRef(new Map<string, SVGCircleElement>());
@@ -1186,15 +1187,15 @@ export function KnowledgeGraph({
         {memory!.edges.map((e, i) => {
           if (!visibleIds.has(e.source) || !visibleIds.has(e.target)) return null;
           const s = memLayout.get(e.source);
-          const t = memLayout.get(e.target);
-          if (!s || !t) return null;
+          const tt = memLayout.get(e.target);
+          if (!s || !tt) return null;
           const src = memById.get(e.source);
           const tint = e.type === 'member' ? HUB_COLOR : !src ? 'var(--dim)' : memColor(src);
           // the wikilink web recedes to a whisper so the hub spokes carry the
           // structure — the reference shows barely any lines between the dots
           const w = e.type === 'wikilink' ? 0.28 : e.type === 'similar' ? 0.24 : 0.26;
           const o = e.type === 'wikilink' ? 0.15 : e.type === 'similar' ? 0.1 : 0.2;
-          return <line key={i} x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke={tint} strokeWidth={w} opacity={o} />;
+          return <line key={i} x1={s.x} y1={s.y} x2={tt.x} y2={tt.y} stroke={tint} strokeWidth={w} opacity={o} />;
         })}
 
         {/* notes + folder hubs — three drifting, breathing layers, each with a
@@ -1282,7 +1283,7 @@ export function KnowledgeGraph({
           opacity={coreExpanded ? 0 : 1}
           style={{ transition: 'opacity 400ms ease', ...fixedLabel(10, coreScale) }}
         >
-          Notes
+          {t('Notes')}
         </text>
       </g>
     );
@@ -1354,8 +1355,8 @@ export function KnowledgeGraph({
 
   // tool chips (slug/name/mcp) for the SOP + human cards
   const toolChips = (workerId: string | null) =>
-    (workerId ? toolsOfWorker.get(workerId) ?? [] : []).map((t) => {
-      const slug = toolSlugOf(t);
+    (workerId ? toolsOfWorker.get(workerId) ?? [] : []).map((tt) => {
+      const slug = toolSlugOf(tt);
       return { slug, name: prettifySlug(slug), mcp: buildToolWiki(slug).mcp };
     });
 
@@ -1370,14 +1371,14 @@ export function KnowledgeGraph({
     () =>
       orderGraphDepartments(
         graph.nodes.filter((n) => n.kind === 'team'),
-        (t) => t.id.replace('team:', ''),
-      ).map((t) => {
-        const deptId = t.id.replace('team:', '');
+        (tt) => tt.id.replace('team:', ''),
+      ).map((tt) => {
+        const deptId = tt.id.replace('team:', '');
         return {
-          teamId: t.id,
+          teamId: tt.id,
           deptId,
-          name: t.label,
-          color: t.color ?? 'var(--brain-1)',
+          name: tt.label,
+          color: tt.color ?? 'var(--brain-1)',
           tagline: departments.find((d) => d.id === deptId)?.tagline ?? '',
         };
       }),
@@ -1503,11 +1504,11 @@ export function KnowledgeGraph({
     <div className={gc('kg-hud flex items-center gap-4 px-3.5 py-2.5', 'glass-chip flex items-center gap-4 px-3.5 py-2.5')}>
       {(
         [
-          { label: 'Notes', color: HUB_COLOR, Icon: CAT.self.Icon },
-          { label: 'Human', color: CAT.person.color, Icon: CAT.person.Icon },
-          { label: 'AI agent', color: CAT.employee.color, Icon: CAT.employee.Icon },
-          { label: 'Tool', color: CAT.tool.color, Icon: CAT.tool.Icon },
-          { label: 'SOP task', color: CAT.task.color, Icon: CAT.task.Icon },
+          { label: t('Notes'), color: HUB_COLOR, Icon: CAT.self.Icon },
+          { label: t('Human'), color: CAT.person.color, Icon: CAT.person.Icon },
+          { label: t('AI agent'), color: CAT.employee.color, Icon: CAT.employee.Icon },
+          { label: t('Tool'), color: CAT.tool.color, Icon: CAT.tool.Icon },
+          { label: t('SOP task'), color: CAT.task.color, Icon: CAT.task.Icon },
         ] as const
       ).map(({ label, color, Icon }) => (
         <span key={label} className="flex items-center gap-2.5 text-[11.5px] text-os-muted">
@@ -1532,9 +1533,9 @@ export function KnowledgeGraph({
           setMemQuery('');
         }
       }}
-      placeholder="find a note…  /"
-      aria-label="Search the vault"
-      title="Press / to search the vault"
+      placeholder={t('find a note…  /')}
+      aria-label={t('Search the vault')}
+      title={t('Press / to search the vault')}
       spellCheck={false}
       className={gc('g-input kg-vault-search', 'glass-chip w-40 px-3 py-2 text-[12.5px] text-os-text placeholder:text-os-dim outline-none transition-colors focus:border-os-accent')}
     />
@@ -1603,7 +1604,7 @@ export function KnowledgeGraph({
 
   const taskRuntime = (() => {
     if (!selectedTask) return null;
-    if (selectedTask.assigneeKind === 'person') return 'human · judgment call';
+    if (selectedTask.assigneeKind === 'person') return t('human · judgment call');
     const a = agents.find((x) => x.id === selectedTask.assigneeId);
     return a ? `${a.instance} · ${a.model}` : null;
   })();
@@ -1612,7 +1613,7 @@ export function KnowledgeGraph({
     <SopTaskDetailCard
       task={selectedTask}
       assigneeName={selectedTaskWorkerNode?.label ?? selectedTask.assigneeId}
-      assigneeKindLabel={selectedTask.assigneeKind === 'person' ? 'human employee' : 'AI agent'}
+      assigneeKindLabel={selectedTask.assigneeKind === 'person' ? t('human employee') : t('AI agent')}
       assigneeColor={selectedTask.assigneeKind === 'person' ? 'var(--warn)' : 'var(--accent)'}
       runtime={taskRuntime}
       tools={toolChips(selectedTaskWorker)}
@@ -1715,7 +1716,7 @@ export function KnowledgeGraph({
         viewBox={`0 0 ${W} ${H}`}
         className="h-full w-full overflow-visible"
         role="img"
-        aria-label="Operating knowledge graph"
+        aria-label={t('Operating knowledge graph')}
         onClick={clearAll}
       >
         <defs>
@@ -1744,8 +1745,8 @@ export function KnowledgeGraph({
           <g className={exitTree ? 'kg-web-in' : undefined}>
           {links.map((l, i) => {
             const s = typeof l.source === 'object' ? l.source : posById.get(l.source);
-            const t = typeof l.target === 'object' ? l.target : posById.get(l.target);
-            if (!s || !t) return null;
+            const tt = typeof l.target === 'object' ? l.target : posById.get(l.target);
+            if (!s || !tt) return null;
             // while a pillar is focused the background web disappears with its
             // nodes — the tree draws its own limbs, the flanks are gateways
             // only. Drawing a whisper web behind the stage read as clutter.
@@ -1753,26 +1754,26 @@ export function KnowledgeGraph({
             const pathway = coreExpanded && l.kind === 'pillar';
             if (coreExpanded && !pathway) {
               return (
-                <path key={i} d={edgeArc(s, t)} fill="none" stroke={EDGE_COLOR[l.kind] ?? 'var(--dim)'} strokeWidth={0.9} strokeLinecap="round" opacity={0.02} style={{ transition: 'opacity 0.4s' }} />
+                <path key={i} d={edgeArc(s, tt)} fill="none" stroke={EDGE_COLOR[l.kind] ?? 'var(--dim)'} strokeWidth={0.9} strokeLinecap="round" opacity={0.02} style={{ transition: 'opacity 0.4s' }} />
               );
             }
             if (pathway) {
-              const teamColor = byId.get(t.id)?.color ?? 'var(--text)';
+              const teamColor = byId.get(tt.id)?.color ?? 'var(--text)';
               return (
-                <path key={i} d={edgeArc(s, t)} fill="none" stroke={teamColor} strokeWidth={2.2} strokeLinecap="round" opacity={0.75} className="kg-ray" style={{ transition: 'opacity 0.4s' }} />
+                <path key={i} d={edgeArc(s, tt)} fill="none" stroke={teamColor} strokeWidth={2.2} strokeLinecap="round" opacity={0.75} className="kg-ray" style={{ transition: 'opacity 0.4s' }} />
               );
             }
             // de-noised web: every edge wears its pillar's color at a whisper
             // (0.08); hovering a node raises ITS incident edges to 0.6, keeps
             // the rest of the lit chain readable, and drops everything else
-            const team = byId.get(teamForFocus(s.id) ?? teamForFocus(t.id) ?? '');
+            const team = byId.get(teamForFocus(s.id) ?? teamForFocus(tt.id) ?? '');
             const tint = team?.color ?? EDGE_COLOR[l.kind] ?? 'var(--dim)';
-            const incident = hoverId !== null && (s.id === hoverId || t.id === hoverId);
-            const onChain = !lit || (lit.has(s.id) && lit.has(t.id));
+            const incident = hoverId !== null && (s.id === hoverId || tt.id === hoverId);
+            const onChain = !lit || (lit.has(s.id) && lit.has(tt.id));
             return (
               <path
                 key={i}
-                d={edgeArc(s, t)}
+                d={edgeArc(s, tt)}
                 fill="none"
                 stroke={tint}
                 strokeWidth={incident ? 1.6 : onChain && lit ? 1.2 : 0.9}
@@ -1788,10 +1789,10 @@ export function KnowledgeGraph({
             each department head (positions written by the camera rAF) */}
         {!focusTree && memoryOn && (
           <g style={{ pointerEvents: 'none' }}>
-            {commTeams.map((t) => (
-              <g key={t.id}>
-                <circle ref={setCommRef(`${t.id}:out`)} r={2} fill={HUB_COLOR} opacity={0} transform="translate(-999,-999)" />
-                <circle ref={setCommRef(`${t.id}:in`)} r={2.3} fill={t.color} opacity={0} transform="translate(-999,-999)" />
+            {commTeams.map((tt) => (
+              <g key={tt.id}>
+                <circle ref={setCommRef(`${tt.id}:out`)} r={2} fill={HUB_COLOR} opacity={0} transform="translate(-999,-999)" />
+                <circle ref={setCommRef(`${tt.id}:in`)} r={2.3} fill={tt.color} opacity={0} transform="translate(-999,-999)" />
               </g>
             ))}
           </g>
@@ -1803,15 +1804,15 @@ export function KnowledgeGraph({
           <g className="kg-tree-exit" style={{ pointerEvents: 'none' }}>
             {exitTree.branches.map((b, i) => {
               const s = posById.get(b.source);
-              const t = posById.get(b.target);
-              if (!s || !t) return null;
+              const tt = posById.get(b.target);
+              if (!s || !tt) return null;
               const stroke =
                 b.depth === 4 ? 'var(--brain-2)'
                 : b.depth === 3 ? (byId.get(b.target)?.kind === 'person' ? 'var(--warn)' : 'var(--accent)')
                 : b.depth === 2 ? 'var(--accent)'
                 : 'var(--text)';
               return (
-                <path key={i} d={branchPath(s, t)} fill="none" stroke={stroke} strokeWidth={branchWidth(b.depth)} strokeLinecap="round" />
+                <path key={i} d={branchPath(s, tt)} fill="none" stroke={stroke} strokeWidth={branchWidth(b.depth)} strokeLinecap="round" />
               );
             })}
           </g>
@@ -1839,9 +1840,9 @@ export function KnowledgeGraph({
             {/* shared-tool "also uses" vines — faint straight lines */}
             {focusTree.extraLinks.map((l, i) => {
               const s = posById.get(l.source);
-              const t = posById.get(l.target);
-              if (!s || !t) return null;
-              return <line key={`vine-${i}`} x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke="var(--brain-2)" strokeWidth={0.8} opacity={0.26} />;
+              const tt = posById.get(l.target);
+              if (!s || !tt) return null;
+              return <line key={`vine-${i}`} x1={s.x} y1={s.y} x2={tt.x} y2={tt.y} stroke="var(--brain-2)" strokeWidth={0.8} opacity={0.26} />;
             })}
 
             {/* branches by depth:
@@ -1851,9 +1852,9 @@ export function KnowledgeGraph({
                 · worker → tool     = straight solid line */}
             {focusTree.branches.map((b, i) => {
               const s = posById.get(b.source);
-              const t = posById.get(b.target);
-              if (!s || !t) return null;
-              const d = branchPath(s, t);
+              const tt = posById.get(b.target);
+              if (!s || !tt) return null;
+              const d = branchPath(s, tt);
               if (b.depth === 4) {
                 return (
                   <path key={`br-${i}`} d={d} fill="none" stroke="var(--brain-2)" strokeWidth={branchWidth(4)} strokeLinecap="round" className="kg-fade" />
@@ -1879,10 +1880,10 @@ export function KnowledgeGraph({
             {focusTree.branches
               .filter((b) => b.depth === 4)
               .map((b, i) => {
-                const t = posById.get(b.target);
-                if (!t) return null;
+                const tt = posById.get(b.target);
+                if (!tt) return null;
                 return (
-                  <circle key={`leaf-${i}`} cx={t.x} cy={t.y} r={CAT.tool.r + 5} fill="none" stroke="var(--brain-2)" strokeWidth={1} className="kg-leaf" style={{ animationDelay: `${0.3 + i * 0.06}s` }} />
+                  <circle key={`leaf-${i}`} cx={tt.x} cy={tt.y} r={CAT.tool.r + 5} fill="none" stroke="var(--brain-2)" strokeWidth={1} className="kg-leaf" style={{ animationDelay: `${0.3 + i * 0.06}s` }} />
                 );
               })}
           </g>
@@ -1898,12 +1899,12 @@ export function KnowledgeGraph({
                 // the shared trunk base (self) belongs to the apex tree only
                 if (b.source === SELF_ID || b.target === SELF_ID) return null;
                 const s = posById.get(b.source);
-                const t = posById.get(b.target);
-                if (!s || !t) return null;
+                const tt = posById.get(b.target);
+                if (!s || !tt) return null;
                 return (
                   <path
                     key={`fl-${teamId}-${i}`}
-                    d={branchPath(s, t)}
+                    d={branchPath(s, tt)}
                     fill="none"
                     stroke={byId.get(teamId)?.color ?? 'var(--text-3)'}
                     strokeWidth={branchWidth(b.depth) * 0.8}
@@ -2297,10 +2298,10 @@ export function KnowledgeGraph({
               if (!focusTeamId && deptList[0]) navDept(deptList[0].teamId);
               setFullscreen(true);
             }}
-            title="Open the department wheel"
+            title={t('Open the department wheel')}
             className={gc('g-btn g-btn-sm absolute right-3 top-3 z-20', 'glass-chip absolute right-3 top-3 z-20 flex items-center gap-2.5 px-3 py-1.5 text-[12px] text-os-muted transition-colors hover:text-os-text')}
           >
-            <Maximize2 className="h-3.5 w-3.5" /> Fullscreen
+            <Maximize2 className="h-3.5 w-3.5" /> {t('Fullscreen')}
           </button>
 
           {/* top-left navigation: ← Back to the home view whenever we've gone
@@ -2310,27 +2311,27 @@ export function KnowledgeGraph({
             <div className="absolute left-3 top-3 z-10 flex items-center gap-3">
               <button
                 onClick={clearAll}
-                aria-label="Back to the home view"
-                title="Back to the home view"
+                aria-label={t('Back to the home view')}
+                title={t('Back to the home view')}
                 className={gc('g-btn g-btn-sm', 'glass-chip flex items-center gap-2.5 px-3 py-2 text-[12.5px] text-os-muted transition-colors hover:text-os-text')}
               >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back
+                <ArrowLeft className="h-3.5 w-3.5" /> {t('Back')}
               </button>
               {vaultSearchInput}
               {focusSet && (
                 <div className={gc('kg-hud flex items-center gap-0.5 px-1.5 py-1', 'glass-chip flex items-center gap-0.5 px-1.5 py-1')}>
                   <button
                     onClick={() => stepDept(-1)}
-                    aria-label="Previous department"
-                    title="Previous department"
+                    aria-label={t('Previous department')}
+                    title={t('Previous department')}
                     className={gc('g-btn g-btn-icon g-btn-sm', 'flex h-6 w-6 items-center justify-center rounded-sm-t text-os-dim transition-colors hover:text-os-text')}
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => stepDept(1)}
-                    aria-label="Next department"
-                    title="Next department"
+                    aria-label={t('Next department')}
+                    title={t('Next department')}
                     className={gc('g-btn g-btn-icon g-btn-sm', 'flex h-6 w-6 items-center justify-center rounded-sm-t text-os-dim transition-colors hover:text-os-text')}
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
@@ -2340,8 +2341,8 @@ export function KnowledgeGraph({
                   </span>
                   <button
                     onClick={clearAll}
-                    aria-label="Close focus"
-                    title="Back to all"
+                    aria-label={t('Close focus')}
+                    title={t('Back to all')}
                     className={gc('g-btn g-btn-icon g-btn-sm', 'flex h-6 w-6 items-center justify-center rounded-sm-t border-l border-os-border text-os-dim transition-colors hover:text-os-text')}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -2358,8 +2359,8 @@ export function KnowledgeGraph({
             <>
               <button
                 onClick={() => stepDept(-1)}
-                aria-label="Turn to the previous pillar"
-                title="Previous pillar (←)"
+                aria-label={t('Turn to the previous pillar')}
+                title={t('Previous pillar (←)')}
                 className={gc('g-btn g-btn-icon kg-paddle', 'absolute left-2 top-1/2 z-10 flex h-28 w-11 -translate-y-1/2 items-center justify-center rounded-sm-t border border-transparent bg-transparent text-os-muted transition-colors hover:border-os-border hover:bg-os-bg/70 hover:text-os-text hover:backdrop-blur')}
                 data-side="left"
               >
@@ -2367,8 +2368,8 @@ export function KnowledgeGraph({
               </button>
               <button
                 onClick={() => stepDept(1)}
-                aria-label="Turn to the next pillar"
-                title="Next pillar (→)"
+                aria-label={t('Turn to the next pillar')}
+                title={t('Next pillar (→)')}
                 className={gc('g-btn g-btn-icon kg-paddle', 'absolute right-2 top-1/2 z-10 flex h-28 w-11 -translate-y-1/2 items-center justify-center rounded-sm-t border border-transparent bg-transparent text-os-muted transition-colors hover:border-os-border hover:bg-os-bg/70 hover:text-os-text hover:backdrop-blur')}
                 data-side="right"
               >
@@ -2384,12 +2385,12 @@ export function KnowledgeGraph({
             <div className={gc('kg-panel kg-graph-panel absolute right-3 top-[46px] z-10 flex max-h-[calc(100%-58px)] w-[300px] flex-col overflow-hidden', 'kg-panel absolute right-3 top-[46px] z-10 flex max-h-[calc(100%-58px)] w-[300px] flex-col overflow-hidden rounded-[16px] border border-white/10 bg-[var(--kg-panel-bg)] backdrop-blur-md')}>
               <button
                 onClick={clearDetail}
-                aria-label={`Back to the ${focusedTeam?.label ?? 'graph'} pillar`}
+                aria-label={t('Back to the {name} pillar', { name: focusedTeam?.label ?? t('graph') })}
                 className={gc('g-btn g-btn-sm kg-panel-back', 'flex shrink-0 items-center gap-2.5 border-b border-os-border px-3 py-3 text-left text-[12px] text-os-dim transition-colors hover:text-os-text')}
               >
                 <ArrowLeft className="h-3 w-3 shrink-0" />
                 <span className="truncate">
-                  Back · <span style={{ color: focusedTeam?.color ?? 'var(--text)' }}>{focusedTeam?.label ?? 'graph'}</span>
+                  {t('Back')} · <span style={{ color: focusedTeam?.color ?? 'var(--text)' }}>{focusedTeam?.label ?? t('graph')}</span>
                 </span>
               </button>
               {toolWiki ? (
@@ -2406,29 +2407,29 @@ export function KnowledgeGraph({
         <aside className={`${gc('kg-graph-aside', 'glass-panel-violet')} flex shrink-0 flex-col gap-5 p-5 lg:h-[680px] lg:max-h-none ${directoryCollapsed ? 'max-h-[560px] w-auto lg:w-16' : 'h-[560px] w-full lg:w-72'}`}>
           <div className={directoryCollapsed ? 'hidden' : undefined}>
             <div className="mb-1.5 flex items-baseline justify-between text-[12.5px] text-os-muted">
-              <span className="font-medium">Lens</span>
+              <span className="font-medium">{t('Lens')}</span>
               {lensId && (
                 <button onClick={() => setLensId(null)} className={gc('g-btn g-btn-sm', 'text-[11.5px] text-os-dim transition-colors hover:text-os-text')}>
-                  Clear · {lensLit?.size ?? 0} lit
+                  {t('Clear · {n} lit', { n: lensLit?.size ?? 0 })}
                 </button>
               )}
             </div>
             <div className="mb-4 flex flex-col gap-1">
               {(
                 [
-                  ['Entity', ENTITY_LENSES],
-                  ['Function', FUNCTION_LENSES],
-                  ['Action', ACTION_LENSES],
+                  [t('Entity'), ENTITY_LENSES],
+                  [t('Function'), FUNCTION_LENSES],
+                  [t('Action'), ACTION_LENSES],
                 ] as [string, Lens[]][]
               ).map(([groupLabel, lenses]) => (
                 <select
                   key={groupLabel}
                   value={lenses.some((l) => l.id === lensId) ? lensId! : ''}
                   onChange={(e) => setLensId(e.target.value || null)}
-                  aria-label={`${groupLabel} lens`}
+                  aria-label={t('{group} lens', { group: groupLabel })}
                   className={gc('g-input kg-lens', 'w-full rounded-sm-t border border-os-border bg-os-surface2 px-1.5 py-1 text-[12px] text-os-muted focus:border-os-border-strong focus:outline-none')}
                 >
-                  <option value="">{groupLabel} · all</option>
+                  <option value="">{t('{group} · all', { group: groupLabel })}</option>
                   {lenses.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.label}
@@ -2438,7 +2439,7 @@ export function KnowledgeGraph({
               ))}
             </div>
 
-            <div className="mb-1.5 text-[12.5px] font-medium text-os-muted">Legend</div>
+            <div className="mb-1.5 text-[12.5px] font-medium text-os-muted">{t('Legend')}</div>
             <div className="flex flex-col gap-1">
               {LEGEND_KINDS.map((k) => {
                 const cat = CAT[k];

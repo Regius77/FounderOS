@@ -24,6 +24,7 @@ import type { ObservatoryData, ObservatoryPage } from '@/lib/gbrain-observatory'
 import { useGBrainThoughts } from '@/components/gbrain-live';
 import { SetupLink } from '@/components/SetupLink';
 import { usePalette } from '@/lib/use-palette';
+import { localeTag, t } from '@/lib/i18n';
 
 const MINT = 'var(--accent)';
 const TEXT = 'var(--gbr-text)';
@@ -49,9 +50,9 @@ function healthColor(health: number): string {
   return 'var(--err)';
 }
 function freshLabel(days: number | null): string {
-  if (days == null) return 'no date';
-  if (days === 0) return 'today';
-  return `${days}d ago`;
+  if (days == null) return t('no date');
+  if (days === 0) return t('today');
+  return t('{n}d ago', { n: days });
 }
 
 type Spoke = {
@@ -94,11 +95,11 @@ function buildRing(data: ObservatoryData): { sectors: Sector[]; spokes: Spoke[];
     const maxWords = Math.max(1, ...data.pages.map((p) => p.words));
     const inset = Math.min(4, span / (members.length + 1));
     members.forEach((m, i) => {
-      const t = members.length === 1 ? 0.5 : i / (members.length - 1);
+      const frac = members.length === 1 ? 0.5 : i / (members.length - 1);
       spokes.push({
         pi: m.pi,
         c: ci,
-        angle: a0 + inset + (span - inset * 2) * t,
+        angle: a0 + inset + (span - inset * 2) * frac,
         trackLen: 70 + 150 * Math.sqrt(m.p.words / maxWords),
         page: m.p,
       });
@@ -339,7 +340,7 @@ export function GBrainRadial({
             Optimal Engine
           </span>
           <span className="text-[12px]" style={{ color: 'var(--text-3)' }}>
-            knowledge core · radial
+            {t('knowledge core · radial')}
           </span>
         </div>
         <div className="mt-1.5 font-mono text-[10.5px] leading-relaxed" style={{ color: 'var(--gbr-status)' }}>
@@ -354,7 +355,7 @@ export function GBrainRadial({
           <div className="text-[26px] font-normal tabular-nums leading-none" style={{ color: TEXT }}>
             {data.totalChunks.toLocaleString()}
             <span className="ml-1.5 text-[12px]" style={{ color: 'var(--text-3)' }}>
-              chunks
+              {t('chunks')}
             </span>
           </div>
         </div>
@@ -364,7 +365,7 @@ export function GBrainRadial({
       {!g && (
       <button
         onClick={() => setFs((v) => !v)}
-        title={fs ? 'Exit full screen (esc)' : 'Full screen — pan + zoom'}
+        title={fs ? t('Exit full screen (esc)') : t('Full screen — pan + zoom')}
         className="gbr-widget absolute right-7 top-[84px] z-30 max-sm:right-4 flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px]"
         style={{
           background: 'color-mix(in srgb, var(--bg) 82%, transparent)',
@@ -374,7 +375,7 @@ export function GBrainRadial({
         }}
       >
         {fs ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-        {fs ? 'Exit' : 'Full screen'}
+        {fs ? t('Exit') : t('Full screen')}
       </button>
       )}
 
@@ -382,10 +383,10 @@ export function GBrainRadial({
         <div className="absolute inset-0 z-10 flex items-center justify-center">
           <div className="text-center">
             <div className="text-[14px]" style={{ color: 'var(--text-2)' }}>
-              brain-store not mounted
+              {t('brain-store not mounted')}
             </div>
             <div className="mt-3 flex justify-center">
-              <SetupLink href="/setup" hint="expected at ~/knowledge/brain-store (or GBRAIN_STORE)" />
+              <SetupLink href="/setup" hint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
             </div>
           </div>
         </div>
@@ -396,13 +397,13 @@ export function GBrainRadial({
         // sits under the ask bar (top-[92px] + its height) — it used to be
         // vertically centered on the left edge, where it collided with the
         // legend's column
-        <div className={g ? `kg-radial-years ${ringAnim}` : `absolute left-7 top-[150px] z-20 ${ringAnim}`} role={g ? 'group' : undefined} aria-label={g ? 'Filter by year modified' : undefined}>
+        <div className={g ? `kg-radial-years ${ringAnim}` : `absolute left-7 top-[150px] z-20 ${ringAnim}`} role={g ? 'group' : undefined} aria-label={g ? t('Filter by year modified') : undefined}>
           {data.years.map((y) => {
             const on = year === y.year;
             const max = Math.max(...data.years.map((v) => v.count));
             if (g) {
               return (
-                <button key={y.year} type="button" className="g-chip" data-size="compact" aria-pressed={on} onClick={() => setYear(on ? null : y.year)} title={`${y.count} pages last modified in ${y.year}`}>
+                <button key={y.year} type="button" className="g-chip" data-size="compact" aria-pressed={on} onClick={() => setYear(on ? null : y.year)} title={t('{n} pages last modified in {year}', { n: y.count, year: y.year })}>
                   {y.year}
                 </button>
               );
@@ -474,12 +475,12 @@ export function GBrainRadial({
             {/* tracked uppercase arc labels are Classic chrome; the GladOS style uses sentence case (§3.3.7) */}
             <text fontSize={g ? 10 : 9} letterSpacing={g ? undefined : '0.32em'} fill="rgb(var(--gbr-tint-b) / 0.3)">
               <textPath href="#gbr-arc-folders" startOffset="50%" textAnchor="middle">
-                {g ? 'Folders' : 'CONTEXT POOL'}
+                {g ? t('Folders') : t('CONTEXT POOL')}
               </textPath>
             </text>
             <text fontSize={g ? 10 : 9} letterSpacing={g ? undefined : '0.32em'} fill="rgb(var(--gbr-tint-b) / 0.24)">
               <textPath href="#gbr-arc-pages" startOffset="50%" textAnchor="middle">
-                {g ? 'Pages' : 'PAGES'}
+                {g ? t('Pages') : t('PAGES')}
               </textPath>
             </text>
 
@@ -503,7 +504,7 @@ export function GBrainRadial({
               <g transform="translate(0,118)">
                 <rect x="-34" y="0" width="68" height="16" rx="8" fill="color-mix(in srgb, var(--accent) 9%, transparent)" stroke="color-mix(in srgb, var(--accent) 35%, transparent)" />
                 <text y="11.5" textAnchor="middle" fontSize="9.5" style={{ fill: 'var(--accent)' }} className="font-mono">
-                  {data.totalPages} pages
+                  {t('{n} pages', { n: data.totalPages })}
                 </text>
               </g>
             </g>
@@ -658,7 +659,7 @@ export function GBrainRadial({
               >
                 <rect x="-78" y="-30" width="156" height="26" rx="8" fill="color-mix(in srgb, var(--elevated) 94%, transparent)" stroke="color-mix(in srgb, var(--accent) 40%, transparent)" />
                 <text y="-13" textAnchor="middle" fontSize="9.5" fill={TEXT}>
-                  {ring.spokes[hover].page.words.toLocaleString()} words · {ring.spokes[hover].page.chunks} chunks · click to expand
+                  {t('{words} words · {chunks} chunks · click to expand', { words: ring.spokes[hover].page.words.toLocaleString(localeTag()), chunks: ring.spokes[hover].page.chunks })}
                 </text>
               </g>
             )}
@@ -690,7 +691,7 @@ export function GBrainRadial({
           style={{ background: 'color-mix(in srgb, var(--bg) 82%, transparent)', borderColor: 'rgb(var(--mist-rgb) / 0.1)', backdropFilter: 'blur(10px)' }}
         >
           <div className="mb-2.5 text-[9.5px] tracking-[0.3em]" style={{ color: 'var(--text-2)' }}>
-            LEGEND
+            {t('LEGEND')}
           </div>
           {data.clusters.map((c, i) => (
             <button
@@ -716,7 +717,7 @@ export function GBrainRadial({
           {data.freshPct != null && (
             <div className="flex items-center justify-between py-[3px]">
               <span className="text-[11px]" style={{ color: 'var(--text-2)' }}>
-                Fresh ≤30d
+                {t('Fresh ≤30d')}
               </span>
               <span className="rounded-[6px] border px-1.5 py-0.5 font-mono text-[9.5px]" style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', color: MINT }}>
                 {data.freshPct}%
@@ -726,7 +727,7 @@ export function GBrainRadial({
           {data.stalePct != null && (
             <div className="flex items-center justify-between py-[3px]">
               <span className="text-[11px]" style={{ color: 'var(--text-2)' }}>
-                Stale ≥90d
+                {t('Stale ≥90d')}
               </span>
               <span className="rounded-[6px] border px-1.5 py-0.5 font-mono text-[9.5px]" style={{ borderColor: 'var(--gbr-amber-line)', color: 'var(--gbr-amber)' }}>
                 {data.stalePct}%
@@ -765,7 +766,7 @@ export function GBrainRadial({
             <div className="flex items-baseline gap-2">
               <span className="h-1.5 w-1.5 shrink-0 translate-y-[-2px] rounded-full" style={{ background: MINT }} />
               <span className="shrink-0 font-mono text-[10px]" style={{ color: 'var(--text-2)' }}>
-                {sources.length > 0 ? `retrieved from ${sources.length} notes` : 'retrieval'}
+                {sources.length > 0 ? t('retrieved from {n} notes', { n: sources.length }) : t('retrieval')}
               </span>
               <span className="min-w-0 flex-1 truncate text-[12.5px]" style={{ color: 'var(--text)' }}>
                 {answer}
@@ -803,8 +804,8 @@ export function GBrainRadial({
           <input
             {...inputProps}
             disabled={!data.mounted}
-            placeholder={data.mounted ? 'Ask the brain a question…' : 'brain-store not mounted'}
-            aria-label="Ask the brain"
+            placeholder={data.mounted ? t('Ask the brain a question…') : t('brain-store not mounted')}
+            aria-label={t('Ask the brain')}
             spellCheck={false}
             className="g-input"
             data-size="md"
@@ -828,7 +829,7 @@ export function GBrainRadial({
           <input
             {...inputProps}
             disabled={!data.mounted}
-            placeholder={data.mounted ? 'ask a question…' : 'brain-store not mounted'}
+            placeholder={data.mounted ? t('ask a question…') : t('brain-store not mounted')}
             spellCheck={false}
             className="min-h-[16px] w-full flex-1 border-0 bg-transparent font-mono text-[11.5px] outline-none"
             style={{ color: 'var(--text)', caretColor: MINT }}
@@ -842,7 +843,7 @@ export function GBrainRadial({
 
       {!g && (
       <div className="pointer-events-none absolute bottom-2 right-7 z-20 font-mono text-[9px]" style={{ color: 'var(--gbr-footer)' }}>
-        {manual ? 'live retrieval' : 'auto queries · live retrieval'}
+        {manual ? t('live retrieval') : t('auto queries · live retrieval')}
       </div>
       )}
 
@@ -935,15 +936,15 @@ function ExpandedView({
   const folderChunks = folderPages.reduce((s, x) => s + x.p.chunks, 0) || 1;
   const maxChunkWords = Math.max(1, ...page.chunkWords);
   const modified =
-    page.days != null ? new Date(Date.now() - page.days * 86_400_000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : null;
+    page.days != null ? new Date(Date.now() - page.days * 86_400_000).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short', year: 'numeric' }) : null;
 
   const ROW_H = 46;
   const fanH = Math.max(shown.length, 1) * ROW_H;
   const CAPS: { key: typeof filter; label: string; n: number }[] = [
-    { key: 'all', label: 'Pages', n: counts.all },
-    { key: 'fresh', label: 'Fresh ≤30d', n: counts.fresh },
-    { key: 'stale', label: 'Stale ≥90d', n: counts.stale },
-    { key: 'linked', label: 'Wikilinked', n: counts.linked },
+    { key: 'all', label: t('Pages'), n: counts.all },
+    { key: 'fresh', label: t('Fresh ≤30d'), n: counts.fresh },
+    { key: 'stale', label: t('Stale ≥90d'), n: counts.stale },
+    { key: 'linked', label: t('Wikilinked'), n: counts.linked },
   ];
 
   return (
@@ -953,11 +954,11 @@ function ExpandedView({
         <div className="relative flex flex-col items-center">
           {g ? (
             <button type="button" onClick={onBack} className="g-btn kg-radial-back" data-variant="default" data-size="sm">
-              Back to the ring
+              {t('Back to the ring')}
             </button>
           ) : (
           <button onClick={onBack} className="absolute -top-10 left-0 text-[11.5px] transition-colors hover:text-white" style={{ color: 'var(--text-2)' }}>
-            ← ring
+            ← {t('ring')}
           </button>
           )}
           <div
@@ -975,7 +976,7 @@ function ExpandedView({
           <div className="mt-4 text-center">
             <div className="text-[15px] font-medium">{cluster.name}</div>
             <div className="mt-1 font-mono text-[10.5px]" style={{ color: 'var(--text-3)' }}>
-              {counts.all} pages · {folderChunks} chunks
+              {t('{pages} pages · {chunks} chunks', { pages: counts.all, chunks: folderChunks })}
             </div>
           </div>
         </div>
@@ -1050,7 +1051,7 @@ function ExpandedView({
                   {x.p.t}
                 </span>
                 <span className="rounded-[5px] border px-1.5 py-px font-mono text-[8.5px]" style={{ borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)', color: 'var(--h6-mint)' }}>
-                  {x.p.chunks} ch
+                  {t('{n} ch', { n: x.p.chunks })}
                 </span>
                 <span className="font-mono text-[8.5px]" style={{ color: freshColor(x.p.days) }}>
                   {freshLabel(x.p.days)}
@@ -1060,12 +1061,12 @@ function ExpandedView({
           })}
           {filtered.length > ROWS && (
             <div className="py-2 pl-2 font-mono text-[9.5px]" style={{ color: 'var(--text-3)' }}>
-              +{filtered.length - ROWS} more by chunk count
+              {t('+{n} more by chunk count', { n: filtered.length - ROWS })}
             </div>
           )}
           {filtered.length === 0 && (
             <div className="py-2 pl-2 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-              no pages match this filter
+              {t('no pages match this filter')}
             </div>
           )}
         </div>
@@ -1091,10 +1092,10 @@ function ExpandedView({
             data-fresh={page.days != null && page.days <= 30 ? '' : undefined}
             style={{ borderColor: `color-mix(in srgb, ${freshColor(page.days)} 40%, transparent)`, color: freshColor(page.days) }}
           >
-            {page.days != null && page.days <= 30 ? 'Fresh' : page.days != null && page.days >= 90 ? 'Stale' : 'Tracked'}
+            {page.days != null && page.days <= 30 ? t('Fresh') : page.days != null && page.days >= 90 ? t('Stale') : t('Tracked')}
           </span>
           <span className="flex-1 text-[10.5px] leading-snug" style={{ color: 'var(--text-2)' }}>
-            {modified ? `last modified ${modified}` : 'no modification date on file'}
+            {modified ? t('last modified {date}', { date: modified }) : t('no modification date on file')}
           </span>
           <button
             onClick={() => onAsk(page.t.replace(/\.md$/, '').split('/').pop() ?? page.t)}
@@ -1102,7 +1103,7 @@ function ExpandedView({
             data-size={g ? 'sm' : undefined}
             style={g ? undefined : { borderColor: 'color-mix(in srgb, var(--accent) 45%, transparent)', color: 'var(--h6-mint)' }}
           >
-            Ask the brain ›
+            {t('Ask the brain')} ›
           </button>
         </div>
 
@@ -1110,16 +1111,16 @@ function ExpandedView({
         <div className="gbr-widget mt-3 rounded-[13px] border p-3.5" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)', background: 'var(--gbr-size-bg)' }}>
           <div className="flex items-baseline justify-between">
             <span className="text-[11px]" style={{ color: 'var(--text-2)' }}>
-              Page size
+              {t('Page size')}
             </span>
             <span className="rounded-full border px-2 py-0.5 text-[9px]" style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', color: MINT }}>
-              {page.chunks} chunks
+              {t('{n} chunks', { n: page.chunks })}
             </span>
           </div>
           <div className="mt-1 text-[30px] font-normal tabular-nums leading-none" style={{ color: 'var(--text)' }}>
             {page.words.toLocaleString()}
             <span className="ml-1.5 text-[11px]" style={{ color: 'var(--text-3)' }}>
-              words
+              {t('words')}
             </span>
           </div>
           <div className="mt-3 flex h-[34px] items-end gap-[3px]">
@@ -1128,7 +1129,7 @@ function ExpandedView({
                 key={i}
                 className="w-[7px] rounded-t-[2px]"
                 style={{ height: `${Math.max(12, (wds / maxChunkWords) * 100)}%`, background: `color-mix(in srgb, var(--accent) ${i % 2 ? 45 : 75}%, transparent)` }}
-                title={`chunk ${i + 1}: ${wds} words`}
+                title={t('chunk {i}: {n} words', { i: i + 1, n: wds })}
               />
             ))}
           </div>
@@ -1137,10 +1138,10 @@ function ExpandedView({
         {/* stat tiles */}
         <div className="mt-3 grid grid-cols-2 gap-2.5">
           {[
-            { n: page.chunks, l: 'Embedded chunks' },
-            { n: page.links, l: 'Wikilinks' },
-            { n: page.days != null ? `${page.days}d` : '—', l: 'Since last edit' },
-            { n: `${Math.max(1, Math.round((page.chunks / folderChunks) * 100))}%`, l: 'Of folder chunks' },
+            { n: page.chunks, l: t('Embedded chunks') },
+            { n: page.links, l: t('Wikilinks') },
+            { n: page.days != null ? t('{n}d', { n: page.days }) : '—', l: t('Since last edit') },
+            { n: `${Math.max(1, Math.round((page.chunks / folderChunks) * 100))}%`, l: t('Of folder chunks') },
           ].map((tile) => (
             <div key={tile.l} className="gbr-widget rounded-[12px] border p-3" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)' }}>
               <div className="text-[19px] font-normal tabular-nums leading-none" style={{ color: 'var(--gbr-tile-text)' }}>
@@ -1157,7 +1158,7 @@ function ExpandedView({
         {page.excerpt && (
           <div className="gbr-widget mt-3 rounded-[13px] border p-3.5" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)' }}>
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-2)' }}>
-              From the page
+              {t('From the page')}
             </div>
             <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-2)' }}>
               {page.excerpt}

@@ -1532,7 +1532,7 @@ function Dossier({
 
         {ad.hook && (
           <div className="mt-4">
-            <div className="text-[11px] text-os-dim">{t('Hook ({source})', { source: ad.hookSource })}</div>
+            <div className="text-[11px] text-os-dim">{t('Hook ({source})', { source: ad.hookSource ? t(ad.hookSource) : '' })}</div>
             <p className="mt-1 text-[13.5px] leading-snug text-os-text">“{ad.hook}”</p>
           </div>
         )}

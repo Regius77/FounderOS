@@ -37,6 +37,14 @@ import {
 import { AddToCampaignVerb, VerbButton } from '@/components/content/ActionRow';
 import { HoverVideo } from '@/components/content/MediaPreview';
 import { MediaDetailOverlay } from '@/components/content/MediaDetail';
+import { t } from '@/lib/i18n';
+
+const STATUS_LABEL: Record<ProductionTask['status'], string> = {
+  queued: t('queued'),
+  generating: t('generating'),
+  delivered: t('delivered'),
+  blocked: t('blocked'),
+};
 
 const TYPE_ICON: Record<TaskType, typeof ImageIcon> = {
   thumbnail: ImageIcon,
@@ -82,7 +90,7 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
   const campaignName = (id: string) => campaigns.find((c) => c.id === id)?.name ?? id;
 
   async function cancelTask(id: string) {
-    if (!window.confirm('Cancel this queued task? This cannot be undone.')) return;
+    if (!window.confirm(t('Cancel this queued task? This cannot be undone.'))) return;
     setBusyId(id);
     try {
       const res = await fetch(`/api/content/queue/${id}`, { method: 'DELETE' });
@@ -91,7 +99,7 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
         router.refresh();
       } else {
         const body = await res.json().catch(() => ({}));
-        window.alert(typeof body?.error === 'string' ? body.error : 'Could not cancel this task.');
+        window.alert(typeof body?.error === 'string' ? body.error : t('Could not cancel this task.'));
       }
     } finally {
       setBusyId(null);
@@ -110,7 +118,7 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
         router.refresh();
       } else {
         const body = await res.json().catch(() => ({}));
-        window.alert(typeof body?.error === 'string' ? body.error : 'Could not update the campaign.');
+        window.alert(typeof body?.error === 'string' ? body.error : t('Could not update the campaign.'));
       }
     } finally {
       setBusyId(null);
@@ -145,12 +153,12 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
   }
 
   if (tasks.length === 0) {
-    return <EmptyNote>Nothing queued — pick something from Create above</EmptyNote>;
+    return <EmptyNote>{t('Nothing queued — pick something from Create above')}</EmptyNote>;
   }
 
   const items = buildRenderingItems(tasks);
   const groups = groupDeliveredTasks(tasks);
-  const openTask = openTaskId ? (tasks.find((t) => t.id === openTaskId) ?? null) : null;
+  const openTask = openTaskId ? (tasks.find((task) => task.id === openTaskId) ?? null) : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -158,14 +166,14 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
       <div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <span className="glass-label">
-            Runs on Higgsfield — queued tasks are picked up by the operator; outputs land in the delivered feed
+            {t('Runs on Higgsfield — queued tasks are picked up by the operator; outputs land in the delivered feed')}
           </span>
           {items.length > 0 && (
-            <span className="font-mono text-[11px] tabular-nums text-os-dim">{items.length} active</span>
+            <span className="font-mono text-[11px] tabular-nums text-os-dim">{t('{n} active', { n: items.length })}</span>
           )}
         </div>
         {items.length === 0 ? (
-          <EmptyNote>Nothing rendering right now</EmptyNote>
+          <EmptyNote>{t('Nothing rendering right now')}</EmptyNote>
         ) : (
           <div className="flex flex-wrap gap-3">
             {items.map((item) =>
@@ -188,10 +196,10 @@ export function Production({ tasks, campaigns }: { tasks: ProductionTask[]; camp
       {/* Zone B — delivered feed: session-grouped, output-first, four verbs. */}
       <div>
         <div className="mb-3">
-          <span className="glass-label">Delivered</span>
+          <span className="glass-label">{t('Delivered')}</span>
         </div>
         {groups.length === 0 ? (
-          <EmptyNote>No delivered work yet — queued jobs land here once fulfilled</EmptyNote>
+          <EmptyNote>{t('No delivered work yet — queued jobs land here once fulfilled')}</EmptyNote>
         ) : (
           <div className="flex flex-col gap-6">
             {groups.map((group) => (
@@ -265,19 +273,19 @@ function TaskCard({
       </div>
       <div className="flex items-center justify-between text-[11.5px] text-os-muted">
         <span className="truncate">{campaignName}</span>
-        <span className="shrink-0 font-mono tabular-nums">~{task.creditEstimate} cr</span>
+        <span className="shrink-0 font-mono tabular-nums">{t('~{n} cr', { n: task.creditEstimate })}</span>
       </div>
       <div className="flex items-center justify-between border-t border-[var(--hairline)] pt-2.5">
         <span className="flex items-center gap-2">
           <Dot state={STATUS_DOT[task.status]} />
-          <span className="text-[11.5px] text-os-muted">{task.status}</span>
+          <span className="text-[11.5px] text-os-muted">{STATUS_LABEL[task.status] ?? task.status}</span>
         </span>
         <button
           type="button"
           onClick={onCancel}
           disabled={busy}
-          aria-label="Cancel task"
-          title="Cancel task"
+          aria-label={t('Cancel task')}
+          title={t('Cancel task')}
           className="shrink-0 rounded-md-t p-1.5 text-os-dim transition-colors hover:text-os-err disabled:opacity-40"
         >
           <Trash2 className="h-3.5 w-3.5" strokeWidth={1.7} />
@@ -292,7 +300,7 @@ function PipelineCard({ pipelineId, nodes }: { pipelineId: string; nodes: Pipeli
     <div className="glass-panel flex w-full max-w-xs flex-col gap-2.5 p-4 sm:w-72">
       <div className="flex items-center gap-2">
         <FolderTree className="h-4 w-4 shrink-0 text-os-dim" strokeWidth={1.7} />
-        <span className="min-w-0 flex-1 truncate text-[13px] text-os-text">Pipeline · {pipelineId}</span>
+        <span className="min-w-0 flex-1 truncate text-[13px] text-os-text">{t('Pipeline · {id}', { id: pipelineId })}</span>
       </div>
       <ul className="flex flex-col gap-1.5">
         {nodes.map((n) => (
@@ -302,7 +310,7 @@ function PipelineCard({ pipelineId, nodes }: { pipelineId: string; nodes: Pipeli
               <span className="truncate text-os-muted">{n.title}</span>
             </span>
             {n.status === 'blocked' && n.waitingOn && (
-              <span className="shrink-0 truncate text-os-dim">waiting on {n.waitingOn}</span>
+              <span className="shrink-0 truncate text-os-dim">{t('waiting on {what}', { what: n.waitingOn })}</span>
             )}
           </li>
         ))}
@@ -358,9 +366,9 @@ function DeliveredCard({
           {modelDisplayName(task.model)}
         </span>
         <div className="mt-auto grid grid-cols-4 gap-1.5 pt-1">
-          <VerbButton icon={Maximize2} label="Upscale" onClick={onUpscale} disabled={busy} />
-          <VerbButton icon={Shuffle} label="Vary" onClick={onVary} disabled={busy} />
-          <VerbButton icon={SlidersHorizontal} label="Reuse settings" onClick={onReuse} disabled={busy} />
+          <VerbButton icon={Maximize2} label={t('Upscale')} onClick={onUpscale} disabled={busy} />
+          <VerbButton icon={Shuffle} label={t('Vary')} onClick={onVary} disabled={busy} />
+          <VerbButton icon={SlidersHorizontal} label={t('Reuse settings')} onClick={onReuse} disabled={busy} />
           <AddToCampaignVerb campaigns={campaigns} disabled={busy} onPick={onAddToCampaign} />
         </div>
       </div>

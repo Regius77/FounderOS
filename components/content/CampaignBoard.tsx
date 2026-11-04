@@ -1,5 +1,14 @@
 import { Calendar, Check, ChevronDown, Lock, Minus } from 'lucide-react';
 import { CAMPAIGN_STAGES, type Campaign } from '@/lib/content-campaigns';
+import { t } from '@/lib/i18n';
+
+const STAGE_LABEL: Record<Campaign['stage'], string> = {
+  brief: t('brief'),
+  concept: t('concept'),
+  production: t('production'),
+  review: t('review'),
+  posted: t('posted'),
+};
 
 /** Compact horizontal brief → posted strip; the current stage reads mint. */
 function StageStrip({ stage }: { stage: Campaign['stage'] }) {
@@ -18,7 +27,7 @@ function StageStrip({ stage }: { stage: Campaign['stage'] }) {
                   : 'text-os-dim'
             }`}
           >
-            {s}
+            {STAGE_LABEL[s]}
           </span>
         </span>
       ))}
@@ -46,7 +55,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             <span className="text-[14.5px] font-medium text-os-text">{campaign.name}</span>
             {campaign.confidential && (
               <span className="inline-flex items-center gap-1 text-[11px] text-os-warn">
-                <Lock className="h-3 w-3" strokeWidth={1.8} /> confidential
+                <Lock className="h-3 w-3" strokeWidth={1.8} /> {t('confidential')}
               </span>
             )}
           </div>
@@ -83,24 +92,24 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             {h}
           </Chip>
         ))}
-        {r.commentCta && <Chip>Comment-keyword CTA</Chip>}
+        {r.commentCta && <Chip>{t('Comment-keyword CTA')}</Chip>}
         {r.cta && !r.commentCta && <Chip>{r.cta}</Chip>}
         {r.durationSec && (
           <Chip mono>
             {r.durationSec[0]}–{r.durationSec[1]}s
           </Chip>
         )}
-        {campaign.references.length > 0 && <Chip>Refs: {campaign.references.join(', ')}</Chip>}
+        {campaign.references.length > 0 && <Chip>{t('Refs: {refs}', { refs: campaign.references.join(', ') })}</Chip>}
       </div>
 
       <details className="group mt-4">
         <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[12.5px] text-os-dim transition-colors hover:text-os-text [&::-webkit-details-marker]:hidden">
           <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" strokeWidth={1.7} />
-          Brief facts
+          {t('Brief facts')}
         </summary>
         <div className="mt-3 grid gap-4 border-t border-[var(--hairline)] pt-3 sm:grid-cols-2">
           <div>
-            <div className="glass-label mb-2">Do</div>
+            <div className="glass-label mb-2">{t('Do')}</div>
             <ul className="flex flex-col gap-1.5">
               {campaign.dos.map((d) => (
                 <li key={d} className="flex items-start gap-2 text-[12.5px] leading-relaxed text-os-muted">
@@ -111,7 +120,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
             </ul>
           </div>
           <div>
-            <div className="glass-label mb-2">Don&apos;t</div>
+            <div className="glass-label mb-2">{t("Don't")}</div>
             <ul className="flex flex-col gap-1.5">
               {campaign.donts.map((d) => (
                 <li key={d} className="flex items-start gap-2 text-[12.5px] leading-relaxed text-os-muted">

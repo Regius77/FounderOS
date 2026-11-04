@@ -30,6 +30,9 @@ import { estimateCredits, type ProductionTask } from '@/lib/content-schema';
 import type { Campaign } from '@/lib/content-campaigns';
 import type { Pipeline, PipelineInput, PipelineNode, PipelineNodeKind } from '@/lib/content-pipelines';
 import { PipelineBuilder } from '@/components/content/PipelineBuilder';
+import { t } from '@/lib/i18n';
+
+const INPUT_KIND_LABEL: Record<string, string> = { image: t('image'), video: t('video'), audio: t('audio'), text: t('text'), reference: t('reference') };
 
 export type PipelineBoardProps = {
   pipelines: Pipeline[];
@@ -144,7 +147,7 @@ export function PipelineBoard({ pipelines, tasks, campaigns }: PipelineBoardProp
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-[12.5px] text-os-dim">
-          {pipelines.length} pipeline{pipelines.length === 1 ? '' : 's'} saved
+          {pipelines.length === 1 ? t('{n} pipeline saved', { n: pipelines.length }) : t('{n} pipelines saved', { n: pipelines.length })}
         </span>
       </div>
 
@@ -211,7 +214,7 @@ function PipelineCard({
         <button
           type="button"
           onClick={onEdit}
-          aria-label={`Edit ${pipeline.name}`}
+          aria-label={t('Edit {name}', { name: pipeline.name })}
           className="glass-chip grid h-7 w-7 shrink-0 place-items-center text-os-dim transition-colors hover:text-os-text"
         >
           <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -232,16 +235,16 @@ function PipelineCard({
 
       <div className="flex items-center justify-between gap-2 border-t border-[var(--hairline)] pt-3">
         <span className="shrink-0 font-mono text-[10.5px] text-os-dim">
-          {pipeline.nodes.length} node{pipeline.nodes.length === 1 ? '' : 's'}
+          {pipeline.nodes.length === 1 ? t('{n} node', { n: pipeline.nodes.length }) : t('{n} nodes', { n: pipeline.nodes.length })}
         </span>
         <div className="flex items-center gap-1.5">
           {hasInputs && (
             <button type="button" onClick={onRunForm} className="c-btn">
-              <FileText className="h-3 w-3" strokeWidth={1.8} /> Run as form
+              <FileText className="h-3 w-3" strokeWidth={1.8} /> {t('Run as form')}
             </button>
           )}
           <button type="button" onClick={onRun} className="c-btn c-btn-primary">
-            <Play className="h-3 w-3" strokeWidth={1.8} /> Run
+            <Play className="h-3 w-3" strokeWidth={1.8} /> {t('Run')}
           </button>
         </div>
       </div>
@@ -251,7 +254,7 @@ function PipelineCard({
 
 function FlowGlyph({ columns, tasks, pipelineId }: { columns: PipelineNode[][]; tasks: ProductionTask[]; pipelineId: string }) {
   if (columns.length === 0) {
-    return <p className="text-[11px] text-os-dim">No nodes yet</p>;
+    return <p className="text-[11px] text-os-dim">{t('No nodes yet')}</p>;
   }
   return (
     <div className="flex min-w-max items-center gap-1 pb-1">
@@ -273,7 +276,7 @@ function FlowNodeChip({ node, tasks, pipelineId }: { node: PipelineNode; tasks: 
   const Icon = KIND_ICON[node.kind];
   // Most recent matching task — pipelines are re-run over time, and only
   // the latest run's status is meaningful on the card glyph.
-  const task = tasks.filter((t) => t.pipelineId === pipelineId && t.nodeId === node.id).at(-1);
+  const task = tasks.filter((task) => task.pipelineId === pipelineId && task.nodeId === node.id).at(-1);
   return (
     <span className="glass-chip flex items-center gap-1.5 px-2 py-1" title={node.label}>
       <Icon className="h-3 w-3 shrink-0 text-os-dim" strokeWidth={1.8} />
@@ -291,7 +294,7 @@ function NewPipelineCard({ onClick }: { onClick: () => void }) {
       className="glass-panel hoverable flex min-h-[180px] flex-col items-center justify-center gap-2 px-5 py-6 text-os-dim transition-colors hover:text-os-text"
     >
       <Plus className="h-5 w-5" strokeWidth={1.8} />
-      <span className="text-[13px]">New pipeline</span>
+      <span className="text-[13px]">{t('New pipeline')}</span>
     </button>
   );
 }
@@ -317,7 +320,7 @@ function DraftChatCard({ onDrafted }: { onDrafted: (input: PipelineInput) => voi
       const body = await res.json().catch(() => null);
       if (!res.ok) {
         setUnavailable(res.status === 503);
-        setError(typeof body?.error === 'string' ? body.error : `drafting failed (HTTP ${res.status})`);
+        setError(typeof body?.error === 'string' ? body.error : t('drafting failed (HTTP {status})', { status: res.status }));
         return;
       }
       onDrafted(body.pipeline as PipelineInput);
@@ -331,19 +334,19 @@ function DraftChatCard({ onDrafted }: { onDrafted: (input: PipelineInput) => voi
 
   return (
     <div className="glass-panel flex min-h-[180px] flex-col gap-3 px-5 py-5">
-      <span className="glass-label">Draft with chat</span>
+      <span className="glass-label">{t('Draft with chat')}</span>
       <textarea
         value={brief}
         onChange={(e) => setBrief(e.target.value)}
         rows={4}
-        placeholder="Describe the pipeline and I'll draft it…"
+        placeholder={t("Describe the pipeline and I'll draft it…")}
         className="glass-chip flex-1 resize-none border-none px-3 py-2.5 text-[12.5px] leading-relaxed text-os-text outline-none placeholder:text-os-dim"
       />
       <button type="button" onClick={draft} disabled={busy || !brief.trim()} className="c-btn c-btn-primary self-start">
-        <Sparkles className="h-3 w-3" strokeWidth={1.8} /> {busy ? 'Drafting…' : 'Draft'}
+        <Sparkles className="h-3 w-3" strokeWidth={1.8} /> {busy ? t('Drafting…') : t('Draft')}
       </button>
       {error && (
-        <p className="text-[11.5px] text-os-dim">{unavailable ? 'Drafting assistant unavailable — build manually.' : error}</p>
+        <p className="text-[11.5px] text-os-dim">{unavailable ? t('Drafting assistant unavailable — build manually.') : error}</p>
       )}
     </div>
   );
@@ -373,7 +376,7 @@ function RunModal({
 
   async function confirm() {
     if (!campaignId) {
-      setError('Pick a campaign.');
+      setError(t('Pick a campaign.'));
       return;
     }
     setBusy(true);
@@ -386,7 +389,7 @@ function RunModal({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        throw new Error(typeof body?.error === 'string' ? body.error : `run failed (HTTP ${res.status})`);
+        throw new Error(typeof body?.error === 'string' ? body.error : t('run failed (HTTP {status})', { status: res.status }));
       }
       router.refresh();
       onClose();
@@ -410,11 +413,11 @@ function RunModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`Run ${pipeline.name}`}
+        aria-label={t('Run {name}', { name: pipeline.name })}
       >
         <button
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('Close')}
           className="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full border border-[rgb(var(--mist-rgb) / 0.14)] bg-black/30 text-os-dim transition-colors hover:text-os-text"
         >
           <X className="h-4 w-4" />
@@ -422,7 +425,7 @@ function RunModal({
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <h2 className="pr-10 text-[16px] font-medium leading-tight">
-            {step === 'form' ? `${pipeline.name} — inputs` : `Run ${pipeline.name}`}
+            {step === 'form' ? t('{name} — inputs', { name: pipeline.name }) : t('Run {name}', { name: pipeline.name })}
           </h2>
 
           {step === 'form' && (
@@ -434,20 +437,18 @@ function RunModal({
                     <input
                       value={inputValues[n.id] ?? ''}
                       onChange={(e) => setInputValues((v) => ({ ...v, [n.id]: e.target.value }))}
-                      placeholder="Paste the value"
+                      placeholder={t('Paste the value')}
                       className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none placeholder:text-os-dim"
                     />
                   ) : (
                     <p className="text-[12px] text-os-dim">
-                      Provide the {n.inputKind ?? 'reference'} for this input during fulfillment — the operator picks it up
-                      when this run reaches it.
+                      {t('Provide the {kind} for this input during fulfillment — the operator picks it up when this run reaches it.', { kind: INPUT_KIND_LABEL[n.inputKind ?? 'reference'] ?? n.inputKind ?? '' })}
                     </p>
                   )}
                 </div>
               ))}
               <p className="text-[11px] text-os-dim">
-                This queues the pipeline exactly as drawn — the operator resolves each input against the values above during
-                fulfillment.
+                {t('This queues the pipeline exactly as drawn — the operator resolves each input against the values above during fulfillment.')}
               </p>
             </div>
           )}
@@ -455,7 +456,7 @@ function RunModal({
           {step === 'confirm' && (
             <div className="mt-5 flex flex-col gap-3">
               {preview.nodes.length === 0 ? (
-                <p className="text-[12.5px] text-os-dim">This pipeline has no generate or transform nodes to run.</p>
+                <p className="text-[12.5px] text-os-dim">{t('This pipeline has no generate or transform nodes to run.')}</p>
               ) : (
                 <ol className="flex flex-col gap-2">
                   {preview.nodes.map((n, i) => (
@@ -465,19 +466,19 @@ function RunModal({
                         <span className="truncate">{n.label}</span>
                         <span className="shrink-0 font-mono text-[10.5px] text-os-dim">· {n.model}</span>
                       </span>
-                      <span className="shrink-0 font-mono text-[11.5px] tabular-nums text-os-muted">~{n.credits} cr</span>
+                      <span className="shrink-0 font-mono text-[11.5px] tabular-nums text-os-muted">{t('~{n} cr', { n: n.credits })}</span>
                     </li>
                   ))}
                 </ol>
               )}
               <label className="flex flex-col gap-1.5">
-                <span className="glass-label">Campaign</span>
+                <span className="glass-label">{t('Campaign')}</span>
                 <select
                   value={campaignId}
                   onChange={(e) => setCampaignId(e.target.value)}
                   className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none"
                 >
-                  <option value="">Pick a campaign…</option>
+                  <option value="">{t('Pick a campaign…')}</option>
                   {campaigns.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -486,8 +487,8 @@ function RunModal({
                 </select>
               </label>
               <div className="flex items-center justify-between border-t border-[var(--hairline)] pt-3">
-                <span className="text-[12px] text-os-dim">Total</span>
-                <span className="font-mono text-[13px] tabular-nums text-os-text">~{preview.totalCredits} credits</span>
+                <span className="text-[12px] text-os-dim">{t('Total')}</span>
+                <span className="font-mono text-[13px] tabular-nums text-os-text">{t('~{n} credits', { n: preview.totalCredits })}</span>
               </div>
             </div>
           )}
@@ -502,11 +503,11 @@ function RunModal({
 
         <div className="flex shrink-0 items-center justify-end gap-2 border-t border-[rgb(var(--mist-rgb) / 0.1)] px-6 py-4">
           <button type="button" onClick={onClose} className="c-btn">
-            Cancel
+            {t('Cancel')}
           </button>
           {step === 'form' ? (
             <button type="button" onClick={() => setStep('confirm')} className="c-btn c-btn-primary">
-              Continue
+              {t('Continue')}
             </button>
           ) : (
             <button
@@ -515,7 +516,7 @@ function RunModal({
               disabled={busy || !campaignId || preview.nodes.length === 0}
               className="c-btn c-btn-primary"
             >
-              {busy ? 'Queuing…' : 'Confirm & queue'}
+              {busy ? t('Queuing…') : t('Confirm & queue')}
             </button>
           )}
         </div>

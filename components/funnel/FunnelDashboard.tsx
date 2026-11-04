@@ -19,6 +19,7 @@ import { formatDelta } from '@/lib/delta';
 import type { ChannelsCard } from '@/lib/funnel-channels';
 import { FunnelChannels } from './FunnelChannels';
 import { FunnelLinks } from './FunnelLinks';
+import { localeTag, t } from '@/lib/i18n';
 
 export type DashboardConnector = {
   id: string;
@@ -50,14 +51,16 @@ export type DashboardProps = {
 
 const DAY = 86_400_000;
 const PERIODS: { id: Period; label: string }[] = [
-  { id: 30, label: 'Last 30 days' },
-  { id: 90, label: 'Last 90 days' },
-  { id: 365, label: 'Last 12 months' },
-  { id: 0, label: 'All time' },
+  { id: 30, label: t('Last 30 days') },
+  { id: 90, label: t('Last 90 days') },
+  { id: 365, label: t('Last 12 months') },
+  { id: 0, label: t('All time') },
 ];
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const LANE_LABEL: Record<Lane, string> = { organic: 'Organic', ads: 'Ads', crm: 'CRM inbound' };
+const WEEKDAYS = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t('Sun')];
+const MONTHS = [t('Jan'), t('Feb'), t('Mar'), t('Apr'), t('May'), t('Jun'), t('Jul'), t('Aug'), t('Sep'), t('Oct'), t('Nov'), t('Dec')];
+const LANE_LABEL: Record<Lane, string> = { organic: t('Organic'), ads: t('Ads'), crm: t('CRM inbound') };
+const RELATIONSHIP_LABEL: Record<string, string> = { cold: t('cold'), warm: t('warm'), hot: t('hot') };
+const relationshipLabel = (r: string) => RELATIONSHIP_LABEL[r] ?? r;
 const LANE_VAR: Record<Lane, string> = {
   organic: 'var(--fc-meter-organic)',
   ads: 'var(--fc-meter-ads)',
@@ -65,16 +68,16 @@ const LANE_VAR: Record<Lane, string> = {
 };
 const STAGE_VAR = (i: number) => `var(--funnel-s${i})`;
 
-const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
-const num = (n: number) => n.toLocaleString('en-US');
+const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
+const num = (n: number) => n.toLocaleString(localeTag());
 const dateOf = (s: string) => new Date(`${s}T00:00:00Z`).getTime();
 const firstAt = (j: FunnelJourney) => j.touches[0]?.at ?? j.createdAt;
 const convertedAt = (j: FunnelJourney) =>
-  j.touches.find((t) => t.stage === 'converted')?.at ?? j.touches[j.touches.length - 1]?.at ?? j.createdAt;
+  j.touches.find((tc) => tc.stage === 'converted')?.at ?? j.touches[j.touches.length - 1]?.at ?? j.createdAt;
 const laneOf = (j: FunnelJourney): Lane => {
-  const t = j.touches[0];
-  if (t?.source === 'attio' || t?.source === 'ghl') return 'crm';
-  if (t?.channel === 'ads') return 'ads';
+  const first = j.touches[0];
+  if (first?.source === 'attio' || first?.source === 'ghl') return 'crm';
+  if (first?.channel === 'ads') return 'ads';
   return 'organic';
 };
 const weekday = (s: string) => (new Date(`${s}T00:00:00Z`).getUTCDay() + 6) % 7;
@@ -83,7 +86,10 @@ const fmtDay = (ms: number, withYear = false) => {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}${withYear ? ` ${d.getUTCFullYear()}` : ''}`;
 };
 const fmtDate = (s: string) => fmtDay(dateOf(s), true);
-const stageLabel = (id: FunnelStage) => FUNNEL_STAGES.find((s) => s.id === id)?.label ?? id;
+const stageLabel = (id: FunnelStage) => {
+  const label = FUNNEL_STAGES.find((s) => s.id === id)?.label;
+  return label ? t(label) : id;
+};
 const stageIndex = (id: FunnelStage) => FUNNEL_STAGES.findIndex((s) => s.id === id);
 
 /* ---------- motion hooks ---------- */
@@ -113,8 +119,8 @@ function useCountUp(target: number, delay = 500, dur = 1400): number {
     const from = shown.current;
     const t0 = performance.now() + delay;
     let raf = 0;
-    const tick = (t: number) => {
-      const p = Math.min(1, Math.max(0, (t - t0) / dur));
+    const tick = (ts: number) => {
+      const p = Math.min(1, Math.max(0, (ts - t0) / dur));
       const e = 1 - Math.pow(1 - p, 3);
       const next = Math.round(from + (target - from) * e);
       shown.current = next;
@@ -272,7 +278,7 @@ function Kebab({
       <button
         type="button"
         className="fc-kebab"
-        aria-label={`${label} options`}
+        aria-label={t('{label} options', { label })}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
@@ -288,7 +294,7 @@ function Kebab({
           }}
           extra={[
             {
-              label: 'See these journeys',
+              label: t('See these journeys'),
               run: () => {
                 setOpen(false);
                 onJourneys();
@@ -412,7 +418,7 @@ function StepFunnel({
             role="button"
             tabIndex={0}
             aria-pressed={b.stage === active}
-            title={`Focus ${stageLabel(b.stage).toLowerCase()}`}
+            title={t('Focus {stage}', { stage: stageLabel(b.stage).toLowerCase() })}
             onKeyDown={(e) => e.key === 'Enter' && onSelect(b.stage)}
           >
             <div className="name">{stageLabel(b.stage)}</div>
@@ -424,8 +430,8 @@ function StepFunnel({
       </div>
       <div className="fc-funnel-stage">
         <div className="fc-yaxis">
-          {ticks.map((t, i) => (
-            <span key={i}>{t}</span>
+          {ticks.map((tick, i) => (
+            <span key={i}>{tick}</span>
           ))}
         </div>
         <svg className="fc-funnel-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
@@ -509,15 +515,15 @@ function StepFunnel({
             <b>
               {num(a.total)} {stageLabel(a.stage).toLowerCase()}
             </b>
-            {' · '}organic <b>{a.organic}</b> / ads <b>{a.ads}</b>
+            {' · '}{t('organic')} <b>{a.organic}</b> / {t('ads')} <b>{a.ads}</b>
             {drop !== null && (
               <>
-                {' | '}drop-off <b>−{drop}%</b>
+                {' | '}{t('drop-off')} <b>−{drop}%</b>
               </>
             )}
             {openValue > 0 && (
               <>
-                {' | '}value <b>{usd(openValue)}</b>
+                {' | '}{t('value')} <b>{usd(openValue)}</b>
               </>
             )}
           </div>
@@ -541,25 +547,25 @@ function PromptBar({ commands, inputRef }: { commands: Command[]; inputRef: Reac
 
   // The bar types its own example on load, then hands over to the real input.
   useEffect(() => {
-    const phrase = 'Show me who is stalling after ';
+    const phrase = t('Show me who is stalling after ');
     if (reduced) {
       setTyped(phrase);
       setTokenShown(true);
       return;
     }
     let i = 0;
-    let t: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout>;
     const start = setTimeout(function type() {
       if (i <= phrase.length) {
         setTyped(phrase.slice(0, i++));
-        t = setTimeout(type, 34);
+        timer = setTimeout(type, 34);
       } else {
         setTokenShown(true);
       }
     }, 1700);
     return () => {
       clearTimeout(start);
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [reduced]);
 
@@ -577,7 +583,7 @@ function PromptBar({ commands, inputRef }: { commands: Command[]; inputRef: Reac
       setText('');
       setNote(null);
     } else {
-      setNote('No token in that line. Type / to see what this bar can jump to.');
+      setNote(t('No token in that line. Type / to see what this bar can jump to.'));
     }
   };
 
@@ -586,8 +592,8 @@ function PromptBar({ commands, inputRef }: { commands: Command[]; inputRef: Reac
     <div className="fc-prompt">
       <div className="fc-prompt-head">
         <span className="spark">{I.spark}</span>
-        What would you like to explore next?
-        <span className="hint">Slash tokens jump the page. No model behind this bar.</span>
+        {t('What would you like to explore next?')}
+        <span className="hint">{t('Slash tokens jump the page. No model behind this bar.')}</span>
       </div>
       <div className="fc-input" onClick={() => inputRef.current?.focus()}>
         <input
@@ -606,7 +612,7 @@ function PromptBar({ commands, inputRef }: { commands: Command[]; inputRef: Reac
               inputRef.current?.blur();
             }
           }}
-          aria-label="Explore the funnel with a slash token"
+          aria-label={t('Explore the funnel with a slash token')}
         />
         {showOverlay && (
           <span className="fc-typed">
@@ -713,7 +719,7 @@ function StepLine({ series, labels, unit }: { series: number[]; labels: string[]
 
 function DotMatrix({ cols, color, delay = 0.9 }: { cols: number[]; color: string; delay?: number }) {
   const max = Math.max(...cols);
-  if (max === 0) return <div className="fc-empty">Nothing in this period</div>;
+  if (max === 0) return <div className="fc-empty">{t('Nothing in this period')}</div>;
   const scale = (n: number) => (n === 0 ? 0 : Math.max(1, Math.round((n / max) * 7)));
   return (
     <div className="fc-dots">
@@ -745,7 +751,7 @@ function Contact({ j, full = false }: { j: FunnelJourney; full?: boolean }) {
     <span className={full ? 'fc-contact full' : 'fc-contact'} onClick={(e) => e.stopPropagation()}>
       {j.email && (
         <a href={`mailto:${j.email}`} title={j.email}>
-          {full ? j.email : 'email'}
+          {full ? j.email : t('email')}
         </a>
       )}
       {digits && (
@@ -756,7 +762,7 @@ function Contact({ j, full = false }: { j: FunnelJourney; full?: boolean }) {
       {j.phone && full && <a href={`sms:${j.phone}`}>SMS</a>}
       {j.url && (
         <a href={j.url} target="_blank" rel="noopener noreferrer">
-          {full ? `Open in ${crm}` : isGhl ? 'ghl↗' : 'attio↗'}
+          {full ? t('Open in {crm}', { crm }) : isGhl ? 'ghl↗' : 'attio↗'}
         </a>
       )}
       {j.linkedin && full && (
@@ -764,7 +770,7 @@ function Contact({ j, full = false }: { j: FunnelJourney; full?: boolean }) {
           LinkedIn
         </a>
       )}
-      {!j.email && !digits && !j.url && <span className="dim">{full ? 'No contact channel on record' : '—'}</span>}
+      {!j.email && !digits && !j.url && <span className="dim">{full ? t('No contact channel on record') : '—'}</span>}
     </span>
   );
 }
@@ -777,9 +783,9 @@ function QuietCell({ j, now }: { j: FunnelJourney; now: Date }) {
       className="mono"
       title={
         d > 0
-          ? `Fading: ${Math.round(d * 100)}% of the way to the archive`
+          ? t('Fading: {pct}% of the way to the archive', { pct: Math.round(d * 100) })
           : meta.state === 'stalled'
-            ? 'Stalled: quiet past a week before converting'
+            ? t('Stalled: quiet past a week before converting')
             : undefined
       }
       style={
@@ -790,7 +796,7 @@ function QuietCell({ j, now }: { j: FunnelJourney; now: Date }) {
             : { color: 'var(--text-3)' }
       }
     >
-      {meta.daysSinceLastTouch}d
+      {t('{n}d', { n: meta.daysSinceLastTouch })}
     </span>
   );
 }
@@ -799,19 +805,19 @@ function Touches({ j, now }: { j: FunnelJourney; now: Date }) {
   const converted = j.status === 'converted';
   return (
     <div className="fc-touches">
-      {j.touches.map((t, i) => (
-        <span key={t.id} style={{ display: 'inline-flex', gap: 6 }}>
+      {j.touches.map((tc, i) => (
+        <span key={tc.id} style={{ display: 'inline-flex', gap: 6 }}>
           {i > 0 && <span className="fc-arrow">→</span>}
-          <span className="fc-touch" title={`${stageLabel(t.stage)} · via ${t.source} · ${t.at}`}>
-            <span className="g">{CHANNEL_GLYPHS[t.channel] ?? '·'}</span>
-            <span className="l">{t.label}</span>
-            <span className="d">{t.at.slice(5)}</span>
+          <span className="fc-touch" title={t('{stage} · via {source} · {at}', { stage: stageLabel(tc.stage), source: tc.source, at: tc.at })}>
+            <span className="g">{CHANNEL_GLYPHS[tc.channel] ?? '·'}</span>
+            <span className="l">{tc.label}</span>
+            <span className="d">{tc.at.slice(5)}</span>
           </span>
         </span>
       ))}
       {!converted && <span className="fc-arrow">→ …</span>}
       <span className="fc-arrow" style={{ marginLeft: 'auto' }}>
-        {journeyMeta(j, now).daysSinceLastTouch}d quiet
+        {t('{n}d quiet', { n: journeyMeta(j, now).daysSinceLastTouch })}
       </span>
     </div>
   );
@@ -840,83 +846,83 @@ function LeadDrawer({
   const lane = laneOf(j);
   return (
     <div className="fc-scrim">
-      <aside className="fc-drawer" ref={ref} role="dialog" aria-label={`${j.person ?? j.name} dossier`}>
+      <aside className="fc-drawer" ref={ref} role="dialog" aria-label={t('{name} dossier', { name: j.person ?? j.name })}>
         <div className="fc-drawer-head">
           <div>
             <div className="fc-drawer-name">{j.person ?? j.name}</div>
             <div className="fc-drawer-sub">{[j.company, j.role].filter(Boolean).join(' · ') || j.name}</div>
           </div>
-          <button type="button" className="fc-icon-btn" aria-label="Close" onClick={onClose}>
+          <button type="button" className="fc-icon-btn" aria-label={t('Close')} onClick={onClose}>
             {I.close}
           </button>
         </div>
 
-        <div className="fc-stepper" aria-label="Stage reached">
+        <div className="fc-stepper" aria-label={t('Stage reached')}>
           {FUNNEL_STAGES.map((s, i) => (
             <button
               key={s.id}
               type="button"
               className={i <= reached ? 'on' : ''}
-              title={`${s.label}: focus this stage on the board`}
+              title={t('{stage}: focus this stage on the board', { stage: t(s.label) })}
               onClick={() => onStage(s.id)}
             >
               <span className="bar" />
-              <span className="lab">{s.label}</span>
+              <span className="lab">{t(s.label)}</span>
             </button>
           ))}
         </div>
 
         <dl className="fc-facts">
-          <dt>Status</dt>
+          <dt>{t('Status')}</dt>
           <dd>
             {archived
-              ? `Archived · quiet ${meta.daysSinceLastTouch}d, past the ${DECAY_DAYS}-day line`
+              ? t('Archived · quiet {n}d, past the {days}-day line', { n: meta.daysSinceLastTouch, days: DECAY_DAYS })
               : meta.state === 'converted'
-                ? 'Converted'
+                ? t('Converted')
                 : meta.state === 'stalled'
-                  ? `Stalled · quiet ${meta.daysSinceLastTouch}d`
+                  ? t('Stalled · quiet {n}d', { n: meta.daysSinceLastTouch })
                   : decay > 0
-                    ? `Fading · quiet ${meta.daysSinceLastTouch}d, ${Math.round(decay * 100)}% of the way to the archive`
-                    : `Active · quiet ${meta.daysSinceLastTouch}d`}
+                    ? t('Fading · quiet {n}d, {pct}% of the way to the archive', { n: meta.daysSinceLastTouch, pct: Math.round(decay * 100) })
+                    : t('Active · quiet {n}d', { n: meta.daysSinceLastTouch })}
           </dd>
-          <dt>Relationship</dt>
-          <dd style={{ textTransform: 'capitalize', color: `var(--funnel-${j.relationship})` }}>{j.relationship}</dd>
-          <dt>Likelihood</dt>
+          <dt>{t('Relationship')}</dt>
+          <dd style={{ textTransform: 'capitalize', color: `var(--funnel-${j.relationship})` }}>{relationshipLabel(j.relationship)}</dd>
+          <dt>{t('Likelihood')}</dt>
           <dd className="mono">{j.likelihood}%</dd>
-          <dt>Entry</dt>
+          <dt>{t('Entry')}</dt>
           <dd>
             <span className="sw" style={{ ['--c' as string]: LANE_VAR[lane] }} /> {LANE_LABEL[lane]}
           </dd>
-          <dt>Value</dt>
+          <dt>{t('Value')}</dt>
           <dd className="mono">
             {(j.amountUsd ?? 0) > 0 ? usd(j.amountUsd ?? 0) : '—'}
             {j.product ? ` · ${j.product}` : ''}
-            {j.status !== 'converted' && (j.amountUsd ?? 0) > 0 ? ' (open)' : ''}
+            {j.status !== 'converted' && (j.amountUsd ?? 0) > 0 ? t(' (open)') : ''}
           </dd>
-          <dt>First seen</dt>
+          <dt>{t('First seen')}</dt>
           <dd>{fmtDate(firstAt(j))}</dd>
-          <dt>Deal</dt>
+          <dt>{t('Deal')}</dt>
           <dd>{j.name}</dd>
         </dl>
 
-        <div className="fc-drawer-label">Contact</div>
+        <div className="fc-drawer-label">{t('Contact')}</div>
         <Contact j={j} full />
 
-        <div className="fc-drawer-label">Journey · {j.touches.length} touches</div>
+        <div className="fc-drawer-label">{t('Journey · {n} touches', { n: j.touches.length })}</div>
         <ol className="fc-timeline">
-          {j.touches.map((t) => (
-            <li key={t.id}>
-              <span className="when">{fmtDate(t.at)}</span>
+          {j.touches.map((tc) => (
+            <li key={tc.id}>
+              <span className="when">{fmtDate(tc.at)}</span>
               <span className="what">
-                <span className="g">{CHANNEL_GLYPHS[t.channel] ?? '·'}</span>
-                {t.label}
+                <span className="g">{CHANNEL_GLYPHS[tc.channel] ?? '·'}</span>
+                {tc.label}
               </span>
               <span className="who">
-                {stageLabel(t.stage)} · {t.source}
+                {stageLabel(tc.stage)} · {tc.source}
               </span>
             </li>
           ))}
-          {j.status !== 'converted' && <li className="next">Next touch is yours</li>}
+          {j.status !== 'converted' && <li className="next">{t('Next touch is yours')}</li>}
         </ol>
       </aside>
     </div>
@@ -1043,8 +1049,8 @@ export function FunnelDashboard({
         const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - k, 1));
         buckets.push({ key: d.toISOString().slice(0, 7), label: MONTHS[d.getUTCMonth()], n: 0 });
       }
-      for (const t of all) {
-        const b = buckets.find((x) => x.key === t.at.slice(0, 7));
+      for (const tc of all) {
+        const b = buckets.find((x) => x.key === tc.at.slice(0, 7));
         if (b) b.n++;
       }
       return { series: buckets.map((b) => b.n), labels: buckets.map((b) => b.label) };
@@ -1053,8 +1059,8 @@ export function FunnelDashboard({
     const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + DAY;
     const series = Array.from({ length: weeks }, () => 0);
     const labels = Array.from({ length: weeks }, (_, i) => fmtDay(end - (weeks - i) * 7 * DAY));
-    for (const t of all) {
-      const idx = weeks - 1 - Math.floor((end - 1 - dateOf(t.at)) / (7 * DAY));
+    for (const tc of all) {
+      const idx = weeks - 1 - Math.floor((end - 1 - dateOf(tc.at)) / (7 * DAY));
       if (idx >= 0 && idx < weeks) series[idx]++;
     }
     return { series, labels };
@@ -1095,14 +1101,14 @@ export function FunnelDashboard({
   const commands: Command[] = [
     ...FUNNEL_STAGES.map((s) => ({
       token: `/${s.id.replace('_', '-')}`,
-      hint: `${s.label} segment`,
+      hint: t('{stage} segment', { stage: t(s.label) }),
       run: () => goJourneys(s.id, lane),
     })),
-    ...LANES.map((l) => ({ token: `/${l}`, hint: `${LANE_LABEL[l]} entries`, run: () => goJourneys(segment, l) })),
-    { token: '/push', hint: 'Hot and moving', run: () => setView('push') },
-    { token: '/save', hint: 'Fading toward the archive', run: () => setView('save') },
-    { token: '/archive', hint: `Decayed past ${DECAY_DAYS}d`, run: () => setView('archive') },
-    { token: '/overview', hint: 'Back to the board', run: () => setView('overview') },
+    ...LANES.map((l) => ({ token: `/${l}`, hint: t('{lane} entries', { lane: LANE_LABEL[l] }), run: () => goJourneys(segment, l) })),
+    { token: '/push', hint: t('Hot and moving'), run: () => setView('push') },
+    { token: '/save', hint: t('Fading toward the archive'), run: () => setView('save') },
+    { token: '/archive', hint: t('Decayed past {n}d', { n: DECAY_DAYS }), run: () => setView('archive') },
+    { token: '/overview', hint: t('Back to the board'), run: () => setView('overview') },
   ];
 
   const revenueShown = useCountUp(stats.revenue, 500);
@@ -1117,7 +1123,7 @@ export function FunnelDashboard({
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      window.prompt('Copy this link', window.location.href);
+      window.prompt(t('Copy this link'), window.location.href);
     }
   };
 
@@ -1126,17 +1132,17 @@ export function FunnelDashboard({
   const cmpLabel = stats.cmp
     ? `${fmtDay(stats.cmp[0], compare === 'year')} – ${fmtDay(stats.cmp[1] - DAY, compare === 'year')}`
     : null;
-  const vsLabel = compare === 'year' ? 'vs last year' : 'vs previous period';
+  const vsLabel = compare === 'year' ? t('vs last year') : t('vs previous period');
   // H13: every count states its window. Period cards count inside the
   // selected period; the Pipeline counts every active journey.
-  const periodWindow = PERIODS.find((p) => p.id === period)?.label ?? 'Selected period';
+  const periodWindow = PERIODS.find((p) => p.id === period)?.label ?? t('Selected period');
 
   const NAV: { id: View; label: string; n?: number }[] = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'push', label: 'Push now', n: pushList.length },
-    { id: 'save', label: 'Save now', n: saveList.length },
-    { id: 'journeys', label: 'Journeys', n: journeys.length },
-    { id: 'archive', label: 'Archive', n: archived.length },
+    { id: 'overview', label: t('Overview') },
+    { id: 'push', label: t('Push now'), n: pushList.length },
+    { id: 'save', label: t('Save now'), n: saveList.length },
+    { id: 'journeys', label: t('Journeys'), n: journeys.length },
+    { id: 'archive', label: t('Archive'), n: archived.length },
   ];
 
   const leadRow = (j: FunnelJourney) => ({
@@ -1144,7 +1150,7 @@ export function FunnelDashboard({
     onClick: () => setSelected(j.id),
     tabIndex: 0,
     onKeyDown: (e: React.KeyboardEvent) => e.key === 'Enter' && setSelected(j.id),
-    title: 'Open dossier',
+    title: t('Open dossier'),
   });
 
   return (
@@ -1152,7 +1158,7 @@ export function FunnelDashboard({
       <div className="fc-slab">
         {/* ---- topbar ---- */}
         <div className="fc-topbar">
-          <nav className="fc-nav" aria-label="Funnel views">
+          <nav className="fc-nav" aria-label={t('Funnel views')}>
             {NAV.map((n) => (
               <button
                 key={n.id}
@@ -1170,8 +1176,8 @@ export function FunnelDashboard({
             <button
               type="button"
               className={`fc-icon-btn${refreshing ? ' spin' : ''}`}
-              aria-label="Refresh from the sources"
-              title="Re-read the CRM and local journeys"
+              aria-label={t('Refresh from the sources')}
+              title={t('Re-read the CRM and local journeys')}
               disabled={refreshing}
               onClick={() => startRefresh(() => router.refresh())}
             >
@@ -1183,15 +1189,15 @@ export function FunnelDashboard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="fc-pill"
-                title={`Open ${crm?.name} in a new tab`}
+                title={t('Open {name} in a new tab', { name: crm?.name ?? '' })}
               >
-                {I.external} Open {crm?.name}
+                {I.external} {t('Open {name}', { name: crm?.name ?? '' })}
               </a>
             ) : (
               <SetupLink
                 href={connectors.find((c) => c.id === 'attio')?.href ?? '/integrations'}
-                label="Connect a CRM"
-                hint="Key Attio or GoHighLevel and the board reads the live pipeline"
+                label={t('Connect a CRM')}
+                hint={t('Key Attio or GoHighLevel and the board reads the live pipeline')}
               />
             )}
           </div>
@@ -1204,38 +1210,38 @@ export function FunnelDashboard({
             type="button"
             className="fc-link-chip"
             onClick={copyLink}
-            title="Copy a link to exactly this view"
-            aria-label="Copy a link to this view"
+            title={t('Copy a link to exactly this view')}
+            aria-label={t('Copy a link to this view')}
           >
             {copied ? I.check : I.link}
           </button>
-          {copied && <span className="fc-copied">Link copied</span>}
+          {copied && <span className="fc-copied">{t('Link copied')}</span>}
           <div className="fc-filters">
-            <Dropdown value={period} options={PERIODS} icon={I.calendar} onChange={setPeriod} label="Period" />
-            <span className="fc-pill ghost">compared to</span>
+            <Dropdown value={period} options={PERIODS} icon={I.calendar} onChange={setPeriod} label={t('Period')} />
+            <span className="fc-pill ghost">{t('compared to')}</span>
             {period === 0 ? (
-              <span className="fc-pill ghost" title="All time has no earlier window to compare against">
-                nothing
+              <span className="fc-pill ghost" title={t('All time has no earlier window to compare against')}>
+                {t('nothing')}
               </span>
             ) : (
               <Dropdown
                 value={compare}
-                label="Comparison window"
+                label={t('Comparison window')}
                 icon={I.calendar}
                 options={[
-                  { id: 'previous', label: compare === 'previous' && cmpLabel ? cmpLabel : 'Previous period' },
-                  { id: 'year', label: compare === 'year' && cmpLabel ? cmpLabel : 'Same period last year' },
-                  { id: 'none', label: 'No comparison' },
+                  { id: 'previous', label: compare === 'previous' && cmpLabel ? cmpLabel : t('Previous period') },
+                  { id: 'year', label: compare === 'year' && cmpLabel ? cmpLabel : t('Same period last year') },
+                  { id: 'none', label: t('No comparison') },
                 ]}
                 onChange={setCompare}
               />
             )}
             <Dropdown
               value={grain}
-              label="Touches chart grain"
+              label={t('Touches chart grain')}
               options={[
-                { id: 'monthly', label: 'Monthly' },
-                { id: 'weekly', label: 'Weekly' },
+                { id: 'monthly', label: t('Monthly') },
+                { id: 'weekly', label: t('Weekly') },
               ]}
               onChange={setGrain}
             />
@@ -1255,7 +1261,7 @@ export function FunnelDashboard({
               </div>
               {summary.clients === 0 ? (
                 <div className="fc-panel-empty" style={{ border: 0, padding: '80px 0' }}>
-                  No journeys yet. Connect a CRM and the funnel fills itself.
+                  {t('No journeys yet. Connect a CRM and the funnel fills itself.')}
                 </div>
               ) : (
                 <StepFunnel stages={summary.stages} active={stage} onSelect={setStage} openValue={openValue} />
@@ -1269,7 +1275,7 @@ export function FunnelDashboard({
                 <div className="fc-card-title">
                   Revenue<span className="fc-card-window">{periodWindow}</span>
                 </div>
-                <Kebab label="Revenue" period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
+                <Kebab label={t('Revenue')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
               </div>
               <div className="fc-num-row">
                 <div className="fc-num">{usd(revenueShown)}</div>
@@ -1281,7 +1287,7 @@ export function FunnelDashboard({
                   type="button"
                   className="fc-meter"
                   key={l}
-                  title={`See the ${LANE_LABEL[l].toLowerCase()} deals that closed`}
+                  title={t('See the {lane} deals that closed', { lane: LANE_LABEL[l].toLowerCase() })}
                   onClick={() => goJourneys('converted', l)}
                 >
                   <div className="fc-meter-row">
@@ -1300,17 +1306,17 @@ export function FunnelDashboard({
                 </button>
               ))}
               <div className="fc-sources" style={{ marginTop: 4 }}>
-                {stats.convIn.length} closed in the period, split by how each deal entered
+                {t('{n} closed in the period, split by how each deal entered', { n: stats.convIn.length })}
               </div>
             </div>
 
             {/* touches step-line */}
             <div className="fc-card fc-c3">
               <div className="fc-card-head">
-                <div className="fc-card-title">Touches</div>
-                <Kebab label="Touches" period={period} onPeriod={setPeriod} onJourneys={() => goJourneys()} />
+                <div className="fc-card-title">{t('Touches')}</div>
+                <Kebab label={t('Touches')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys()} />
               </div>
-              <StepLine series={touchSeries.series} labels={touchSeries.labels} unit="touches" />
+              <StepLine series={touchSeries.series} labels={touchSeries.labels} unit={t('touches')} />
             </div>
 
             {/* dot matrices */}
@@ -1320,14 +1326,14 @@ export function FunnelDashboard({
                   <div className="fc-card-title">
                     New leads<span className="fc-card-window">{periodWindow}</span>
                   </div>
-                  <Kebab label="New leads" period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('first_touch')} />
+                  <Kebab label={t('New leads')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('first_touch')} />
                 </div>
                 <div className="fc-stat">
                   <div className="fc-big">{num(leadsShown)}</div>
                   <div className="fc-dots-wrap">
                     {stats.leadPeak && (
                       <div className="fc-mini-pill">
-                        Peak: <b>{stats.leadPeak}</b>
+                        {t('Peak:')} <b>{stats.leadPeak}</b>
                       </div>
                     )}
                     <DotMatrix cols={stats.leadCols} color="var(--fc-dots)" />
@@ -1348,14 +1354,14 @@ export function FunnelDashboard({
                   <div className="fc-card-title">
                     Converted<span className="fc-card-window">{periodWindow}</span>
                   </div>
-                  <Kebab label="Converted" period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
+                  <Kebab label={t('Converted')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
                 </div>
                 <div className="fc-stat">
                   <div className="fc-big">{num(convShown)}</div>
                   <div className="fc-dots-wrap">
                     {stats.convPeak && (
                       <div className="fc-mini-pill">
-                        Peak: <b>{stats.convPeak}</b>
+                        {t('Peak:')} <b>{stats.convPeak}</b>
                       </div>
                     )}
                     <DotMatrix cols={stats.convCols} color="var(--fc-dots-2)" delay={1.1} />
@@ -1375,39 +1381,39 @@ export function FunnelDashboard({
 
             {/* the one gradient card */}
             <div className="fc-card fc-c5">
-              <div className="fc-ins-pill">{I.bulb} Insights</div>
+              <div className="fc-ins-pill">{I.bulb} {t('Insights')}</div>
               <div className="fc-ins-num">{convRateShown}%</div>
               <div className="fc-ins-head">
                 {summary.clients === 0
-                  ? 'Nothing to read yet.'
+                  ? t('Nothing to read yet.')
                   : worstStep
-                    ? `${summary.converted} of ${summary.clients} leads converted. The leak is ${stageLabel(worstStep.from)} → ${stageLabel(worstStep.to)}.`
-                    : `${summary.converted} of ${summary.clients} leads converted.`}
+                    ? t('{n} of {total} leads converted. The leak is {from} → {to}.', { n: summary.converted, total: summary.clients, from: stageLabel(worstStep.from), to: stageLabel(worstStep.to) })
+                    : t('{n} of {total} leads converted.', { n: summary.converted, total: summary.clients })}
               </div>
               <div className="fc-ins-sub">
                 {summary.clients === 0
-                  ? 'Connect Attio or GHL and this card starts reading the pipeline.'
-                  : `${worstStep ? `${worstStep.drop}% drop at that step. ` : ''}${pushList.length} hot lead${pushList.length === 1 ? '' : 's'} in motion, ${saveList.length} fading toward the archive, ${archived.length} already there.`}
+                  ? t('Connect Attio or GHL and this card starts reading the pipeline.')
+                  : `${worstStep ? `${t('{pct}% drop at that step.', { pct: worstStep.drop })} ` : ''}${pushList.length === 1 ? t('{n} hot lead in motion, {save} fading toward the archive, {archived} already there.', { n: pushList.length, save: saveList.length, archived: archived.length }) : t('{n} hot leads in motion, {save} fading toward the archive, {archived} already there.', { n: pushList.length, save: saveList.length, archived: archived.length })}`}
               </div>
               <div className="fc-ins-actions">
                 {worstStep && (
                   <button type="button" onClick={() => goJourneys(worstStep.from)}>
-                    Who is stuck at {stageLabel(worstStep.from).toLowerCase()}
+                    {t('Who is stuck at {stage}', { stage: stageLabel(worstStep.from).toLowerCase() })}
                   </button>
                 )}
                 {saveList.length > 0 && (
                   <button type="button" onClick={() => setView('save')}>
-                    Save the {saveList.length} fading
+                    {t('Save the {n} fading', { n: saveList.length })}
                   </button>
                 )}
               </div>
-              <div className="fc-ins-dashes" aria-label="Focused stage">
+              <div className="fc-ins-dashes" aria-label={t('Focused stage')}>
                 {FUNNEL_STAGES.map((s, i) => (
                   <button
                     key={s.id}
                     type="button"
                     className={i <= stageIndex(stage) ? 'on' : ''}
-                    title={`Focus ${s.label.toLowerCase()}`}
+                    title={t('Focus {stage}', { stage: t(s.label).toLowerCase() })}
                     onClick={() => setStage(s.id)}
                   />
                 ))}
@@ -1425,8 +1431,8 @@ export function FunnelDashboard({
           <div className="fc-two">
             {(
               [
-                { id: 'push', title: 'Push now', sub: 'Hot and moving. Close them.', dot: 'ok', list: pushList, empty: 'No hot leads in motion right now' },
-                { id: 'save', title: 'Save now', sub: 'Fading toward the archive, highest likelihood first', dot: 'err', list: saveList, empty: 'Nothing fading. Every lead is fresh.' },
+                { id: 'push', title: t('Push now'), sub: t('Hot and moving. Close them.'), dot: 'ok', list: pushList, empty: t('No hot leads in motion right now') },
+                { id: 'save', title: t('Save now'), sub: t('Fading toward the archive, highest likelihood first'), dot: 'err', list: saveList, empty: t('Nothing fading. Every lead is fresh.') },
               ] as const
             ).map((q) => (
               <div className={`fc-panel${view === q.id ? '' : ' quiet'}`} key={q.id}>
@@ -1443,12 +1449,12 @@ export function FunnelDashboard({
                   <table className="fc-table">
                     <thead>
                       <tr>
-                        <th>Lead</th>
-                        <th>Stage</th>
-                        <th>Quiet</th>
-                        <th>Likelihood</th>
-                        <th>Value</th>
-                        <th>Contact</th>
+                        <th>{t('Lead')}</th>
+                        <th>{t('Stage')}</th>
+                        <th>{t('Quiet')}</th>
+                        <th>{t('Likelihood')}</th>
+                        <th>{t('Value')}</th>
+                        <th>{t('Contact')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1481,14 +1487,14 @@ export function FunnelDashboard({
         {view === 'journeys' && (
           <div className="fc-panel">
             <div className="fc-panel-head">
-              <span className="t">Journey data</span>
+              <span className="t">{t('Journey data')}</span>
               <span className="s">
-                {tableJourneys.length} of {journeys.length} leads · click a row for the dossier
+                {t('{n} of {total} leads · click a row for the dossier', { n: tableJourneys.length, total: journeys.length })}
               </span>
             </div>
             <div className="fc-chips">
               <button type="button" className={`fc-chip${!segment ? ' on' : ''}`} onClick={() => setSegment(undefined)}>
-                All stages
+                {t('All stages')}
               </button>
               {FUNNEL_STAGES.map((s, i) => (
                 <button
@@ -1501,12 +1507,12 @@ export function FunnelDashboard({
                   }}
                 >
                   <span className="sw" style={{ ['--c' as string]: STAGE_VAR(i) }} />
-                  {s.label} ({stageCounts.get(s.id) ?? 0})
+                  {t(s.label)} ({stageCounts.get(s.id) ?? 0})
                 </button>
               ))}
               <span className="fc-chip-sep" />
               <button type="button" className={`fc-chip${!lane ? ' on' : ''}`} onClick={() => setLane(undefined)}>
-                Any entry
+                {t('Any entry')}
               </button>
               {LANES.map((l) => (
                 <button
@@ -1521,19 +1527,19 @@ export function FunnelDashboard({
               ))}
             </div>
             {tableJourneys.length === 0 ? (
-              <div className="fc-panel-empty">No leads match those filters.</div>
+              <div className="fc-panel-empty">{t('No leads match those filters.')}</div>
             ) : (
               <table className="fc-table">
                 <thead>
                   <tr>
-                    <th>Client</th>
-                    <th>Stage</th>
-                    <th>Quiet</th>
-                    <th>Relationship</th>
-                    <th>Likelihood</th>
-                    <th>Entry</th>
-                    <th>Value</th>
-                    <th>Contact</th>
+                    <th>{t('Client')}</th>
+                    <th>{t('Stage')}</th>
+                    <th>{t('Quiet')}</th>
+                    <th>{t('Relationship')}</th>
+                    <th>{t('Likelihood')}</th>
+                    <th>{t('Entry')}</th>
+                    <th>{t('Value')}</th>
+                    <th>{t('Contact')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1550,21 +1556,21 @@ export function FunnelDashboard({
         {view === 'archive' && (
           <div className="fc-panel">
             <div className="fc-panel-head">
-              <span className="t">Archive</span>
-              <span className="s">Quiet past {DECAY_DAYS} days · click a row for the dossier</span>
+              <span className="t">{t('Archive')}</span>
+              <span className="s">{t('Quiet past {n} days · click a row for the dossier', { n: DECAY_DAYS })}</span>
             </div>
             {archived.length === 0 ? (
-              <div className="fc-panel-empty">Nothing decayed. No lead has sat quiet past {DECAY_DAYS} days.</div>
+              <div className="fc-panel-empty">{t('Nothing decayed. No lead has sat quiet past {n} days.', { n: DECAY_DAYS })}</div>
             ) : (
               <table className="fc-table">
                 <thead>
                   <tr>
-                    <th>Lead</th>
-                    <th>Reached</th>
-                    <th>Quiet</th>
-                    <th>Likelihood</th>
-                    <th>Last touch</th>
-                    <th>Contact</th>
+                    <th>{t('Lead')}</th>
+                    <th>{t('Reached')}</th>
+                    <th>{t('Quiet')}</th>
+                    <th>{t('Likelihood')}</th>
+                    <th>{t('Last touch')}</th>
+                    <th>{t('Contact')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1579,7 +1585,7 @@ export function FunnelDashboard({
                           {j.company && <span className="sub">{j.company}</span>}
                         </td>
                         <td className="muted">{stageLabel(j.status)}</td>
-                        <td className="mono dim">{journeyMeta(j, now).daysSinceLastTouch}d</td>
+                        <td className="mono dim">{t('{n}d', { n: journeyMeta(j, now).daysSinceLastTouch })}</td>
                         <td className="mono dim">{j.likelihood}%</td>
                         <td
                           className="dim"
@@ -1604,31 +1610,31 @@ export function FunnelDashboard({
         <div className="fc-sources">
           {source.kind === 'live' ? (
             <span className="src">
-              <span className="dot ok" /> Live · {source.label}
+              <span className="dot ok" /> {t('Live · {source}', { source: source.label })}
             </span>
           ) : source.kind === 'db' ? (
             <span className="src">
-              <span className="dot warn" /> Local snapshot · CRM not keyed
+              <span className="dot warn" /> {t('Local snapshot · CRM not keyed')}
             </span>
           ) : (
             <span className="src">
-              <span className="dot warn" /> Sample data · CRM not keyed and no journeys stored
+              <span className="dot warn" /> {t('Sample data · CRM not keyed and no journeys stored')}
             </span>
           )}
           {source.kind !== 'live' && (
             <SetupLink
               href={connectors.find((c) => c.id === 'attio')?.href ?? '/integrations'}
-              hint="Key Attio or GHL to replace this with the live pipeline"
+              hint={t('Key Attio or GHL to replace this with the live pipeline')}
             />
           )}
           {sampleOffer && (
-            <Link href="/funnel?sample=1" className="src" title="See the page on a badged sample set; nothing is stored">
-              Preview with sample data
+            <Link href="/funnel?sample=1" className="src" title={t('See the page on a badged sample set; nothing is stored')}>
+              {t('Preview with sample data')}
             </Link>
           )}
           {source.kind === 'sample' && (
-            <Link href="/funnel" className="src" title="Back to the empty, honest state">
-              Leave sample data
+            <Link href="/funnel" className="src" title={t('Back to the empty, honest state')}>
+              {t('Leave sample data')}
             </Link>
           )}
           <span style={{ width: 1, height: 12, background: 'var(--fc-hair)' }} />
@@ -1639,7 +1645,7 @@ export function FunnelDashboard({
                 {c.count != null ? ` ${c.count}` : ''}
               </span>
             ) : (
-              <Link key={c.id} href={c.href} className="src off" title={`${c.detail} · set up`}>
+              <Link key={c.id} href={c.href} className="src off" title={t('{detail} · set up', { detail: c.detail })}>
                 <span className="dot off" /> {c.name}
               </Link>
             ),
@@ -1691,7 +1697,7 @@ function JourneyRows({
         <td>
           <QuietCell j={j} now={now} />
         </td>
-        <td style={{ textTransform: 'capitalize', color: `var(--funnel-${j.relationship})` }}>{j.relationship}</td>
+        <td style={{ textTransform: 'capitalize', color: `var(--funnel-${j.relationship})` }}>{relationshipLabel(j.relationship)}</td>
         <td className="mono muted">{j.likelihood}%</td>
         <td className="dim">{LANE_LABEL[lane]}</td>
         <td className="mono">
@@ -1701,7 +1707,7 @@ function JourneyRows({
               {j.product ? ` · ${j.product}` : ''}
             </span>
           ) : (j.amountUsd ?? 0) > 0 ? (
-            <span className="dim">{usd(j.amountUsd ?? 0)} open</span>
+            <span className="dim">{usd(j.amountUsd ?? 0)}{t(' open')}</span>
           ) : (
             <span className="dim">—</span>
           )}
