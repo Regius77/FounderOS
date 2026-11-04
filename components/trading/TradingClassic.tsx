@@ -326,8 +326,8 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
       {brokerage.length > 0 && (
         <dl className="mt-auto border-t border-[var(--hairline)] px-5 py-3 text-[12.5px]">
           {[
-            ['Cash', usd(brokerage.reduce((t, a) => t + (a.cashUsd ?? 0), 0), true)],
-            ['Buying power', usd(brokerage.reduce((t, a) => t + (a.buyingPowerUsd ?? 0), 0), true)],
+            ['Cash', usd(brokerage.reduce((tr, a) => tr + (a.cashUsd ?? 0), 0), true)],
+            ['Buying power', usd(brokerage.reduce((tr, a) => tr + (a.buyingPowerUsd ?? 0), 0), true)],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-3 py-0.5">
               <dt className="text-os-muted">{k}</dt>
@@ -337,7 +337,7 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
           <div className="flex justify-between gap-3 py-0.5">
             <dt className="text-os-muted">Total P&amp;L</dt>
             <dd>
-              <Pnl n={m.payload.accounts.reduce((t, a) => t + a.totalPnlUsd, 0)} />
+              <Pnl n={m.payload.accounts.reduce((tr, a) => tr + a.totalPnlUsd, 0)} />
             </dd>
           </div>
         </dl>
@@ -530,22 +530,22 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
         <Empty>Nothing matches this filter.</Empty>
       ) : (
         <ul className="divide-y divide-[var(--hairline)] border-t border-[var(--hairline)]">
-          {rows.map((t) => (
-            <li key={t.id}>
-              <button type="button" className="trd-c-row trd-c-row-btn hoverable" onClick={() => ui.setOpenTrade(t)}>
-                <span className="trd-c-side text-[11.5px] font-medium" data-side={t.action}>
-                  {t.action === 'buy' ? 'Buy' : 'Sell'}
+          {rows.map((tr) => (
+            <li key={tr.id}>
+              <button type="button" className="trd-c-row trd-c-row-btn hoverable" onClick={() => ui.setOpenTrade(tr)}>
+                <span className="trd-c-side text-[11.5px] font-medium" data-side={tr.action}>
+                  {tr.action === 'buy' ? 'Buy' : 'Sell'}
                 </span>
                 <span className="min-w-0 flex-1 text-left">
                   <span className="flex flex-wrap items-center gap-2 text-[13px] text-os-text">
-                    <span className="font-mono">{tradeLine(t)}</span>
-                    <Badge tone={statusTone[t.status]}>{statusLabel[t.status]}</Badge>
+                    <span className="font-mono">{tradeLine(tr)}</span>
+                    <Badge tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>
                   </span>
-                  <span className="mt-0.5 block truncate text-[12px] text-os-muted">{t.rationale || 'No rationale given'}</span>
+                  <span className="mt-0.5 block truncate text-[12px] text-os-muted">{tr.rationale || 'No rationale given'}</span>
                 </span>
                 <span className="trd-c-when shrink-0 text-right text-[11.5px] text-os-muted">
-                  {whoOf(t)} · {acctName(t.accountId)}
-                  <span className="block font-mono text-[11px] text-os-dim">{ago(t.at, m.now)}</span>
+                  {whoOf(tr)} · {acctName(tr.accountId)}
+                  <span className="block font-mono text-[11px] text-os-dim">{ago(tr.at, m.now)}</span>
                 </span>
               </button>
             </li>
@@ -579,16 +579,16 @@ function Modal({ title, sub, onClose, children, wide = false }: { title: string;
   );
 }
 
-function TradeDialog({ trade: t, onClose }: { trade: TradeActivity; onClose: () => void }) {
+function TradeDialog({ trade: tr, onClose }: { trade: TradeActivity; onClose: () => void }) {
   const rows: [string, ReactNode][] = [
-    ['Order', <span key="o" className="font-mono">{tradeLine(t)}</span>],
-    ['Notional', usd(t.quantity * t.priceUsd, true)],
-    ['Status', <Badge key="s" tone={statusTone[t.status]}>{statusLabel[t.status]}</Badge>],
-    ['Who', whoOf(t)],
-    ['Account', t.accountId === 'agentic' ? 'Agentic sleeve' : acctName(t.accountId)],
+    ['Order', <span key="o" className="font-mono">{tradeLine(tr)}</span>],
+    ['Notional', usd(tr.quantity * tr.priceUsd, true)],
+    ['Status', <Badge key="s" tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>],
+    ['Who', whoOf(tr)],
+    ['Account', tr.accountId === 'agentic' ? 'Agentic sleeve' : acctName(tr.accountId)],
   ];
   return (
-    <Modal title={`${t.action === 'buy' ? 'Buy' : 'Sell'} ${t.symbol}`} sub={stamp(t.at)} onClose={onClose}>
+    <Modal title={`${tr.action === 'buy' ? 'Buy' : 'Sell'} ${tr.symbol}`} sub={stamp(tr.at)} onClose={onClose}>
       <dl className="px-5">
         {rows.map(([k, v]) => (
           <div key={k} className="flex items-center justify-between gap-3 border-b border-[var(--hairline)] py-2 text-[13px]">
@@ -597,7 +597,7 @@ function TradeDialog({ trade: t, onClose }: { trade: TradeActivity; onClose: () 
           </div>
         ))}
       </dl>
-      <p className="m-5 rounded-[8px] border border-os-border bg-os-bg2 p-3 text-[13px] leading-relaxed text-os-text">{t.rationale || 'No rationale given.'}</p>
+      <p className="m-5 rounded-[8px] border border-os-border bg-os-bg2 p-3 text-[13px] leading-relaxed text-os-text">{tr.rationale || 'No rationale given.'}</p>
     </Modal>
   );
 }

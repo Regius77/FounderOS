@@ -6,6 +6,7 @@ import { Search } from 'lucide-react';
 import { KIND_LABEL, searchHierarchy, type HierarchyIndex, type HKind } from '@/lib/blueprint/hierarchy';
 import { iconFor } from './icons';
 import { KIND_ICON } from '@/lib/blueprint/hierarchy';
+import { t } from '@/lib/i18n';
 
 /**
  * The top-centre search pill that opens into a ⌘K palette. Typing dims the
@@ -37,8 +38,8 @@ export function HierarchySearch({
 
   useEffect(() => {
     if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 60);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => inputRef.current?.focus(), 60);
+      return () => clearTimeout(timer);
     }
   }, [open]);
   useEffect(() => setCursor(0), [query]);
@@ -75,22 +76,22 @@ export function HierarchySearch({
     <div ref={rootRef} className={`bh-search ${open ? 'is-open' : ''}`}>
       <button type="button" className={gc('bh-search-pill g-btn', 'bh-search-pill')} onClick={onOpen}>
         <Search />
-        <span>Search the system</span>
+        <span>{t('Search the system')}</span>
         <kbd>⌘K</kbd>
       </button>
       <div className="bh-search-panel" aria-hidden={!open}>
         <div className="bh-search-row">
           <Search />
-          <input ref={inputRef} type="text" className={gc('g-input kg-bp-search-input', '') || undefined} aria-label="Search the system" value={query} placeholder="Agents, connectors, skills, daemons, stores, pages, models…" autoComplete="off" spellCheck={false} onChange={(e) => onQuery(e.target.value)} onKeyDown={onKey} />
+          <input ref={inputRef} type="text" className={gc('g-input kg-bp-search-input', '') || undefined} aria-label={t('Search the system')} value={query} placeholder={t('Agents, connectors, skills, daemons, stores, pages, models…')} autoComplete="off" spellCheck={false} onChange={(e) => onQuery(e.target.value)} onKeyDown={onKey} />
           <kbd>esc</kbd>
         </div>
         <div className="bh-search-results">
           {hits.length === 0 ? (
-            <div className="bh-sr-empty">Nothing in the system matches that.</div>
+            <div className="bh-sr-empty">{t('Nothing in the system matches that.')}</div>
           ) : (
             groups.map(([kind, list]) => (
               <div key={kind}>
-                <div className="bh-sr-group">{KIND_LABEL[kind]}</div>
+                <div className="bh-sr-group">{t(KIND_LABEL[kind])}</div>
                 {list.map((hit) => {
                   const i = hits.indexOf(hit);
                   const it = idx.items.get(hit.id);

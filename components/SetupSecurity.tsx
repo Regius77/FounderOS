@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { KeyRound, LogOut, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 type Mode = 'idle' | 'set' | 'change' | 'rotate' | 'remove';
 
 const COPY: Record<Exclude<Mode, 'idle'>, { title: string; button: string; needsCurrent: boolean; needsNew: boolean }> = {
-  set: { title: 'Set the operator password', button: 'Set password', needsCurrent: false, needsNew: true },
-  change: { title: 'Change the operator password', button: 'Change password', needsCurrent: true, needsNew: true },
-  rotate: { title: 'Sign out every other device', button: 'Sign out others', needsCurrent: true, needsNew: false },
-  remove: { title: 'Remove the password', button: 'Remove password', needsCurrent: true, needsNew: false },
+  set: { title: t('Set the operator password'), button: t('Set password'), needsCurrent: false, needsNew: true },
+  change: { title: t('Change the operator password'), button: t('Change password'), needsCurrent: true, needsNew: true },
+  rotate: { title: t('Sign out every other device'), button: t('Sign out others'), needsCurrent: true, needsNew: false },
+  remove: { title: t('Remove the password'), button: t('Remove password'), needsCurrent: true, needsNew: false },
 };
 
 /**
@@ -59,7 +60,7 @@ export function usePasswordForm() {
     if (mode === 'idle') return;
     const spec = COPY[mode];
     if (spec.needsNew && next !== confirm) {
-      setError('the two new passwords do not match');
+      setError(t('the two new passwords do not match'));
       return;
     }
     setBusy(true);
@@ -78,22 +79,22 @@ export function usePasswordForm() {
       });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
-        setError(data?.error ?? 'could not save');
+        setError(data?.error ?? t('could not save'));
         return;
       }
       setNotice(
         mode === 'set'
-          ? 'Password set. Sign-in is now required on every device.'
+          ? t('Password set. Sign-in is now required on every device.')
           : mode === 'change'
-            ? 'Password changed. Every other device has been signed out.'
+            ? t('Password changed. Every other device has been signed out.')
             : mode === 'rotate'
-              ? 'Every other device has been signed out.'
-              : 'Password removed. The console is open on this machine only.',
+              ? t('Every other device has been signed out.')
+              : t('Password removed. The console is open on this machine only.'),
       );
       setMode('idle');
       router.refresh();
     } catch {
-      setError('could not reach the server');
+      setError(t('could not reach the server'));
     } finally {
       setBusy(false);
     }
@@ -119,27 +120,27 @@ function SecurityClassic({
         ) : (
           <ShieldOff size={16} strokeWidth={1.8} className="shrink-0 text-os-dim" />
         )}
-        <span className="text-[13.5px] font-medium">Operator password</span>
+        <span className="text-[13.5px] font-medium">{t('Operator password')}</span>
         <span className="inline-flex items-center gap-2 rounded-[6px] border border-os-border-strong bg-os-surface2 px-3 py-1 text-[11.5px] text-os-muted">
-          <span className={configured ? 'dot ok' : 'dot warn'} /> {configured ? 'Password set' : 'Not configured'}
+          <span className={configured ? 'dot ok' : 'dot warn'} /> {configured ? t('Password set') : t('Not configured')}
         </span>
         {mode === 'idle' && (
           <span className="ml-auto flex flex-wrap items-center gap-2">
             {configured ? (
               <>
                 <button onClick={() => open('change')} className="c-btn h-auto px-3 py-1 text-[11.5px]">
-                  <KeyRound size={12} strokeWidth={1.8} /> Change
+                  <KeyRound size={12} strokeWidth={1.8} /> {t('Change')}
                 </button>
                 <button onClick={() => open('rotate')} className="c-btn h-auto px-3 py-1 text-[11.5px]">
-                  <LogOut size={12} strokeWidth={1.8} /> Sign out others
+                  <LogOut size={12} strokeWidth={1.8} /> {t('Sign out others')}
                 </button>
                 <button onClick={() => open('remove')} className="c-btn h-auto px-3 py-1 text-[11.5px]">
-                  <Trash2 size={12} strokeWidth={1.8} /> Remove
+                  <Trash2 size={12} strokeWidth={1.8} /> {t('Remove')}
                 </button>
               </>
             ) : (
               <button onClick={() => open('set')} className="c-btn c-btn-primary h-auto px-3.5 py-1.5 text-[12px]">
-                Set password
+                {t('Set password')}
               </button>
             )}
           </span>
@@ -148,8 +149,8 @@ function SecurityClassic({
 
       <p className="mt-1.5 pl-[28px] text-[12.5px] leading-relaxed text-os-muted [overflow-wrap:anywhere]">
         {configured
-          ? 'Every page and API route asks for this password. It is stored as a scrypt hash in .env.local on this host and is never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line from .env.local, restart, and set a new one here.'
-          : 'No password yet, so the console answers only on this machine: the server refuses to listen on any other address until one exists. Set a password to sign in from other devices on your network.'}
+          ? t('Every page and API route asks for this password. It is stored as a scrypt hash in .env.local on this host and is never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line from .env.local, restart, and set a new one here.')
+          : t('No password yet, so the console answers only on this machine: the server refuses to listen on any other address until one exists. Set a password to sign in from other devices on your network.')}
       </p>
 
       {notice && (
@@ -166,7 +167,7 @@ function SecurityClassic({
               type="password"
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
-              placeholder="Current password"
+              placeholder={t('Current password')}
               autoComplete="current-password"
               autoFocus
               className={field}
@@ -178,7 +179,7 @@ function SecurityClassic({
                 type="password"
                 value={next}
                 onChange={(e) => setNext(e.target.value)}
-                placeholder="New password (8+ characters)"
+                placeholder={t('New password (8+ characters)')}
                 autoComplete="new-password"
                 autoFocus={!spec.needsCurrent}
                 className={field}
@@ -187,7 +188,7 @@ function SecurityClassic({
                 type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Repeat new password"
+                placeholder={t('Repeat new password')}
                 autoComplete="new-password"
                 className={field}
               />
@@ -195,7 +196,7 @@ function SecurityClassic({
           )}
           {mode === 'remove' && (
             <p className="text-[12px] text-os-dim">
-              Removing it signs this device out and puts the OS back to loopback-only until a new password is set.
+              {t('Removing it signs this device out and puts the OS back to loopback-only until a new password is set.')}
             </p>
           )}
           {error && (
@@ -209,10 +210,10 @@ function SecurityClassic({
               disabled={busy || (spec.needsCurrent && !current) || (spec.needsNew && (!next || !confirm))}
               className="c-btn c-btn-primary h-auto px-3.5 py-1.5 text-[12px] disabled:opacity-40"
             >
-              {busy ? 'Saving…' : spec.button}
+              {busy ? t('Saving…') : spec.button}
             </button>
             <button type="button" onClick={close} className="text-[11.5px] text-os-dim transition-colors hover:text-os-text">
-              cancel
+              {t('cancel')}
             </button>
           </div>
         </form>

@@ -3,15 +3,16 @@
 import { useRef, type KeyboardEvent } from 'react';
 import { rovingIndex } from '@/components/g/logic';
 import { LEGACY_FACES, LEGACY_THEMES, type Appearance, type LegacySkin, type LegacyTheme, type ModePref, type UiStyle } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 /** The full stored choice the picker edits: the cookie's axes plus the other style's choice. */
 export type StoredChoice = Appearance & { skin: LegacySkin };
 type Stored = StoredChoice;
 
 const MODE_OPTIONS: { value: ModePref; label: string }[] = [
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-  { value: 'system', label: 'System' },
+  { value: 'dark', label: t('Dark') },
+  { value: 'light', label: t('Light') },
+  { value: 'system', label: t('System') },
 ];
 
 /**
@@ -38,25 +39,25 @@ export function AppearanceLegacy({
   return (
     <div data-appearance="legacy" data-l="AppearancePicker" className="appset appset-legacy l-card">
       <div className="appset-row">
-        <span className="appset-label" id="appset-style-label">Style</span>
-        <LRadios label="Style" options={options.map((o) => ({ value: o.value, label: o.label, title: o.title }))} value={stored.ui} onChange={onStyle} />
+        <span className="appset-label" id="appset-style-label">{t('Style')}</span>
+        <LRadios label={t('Style')} options={options.map((o) => ({ value: o.value, label: o.label, title: o.title }))} value={stored.ui} onChange={onStyle} />
       </div>
       <div className="appset-row">
-        <span className="appset-label" id="appset-colour-label">Skin</span>
+        <span className="appset-label" id="appset-colour-label">{t('Skin')}</span>
         <LRadios
           label="appset-colour-label"
           labelledBy
-          options={LEGACY_THEMES.map((t) => ({ value: t, label: LEGACY_FACES[t].name, title: `${LEGACY_FACES[t].name}: ${LEGACY_FACES[t].blurb}`, swatch: t }))}
+          options={LEGACY_THEMES.map((theme) => ({ value: theme, label: LEGACY_FACES[theme].name, title: `${LEGACY_FACES[theme].name}: ${LEGACY_FACES[theme].blurb}`, swatch: theme }))}
           value={face}
-          onChange={(t) => onSave({ ...stored, mode: LEGACY_FACES[t].mode })}
+          onChange={(theme) => onSave({ ...stored, mode: LEGACY_FACES[theme].mode })}
         />
       </div>
       <div className="appset-row">
-        <span className="appset-label">Mode</span>
-        <LRadios label="Mode" options={MODE_OPTIONS} value={stored.mode} onChange={(mode) => onSave({ ...stored, mode })} />
-        {stored.mode === 'system' && <p className="appset-note">following your OS: {appliedMode === 'light' ? 'Daylight' : 'Monolith'}</p>}
+        <span className="appset-label">{t('Mode')}</span>
+        <LRadios label={t('Mode')} options={MODE_OPTIONS} value={stored.mode} onChange={(mode) => onSave({ ...stored, mode })} />
+        {stored.mode === 'system' && <p className="appset-note">{t('following your OS: {skin}', { skin: appliedMode === 'light' ? 'Daylight' : 'Monolith' })}</p>}
       </div>
-      <p className="appset-caption">Saved on this browser. Every page wears this skin; pages with their own Legacy layout use it.</p>
+      <p className="appset-caption">{t('Saved on this browser. Every page wears this skin; pages with their own Legacy layout use it.')}</p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BRAND } from '@/lib/brand';
 import { OsMark } from './Marks';
+import { t } from '@/lib/i18n';
 
 /**
  * The FounderOS shell pieces the GladOS sidebar wears under Bennett Legacy
@@ -19,7 +20,7 @@ export function LegacySideHead() {
       <OsMark size={34} className="l-side-mark" />
       <span className="l-side-word">
         <span className="l-side-name">{BRAND.name}</span>
-        <span className="l-side-sub">Operator mode</span>
+        <span className="l-side-sub">{t('Operator mode')}</span>
       </span>
     </Link>
   );
@@ -49,12 +50,12 @@ export function LegacySideFoot() {
     return () => ctrl.abort();
   }, []);
   const ok = !!live && live.up > 0;
-  const label = live ? `${live.up} of ${live.total} systems live` : 'Systems live: checking';
+  const label = live ? t('{up} of {total} systems live', { up: live.up, total: live.total }) : t('Systems live: checking');
   return (
     <div className="l-side-foot" data-l="SideFoot">
       <Link href="/integrations" className="l-side-live" title={label} aria-label={label}>
         <span className={`l-dot ${ok ? 'ok pulse' : 'off'}`} aria-hidden />
-        <span className="l-side-foot-text">{live ? `${live.up}/${live.total}` : '-/-'} systems live</span>
+        <span className="l-side-foot-text">{t('{count} systems live', { count: live ? `${live.up}/${live.total}` : '-/-' })}</span>
       </Link>
       <div className="l-side-host l-side-foot-text">{host ?? '…'} · sqlite</div>
     </div>

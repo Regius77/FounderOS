@@ -1,10 +1,11 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from 'react';
 import { PenLine, Plus, Trash2 } from 'lucide-react';
 import { pushEscape } from '@/lib/escape-stack';
 import { ago } from '@/components/creative-engine/primitives';
-import { plural } from '@/lib/creative-engine/format';
+import { fmtCredits } from '@/lib/creative-engine/format';
 import { CAMPAIGN_NAME_MAX, validateCampaignName } from '@/lib/creative-engine/campaign-name';
 import type { CampaignSummary } from '@/lib/creative-engine/pick';
 import { Btn, Input, useG } from '@/components/creative-engine/skin';
@@ -20,7 +21,7 @@ import { ClassicSwitcherOpen, ClassicSwitcherRow, switcherPanelClass } from '@/c
  * delete are off with the reason in their title.
  */
 
-const ORIGIN_TAG: Record<CampaignSummary['origin'], string | null> = { live: null, dry: 'Dry run', filming: 'Filming' };
+const ORIGIN_TAG: Record<CampaignSummary['origin'], string | null> = { live: null, dry: t('Dry run'), filming: t('Filming') };
 
 export function originTag(origin: CampaignSummary['origin']): string | null {
   return ORIGIN_TAG[origin];
@@ -82,7 +83,7 @@ export function CampaignSwitcher({ campaigns, currentId, readOnly, filming = fal
     else if ((e.key === 'Delete' || e.key === 'Backspace') && !readOnly) { e.preventDefault(); onDelete(c); }
   };
 
-  const disabledWhy = readOnly ? 'Sample data: rename and delete are off' : undefined;
+  const disabledWhy = readOnly ? t('Sample data: rename and delete are off') : undefined;
   const g = useG();
 
   // GladOS: keep the panel on screen. It hangs from the nav pill's left edge, so on a phone
@@ -102,11 +103,11 @@ export function CampaignSwitcher({ campaigns, currentId, readOnly, filming = fal
     // it and the rows need their keyboard (GPopover renders its own trigger).
     <div ref={ref} className={switcherPanelClass(g)} role="region" aria-labelledby={titleId} data-campaign-switcher>
       <div className="flex items-center justify-between gap-3 px-2 pb-2">
-        <span id={titleId} className="ae-cap">{plural(campaigns.length, 'campaign')}</span>
-        <Btn size="sm" data-new-concept onClick={onNew} disabled={readOnly} title={readOnly ? 'Sample data: leave the sample to start a concept' : 'Open the Creative generator with empty fields'}><Plus className="h-3.5 w-3.5" strokeWidth={1.8} /> New concept</Btn>
+        <span id={titleId} className="ae-cap">{(campaigns.length === 1 ? t('{n} campaign', { n: fmtCredits(campaigns.length) }) : t('{n} campaigns', { n: fmtCredits(campaigns.length) }))}</span>
+        <Btn size="sm" data-new-concept onClick={onNew} disabled={readOnly} title={readOnly ? t('Sample data: leave the sample to start a concept') : t('Open the Creative generator with empty fields')}><Plus className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('New concept')}</Btn>
       </div>
       <ul className="max-h-[min(420px,60vh)] space-y-1 overflow-y-auto">
-        {campaigns.length === 0 && <li className="ae-cap px-2 py-3">No campaigns yet. Start one with New concept.</li>}
+        {campaigns.length === 0 && <li className="ae-cap px-2 py-3">{t('No campaigns yet. Start one with New concept.')}</li>}
         {campaigns.map((c, i) => {
           const tag = filming && c.origin === 'filming' ? null : originTag(c.origin);
           return (
@@ -120,11 +121,11 @@ export function CampaignSwitcher({ campaigns, currentId, readOnly, filming = fal
                       <span className="min-w-0 truncate text-[13px] text-[var(--p-ink)]">{c.name}</span>
                       {tag && <Tag className="shrink-0">{tag}</Tag>}
                     </span>
-                    <span className="ae-faint mt-0.5 block truncate">{ago(c.updatedAt)} · {plural(c.angles, 'angle')} · {plural(c.scripts, 'script')} · {plural(c.briefs, 'brief')} · {plural(c.assets, 'asset')}</span>
+                    <span className="ae-faint mt-0.5 block truncate">{ago(c.updatedAt)} · {(c.angles === 1 ? t('{n} angle', { n: fmtCredits(c.angles) }) : t('{n} angles', { n: fmtCredits(c.angles) }))} · {(c.scripts === 1 ? t('{n} script', { n: fmtCredits(c.scripts) }) : t('{n} scripts', { n: fmtCredits(c.scripts) }))} · {(c.briefs === 1 ? t('{n} brief', { n: fmtCredits(c.briefs) }) : t('{n} briefs', { n: fmtCredits(c.briefs) }))} · {(c.assets === 1 ? t('{n} asset', { n: fmtCredits(c.assets) }) : t('{n} assets', { n: fmtCredits(c.assets) }))}</span>
                   </SwitcherOpen>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Btn icon onClick={() => setRenaming(c.id)} disabled={readOnly} title={disabledWhy ?? `Rename ${c.name}`} aria-label={`Rename ${c.name}`}><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
-                    <Btn icon onClick={() => onDelete(c)} disabled={readOnly} title={disabledWhy ?? `Delete ${c.name}`} aria-label={`Delete ${c.name}`}><Trash2 className="h-4 w-4" strokeWidth={1.6} /></Btn>
+                    <Btn icon onClick={() => setRenaming(c.id)} disabled={readOnly} title={disabledWhy ?? t('Rename {name}', { name: c.name })} aria-label={t('Rename {name}', { name: c.name })}><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
+                    <Btn icon onClick={() => onDelete(c)} disabled={readOnly} title={disabledWhy ?? t('Delete {name}', { name: c.name })} aria-label={t('Delete {name}', { name: c.name })}><Trash2 className="h-4 w-4" strokeWidth={1.6} /></Btn>
                   </div>
                 </>
               )}
@@ -132,7 +133,7 @@ export function CampaignSwitcher({ campaigns, currentId, readOnly, filming = fal
           );
         })}
       </ul>
-      <div className="ae-faint px-2 pt-2">Up and Down move · Enter opens · R renames · Delete removes</div>
+      <div className="ae-faint px-2 pt-2">{t('Up and Down move · Enter opens · R renames · Delete removes')}</div>
     </div>
   );
 }
@@ -144,7 +145,7 @@ function SwitcherOpen({ g, rowRef, onClick, onKeyDown, current, title, children 
 }
 
 /** Inline rename: Enter or blur saves, Escape cancels, empty refused, 60 characters (C7). */
-export function RenameInput({ initial, onSave, onCancel, className, label = 'Campaign name' }: { initial: string; onSave: (name: string) => Promise<string | null>; onCancel: () => void; className?: string; label?: string }) {
+export function RenameInput({ initial, onSave, onCancel, className, label = t('Campaign name') }: { initial: string; onSave: (name: string) => Promise<string | null>; onCancel: () => void; className?: string; label?: string }) {
   const [value, setValue] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,13 +191,13 @@ export type DeleteTarget = { id: string; name: string; files: number; workflows:
 
 /** Hard-delete confirm (S03 FR-6, Q-ENG-4) on the X1 dialog: Cancel has focus, Escape closes. */
 export function DeleteCampaignDialog({ target, busy, error, onCancel, onConfirm }: { target: DeleteTarget; busy: boolean; error: string | null; onCancel: () => void; onConfirm: () => void }) {
-  const wf = target.workflows === null ? 'its workflows' : plural(target.workflows, 'workflow');
+  const wf = target.workflows === null ? t('its workflows') : (target.workflows === 1 ? t('{n} workflow', { n: fmtCredits(target.workflows) }) : t('{n} workflows', { n: fmtCredits(target.workflows) }));
   return (
     <ConfirmDelete
-      title={<>Delete &ldquo;{target.name}&rdquo;?</>}
+      title={<>{t('Delete “{name}”?', { name: target.name })}</>}
       body={<>
-        Its {plural(target.files, 'delivered file')} and {wf} are removed from this machine. Credit history stays. Arcads keeps its own copies.
-        {target.rendering > 0 && <> {target.rendering === 1 ? '1 run is still rendering and will be abandoned.' : `${target.rendering} runs are still rendering and will be abandoned.`}</>}
+        {t('Its {files} and {workflows} are removed from this machine. Credit history stays. Arcads keeps its own copies.', { files: (target.files === 1 ? t('{n} delivered file', { n: fmtCredits(target.files) }) : t('{n} delivered files', { n: fmtCredits(target.files) })), workflows: wf })}
+        {target.rendering > 0 && <> {target.rendering === 1 ? t('1 run is still rendering and will be abandoned.') : t('{n} runs are still rendering and will be abandoned.', { n: target.rendering })}</>}
       </>}
       error={error}
       busy={busy}

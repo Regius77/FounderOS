@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronRight, CornerLeftUp, FileText, Folder, Layers, Lock, RefreshCw, Search, X } from 'lucide-react';
 import type { DbNode } from '@/lib/database/scan';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * Database: the brain folder as a block map, one level at a time. Every
@@ -24,14 +25,14 @@ type Preview =
 /* ── content types: the colour code ───────────────────────────────────── */
 export type Kind = 'docs' | 'video' | 'image' | 'audio' | 'code' | 'data' | 'system' | 'other';
 export const KINDS: { id: Kind; label: string; colour: string }[] = [
-  { id: 'docs', label: 'Notes & docs', colour: 'var(--ramp-1)' },
-  { id: 'video', label: 'Video', colour: 'var(--err)' },
-  { id: 'image', label: 'Images', colour: 'var(--warn)' },
-  { id: 'audio', label: 'Audio', colour: 'var(--ramp-4)' },
-  { id: 'code', label: 'Code & config', colour: 'var(--ok)' },
-  { id: 'data', label: 'Data & archives', colour: 'var(--ramp-3)' },
-  { id: 'system', label: 'Git & system', colour: 'var(--text-3)' },
-  { id: 'other', label: 'Other', colour: 'var(--ramp-2)' },
+  { id: 'docs', label: t('Notes & docs'), colour: 'var(--ramp-1)' },
+  { id: 'video', label: t('Video'), colour: 'var(--err)' },
+  { id: 'image', label: t('Images'), colour: 'var(--warn)' },
+  { id: 'audio', label: t('Audio'), colour: 'var(--ramp-4)' },
+  { id: 'code', label: t('Code & config'), colour: 'var(--ok)' },
+  { id: 'data', label: t('Data & archives'), colour: 'var(--ramp-3)' },
+  { id: 'system', label: t('Git & system'), colour: 'var(--text-3)' },
+  { id: 'other', label: t('Other'), colour: 'var(--ramp-2)' },
 ];
 const COLOUR = Object.fromEntries(KINDS.map((k) => [k.id, k.colour])) as Record<Kind, string>;
 const EXT: [Kind, RegExp][] = [
@@ -145,13 +146,13 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
     <div className="space-y-4">
       {/* summary + controls */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[12.5px] text-os-muted">
-        <span><b className="text-os-text">{fmtBytes(total)}</b> in {data.root}</span>
-        <span>{data.tree.files.toLocaleString()} files</span>
-        {data.truncated && <span className="text-os-warn">Large folder: the map stops at 60,000 entries.</span>}
+        <span><b className="text-os-text">{fmtBytes(total)}</b> {t('in {root}', { root: data.root })}</span>
+        <span>{t('{n} files', { n: data.tree.files.toLocaleString(localeTag()) })}</span>
+        {data.truncated && <span className="text-os-warn">{t('Large folder: the map stops at 60,000 entries.')}</span>}
         <span className="ml-auto flex items-center gap-2">
           <span className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-os-dim" strokeWidth={2} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a file or folder" aria-label="Find a file or folder"
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Find a file or folder')} aria-label={t('Find a file or folder')}
               className="h-8 w-[240px] max-w-[46vw] rounded-[9px] border border-[var(--hairline)] bg-os-surface pl-8 pr-2 text-[12.5px] text-os-text outline-none placeholder:text-os-dim focus:border-[var(--accent-line)]" />
             {matches.length > 0 && (
               <span className="absolute right-0 top-9 z-20 w-[360px] max-w-[86vw] overflow-hidden rounded-[10px] border border-[var(--hairline)] bg-[var(--elevated)] py-1 shadow-lg">
@@ -166,13 +167,13 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
             )}
           </span>
           <button type="button" onClick={rescan} disabled={busy} className="inline-flex h-8 items-center gap-1.5 rounded-[9px] border border-[var(--hairline)] px-3 text-[12px] text-os-text hover:bg-[var(--accent-soft)] disabled:opacity-60">
-            <RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} strokeWidth={2} />Rescan
+            <RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} strokeWidth={2} />{t('Rescan')}
           </button>
         </span>
       </div>
 
       {/* breadcrumb */}
-      <nav aria-label="Folder path" className="flex flex-wrap items-center gap-1 text-[12.5px]">
+      <nav aria-label={t('Folder path')} className="flex flex-wrap items-center gap-1 text-[12.5px]">
         <button type="button" onClick={() => go('')} className={`rounded-[6px] px-1.5 py-0.5 hover:bg-[var(--accent-soft)] ${focusPath || stack.length ? 'text-os-muted' : 'font-semibold text-os-text'}`}>{data.tree.name}/</button>
         {crumbs.map((c, i) => {
           const p = crumbs.slice(0, i + 1).join('/');
@@ -187,26 +188,26 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
         {stack.map((_, i) => (
           <span key={`rest-${i}`} className="flex items-center gap-1">
             <ChevronRight className="h-3 w-3 text-os-dim" />
-            <button type="button" onClick={() => { setStack((s) => s.slice(0, i + 1)); setSelected(null); }} className={`rounded-[6px] px-1.5 py-0.5 hover:bg-[var(--accent-soft)] ${i === stack.length - 1 ? 'font-semibold text-os-text' : 'text-os-muted'}`}>smaller items</button>
+            <button type="button" onClick={() => { setStack((s) => s.slice(0, i + 1)); setSelected(null); }} className={`rounded-[6px] px-1.5 py-0.5 hover:bg-[var(--accent-soft)] ${i === stack.length - 1 ? 'font-semibold text-os-text' : 'text-os-muted'}`}>{t('smaller items')}</button>
           </span>
         ))}
         {(focusPath || stack.length > 0) && (
-          <button type="button" onClick={up} title="Up one level (Esc)" className="ml-auto inline-flex items-center gap-1 rounded-[6px] px-2 py-0.5 text-os-muted hover:bg-[var(--accent-soft)] hover:text-os-text">
-            <CornerLeftUp className="h-3.5 w-3.5" strokeWidth={2} />Up
+          <button type="button" onClick={up} title={t('Up one level (Esc)')} className="ml-auto inline-flex items-center gap-1 rounded-[6px] px-2 py-0.5 text-os-muted hover:bg-[var(--accent-soft)] hover:text-os-text">
+            <CornerLeftUp className="h-3.5 w-3.5" strokeWidth={2} />{t('Up')}
           </button>
         )}
       </nav>
 
       {/* what this view holds */}
       <div>
-        <p className="text-[12px] text-os-muted"><b className="text-os-text">{fmtBytes(viewSize)}</b> here · {pct(viewSize, total)} of the brain · {viewItems.length} item{viewItems.length === 1 ? '' : 's'} · {viewItems.reduce((a, c) => a + c.files, 0).toLocaleString()} files</p>
+        <p className="text-[12px] text-os-muted"><b className="text-os-text">{fmtBytes(viewSize)}</b> {t('here')} · {t('{pct} of the brain', { pct: pct(viewSize, total) })} · {viewItems.length === 1 ? t('{n} item', { n: viewItems.length }) : t('{n} items', { n: viewItems.length })} · {t('{n} files', { n: viewItems.reduce((a, c) => a + c.files, 0).toLocaleString(localeTag()) })}</p>
       </div>
 
       {/* kind filter for this view: hover a type to find it, click to keep it */}
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by file type" onMouseLeave={() => setPeek(null)}>
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('Filter by file type')} onMouseLeave={() => setPeek(null)}>
         {KINDS.filter((k) => viewMix[k.id] > 0 || k.id === pinned).sort((a, b) => viewMix[b.id] - viewMix[a.id]).map((k) => (
           <button key={k.id} type="button" aria-pressed={pinned === k.id}
-            title={pinned === k.id ? `Showing only items with ${k.label.toLowerCase()} · click to clear` : `Show only items with ${k.label.toLowerCase()}`}
+            title={pinned === k.id ? t('Showing only items with {kind} · click to clear', { kind: k.label.toLowerCase() }) : t('Show only items with {kind}', { kind: k.label.toLowerCase() })}
             onMouseEnter={() => setPeek(k.id)} onFocus={() => setPeek(k.id)} onBlur={() => setPeek(null)}
             onClick={() => { setPinned((h) => (h === k.id ? null : k.id)); setPeek(null); }}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[11.5px] transition-colors ${pinned === k.id ? 'border-[var(--accent-line)] bg-[var(--accent-soft)] text-os-text' : hl === k.id ? 'border-[var(--border-strong)] text-os-text' : 'border-[var(--hairline)] text-os-muted hover:text-os-text'}`}>
@@ -230,8 +231,8 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
               const hot = hover === key || (hover !== null && isRest && restPaths.has(hover));
               const dim = !lit(m);
               const tip = isRest
-                ? `${b.restCount} smaller items · ${fmtBytes(size)}\nClick to see them at their own scale`
-                : `${b.node!.path}\n${fmtBytes(size)} · ${pct(size, total)} of the brain${b.node!.dir ? ` · ${b.node!.files.toLocaleString()} files\nMostly ${KINDS.find((x) => x.id === k)!.label.toLowerCase()} · click to open` : `\n${KINDS.find((x) => x.id === k)!.label} · click to read`}`;
+                ? `${t('{n} smaller items', { n: b.restCount ?? 0 })} · ${fmtBytes(size)}\n${t('Click to see them at their own scale')}`
+                : `${b.node!.path}\n${fmtBytes(size)} · ${t('{pct} of the brain', { pct: pct(size, total) })}${b.node!.dir ? ` · ${t('{n} files', { n: b.node!.files.toLocaleString(localeTag()) })}\n${t('Mostly {kind} · click to open', { kind: KINDS.find((x) => x.id === k)!.label.toLowerCase() })}` : `\n${t('{kind} · click to read', { kind: KINDS.find((x) => x.id === k)!.label })}`}`;
               return (
                 <button key={`${key}-${i}`} type="button" title={tip}
                   onClick={() => (isRest ? openRest() : open(b.node!))}
@@ -248,11 +249,11 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
                       <span className="block truncate px-1.5 text-[10.5px] font-bold leading-[17px] text-os-text" style={{ background: strip(k) }}>
                         {b.node!.name}/ <span className="font-semibold opacity-75">{fmtBytes(size)} · {pct(size, total)}</span>
                       </span>
-                      {b.h > 40 && <span className="block truncate px-1.5 pt-1 text-[10px] tabular-nums text-os-muted">{b.node!.files.toLocaleString()} file{b.node!.files === 1 ? '' : 's'} · mostly {KINDS.find((x) => x.id === k)!.label.toLowerCase()}</span>}
+                      {b.h > 40 && <span className="block truncate px-1.5 pt-1 text-[10px] tabular-nums text-os-muted">{b.node!.files === 1 ? t('{n} file', { n: b.node!.files.toLocaleString(localeTag()) }) : t('{n} files', { n: b.node!.files.toLocaleString(localeTag()) })} · {t('mostly {kind}', { kind: KINDS.find((x) => x.id === k)!.label.toLowerCase() })}</span>}
                     </>
                   ) : (
                     <span className="block px-1.5 py-1 leading-tight">
-                      <span className={`block truncate text-[10.5px] font-bold ${isRest ? 'text-os-muted' : 'text-os-text'}`}>{isRest ? `${b.restCount} smaller items` : b.node!.name}</span>
+                      <span className={`block truncate text-[10.5px] font-bold ${isRest ? 'text-os-muted' : 'text-os-text'}`}>{isRest ? t('{n} smaller items', { n: b.restCount ?? 0 }) : b.node!.name}</span>
                       {b.h > 26 && <span className="block truncate text-[10px] tabular-nums text-os-muted">{fmtBytes(size)} · {pct(size, total)}</span>}
                     </span>
                   ))}
@@ -260,7 +261,7 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
                 </button>
               );
             })}
-            {!blocks.length && width > 0 && <div className="grid h-full place-items-center text-[13px] text-os-muted">This folder is empty.</div>}
+            {!blocks.length && width > 0 && <div className="grid h-full place-items-center text-[13px] text-os-muted">{t('This folder is empty.')}</div>}
           </div>
         </div>
 
@@ -273,32 +274,32 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[13px] font-semibold text-os-text" title={selected.name}>{selected.name}</div>
                   <div className="truncate text-[11.5px] text-os-muted" title={selected.path}>{selected.path}</div>
-                  <div className="mt-1 text-[11.5px] tabular-nums text-os-muted">{fmtBytes(selected.size)} · {pct(selected.size, total)} · modified {new Date(selected.mtime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                  <div className="mt-1 text-[11.5px] tabular-nums text-os-muted">{fmtBytes(selected.size)} · {pct(selected.size, total)} · {t('modified {date}', { date: new Date(selected.mtime).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short', year: 'numeric' }) })}</div>
                 </div>
-                <button type="button" onClick={() => setSelected(null)} aria-label="Close file" className="rounded-[6px] p-1 text-os-muted hover:bg-[var(--accent-soft)] hover:text-os-text"><X className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setSelected(null)} aria-label={t('Close file')} className="rounded-[6px] p-1 text-os-muted hover:bg-[var(--accent-soft)] hover:text-os-text"><X className="h-4 w-4" /></button>
               </div>
               <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
-                {!preview ? <p className="text-[12px] text-os-muted">Reading…</p>
+                {!preview ? <p className="text-[12px] text-os-muted">{t('Reading…')}</p>
                   : !preview.ok ? <p className="text-[12px] text-os-err">{preview.error}</p>
-                  : preview.kind === 'private' ? <p className="flex items-start gap-2 text-[12px] text-os-muted"><Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />Private file: the contents stay on disk and are never shown here.</p>
-                  : preview.kind === 'binary' ? <p className="text-[12px] text-os-muted">Not a text file, so there is no preview. Open it from {data.root}/{preview.path}.</p>
+                  : preview.kind === 'private' ? <p className="flex items-start gap-2 text-[12px] text-os-muted"><Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />{t('Private file: the contents stay on disk and are never shown here.')}</p>
+                  : preview.kind === 'binary' ? <p className="text-[12px] text-os-muted">{t('Not a text file, so there is no preview. Open it from {path}.', { path: `${data.root}/${preview.path}` })}</p>
                   : preview.kind === 'text' ? <>
                       <pre className="whitespace-pre-wrap break-words font-mono text-[11.5px] leading-relaxed text-os-text">{preview.text}</pre>
-                      {preview.truncated && <p className="mt-2 text-[11.5px] text-os-muted">First 24 KB shown.</p>}
+                      {preview.truncated && <p className="mt-2 text-[11.5px] text-os-muted">{t('First 24 KB shown.')}</p>}
                     </> : null}
               </div>
             </>
           ) : (
             <>
               <div className="px-4 pb-2 pt-3">
-                <div className="text-[14px] font-bold text-os-text">{stack.length ? 'Smaller items' : focusPath ? `${focus.name}/` : 'Top-level breakdown'}</div>
+                <div className="text-[14px] font-bold text-os-text">{stack.length ? t('Smaller items') : focusPath ? `${focus.name}/` : t('Top-level breakdown')}</div>
               </div>
               <div className="mx-4 grid grid-cols-[minmax(0,1fr)_62px_50px_50px] gap-x-2 border-b border-[var(--hairline)] pb-1.5 text-[9.5px] font-semibold uppercase tracking-[0.08em] text-os-dim">
-                <span>{focusPath || stack.length ? 'Item' : 'Folder'}</span><span className="text-right">Size</span><span className="text-right">% here</span><span className="text-right">% brain</span>
+                <span>{focusPath || stack.length ? t('Item') : t('Folder')}</span><span className="text-right">{t('Size')}</span><span className="text-right">{t('% here')}</span><span className="text-right">{t('% brain')}</span>
               </div>
               {pinned && (
                 <p className="mx-4 mt-1.5 flex items-center gap-2 text-[11.5px] text-os-muted">
-                  <span className="min-w-0 flex-1 truncate">Showing {listItems.length} of {viewItems.length} with {KINDS.find((x) => x.id === pinned)!.label.toLowerCase()}</span>
+                  <span className="min-w-0 flex-1 truncate">{t('Showing {n} of {total} with {kind}', { n: listItems.length, total: viewItems.length, kind: KINDS.find((x) => x.id === pinned)!.label.toLowerCase() })}</span>
                   <button type="button" onClick={() => setPinned(null)} className="shrink-0 rounded-[6px] px-1.5 py-0.5 text-os-text hover:bg-[var(--accent-soft)]">Clear</button>
                 </p>
               )}
@@ -322,8 +323,8 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
                     </li>
                   );
                 })}
-                {!viewItems.length && <li className="py-3 text-[12px] text-os-muted">Nothing in this folder.</li>}
-                {viewItems.length > 0 && !listItems.length && <li className="py-3 text-[12px] text-os-muted">Nothing here of that type.</li>}
+                {!viewItems.length && <li className="py-3 text-[12px] text-os-muted">{t('Nothing in this folder.')}</li>}
+                {viewItems.length > 0 && !listItems.length && <li className="py-3 text-[12px] text-os-muted">{t('Nothing here of that type.')}</li>}
               </ul>
             </>
           )}
@@ -415,7 +416,7 @@ export function useBrainFiles(initial: Tree, height = HEIGHT) {
     setPreview(null);
     fetch(`/api/database/file?path=${encodeURIComponent(selected.path)}`, { cache: 'no-store' })
       .then((r) => r.json()).then((p: Preview) => { if (live) setPreview(p); })
-      .catch(() => { if (live) setPreview({ ok: false, error: 'Could not read the file.' }); });
+      .catch(() => { if (live) setPreview({ ok: false, error: t('Could not read the file.') }); });
     return () => { live = false; };
   }, [selected]);
 

@@ -36,6 +36,7 @@ import { AudiencePie } from '@/founderos/components/AudiencePie';
 import { PostComposer } from '@/founderos/components/PostComposer';
 import { CountUp } from '@/founderos/components/CountUp';
 import { Rise } from '@/founderos/components/motion';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,7 @@ function platformLabel(platform: string): string {
 function RecencyDots({ rank, of }: { rank: number; of: number }) {
   const lit = of - rank;
   return (
-    <div className="mt-1.5 flex items-center gap-1" title={`#${rank + 1} most recent of ${of}`}>
+    <div className="mt-1.5 flex items-center gap-1" title={t('#{rank} most recent of {of}', { rank: rank + 1, of })}>
       {Array.from({ length: of }, (_, d) => (
         <span
           key={d}
@@ -89,10 +90,10 @@ function agoFrom(iso: string | null): string {
   const ms = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(ms) || ms < 0) return '';
   const mins = Math.round(ms / 60_000);
-  if (mins < 60) return `${Math.max(1, mins)}m`;
+  if (mins < 60) return t('{n}m', { n: Math.max(1, mins) });
   const hrs = Math.round(mins / 60);
-  if (hrs < 48) return `${hrs}h`;
-  return `${Math.round(hrs / 24)}d`;
+  if (hrs < 48) return t('{n}h', { n: hrs });
+  return t('{n}d', { n: Math.round(hrs / 24) });
 }
 
 export default async function SocialPage() {
@@ -153,12 +154,12 @@ export default async function SocialPage() {
   const v = socialVolume({
     channels: [
       ...dash.platforms.map((p) => ({ key: p.platform, label: PLATFORM_LABELS[p.platform], value: p.followers })),
-      { key: 'email', label: 'Email list', value: email.subscribers },
+      { key: 'email', label: t('Email list'), value: email.subscribers },
     ],
     total,
     growth7: audienceGrowthNow.d7,
     leader: growthLeader,
-    dmThreads: dmInbox.map((t) => ({ name: t.name, unreplied: t.unreplied })),
+    dmThreads: dmInbox.map((th) => ({ name: th.name, unreplied: th.unreplied })),
     queued,
     postDays,
     today,
@@ -168,9 +169,9 @@ export default async function SocialPage() {
   return (
     <Slab>
       <SlabTitle
-        eyebrow="audience"
+        eyebrow={t('audience')}
         title="Social"
-        meta={`${formatFollowers(total)} reach · ${postsKnown ? v.postsInWindow : '?'} posts in 30 days · ${queued} queued · ${dmInbox.length} DM threads`}
+        meta={t('{reach} reach · {posts} posts in 30 days · {queued} queued · {dms} DM threads', { reach: formatFollowers(total), posts: postsKnown ? v.postsInWindow : '?', queued, dms: dmInbox.length })}
         right={
           <>
             <Chip tone={pill.tone === 'ok' ? 'ok' : 'warn'}>{pill.text}</Chip>
@@ -179,7 +180,7 @@ export default async function SocialPage() {
               Beehiiv
             </Link>
             <Link href="/agents" className={PILL_ACCENT}>
-              Social agent
+              {t('Social agent')}
             </Link>
           </>
         }
@@ -188,7 +189,7 @@ export default async function SocialPage() {
       {/* Hero row, Brand Deals' shape: every account + the volume card.
           Every account stays on the first screen; click through for detail. */}
       <div className="grid grid-cols-[2fr_1fr] gap-6 max-[1200px]:grid-cols-1">
-        <SlabCard i={1} title="Accounts" sub={`${formatFollowers(total)} total`}>
+        <SlabCard i={1} title={t('Accounts')} sub={t('{n} total', { n: formatFollowers(total) })}>
       <div className="grid grid-cols-2 gap-3 px-6 pb-6 pt-4 sm:grid-cols-3">
         {dash.platforms.map((p, i) => {
           const Icon = PLATFORM_ICONS[p.platform];
@@ -197,7 +198,7 @@ export default async function SocialPage() {
             <Link
               key={p.platform}
               href={`/social/${p.platform}`}
-              title={`${share.toFixed(0)}% of reach`}
+              title={t('{pct}% of reach', { pct: share.toFixed(0) })}
               data-lens="r"
               className="pressable is-row rise group rounded-[10px] border border-os-border bg-os-bg px-4 py-4"
               style={{ '--rise-i': i } as React.CSSProperties}
@@ -211,7 +212,7 @@ export default async function SocialPage() {
                   className={`ml-auto shrink-0 font-mono text-[10px] ${
                     p.growth.d7 == null ? 'text-os-dim' : p.growth.d7 >= 0 ? 'text-os-ok' : 'text-os-err'
                   }`}
-                  title="7-day growth"
+                  title={t('7-day growth')}
                 >
                   {formatPct(p.growth.d7)}
                 </span>
@@ -230,19 +231,19 @@ export default async function SocialPage() {
         {/* Email list  -  same cell, Beehiiv-backed; opens the Beehiiv dashboard */}
         <Link
           href="/social/beehiiv"
-          title={`${total > 0 && email.subscribers != null ? ((email.subscribers / total) * 100).toFixed(0) : 0}% of reach · open Beehiiv analytics`}
+          title={t('{pct}% of reach · open Beehiiv analytics', { pct: total > 0 && email.subscribers != null ? ((email.subscribers / total) * 100).toFixed(0) : 0 })}
           data-lens="r"
           className="pressable is-row rise rounded-[10px] border border-os-border bg-os-bg px-4 py-4"
           style={{ '--rise-i': dash.platforms.length } as React.CSSProperties}
         >
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 shrink-0 text-os-accent" />
-            <span className="truncate font-mono text-[10px] uppercase tracking-[0.1em] text-os-dim">Email list</span>
+            <span className="truncate font-mono text-[10px] uppercase tracking-[0.1em] text-os-dim">{t('Email list')}</span>
             <span
               className={`ml-auto shrink-0 font-mono text-[10px] ${
                 email.growth.d7 == null ? 'text-os-dim' : email.growth.d7 >= 0 ? 'text-os-ok' : 'text-os-err'
               }`}
-              title="7-day growth"
+              title={t('7-day growth')}
             >
               {formatPct(email.growth.d7)}
             </span>
@@ -261,39 +262,39 @@ export default async function SocialPage() {
       </div>
         </SlabCard>
 
-        <SlabCard i={2} title="Audience Volume" className="flex flex-col">
+        <SlabCard i={2} title={t('Audience Volume')} className="flex flex-col">
           <div className="flex flex-1 flex-col px-6 pb-6 pt-3">
             <BigStat value={v.headline} kind="followers" chips={v.chips} caption={v.caption} />
-            <MeterStack meters={v.meters} foot={v.foot} empty="no channel is reporting followers yet" />
+            <MeterStack meters={v.meters} foot={v.foot} empty={t('no channel is reporting followers yet')} />
           </div>
         </SlabCard>
       </div>
 
       {/* Second row: posting line, platform mix, THE gradient card */}
       <div className="mb-6 mt-6 grid grid-cols-3 gap-6 max-[1200px]:grid-cols-1">
-        <SlabCard i={3} title="Posting Activity" sub="last 30 days">
+        <SlabCard i={3} title={t('Posting Activity')} sub={t('last 30 days')}>
           <div className="px-6 pt-3">
             <BigStat
               size={30}
               value={v.postsInWindow}
               display={postsKnown ? undefined : ' - '}
-              caption={postsKnown ? 'posts out through Zernio' : 'Zernio not answering · posting history unknown'}
+              caption={postsKnown ? t('posts out through Zernio') : t('Zernio not answering · posting history unknown')}
             />
           </div>
           <StepLine
             series={v.series}
             hue="var(--send-activity)"
-            unit=" posts"
-            empty={postsKnown ? 'No posts in the last 30 days.' : 'Posting history unavailable right now.'}
+            unit={t(' posts')}
+            empty={postsKnown ? t('No posts in the last 30 days.') : t('Posting history unavailable right now.')}
           />
         </SlabCard>
 
-        <SlabCard i={4} title="Platform Mix" sub="posts per platform">
+        <SlabCard i={4} title={t('Platform Mix')} sub={t('posts per platform')}>
           <div className="flex items-end justify-between gap-4 px-6 pb-6 pt-3">
             <BigStat
               size={30}
-              display={topPlatform.count > 0 ? topPlatform.label : postsKnown ? 'none' : ' - '}
-              caption={topPlatform.count > 0 ? `most posted · ${topPlatform.count} posts` : postsKnown ? 'nothing posted in 30 days' : 'posting history unknown'}
+              display={topPlatform.count > 0 ? topPlatform.label : postsKnown ? t('none') : ' - '}
+              caption={topPlatform.count > 0 ? t('most posted · {n} posts', { n: topPlatform.count }) : postsKnown ? t('nothing posted in 30 days') : t('posting history unknown')}
             />
             <DotMatrix cols={v.mix} hue="var(--ramp-1)" />
           </div>
@@ -301,7 +302,7 @@ export default async function SocialPage() {
 
         <InsightCard
           i={5}
-          badge="Needs reply"
+          badge={t('Needs reply')}
           value={v.insight.value}
           headline={v.insight.headline}
           body={v.insight.body}
@@ -343,7 +344,7 @@ export default async function SocialPage() {
                   label: PLATFORM_LABELS[p.platform],
                   value: p.followers,
                 })),
-                { key: 'email', label: 'Email list', value: email.subscribers },
+                { key: 'email', label: t('Email list'), value: email.subscribers },
               ]}
               total={total}
             />
@@ -355,11 +356,11 @@ export default async function SocialPage() {
           (all dots lit = most recent, fading down to the oldest). */}
       <SlabCard
         i={8}
-        title="Recent posts"
+        title={t('Recent posts')}
         sub={
           recentLive
-            ? `${livePosts.length} live · zernio`
-            : `${formatRatioPct(averageLikeToView(RECENT_POSTS))} avg L/V · sample`
+            ? t('{n} live · zernio', { n: livePosts.length })
+            : t('{pct} avg L/V · sample', { pct: formatRatioPct(averageLikeToView(RECENT_POSTS)) })
         }
       >
         <div className="grid gap-3 px-6 pb-6 pt-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -378,7 +379,7 @@ export default async function SocialPage() {
                   <RecencyDots rank={i} of={livePosts.length} />
                   <div className="mt-2 line-clamp-3 text-[12px] [text-wrap:pretty]">{p.caption.split('\n')[0]}</div>
                   <div className="mt-auto flex items-center gap-1.5 pt-2 font-mono text-[10px] text-os-dim">
-                    <span className={p.status === 'success' ? 'text-os-ok' : 'text-os-warn'}>{p.status}</span>
+                    <span className={p.status === 'success' ? 'text-os-ok' : 'text-os-warn'}>{p.status === 'success' ? t('success') : p.status}</span>
                     {p.url && (
                       <a
                         href={p.url}
@@ -386,7 +387,7 @@ export default async function SocialPage() {
                         rel="noreferrer"
                         className="ml-auto rounded-sm-t border border-os-border px-1.5 py-0.5 text-os-accent hover:border-os-border-strong"
                       >
-                        view →
+                        {t('view →')}
                       </a>
                     )}
                   </div>
@@ -402,13 +403,13 @@ export default async function SocialPage() {
                   <div className="mt-2 line-clamp-3 text-[12px] [text-wrap:pretty]">{p.caption}</div>
                   <div className="mt-auto flex items-center gap-1.5 pt-2 font-mono text-[10px] text-os-dim">
                     <span>
-                      {formatFollowers(p.views)} {p.kind}
+                      {formatFollowers(p.views)} {t(p.kind)}
                     </span>
                     <span aria-hidden>·</span>
-                    <span>{formatFollowers(p.likes)} likes</span>
+                    <span>{t('{n} likes', { n: formatFollowers(p.likes) })}</span>
                     <span
                       className="ml-auto rounded-sm-t border border-os-border px-1.5 py-0.5 text-os-accent"
-                      title="like-to-view ratio"
+                      title={t('like-to-view ratio')}
                     >
                       {formatRatioPct(likeToViewRatio(p.likes, p.views))}
                     </span>
@@ -421,12 +422,12 @@ export default async function SocialPage() {
       {/* Publish  -  compose a post that queues for the Social agent */}
       <SlabCard
         i={9}
-        title="Publish"
-        sub={`${queued} queued`}
+        title={t('Publish')}
+        sub={t('{n} queued', { n: queued })}
         className="mt-6"
         action={
           <Link href="/agents" className={PILL}>
-            Social agent
+            {t('Social agent')}
           </Link>
         }
       >

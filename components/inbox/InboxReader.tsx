@@ -7,6 +7,7 @@ import { Avatar, Mono, SourcePill, TriagePill, sourceLabel } from './bits';
 import { MediaBlock } from './Media';
 import { SetupLink } from '@/components/SetupLink';
 import { setupHrefFor } from '@/lib/integrations-catalog';
+import { t, localeTag } from '@/lib/i18n';
 
 export type ReaderHandle = { focusReply: () => void };
 
@@ -44,10 +45,10 @@ export function useHistory(jid: string | undefined): { messages: ThreadMessage[]
 }
 
 const QUICK: { label: string; text: string }[] = [
-  { label: '/draft reply', text: 'Thanks for this. ' },
-  { label: '/confirm time', text: 'Confirmed on my end. ' },
-  { label: '/ask for details', text: 'Can you send over the details so I can review? ' },
-  { label: '/next steps', text: 'Next step on our side: ' },
+  { label: t('/draft reply'), text: t('Thanks for this. ') },
+  { label: t('/confirm time'), text: t('Confirmed on my end. ') },
+  { label: t('/ask for details'), text: t('Can you send over the details so I can review? ') },
+  { label: t('/next steps'), text: t('Next step on our side: ') },
 ];
 
 /** Right column: the whole exchange and the reply bar. The derived-triage
@@ -84,17 +85,17 @@ export const InboxReader = forwardRef<
     return (
       <section className="ib-col ib-reader ib-reader-empty">
         <div>
-          <p className="ib-empty-title">Pick a thread</p>
+          <p className="ib-empty-title">{t('Pick a thread')}</p>
           <p className="ib-empty-sub">
-            <kbd>j</kbd> <kbd>k</kbd> move · <kbd>r</kbd> reply · <kbd>e</kbd> done · <kbd>/</kbd> search
+            <kbd>j</kbd> <kbd>k</kbd> {t('move')} · <kbd>r</kbd> {t('reply')} · <kbd>e</kbd> {t('done')} · <kbd>/</kbd> {t('search')}
           </p>
         </div>
       </section>
     );
   }
 
-  const t = thread;
-  const messages = messagesFor(t, bodies);
+  const th = thread;
+  const messages = messagesFor(th, bodies);
   // Real history wins the moment it lands; the preview holds the space until then.
   const shown = history && history.length ? history : messages;
 
@@ -102,47 +103,47 @@ export const InboxReader = forwardRef<
     const text = draft.trim();
     if (!text) return;
     setStatus(null);
-    if (t.source === 'slack' && t.context) {
+    if (th.source === 'slack' && th.context) {
       const res = await fetch('/api/comms/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'slack', channel: t.context.replace(/^#/, ''), text }),
+        body: JSON.stringify({ source: 'slack', channel: th.context.replace(/^#/, ''), text }),
       }).catch(() => null);
       const body = res ? await res.json().catch(() => ({})) : {};
-      setStatus(body.detail ?? (res?.ok ? 'sent' : 'failed'));
+      setStatus(body.detail ?? (res?.ok ? t('sent') : t('failed')));
       if (res?.ok) setDraft('');
       return;
     }
-    if (t.source === 'email') {
-      if (!t.replyTo) return setStatus('no reply address on this message');
+    if (th.source === 'email') {
+      if (!th.replyTo) return setStatus(t('no reply address on this message'));
       const res = await fetch('/api/comms/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'email', account: t.account, to: t.replyTo, subject: `Re: ${t.preview}`, text }),
+        body: JSON.stringify({ source: 'email', account: th.account, to: th.replyTo, subject: `Re: ${th.preview}`, text }),
       }).catch(() => null);
       const body = res ? await res.json().catch(() => ({})) : {};
       if (res?.ok && body.ok) {
-        setStatus('sent');
+        setStatus(t('sent'));
         setDraft('');
         return;
       }
-      window.location.href = `mailto:${t.replyTo}?subject=${encodeURIComponent(`Re: ${t.preview}`)}&body=${encodeURIComponent(text)}`;
-      setStatus(body.error ? 'SMTP unavailable, opened a draft in Mail' : 'opened a draft in Mail');
+      window.location.href = `mailto:${th.replyTo}?subject=${encodeURIComponent(`Re: ${th.preview}`)}&body=${encodeURIComponent(text)}`;
+      setStatus(body.error ? t('SMTP unavailable, opened a draft in Mail') : t('opened a draft in Mail'));
       return;
     }
-    if (t.source === 'whatsapp') {
+    if (th.source === 'whatsapp') {
       const res = await fetch('/api/comms/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'whatsapp', jid: t.jid, text }),
+        body: JSON.stringify({ source: 'whatsapp', jid: th.jid, text }),
       }).catch(() => null);
       const body = res ? await res.json().catch(() => ({})) : {};
       if (res?.ok && body.ok) {
-        setStatus('sent');
+        setStatus(t('sent'));
         setDraft('');
         return;
       }
-      setStatus(body.error ? String(body.error) : 'could not send');
+      setStatus(body.error ? String(body.error) : t('could not send'));
       return;
     }
   }
@@ -152,111 +153,111 @@ export const InboxReader = forwardRef<
   // an unconfigured install is pointed at setup rather than told to go and
   // paste the message into WhatsApp itself.
   const waBlock =
-    t.source !== 'whatsapp'
+    th.source !== 'whatsapp'
       ? null
       : !whatsappSendReady
         ? {
-            title: 'Sending is not set up yet',
-            body: 'This console reads WhatsApp from the desktop app on this Mac, which cannot send. Connect a WhatsApp Business number to reply from here.',
+            title: t('Sending is not set up yet'),
+            body: t('This console reads WhatsApp from the desktop app on this Mac, which cannot send. Connect a WhatsApp Business number to reply from here.'),
           }
-        : !whatsappNumber(t.jid)
+        : !whatsappNumber(th.jid)
           ? {
-              title: 'This chat cannot be replied to from here',
-              body: 'The Business API can only message a phone number. This is a group or a linked id, so it has none.',
+              title: t('This chat cannot be replied to from here'),
+              body: t('The Business API can only message a phone number. This is a group or a linked id, so it has none.'),
             }
           : null;
-  const canReply = t.source !== 'calendar' && !waBlock;
+  const canReply = th.source !== 'calendar' && !waBlock;
 
   return (
     <section className="ib-col ib-reader">
       <header className="ib-reader-h">
-        <Avatar name={t.sender} source={t.source} size={40} src={t.avatarUrl} />
+        <Avatar name={th.sender} source={th.source} size={40} src={th.avatarUrl} />
         <div className="ib-reader-who">
           <div className="ib-reader-name">
-            {t.sender}
-            <SourcePill source={t.source} />
-            <TriagePill triage={done ? 'done' : t.triage} />
+            {th.sender}
+            <SourcePill source={th.source} />
+            <TriagePill triage={done ? 'done' : th.triage} />
           </div>
           <div className="ib-reader-sub">
-            {t.context}
-            {t.replyTo && (
+            {th.context}
+            {th.replyTo && (
               <>
                 {' · '}
-                <Mono>{t.replyTo}</Mono>
+                <Mono>{th.replyTo}</Mono>
               </>
             )}
-            {t.account && (
+            {th.account && (
               <>
-                {' · via '}
-                <Mono>{t.account}</Mono>
+                {t(' · via ')}
+                <Mono>{th.account}</Mono>
               </>
             )}
           </div>
         </div>
         <div className="ib-reader-actions">
           {canReply && (
-            <button className="ib-btn" onClick={onSnooze} title="Hide for 24 hours (saved on this browser)">
-              <Clock strokeWidth={1.8} /> Snooze
+            <button className="ib-btn" onClick={onSnooze} title={t('Hide for 24 hours (saved on this browser)')}>
+              <Clock strokeWidth={1.8} /> {t('Snooze')}
             </button>
           )}
-          <button className={`ib-btn ${done ? 'is-on' : ''}`} onClick={onDone} title="Mark done (e)">
-            <Archive strokeWidth={1.8} /> {done ? 'Done' : 'Mark done'}
+          <button className={`ib-btn ${done ? 'is-on' : ''}`} onClick={onDone} title={t('Mark done (e)')}>
+            <Archive strokeWidth={1.8} /> {done ? t('Done') : t('Mark done')}
           </button>
-          {t.event?.joinUrl && (
-            <a className="ib-btn ib-btn-dark" href={t.event.joinUrl} target="_blank" rel="noreferrer">
-              <Video strokeWidth={1.8} /> Join
+          {th.event?.joinUrl && (
+            <a className="ib-btn ib-btn-dark" href={th.event.joinUrl} target="_blank" rel="noreferrer">
+              <Video strokeWidth={1.8} /> {t('Join')}
             </a>
           )}
         </div>
       </header>
 
       <div className="ib-reader-body">
-        {t.source === 'calendar' && t.event ? (
+        {th.source === 'calendar' && th.event ? (
           <div className="ib-event">
             <div className="ib-event-row">
-              <Mono className="ib-label">When</Mono>
+              <Mono className="ib-label">{t('When')}</Mono>
               <span>
-                {new Date(t.ts).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                {new Date(th.ts).toLocaleDateString(localeTag(), { weekday: 'long', month: 'short', day: 'numeric' })}
                 {' · '}
                 <Mono>
-                  {t.event.allDay ? 'All day' : `${clock(t.ts)}${t.event.end ? ` – ${clock(t.event.end)}` : ''}`}
+                  {th.event.allDay ? t('All day') : `${clock(th.ts)}${th.event.end ? ` – ${clock(th.event.end)}` : ''}`}
                 </Mono>
               </span>
             </div>
             <div className="ib-event-row">
-              <Mono className="ib-label">Calendar</Mono>
+              <Mono className="ib-label">{t('Calendar')}</Mono>
               <span>
-                <span className="ib-cal-swatch" style={{ background: t.event.color }} />
-                {t.context}
+                <span className="ib-cal-swatch" style={{ background: th.event.color }} />
+                {th.context}
               </span>
             </div>
-            {t.event.location && (
+            {th.event.location && (
               <div className="ib-event-row">
-                <Mono className="ib-label">Where</Mono>
+                <Mono className="ib-label">{t('Where')}</Mono>
                 <span>
                   <MapPin strokeWidth={1.8} className="ib-inline-ic" />
-                  {t.event.location}
+                  {th.event.location}
                 </span>
               </div>
             )}
-            {t.event.joinUrl && (
+            {th.event.joinUrl && (
               <div className="ib-event-row">
-                <Mono className="ib-label">Link</Mono>
-                <a href={t.event.joinUrl} target="_blank" rel="noreferrer" className="ib-link">
-                  {t.event.joinUrl} <ExternalLink strokeWidth={1.8} className="ib-inline-ic" />
+                <Mono className="ib-label">{t('Link')}</Mono>
+                <a href={th.event.joinUrl} target="_blank" rel="noreferrer" className="ib-link">
+                  {th.event.joinUrl} <ExternalLink strokeWidth={1.8} className="ib-inline-ic" />
                 </a>
               </div>
             )}
           </div>
         ) : (
           <div className="ib-thread">
-            {historyLoading && <p className="ib-thread-note">Loading this conversation…</p>}
+            {historyLoading && <p className="ib-thread-note">{t('Loading this conversation…')}</p>}
             {shown.map((m, i) => (
               <div key={i} className={`ib-msg ${m.from === 'me' ? 'is-me' : ''}`}>
-                {m.from === 'them' && <Avatar name={t.sender} source={t.source} size={28} src={t.avatarUrl} />}
+                {m.from === 'them' && <Avatar name={th.sender} source={th.source} size={28} src={th.avatarUrl} />}
                 <div className="ib-msg-body">
                   <Mono className="ib-msg-meta">
-                    {m.from === 'me' ? 'You' : m.author || t.sender} · {clock(m.ts)} · {relativeTime(m.ts, now)}
+                    {m.from === 'me' ? t('You') : m.author || th.sender} · {clock(m.ts)} · {relativeTime(m.ts, now)}
                   </Mono>
                   {m.media && <MediaBlock media={m.media} />}
                   {m.text && <div className="ib-bubble">{m.text}</div>}
@@ -273,7 +274,7 @@ export const InboxReader = forwardRef<
             <p className="ib-setup-title">{waBlock.title}</p>
             <p className="ib-setup-body">{waBlock.body}</p>
           </div>
-          <SetupLink href={setupHrefFor('whatsapp')} label="Set up WhatsApp" />
+          <SetupLink href={setupHrefFor('whatsapp')} label={t('Set up WhatsApp')} />
         </footer>
       )}
 
@@ -298,7 +299,7 @@ export const InboxReader = forwardRef<
               ref={inputRef}
               rows={1}
               value={draft}
-              placeholder={`Reply to ${t.sender} on ${sourceLabel(t.source)}`}
+              placeholder={t('Reply to {name} on {source}', { name: th.sender, source: sourceLabel(th.source) })}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -307,12 +308,12 @@ export const InboxReader = forwardRef<
                 }
               }}
             />
-            <button className="ib-send" onClick={() => void send()} title="Send (⌘↵)" aria-label="Send">
+            <button className="ib-send" onClick={() => void send()} title={t('Send (⌘↵)')} aria-label={t('Send')}>
               <ArrowRight strokeWidth={2} />
             </button>
           </div>
           <div className="ib-reply-foot">
-            <Mono>⌘↵ to send</Mono>
+            <Mono>{t('⌘↵ to send')}</Mono>
             {status && <Mono className="ib-status">{status}</Mono>}
           </div>
         </footer>

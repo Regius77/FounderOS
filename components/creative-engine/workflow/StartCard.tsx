@@ -1,10 +1,11 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { CircleDollarSign, SquarePlus } from 'lucide-react';
 import { OBtn } from '@/components/creative-engine/skin';
 import { NODE_SPECS, type TemplateSummary } from '@/lib/creative-engine/workflow';
 import type { NodeType } from '@/lib/creative-engine/schemas';
-import { plural } from '@/lib/creative-engine/format';
+import { fmtCredits } from '@/lib/creative-engine/format';
 import { NODE_ICON } from '@/components/creative-engine/workflow/icons';
 
 /**
@@ -40,31 +41,31 @@ function MiniDiagram({ preview }: { preview?: TemplateSummary['preview'] }) {
 export function StartCard({ templates, approvedScript, busy, onPick, onScripter }: { templates: TemplateSummary[]; approvedScript: boolean; busy: boolean; onPick: (templateId?: string) => void; /** opens the Scripter, for a template that needs an approved script (edge case 12) */ onScripter?: () => void }) {
   const recommended = approvedScript ? 'script-ugc' : 'prompt-video-edit';
   return (
-    <div className="ae-o-wf-start" role="region" aria-label="Start a workflow">
-      <div className="hd"><b>Start a workflow</b><span>Pick a starting graph. Every node and link can be changed after.</span></div>
+    <div className="ae-o-wf-start" role="region" aria-label={t('Start a workflow')}>
+      <div className="hd"><b>{t('Start a workflow')}</b><span>{t('Pick a starting graph. Every node and link can be changed after.')}</span></div>
       <div className="tiles">
-        {templates.map((t) => {
+        {templates.map((tpl) => {
           const inner = (<>
-            <MiniDiagram preview={t.preview} />
-            <span className="nm">{t.name}{t.id === recommended && <em>Start here</em>}</span>
-            <span className="ht">{t.needsScript ? 'Needs an approved script' : t.hint}</span>
-            <span className="paid"><CircleDollarSign className="h-3 w-3" strokeWidth={2} />{t.paidRequests ? `${plural(t.paidRequests, 'paid request')} per run` : t.id === 'beats' ? 'One paid request per beat' : 'No paid requests'}</span>
+            <MiniDiagram preview={tpl.preview} />
+            <span className="nm">{t(tpl.name)}{tpl.id === recommended && <em>{t('Start here')}</em>}</span>
+            <span className="ht">{tpl.needsScript ? t('Needs an approved script') : t(tpl.hint)}</span>
+            <span className="paid"><CircleDollarSign className="h-3 w-3" strokeWidth={2} />{tpl.paidRequests ? (tpl.paidRequests === 1 ? t('{n} paid request per run', { n: fmtCredits(tpl.paidRequests) }) : t('{n} paid requests per run', { n: fmtCredits(tpl.paidRequests) })) : tpl.id === 'beats' ? t('One paid request per beat') : t('No paid requests')}</span>
           </>);
           // a template that needs an approved script can't be created yet: the tile says so and links to the Scripter
-          if (t.needsScript) return (
-            <div key={t.id} className="tile" data-off title="Needs an approved script: approve one in the Scripter first">
+          if (tpl.needsScript) return (
+            <div key={tpl.id} className="tile" data-off title={t('Needs an approved script: approve one in the Scripter first')}>
               {inner}
-              {onScripter && <OBtn kind="pill" cls="ae-o-pill go"  onClick={onScripter}>Open the Scripter</OBtn>}
+              {onScripter && <OBtn kind="pill" cls="ae-o-pill go"  onClick={onScripter}>{t('Open the Scripter')}</OBtn>}
             </div>
           );
           return (
-            <OBtn kind="row" cls="tile" keep="tile" key={t.id}  disabled={busy} data-start={t.id === recommended || undefined} onClick={() => onPick(t.id)} title={`Create "${t.name}"`}>{inner}</OBtn>
+            <OBtn kind="row" cls="tile" keep="tile" key={tpl.id}  disabled={busy} data-start={tpl.id === recommended || undefined} onClick={() => onPick(tpl.id)} title={t('Create "{name}"', { name: t(tpl.name) })}>{inner}</OBtn>
           );
         })}
-        <OBtn kind="row" cls="tile blank" keep="tile blank"  disabled={busy} onClick={() => onPick(undefined)} title="An empty canvas">
+        <OBtn kind="row" cls="tile blank" keep="tile blank"  disabled={busy} onClick={() => onPick(undefined)} title={t('An empty canvas')}>
           <span className="plus"><SquarePlus className="h-6 w-6" strokeWidth={1.6} /></span>
-          <span className="nm">Blank canvas</span>
-          <span className="ht">Place nodes yourself</span>
+          <span className="nm">{t('Blank canvas')}</span>
+          <span className="ht">{t('Place nodes yourself')}</span>
         </OBtn>
       </div>
     </div>
@@ -73,14 +74,14 @@ export function StartCard({ templates, approvedScript, busy, onPick, onScripter 
 
 const QUICK: NodeType[] = ['text', 'script', 'video'];
 
-export function EmptyCanvas({ onAdd }: { onAdd: (t: NodeType) => void }) {
+export function EmptyCanvas({ onAdd }: { onAdd: (type: NodeType) => void }) {
   return (
     <div className="ae-o-wf-empty" data-chips>
       <div>
-        <div><b>Double-click</b> anywhere, or press <b>Add node</b>, to place your first node.</div>
+        <div><b>{t('Double-click')}</b>{t(' anywhere, or press ')}<b>{t('Add node')}</b>{t(', to place your first node.')}</div>
         <div className="chips">
-          {QUICK.map((t) => (
-            <OBtn kind="pill" cls="ae-o-pill ae-o-wf-empty-act" key={t}  onClick={() => onAdd(t)}><span className="ae-o-node-icon" style={{ width: 18, height: 18 }}>{NODE_ICON[t]}</span>{t === 'script' ? 'Approved script' : NODE_SPECS[t].label}</OBtn>
+          {QUICK.map((ty) => (
+            <OBtn kind="pill" cls="ae-o-pill ae-o-wf-empty-act" key={ty}  onClick={() => onAdd(ty)}><span className="ae-o-node-icon" style={{ width: 18, height: 18 }}>{NODE_ICON[ty]}</span>{ty === 'script' ? t('Approved script') : t(NODE_SPECS[ty].label)}</OBtn>
           ))}
         </div>
       </div>

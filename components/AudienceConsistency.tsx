@@ -12,10 +12,11 @@ import {
 } from '@/lib/posting-activity';
 import { channelColor } from '@/lib/series';
 import { channelsNetChange, rangeWindow } from '@/lib/social-range';
+import { localeTag, t } from '@/lib/i18n';
 
 type Range = 7 | 30 | 60 | 'all';
 const RANGES: Range[] = [7, 30, 60, 'all'];
-const RANGE_LABEL: Record<string, string> = { '7': '7d', '30': '30d', '60': '60d', all: 'All' };
+const RANGE_LABEL: Record<string, string> = { '7': t('7d'), '30': t('30d'), '60': t('60d'), all: t('All') };
 
 type AudPoint = { date: string; value: number };
 
@@ -35,7 +36,7 @@ const colorFor = (p: string): string => channelColor(p);
 const labelFor = (p: string): string => LABELS[p] ?? p.charAt(0).toUpperCase() + p.slice(1);
 
 function fmtDay(d: string): string {
-  return new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return new Date(`${d}T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 function RangeChips({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
@@ -164,15 +165,15 @@ function ChartPair({
 
       <div className="mt-1.5 flex justify-between font-mono text-[11px] text-os-dim">
         <span>{axis[0] ? fmtDay(axis[0]) : ''}</span>
-        <span>today</span>
+        <span>{t('today')}</span>
       </div>
 
       <div className="my-3.5 h-px bg-os-border" />
 
       <div className="mb-2 flex items-center justify-between gap-4">
-        <span className="text-[13px] font-medium text-os-muted">Posting consistency</span>
+        <span className="text-[13px] font-medium text-os-muted">{t('Posting consistency')}</span>
         <span className="text-[12.5px] text-os-muted tabular-nums">
-          {days.reduce((s, d) => s + d.total, 0)} posts · {platforms.length} platforms
+          {t('{posts} posts · {platforms} platforms', { posts: days.reduce((s, d) => s + d.total, 0), platforms: platforms.length })}
         </span>
       </div>
 
@@ -204,7 +205,7 @@ function ChartPair({
 
       <div className="mt-1.5 flex justify-between font-mono text-[11px] text-os-dim">
         <span>{axis[0] ? fmtDay(axis[0]) : ''}</span>
-        <span>today</span>
+        <span>{t('today')}</span>
       </div>
 
       {/* shared hover surface (spans both charts) + floating tooltip */}
@@ -218,14 +219,14 @@ function ChartPair({
             <div className="mb-1 flex items-center justify-between gap-4 font-mono text-[11.5px] text-os-dim">
               <span>{axis[hover] ? fmtDay(axis[hover]) : ''}</span>
               <span className="text-os-muted">
-                {audienceVals[hover] != null ? audienceVals[hover]!.toLocaleString('en-US') : '—'} aud
+                {audienceVals[hover] != null ? audienceVals[hover]!.toLocaleString(localeTag()) : '—'} {t('aud')}
               </span>
             </div>
             {carried[hover] && from[hover] && (
-              <div className="mb-1 text-[11.5px] text-os-dim">carried from {fmtDay(from[hover]!)}</div>
+              <div className="mb-1 text-[11.5px] text-os-dim">{t('carried from {day}', { day: fmtDay(from[hover]!) })}</div>
             )}
             {hoverEntries.length === 0 ? (
-              <div className="text-[11.5px] text-os-dim">No posts</div>
+              <div className="text-[11.5px] text-os-dim">{t('No posts')}</div>
             ) : (
               <div className="flex flex-col gap-0.5">
                 {hoverEntries.map((p) => (
@@ -246,9 +247,9 @@ function ChartPair({
 
 function PlatformLegend({ platforms, days }: { platforms: string[]; days: PostingActivityDay[] }) {
   const totals = useMemo(() => {
-    const t: Record<string, number> = {};
-    for (const d of days) for (const p of platforms) t[p] = (t[p] ?? 0) + (d.counts[p] ?? 0);
-    return t;
+    const sums: Record<string, number> = {};
+    for (const d of days) for (const p of platforms) sums[p] = (sums[p] ?? 0) + (d.counts[p] ?? 0);
+    return sums;
   }, [platforms, days]);
   if (platforms.length === 0) return null;
   return (
@@ -332,13 +333,13 @@ export function AudienceConsistency({
     net == null ? null : (
       <span className={`font-mono text-[12.5px] ${net >= 0 ? 'text-os-ok' : 'text-os-err'}`}>
         {net >= 0 ? '▲' : '▼'} {net >= 0 ? '+' : ''}
-        {net.toLocaleString('en-US')} net
+        {net.toLocaleString(localeTag())} {t('net')}
       </span>
     );
   const staleNote =
     stale && lastSynced ? (
       <p className="mt-2 text-[12px] text-os-dim" data-stale-note="">
-        Last synced {fmtDay(lastSynced)}. The dashed line carries that value forward.
+        {t('Last synced {day}. The dashed line carries that value forward.', { day: fmtDay(lastSynced) })}
       </p>
     ) : null;
 
@@ -349,14 +350,14 @@ export function AudienceConsistency({
       <div className={aside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[1.55fr_1fr]' : ''}>
         <div className="flex min-w-0 flex-col">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span className="text-[13px] font-medium text-os-muted">Combined audience</span>
+            <span className="text-[13px] font-medium text-os-muted">{t('Combined audience')}</span>
             <div className="flex flex-wrap items-center gap-3.5">
               {netLabel}
               <RangeChips value={range} onChange={setRange} />
               <button
                 onClick={() => setExpanded(true)}
-                aria-label="Expand to fullscreen"
-                title="Fullscreen"
+                aria-label={t('Expand to fullscreen')}
+                title={t('Fullscreen')}
                 className="flex h-[22px] w-[22px] items-center justify-center rounded-sm-t border border-os-border text-os-dim transition-colors hover:bg-os-surface2 hover:text-os-text"
               >
                 <Maximize2 className="h-3 w-3" />
@@ -397,14 +398,14 @@ export function AudienceConsistency({
           >
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-os-border px-5 py-3.5">
               <div>
-                <div className="text-[15px] font-medium">Combined audience &amp; posting consistency</div>
+                <div className="text-[15px] font-medium">{t('Combined audience & posting consistency')}</div>
                 <div className="mt-0.5 text-[12.5px] text-os-muted">Social</div>
               </div>
               <div className="flex items-center gap-4">
                 <RangeChips value={range} onChange={setRange} />
                 <button
                   onClick={() => setExpanded(false)}
-                  aria-label="Close"
+                  aria-label={t('Close')}
                   className="flex h-7 w-7 items-center justify-center rounded-sm-t border border-os-border text-os-dim transition-colors hover:bg-os-surface2 hover:text-os-text"
                 >
                   <X className="h-4 w-4" />
@@ -414,7 +415,7 @@ export function AudienceConsistency({
 
             <div className="flex-1 overflow-y-auto px-5 py-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[13px] font-medium text-os-muted">Combined audience</span>
+                <span className="text-[13px] font-medium text-os-muted">{t('Combined audience')}</span>
                 {netLabel}
               </div>
               <ChartPair

@@ -2,6 +2,7 @@
 
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import { dotColumns, meterWidth, stepGeometry, type Meter, type SeriesPoint } from './format';
+import { localeTag, t } from '@/lib/i18n';
 
 const INK = 'var(--l-text)';
 
@@ -21,7 +22,7 @@ export function VolumeMeter({ label, frac, display, hue = INK, delay = 0, compac
     <div data-l="VolumeMeter" className={compact ? 'l-meter is-compact' : 'l-meter'}>
       <div className="l-meter-row">
         <span className="l-meter-label">{label}</span>
-        {w === null ? <span className="l-meter-value is-unknown">unknown</span> : <span className="l-meter-value">{display}</span>}
+        {w === null ? <span className="l-meter-value is-unknown">{t('unknown')}</span> : <span className="l-meter-value">{display}</span>}
       </div>
       <div className="l-meter-track" data-unknown={w === null ? '' : undefined}>
         {w !== null && <div className="l-meter-fill" style={fill} />}
@@ -34,7 +35,7 @@ export function VolumeMeter({ label, frac, display, hue = INK, delay = 0, compac
 export function MeterStack({
   meters,
   foot,
-  empty = 'Nothing to measure yet.',
+  empty = t('Nothing to measure yet.'),
   baseDelay = 500,
   dense = false,
 }: {
@@ -65,7 +66,7 @@ export function MeterStack({
 export function StepLine({
   series,
   hue = INK,
-  empty = 'No activity in this window.',
+  empty = t('No activity in this window.'),
   unit = '',
   height = 150,
   format,
@@ -110,10 +111,10 @@ export function StepLine({
         style={{ left: `calc(24px + (100% - 48px) * ${(geo.peakIdx + 0.5) / series.length})`, top: `${(geo.py / H) * 100}%` }}
       >
         <span className="l-peak-n" style={{ color: hue }}>
-          {format ? format(geo.peak.count) : geo.peak.count.toLocaleString('en-US')}
+          {format ? format(geo.peak.count) : geo.peak.count.toLocaleString(localeTag())}
           {unit}
         </span>{' '}
-        <span className="l-peak-on">on {geo.peak.label}</span>
+        <span className="l-peak-on">{t('on {label}', { label: geo.peak.label })}</span>
       </div>
       <div className="l-axis">
         <span>{series[0].label}</span>

@@ -12,8 +12,12 @@ import { GErrorLine, GLegend, GLineChart, GList, GRow, GSheet, GSkeleton, GDelta
 import type { VizColor } from '@/components/g';
 import { dateAxis, forwardFill } from '@/lib/posting-activity';
 import { channelsNetChange, netChange, rangeWindow, type RangePoint, type SocialRange } from '@/lib/social-range';
-import { fmtDay, MAX_MARKS, rangePhrase } from '@/lib/social-view';
+import { fmtDay, MAX_MARKS } from '@/lib/social-view';
 import { formatFull } from '@/lib/format-number';
+import { t } from '@/lib/i18n';
+
+/** "over 30 days" / "all time" (lib/social-view rangePhrase, translated). */
+const rangePhrase = (r: SocialRange): string => (r === 'all' ? t('all time') : t('over {n} days', { n: r }));
 
 type Series = { key: string; label: string; series: number; points: RangePoint[] };
 
@@ -57,7 +61,7 @@ export function SeriesSheetG({ open, metric, range, today, onClose }: { open: bo
     return { axis, rows };
   }, [data, range, today]);
 
-  const title = metric === 'audience' ? 'Audience by channel' : 'Total DMs';
+  const title = metric === 'audience' ? t('Audience by channel') : t('Total DMs');
   const shown = model ? model.rows.filter((r) => !off.includes(r.key)) : [];
 
   return (
@@ -65,18 +69,18 @@ export function SeriesSheetG({ open, metric, range, today, onClose }: { open: bo
       open={open}
       onClose={onClose}
       title={title}
-      caption={`${rangePhrase(range)[0].toUpperCase()}${rangePhrase(range).slice(1)} · the page's range. ${metric === 'dms' ? 'DM totals are seeded until a DM source is wired.' : 'Email is the Beehiiv subscriber count.'}`}
+      caption={`${rangePhrase(range)[0].toUpperCase()}${rangePhrase(range).slice(1)} · ${t("the page's range.")} ${metric === 'dms' ? t('DM totals are seeded until a DM source is wired.') : t('Email is the Beehiiv subscriber count.')}`}
       width={880}
     >
       {failed ? (
-        <GErrorLine>Could not load the history.</GErrorLine>
+        <GErrorLine>{t('Could not load the history.')}</GErrorLine>
       ) : !model ? (
-        data === null ? <GSkeleton height={240} shape="well" /> : <GErrorLine>No history yet.</GErrorLine>
+        data === null ? <GSkeleton height={240} shape="well" /> : <GErrorLine>{t('No history yet.')}</GErrorLine>
       ) : (
         <div className="soc-g-sheet">
           {model.rows.length > 1 && (
             <GLegend
-              label="Show or hide a series"
+              label={t('Show or hide a series')}
               items={model.rows.map((r) => ({ id: r.key, label: r.label, color: slot(r.series), on: !off.includes(r.key) }))}
               onToggle={(id) => setOff((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]))}
             />
@@ -88,9 +92,9 @@ export function SeriesSheetG({ open, metric, range, today, onClose }: { open: bo
             formatValue={formatFull}
             label={`${title} ${rangePhrase(range)}`}
             state={shown.length === 0 ? 'empty' : undefined}
-            emptyText="Select a series to plot."
+            emptyText={t('Select a series to plot.')}
           />
-          <GList divided label={`${title} latest values`}>
+          <GList divided label={t('{title} latest values', { title })}>
             {shown.map((r) => (
               <GRow
                 key={r.key}

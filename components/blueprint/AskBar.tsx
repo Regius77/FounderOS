@@ -5,6 +5,7 @@ import { forwardRef, useImperativeHandle, useRef, useState, type CSSProperties }
 import { Send, X } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import type { HAny, HKind } from '@/lib/blueprint/hierarchy';
+import { t } from '@/lib/i18n';
 
 export interface AskHandle {
   focus: () => void;
@@ -12,25 +13,25 @@ export interface AskHandle {
 }
 
 const SUGGEST: Partial<Record<HKind | '_general' | 'container' | 'group' | 'default', string[]>> = {
-  _general: ['What is not wired yet?', 'Which agents actually run, and on what?', 'Where does the OS depend on one thing?'],
-  agent: ['What does {n} do, and is it wired?', 'Which connectors and models does {n} depend on?', 'Why is {n} marked the way it is?'],
-  daemon: ['What breaks if {n} stops?', 'What does {n} read and write?', 'Who approves what {n} sends?'],
-  skill: ['Which agents load {n}?', 'What would improve {n}?'],
-  connector: ['Is {n} configured here?', 'Which agents use {n}?', 'What would it take to make {n} live?'],
-  model: ['What routes to {n}?', 'Is {n} the only path, or is there a fallback?'],
-  store: ['Who reads and writes {n}?', 'What page shows {n}?'],
-  department: ['Which agents in {n} actually run?', 'What is missing in {n}?'],
-  group: ['Summarise {n} in three lines.', 'What in {n} is not configured?'],
-  container: ['Summarise what runs on {n}.', 'What is the biggest risk on {n}?'],
-  machine: ['Summarise what runs on {n}.', 'What is the biggest risk on {n}?'],
-  operator: ['What do I touch directly, and what runs without me?', 'Where am I the single point of failure?'],
-  command: ['What runs on {n}?', 'What happens if {n} is missing?'],
-  app: ['Summarise the OS in three lines.', 'What in the OS is designed but not wired?'],
-  router: ['What does {n} decide?', 'What lands on each side of {n}?'],
-  surface: ['What does {n} read?', 'Which agents feed {n}?'],
-  person: ['What does {n} own?', 'Which agents work beside {n}?'],
-  cloud: ['What depends on {n}?', 'What happens if {n} is unavailable?'],
-  default: ['What is {n} and what is it connected to?', 'What is wrong with {n}?'],
+  _general: [t('What is not wired yet?'), t('Which agents actually run, and on what?'), t('Where does the OS depend on one thing?')],
+  agent: [t('What does {n} do, and is it wired?'), t('Which connectors and models does {n} depend on?'), t('Why is {n} marked the way it is?')],
+  daemon: [t('What breaks if {n} stops?'), t('What does {n} read and write?'), t('Who approves what {n} sends?')],
+  skill: [t('Which agents load {n}?'), t('What would improve {n}?')],
+  connector: [t('Is {n} configured here?'), t('Which agents use {n}?'), t('What would it take to make {n} live?')],
+  model: [t('What routes to {n}?'), t('Is {n} the only path, or is there a fallback?')],
+  store: [t('Who reads and writes {n}?'), t('What page shows {n}?')],
+  department: [t('Which agents in {n} actually run?'), t('What is missing in {n}?')],
+  group: [t('Summarise {n} in three lines.'), t('What in {n} is not configured?')],
+  container: [t('Summarise what runs on {n}.'), t('What is the biggest risk on {n}?')],
+  machine: [t('Summarise what runs on {n}.'), t('What is the biggest risk on {n}?')],
+  operator: [t('What do I touch directly, and what runs without me?'), t('Where am I the single point of failure?')],
+  command: [t('What runs on {n}?'), t('What happens if {n} is missing?')],
+  app: [t('Summarise the OS in three lines.'), t('What in the OS is designed but not wired?')],
+  router: [t('What does {n} decide?'), t('What lands on each side of {n}?')],
+  surface: [t('What does {n} read?'), t('Which agents feed {n}?')],
+  person: [t('What does {n} own?'), t('Which agents work beside {n}?')],
+  cloud: [t('What depends on {n}?'), t('What happens if {n} is unavailable?')],
+  default: [t('What is {n} and what is it connected to?'), t('What is wrong with {n}?')],
 };
 
 type Answer = { state: 'thinking'; text: string } | { state: 'ok'; text: string; model: string | null; scope: string } | { state: 'error'; text: string };
@@ -58,14 +59,14 @@ export const AskBar = forwardRef<AskHandle, { scope: HAny | null; onClearScope: 
     const q = (question ?? value).trim();
     if (q.length < 3 || busy) return;
     setBusy(true);
-    setAnswer({ state: 'thinking', text: scope ? `Looking at ${scope.name}, its members and its connections…` : 'Looking at the whole map…' });
+    setAnswer({ state: 'thinking', text: scope ? t('Looking at {name}, its members and its connections…', { name: scope.name }) : t('Looking at the whole map…') });
     try {
       const r = await fetch('/api/blueprint/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q, selected: scope?.id ?? null }) });
       const j = (await r.json()) as { ok: boolean; text?: string; model?: string | null; scope?: string; error?: string };
-      if (!j.ok) setAnswer({ state: 'error', text: j.error || 'No answer.' });
-      else setAnswer({ state: 'ok', text: j.text ?? '', model: j.model ?? null, scope: j.scope ?? (scope ? scope.name : 'whole system') });
+      if (!j.ok) setAnswer({ state: 'error', text: j.error || t('No answer.') });
+      else setAnswer({ state: 'ok', text: j.text ?? '', model: j.model ?? null, scope: j.scope ?? (scope ? scope.name : t('whole system')) });
     } catch (e) {
-      setAnswer({ state: 'error', text: `Could not reach the analyst: ${(e as Error).message}` });
+      setAnswer({ state: 'error', text: t('Could not reach the analyst: {message}', { message: (e as Error).message }) });
     }
     setBusy(false);
     setValue('');
@@ -77,17 +78,17 @@ export const AskBar = forwardRef<AskHandle, { scope: HAny | null; onClearScope: 
       <div className="bh-ask-glass" />
       <div className="bh-ask-inner">
         <div className="bh-ask-row">
-          <button type="button" className={gc('bh-ask-scope g-chip', 'bh-ask-scope')} title={scope ? 'Clear selection (esc)' : 'Ask about the whole system'} onClick={() => (scope ? onClearScope() : inputRef.current?.focus())}>
+          <button type="button" className={gc('bh-ask-scope g-chip', 'bh-ask-scope')} title={scope ? t('Clear selection (esc)') : t('Ask about the whole system')} onClick={() => (scope ? onClearScope() : inputRef.current?.focus())}>
             <i className="sw" />
-            <span>{scope ? `Ask about ${scope.name}` : `Ask ${BRAND.name}`}</span>
+            <span>{scope ? t('Ask about {name}', { name: scope.name }) : t('Ask {brand}', { brand: BRAND.name })}</span>
           </button>
           <input
             ref={inputRef}
             type="text"
             className={gc('g-input kg-bp-ask-input', '') || undefined}
-            aria-label="Ask about the system"
+            aria-label={t('Ask about the system')}
             value={value}
-            placeholder={scope ? `ask about ${scope.name}…` : 'ask anything about the system…'}
+            placeholder={scope ? t('ask about {name}…', { name: scope.name }) : t('ask anything about the system…')}
             autoComplete="off"
             spellCheck={false}
             onChange={(e) => setValue(e.target.value)}
@@ -96,7 +97,7 @@ export const AskBar = forwardRef<AskHandle, { scope: HAny | null; onClearScope: 
               if (e.key === 'Escape') inputRef.current?.blur();
             }}
           />
-          <button type="button" className={gc('bh-ask-send g-btn g-btn-icon g-btn-sm', 'bh-ask-send')} aria-label="Ask" onClick={() => void ask()}>
+          <button type="button" className={gc('bh-ask-send g-btn g-btn-icon g-btn-sm', 'bh-ask-send')} aria-label={t('Ask')} onClick={() => void ask()}>
             <Send />
           </button>
         </div>
@@ -113,11 +114,11 @@ export const AskBar = forwardRef<AskHandle, { scope: HAny | null; onClearScope: 
             {answer.state === 'ok' && (
               <div className="meta">
                 <span>
-                  scope: {answer.scope}
+                  {t('scope:')} {answer.scope}
                   {answer.model ? ` · ${answer.model}` : ''}
                 </span>
                 <button type="button" className={gc('g-btn g-btn-sm', '') || undefined} onClick={() => setAnswer(null)}>
-                  <X /> clear
+                  <X /> {t('clear')}
                 </button>
               </div>
             )}

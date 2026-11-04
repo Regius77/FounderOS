@@ -14,6 +14,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { bucketSeries, chartHeight, monthTicks, visibleTicks } from '@/lib/home-chart';
+import { t } from '@/lib/i18n';
 
 export type Home6Series = { key: string; label: string; color: string; points: number[] };
 /** `g`: the GladOS tree's skin (--g-* tokens only, glados-ui SPEC S01 FR-8); logic is shared. */
@@ -31,7 +32,7 @@ const PAD_T = 8;
 const PAD_B = 24;
 const FONT = 10.5;
 
-export function Home6Chart({ days, series, title = 'Activity chart', skin = 'classic' }: Home6ChartProps) {
+export function Home6Chart({ days, series, title = t('Activity chart'), skin = 'classic' }: Home6ChartProps) {
   const c = SKIN[skin];
   const wrapRef = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -135,7 +136,7 @@ export function Home6Chart({ days, series, title = 'Activity chart', skin = 'cla
           chart.series
             .filter((sr) => (sr.points[hover] ?? 0) > 0)
             .map((sr) => `${sr.points[hover]} ${sr.label}`)
-            .join(', ') || 'nothing'
+            .join(', ') || t('nothing')
         }`;
 
   return (
@@ -145,7 +146,7 @@ export function Home6Chart({ days, series, title = 'Activity chart', skin = 'cla
       className="relative outline-none"
       tabIndex={0}
       role="group"
-      aria-label={`${title}. Use left and right arrows to read ${chart.weekly ? 'weeks' : 'days'}.`}
+      aria-label={chart.weekly ? t('{title}. Use left and right arrows to read weeks.', { title }) : t('{title}. Use left and right arrows to read days.', { title })}
       onKeyDown={onKey}
       onBlur={() => setHover(null)}
     >
@@ -210,7 +211,7 @@ export function Home6Chart({ days, series, title = 'Activity chart', skin = 'cla
         <div ref={tipRef} className="hg-chart-tip" style={{ left: tip.left, top: 6 }}>
           <div className="hg-chart-tip-title">{chart.labels[hover]}</div>
           <div className="hg-chart-tip-lines">
-            {totals[hover] === 0 && <span className="hg-chart-tip-none">nothing</span>}
+            {totals[hover] === 0 && <span className="hg-chart-tip-none">{t('nothing')}</span>}
             {chart.series
               .filter((sr) => (sr.points[hover] ?? 0) > 0)
               .map((sr) => (
@@ -239,7 +240,7 @@ export function Home6Chart({ days, series, title = 'Activity chart', skin = 'cla
           <div className="flex flex-wrap gap-1.5">
             {totals[hover] === 0 && (
               <span className="text-[10.5px]" style={{ color: 'var(--text-3)' }}>
-                nothing
+                {t('nothing')}
               </span>
             )}
             {chart.series

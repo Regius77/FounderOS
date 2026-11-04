@@ -1,10 +1,11 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useDialog } from '@/components/ui/use-dialog';
 import { useEscapeLayer } from '@/components/creative-engine/workflow/hooks';
-import { fmtCredits, plural } from '@/lib/creative-engine/format';
+import { fmtCredits } from '@/lib/creative-engine/format';
 import { OBtn } from '@/components/creative-engine/skin';
 
 /**
@@ -78,7 +79,7 @@ export type BuilderSpendProps = BaseProps & {
 
 export type SpendGateProps = ConsoleSpendProps | BuilderSpendProps;
 
-const CHARGE_NOTE = 'Arcads charges at submit. A content-check rejection is not refunded.';
+const CHARGE_NOTE = t('Arcads charges at submit. A content-check rejection is not refunded.');
 
 export function SpendGate(props: SpendGateProps) {
   const { title, dry, balance, capAsk = null, busy = false, chargeNote = CHARGE_NOTE, onConfirm, onCancel } = props;
@@ -98,19 +99,19 @@ export function SpendGate(props: SpendGateProps) {
   const blocked = builder ? props.blocked ?? null : null;
   const error = builder ? null : props.error ?? null;
   const n = builder ? props.lines.length : 0;
-  const label = props.confirmLabel ?? (dry ? 'Run dry' : `Confirm${n > 1 ? ` ×${n}` : ''}`);
+  const label = props.confirmLabel ?? (dry ? t('Run dry') : `${t('Confirm')}${n > 1 ? ` ×${n}` : ''}`);
 
   const panel = (
     <div className="ae-o-gate" onClick={onCancel}>
       <div {...dlg.props} className={`ae-o-panel ae-o-spend ae-o-spendgate w-full ${builder ? 'max-w-[480px]' : 'max-w-[460px]'} p-6`} data-dry={dry} onClick={(e) => e.stopPropagation()}>
         <div id={titleId} className="flex items-center gap-2 text-[16px] font-medium">
-          {builder && dry ? `Dry run · ${title}` : title}
-          {!builder && dry && <span className="ae-o-pill" data-display-only="mode" title="Dry run: nothing is sent to Arcads and no credits are charged">Dry run</span>}
+          {builder && dry ? t('Dry run · {title}', { title }) : title}
+          {!builder && dry && <span className="ae-o-pill" data-display-only="mode" title={t('Dry run: nothing is sent to Arcads and no credits are charged')}>{t('Dry run')}</span>}
         </div>
         {builder && (<>
-          <div className="mt-3 text-[13px]">{props.heading ?? <><b>{plural(n, 'paid request')}</b> to Arcads</>}</div>
+          <div className="mt-3 text-[13px]">{props.heading ?? <><b>{(n === 1 ? t('{n} paid request', { n: fmtCredits(n) }) : t('{n} paid requests', { n: fmtCredits(n) }))}</b>{t(' to Arcads')}</>}</div>
           {n > 0 && (
-            <ul className="ae-o-spend-list" aria-label="Requests">
+            <ul className="ae-o-spend-list" aria-label={t('Requests')}>
               {props.lines.map((l) => (<li key={l.key}><span className="t">{l.label}</span>{l.detail && <span className="d">{l.detail}</span>}{l.note && <span className="nt">{l.note}</span>}</li>))}
             </ul>
           )}
@@ -120,12 +121,12 @@ export function SpendGate(props: SpendGateProps) {
           {!builder && props.items.map((it, i) => <li key={i}>{it}</li>)}
           {(!dry || !builder) && (
             <li>
-              Balance <span className="text-[var(--o-text)]">{dry ? 'dry run' : balance != null ? `${fmtCredits(balance)} credits` : 'not read yet'}</span>, session{' '}
-              <span data-cap={capState}>{fmtCredits(spent)} of {fmtCredits(cap)}</span>{builder ? '' : '. Prices are never predicted; the charge is read after delivery.'}
+              {t('Balance')} <span className="text-[var(--o-text)]">{dry ? t('dry run') : balance != null ? t('{n} credits', { n: fmtCredits(balance) }) : t('not read yet')}</span>{t(', session')}{' '}
+              <span data-cap={capState}>{t('{spent} of {cap}', { spent: fmtCredits(spent), cap: fmtCredits(cap) })}</span>{builder ? '' : t('. Prices are never predicted; the charge is read after delivery.')}
             </li>
           )}
           {dry
-            ? <li>No credits will be charged. {builder ? 'Paid nodes' : 'Requests'} resolve with placeholder outputs.</li>
+            ? <li>{builder ? t('No credits will be charged. Paid nodes resolve with placeholder outputs.') : t('No credits will be charged. Requests resolve with placeholder outputs.')}</li>
             : <li className="ae-o-spend-warn">{chargeNote}</li>}
         </ul>
         {block && (
@@ -138,10 +139,10 @@ export function SpendGate(props: SpendGateProps) {
         {error && !capAsk && <div className="ae-o-shake mt-3 text-[12.5px] text-[var(--o-red-text)]">{error}</div>}
         {blocked && <div className="ae-o-spend-blocked mt-3 text-[12.5px]" role="status">{blocked}</div>}
         <div className="mt-5 flex justify-end gap-3">
-          <OBtn kind="pill" cls="ae-o-pill" data-dialog-close data-cancel onClick={onCancel} >Cancel</OBtn>
+          <OBtn kind="pill" cls="ae-o-pill" data-dialog-close data-cancel onClick={onCancel} >{t('Cancel')}</OBtn>
           {!block && (
             <OBtn kind="primary" cls="ae-o-generate" onClick={() => onConfirm(!!capAsk)} disabled={busy || !!blocked}  data-busy={busy}>
-              <i /> {busy ? (builder ? 'Starting' : 'Sending') : capAsk ? 'Pass the cap once' : label}
+              <i /> {busy ? (builder ? t('Starting') : t('Sending')) : capAsk ? t('Pass the cap once') : label}
             </OBtn>
           )}
         </div>

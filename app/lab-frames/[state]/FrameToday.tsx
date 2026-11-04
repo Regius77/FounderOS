@@ -56,7 +56,7 @@ function Actions({ data }: { data: FrameToday }) {
   return (
     <div className="lab2-today-actions lab2-actions">
       {data.quickActions.map((a) => (
-        <span key={a.label} className={a.label === 'Run now' ? undefined : 'lab2-hide-phone'}>
+        <span key={a.label} className={a.icon === 'play' ? undefined : 'lab2-hide-phone'}>
           <ActionPill {...a} />
         </span>
       ))}

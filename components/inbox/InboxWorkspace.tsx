@@ -14,14 +14,15 @@ import { BRAND } from '@/lib/brand';
 import type { CommsExtras } from '@/lib/comms-extras';
 import { ClientLanesClassic, DigestPanelClassic, RecordingsClassic, WeekClassic } from '@/components/comms-fo/CommsFoClassic';
 import { DIGEST_READ_EVENT } from '@/components/comms-fo/hooks';
+import { t } from '@/lib/i18n';
 
 /** The view strip (F3 to F5): the thread columns, then the FounderOS lanes. */
 const VIEWS = [
-  { id: 'threads', label: 'Threads' },
-  { id: 'digest', label: 'Digest' },
-  { id: 'recordings', label: 'Recordings' },
-  { id: 'clients', label: 'Clients' },
-  { id: 'week', label: 'Week' },
+  { id: 'threads', label: t('Threads') },
+  { id: 'digest', label: t('Digest') },
+  { id: 'recordings', label: t('Recordings') },
+  { id: 'clients', label: t('Clients') },
+  { id: 'week', label: t('Week') },
 ] as const;
 type View = (typeof VIEWS)[number]['id'];
 
@@ -55,8 +56,8 @@ export function InboxWorkspace({
   const [view, setViewState] = useState<View>('threads');
   // `?tab=` mirrors the view (the GladOS tabs use the same param), so a link opens it.
   useEffect(() => {
-    const t = new URL(window.location.href).searchParams.get('tab');
-    if (VIEWS.some((v) => v.id === t)) setViewState(t as View);
+    const tab = new URL(window.location.href).searchParams.get('tab');
+    if (VIEWS.some((v) => v.id === tab)) setViewState(tab as View);
   }, []);
   const setView = (v: View) => {
     setViewState(v);
@@ -82,7 +83,7 @@ export function InboxWorkspace({
         <nav className="ib-crumb">
           <Mono>{BRAND.name.toLowerCase()}</Mono>
           <span className="ib-crumb-sep">/</span>
-          <span className="ib-crumb-here">inbox</span>
+          <span className="ib-crumb-here">{t('inbox')}</span>
           {current && (
             <>
               <span className="ib-crumb-sep">/</span>
@@ -90,9 +91,9 @@ export function InboxWorkspace({
             </>
           )}
         </nav>
-        <div className="ib-seg" role="tablist" aria-label="Source">
+        <div className="ib-seg" role="tablist" aria-label={t('Source')}>
           <button role="tab" aria-selected={source === 'all'} className={`ib-seg-btn ${source === 'all' ? 'is-on' : ''}`} onClick={() => setSource('all')}>
-            All <Mono className="ib-seg-n">{effective.length}</Mono>
+            {t('All')} <Mono className="ib-seg-n">{effective.length}</Mono>
           </button>
           {SOURCES.map((s) => {
             const Icon = SOURCE_ICON[s.id];
@@ -102,14 +103,14 @@ export function InboxWorkspace({
                 <span className="ib-src-ic" data-source={s.id}>
                   <Icon strokeWidth={1.8} />
                 </span>
-                {s.label}
+                {t(s.label)}
               </button>
             );
           })}
         </div>
         <label className="ib-search">
           <Search strokeWidth={1.8} />
-          <input ref={searchRef} value={query} placeholder="Search people, subjects, channels" onChange={(e) => setQuery(e.target.value)} />
+          <input ref={searchRef} value={query} placeholder={t('Search people, subjects, channels')} onChange={(e) => setQuery(e.target.value)} />
           <kbd>/</kbd>
         </label>
         <span className="ib-conn">
@@ -117,7 +118,7 @@ export function InboxWorkspace({
           <Mono>
             {connectedCount}/{SOURCES.length}
           </Mono>{' '}
-          connected
+          {t('connected')}
         </span>
       </header>
 
@@ -131,11 +132,11 @@ export function InboxWorkspace({
       />
 
       {extras && (
-        <nav className="ib-views" role="tablist" aria-label="Comms view">
+        <nav className="ib-views" role="tablist" aria-label={t('Comms view')}>
           {VIEWS.map((v) => (
             <button key={v.id} role="tab" aria-selected={view === v.id} className={`ib-seg-btn ${view === v.id ? 'is-on' : ''}`} onClick={() => setView(v.id)}>
               {v.label}
-              {v.id === 'digest' && digestUnread && <span className="ib-views-dot" aria-label="Unread" />}
+              {v.id === 'digest' && digestUnread && <span className="ib-views-dot" aria-label={t('Unread')} />}
             </button>
           ))}
         </nav>

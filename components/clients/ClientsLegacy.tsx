@@ -32,9 +32,11 @@ import { launchBlockedReason, writeBlockedReason, type ClientRosterRow, type Cli
 import type { ClientWorkStatus } from '@/lib/schemas';
 import { BRIEF_PLACEHOLDER, LAUNCH_DIALOG_BODY, LAUNCH_DIALOG_TITLE, useClients } from './use-clients';
 import type { ClientsSetup } from './ClientsG';
+import { localeTag, t } from '@/lib/i18n';
 
 const TONE: Record<ClientWorkStatus, BadgeTone> = { draft: 'default', queued: 'default', running: 'accent', done: 'ok', failed: 'err' };
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const nRequests = (n: number) => (n === 1 ? t('{n} request', { n }) : t('{n} requests', { n }));
+const nClients = (n: number) => (n === 1 ? t('{n} client', { n }) : t('{n} clients', { n }));
 const frac = (n: number, of: number) => (of > 0 ? n / of : 0);
 
 type Actions = ReturnType<typeof useClients>;
@@ -48,7 +50,7 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
   const [launchError, setLaunchError] = useState<string | null>(null);
 
   const readOnly = writeBlockedReason(view);
-  const newRequestBlocked = readOnly ?? (view.sample ? 'Sample data: add a client to write a real request' : view.roster.length === 0 ? 'Confirm or add a client first' : null);
+  const newRequestBlocked = readOnly ?? (view.sample ? t('Sample data: add a client to write a real request') : view.roster.length === 0 ? t('Confirm or add a client first') : null);
   const rows = useMemo(() => (view.selected ? view.work.filter((w) => w.clientId === view.selected) : view.work), [view.work, view.selected]);
   const selectedName = view.roster.find((r) => r.clientId === view.selected)?.name ?? null;
   const work = view.work.find((w) => w.id === openWork) ?? null;
@@ -68,9 +70,9 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
   };
 
   const meters: Meter[] = [
-    { label: `Done this month (${v.doneThisMonth}/${v.thisMonth})`, frac: frac(v.doneThisMonth, v.thisMonth), display: `${v.doneThisMonth} of ${v.thisMonth}`, hue: 'var(--l-ok)' },
-    { label: `Failed this month (${v.failedThisMonth}/${v.thisMonth})`, frac: frac(v.failedThisMonth, v.thisMonth), display: `${v.failedThisMonth} of ${v.thisMonth}`, hue: 'var(--l-err)' },
-    { label: `Open (${v.open}/${v.total})`, frac: frac(v.open, v.total), display: `${v.open} of ${v.total}` },
+    { label: `${t('Done this month')} (${v.doneThisMonth}/${v.thisMonth})`, frac: frac(v.doneThisMonth, v.thisMonth), display: t('{done} of {total}', { done: v.doneThisMonth, total: v.thisMonth }), hue: 'var(--l-ok)' },
+    { label: `${t('Failed this month')} (${v.failedThisMonth}/${v.thisMonth})`, frac: frac(v.failedThisMonth, v.thisMonth), display: t('{done} of {total}', { done: v.failedThisMonth, total: v.thisMonth }), hue: 'var(--l-err)' },
+    { label: `${t('Open')} (${v.open}/${v.total})`, frac: frac(v.open, v.total), display: t('{done} of {total}', { done: v.open, total: v.total }) },
   ];
 
   return (
@@ -78,65 +80,65 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
       <SlabTitle
         eyebrow={view.subtitle}
         title={view.title}
-        meta={`${plural(view.roster.length, 'confirmed client')} · ${plural(v.total, 'request')} on record · drafts never reach the client`}
+        meta={`${view.roster.length === 1 ? t('{n} confirmed client', { n: view.roster.length }) : t('{n} confirmed clients', { n: view.roster.length })} · ${t('{requests} on record', { requests: nRequests(v.total) })} · ${t('drafts never reach the client')}`}
         right={
           <>
             {view.sample && (
-              <span title={view.mode === 'filming' ? 'Filming mode fixture, three invented clients' : 'Preview on a blank install, three invented clients'}>
+              <span title={view.mode === 'filming' ? t('Filming mode fixture, three invented clients') : t('Preview on a blank install, three invented clients')}>
                 <LSampleChip />
               </span>
             )}
-            {view.roster.length > 0 && <Chip tone="ok">{view.roster.length} confirmed</Chip>}
-            <Chip tone={view.supersetState === 'connected' ? 'ok' : 'warn'}>{view.supersetState === 'connected' ? 'Superset ready' : 'Superset off'}</Chip>
+            {view.roster.length > 0 && <Chip tone="ok">{t('{n} confirmed', { n: view.roster.length })}</Chip>}
+            <Chip tone={view.supersetState === 'connected' ? 'ok' : 'warn'}>{view.supersetState === 'connected' ? t('Superset ready') : t('Superset off')}</Chip>
           </>
         }
       />
 
       <div className="l-stack">
         <div className="l-row l-row-hero">
-          <SlabCard title="Request Activity" sub="last 14 days" i={1}>
+          <SlabCard title={t('Request Activity')} sub={t('last 14 days')} i={1}>
             <div className="l-card-body pb-2">
-              <BigStat value={view.activity.total14} size={30} chips={[{ tone: 'accent', text: `${view.activity.finished.reduce((a, b) => a + b, 0)} finished` }]} caption="requests made, day by day" />
+              <BigStat value={view.activity.total14} size={30} chips={[{ tone: 'accent', text: t('{n} finished', { n: view.activity.finished.reduce((a, b) => a + b, 0) }) }]} caption={t('requests made, day by day')} />
             </div>
             <StepLine
               series={view.activity.labels.map((label, i) => ({ label, count: view.activity.created[i] }))}
-              unit=" requested"
-              empty={view.work.length === 0 ? 'Requests appear here as you save drafts.' : 'No requests in the last 14 days.'}
+              unit={t(' requested')}
+              empty={view.work.length === 0 ? t('Requests appear here as you save drafts.') : t('No requests in the last 14 days.')}
             />
           </SlabCard>
-          <SlabCard title="Request Volume" sub="this month" i={2} className="flex flex-col">
+          <SlabCard title={t('Request Volume')} sub={t('this month')} i={2} className="flex flex-col">
             <div className="l-card-body flex flex-1 flex-col">
-              <BigStat value={v.open} unit="open" chips={v.failedThisMonth ? [{ tone: 'err', text: `${v.failedThisMonth} failed` }] : []} caption={`${plural(v.thisMonth, 'request')} this month`} />
-              <MeterStack meters={meters} foot={`${v.total} on record · drafts first`} />
+              <BigStat value={v.open} unit={t('open')} chips={v.failedThisMonth ? [{ tone: 'err', text: t('{n} failed', { n: v.failedThisMonth }) }] : []} caption={v.thisMonth === 1 ? t('{n} request this month', { n: v.thisMonth }) : t('{n} requests this month', { n: v.thisMonth })} />
+              <MeterStack meters={meters} foot={`${t('{n} on record', { n: v.total })} · ${t('drafts first')}`} />
             </div>
           </SlabCard>
         </div>
 
         <div className="l-row l-row-three">
-          <SlabCard title="Request Rhythm" sub="by weekday, all time" i={3}>
+          <SlabCard title={t('Request Rhythm')} sub={t('by weekday, all time')} i={3}>
             <div className="l-card-body l-cl-rhythm">
               {view.work.length === 0 ? (
-                <p className="l-body-text">The weekday pattern shows once requests exist.</p>
+                <p className="l-body-text">{t('The weekday pattern shows once requests exist.')}</p>
               ) : (
                 <>
-                  <BigStat display={view.busiestDay ?? '-'} size={30} caption="busiest day" />
+                  <BigStat display={view.busiestDay ?? '-'} size={30} caption={t('busiest day')} />
                   <DotMatrix cols={view.rhythm.map((r) => ({ label: r.day, count: r.count }))} />
                 </>
               )}
             </div>
           </SlabCard>
           <SlabCard
-            title="Roster"
-            sub={view.roster.length ? plural(view.roster.length, 'client') : 'confirmed clients only'}
+            title={t('Roster')}
+            sub={view.roster.length ? nClients(view.roster.length) : t('confirmed clients only')}
             i={4}
             action={
               <Pressable onClick={() => setModal('confirm')} disabled={Boolean(readOnly)} title={readOnly ?? undefined}>
-                <UserPlus size={12} strokeWidth={1.7} aria-hidden /> {view.attioState === 'connected' ? 'Confirm' : 'Add'}
+                <UserPlus size={12} strokeWidth={1.7} aria-hidden /> {view.attioState === 'connected' ? t('Confirm') : t('Add')}
               </Pressable>
             }
           >
-            {view.attioState === 'not_configured' && <LUnconfigured what="Attio" href={setup.attio} hint="set ATTIO_API_KEY" />}
-            {view.attioState === 'error' && <p className="l-err-text l-pad-x pt-3">Attio did not answer. Confirmed clients still show.</p>}
+            {view.attioState === 'not_configured' && <LUnconfigured what="Attio" href={setup.attio} hint={t('set ATTIO_API_KEY')} />}
+            {view.attioState === 'error' && <p className="l-err-text l-pad-x pt-3">{t('Attio did not answer. Confirmed clients still show.')}</p>}
             {view.roster.length > 0 ? (
               <ul className="l-rows l-rows-ruled mt-3">
                 {view.roster.map((r) => (
@@ -146,22 +148,22 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
                         <span className="l-sym">{r.name}</span>
                         <span className="l-sub-line">{rosterMeta(r)}</span>
                       </span>
-                      <Badge tone={r.retainer ? 'accent' : 'default'}>{r.retainer ? 'Retainer' : 'Project'}</Badge>
+                      <Badge tone={r.retainer ? 'accent' : 'default'}>{r.retainer ? t('Retainer') : t('Project')}</Badge>
                     </Pressable>
                   </li>
                 ))}
               </ul>
             ) : (
-              <LEmpty>{view.attioState === 'connected' ? 'No confirmed clients. Confirm a client from your Attio deals.' : 'No clients yet. Add one by hand to start a request.'}</LEmpty>
+              <LEmpty>{view.attioState === 'connected' ? t('No confirmed clients. Confirm a client from your Attio deals.') : t('No clients yet. Add one by hand to start a request.')}</LEmpty>
             )}
           </SlabCard>
           <InsightCard
-            badge={view.busiestDay ? `Busiest day · ${view.busiestDay}` : 'Busiest day'}
+            badge={view.busiestDay ? `${t('Busiest day')} · ${view.busiestDay}` : t('Busiest day')}
             icon={<CalendarDays size={13} strokeWidth={1.7} aria-hidden />}
             value={view.work.length ? busiest : null}
             display={view.work.length ? undefined : '-'}
-            headline={view.work.length ? `${busiest === 1 ? 'request lands' : 'requests land'} on ${view.busiestDay} more than any other day.` : 'No requests yet.'}
-            body={view.work.length ? `${plural(v.open, 'request')} open now across ${plural(view.roster.length, 'client')}.` : 'Save a draft request for a confirmed client and the rhythm starts here.'}
+            headline={view.work.length ? (busiest === 1 ? t('request lands on {day} more than any other day.', { day: view.busiestDay ?? '' }) : t('requests land on {day} more than any other day.', { day: view.busiestDay ?? '' })) : t('No requests yet.')}
+            body={view.work.length ? t('{requests} open now across {clients}.', { requests: nRequests(v.open), clients: nClients(view.roster.length) }) : t('Save a draft request for a confirmed client and the rhythm starts here.')}
             frac={frac(busiest, v.total)}
             i={5}
           />
@@ -170,20 +172,20 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
         <NewRequest view={view} c={c} setup={setup} blocked={newRequestBlocked} onLaunch={(id) => setLaunchId(id)} />
 
         <SlabCard
-          title="Work requests"
-          sub={selectedName ? `${selectedName} only` : plural(view.work.length, 'request')}
+          title={t('Work requests')}
+          sub={selectedName ? t('{name} only', { name: selectedName }) : nRequests(view.work.length)}
           i={7}
           action={
             selectedName ? (
-              <Pressable onClick={() => c.selectClient(null)} title="Show every client's requests">
-                Clear filter
+              <Pressable onClick={() => c.selectClient(null)} title={t("Show every client's requests")}>
+                {t('Clear filter')}
               </Pressable>
             ) : undefined
           }
         >
           {launchError && !work && <p className="l-err-text l-pad-x pt-3">{launchError}</p>}
           {rows.length === 0 ? (
-            <LEmpty>{selectedName ? `No requests for ${selectedName} yet.` : 'No work requests yet.'} Write a brief for a confirmed client and save it as a draft.</LEmpty>
+            <LEmpty>{selectedName ? t('No requests for {name} yet.', { name: selectedName }) : t('No work requests yet.')} {t('Write a brief for a confirmed client and save it as a draft.')}</LEmpty>
           ) : (
             <ul className="l-rows l-rows-ruled mt-3">
               {rows.map((w) => (
@@ -224,9 +226,9 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
         width={440}
         footer={
           <>
-            <Pressable onClick={() => setLaunchId(null)}>Cancel</Pressable>
+            <Pressable onClick={() => setLaunchId(null)}>{t('Cancel')}</Pressable>
             <Pressable tone="primary" onClick={() => void doLaunch()} disabled={launchRow ? c.busy === `launch:${launchRow.id}` : false}>
-              Start draft
+              {t('Start draft')}
             </Pressable>
           </>
         }
@@ -243,7 +245,7 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
 }
 
 function rosterMeta(r: ClientRosterRow): string {
-  const parts = [r.company && r.company !== r.name ? r.company : null, r.slackChannel ? `#${r.slackChannel.replace(/^#/, '')}` : null, r.lastRequestAge ? `last request ${r.lastRequestAge} ago` : 'no requests yet'];
+  const parts = [r.company && r.company !== r.name ? r.company : null, r.slackChannel ? `#${r.slackChannel.replace(/^#/, '')}` : null, r.lastRequestAge ? t('last request {age} ago', { age: r.lastRequestAge }) : t('no requests yet')];
   return parts.filter(Boolean).join(' · ');
 }
 
@@ -265,14 +267,14 @@ function NewRequest({ view, c, setup, blocked, onLaunch }: { view: ClientsView; 
     if (thenLaunch && r.id) onLaunch(r.id);
   };
   return (
-    <SlabCard title="New request" sub="saved as a draft · nothing starts until you launch it · nothing is sent to the client" i={6}>
+    <SlabCard title={t('New request')} sub={t('saved as a draft · nothing starts until you launch it · nothing is sent to the client')} i={6}>
       <div className="l-card-body l-cl-new">
         <div className="l-cl-new-side">
           <label className="l-form-label" htmlFor="l-cl-client">
-            Client
+            {t('Client')}
           </label>
           <select id="l-cl-client" className="l-select" value={clientId} onChange={(e) => setClientId(e.target.value)} disabled={Boolean(blocked)} title={blocked ?? undefined}>
-            {view.roster.length === 0 && <option value="">No confirmed client</option>}
+            {view.roster.length === 0 && <option value="">{t('No confirmed client')}</option>}
             {view.roster.map((r) => (
               <option key={r.clientId} value={r.clientId}>
                 {r.name}
@@ -281,28 +283,28 @@ function NewRequest({ view, c, setup, blocked, onLaunch }: { view: ClientsView; 
           </select>
           {view.supersetState !== 'connected' && view.mode === 'live' && (
             <div className="mt-3">
-              <Chip tone="warn">Superset not configured</Chip>
-              <p className="l-caption">Drafts save without it.</p>
+              <Chip tone="warn">{t('Superset not configured')}</Chip>
+              <p className="l-caption">{t('Drafts save without it.')}</p>
               <Pressable href={setup.superset} title={view.supersetDetail}>
-                Set up <span aria-hidden>›</span>
+                {t('Set up')} <span aria-hidden>›</span>
               </Pressable>
             </div>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <label className="l-form-label" htmlFor="l-cl-brief">
-            Brief
+            {t('Brief')}
           </label>
           <textarea id="l-cl-brief" className="l-textarea" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder={BRIEF_PLACEHOLDER} disabled={Boolean(blocked)} title={blocked ?? undefined} />
           <div className="l-cl-new-actions">
             {blocked && <span className="l-caption mt-0">{blocked}</span>}
             {error && <span className="l-err-text">{error}</span>}
-            {saved && !error && <span className="l-caption mt-0">Draft saved.</span>}
-            <Pressable onClick={() => void save(false)} disabled={Boolean(blocked) || empty || !clientId || c.busy === 'draft'} title={blocked ?? (empty ? 'Write a brief first' : undefined)}>
-              <Plus size={12} strokeWidth={1.7} aria-hidden /> Save draft request
+            {saved && !error && <span className="l-caption mt-0">{t('Draft saved.')}</span>}
+            <Pressable onClick={() => void save(false)} disabled={Boolean(blocked) || empty || !clientId || c.busy === 'draft'} title={blocked ?? (empty ? t('Write a brief first') : undefined)}>
+              <Plus size={12} strokeWidth={1.7} aria-hidden /> {t('Save draft request')}
             </Pressable>
-            <Pressable tone="primary" onClick={() => void save(true)} disabled={Boolean(blocked) || empty || Boolean(launchBlocked)} title={blocked ?? (empty ? 'Write a brief first' : (launchBlocked ?? undefined))}>
-              Start draft in Superset
+            <Pressable tone="primary" onClick={() => void save(true)} disabled={Boolean(blocked) || empty || Boolean(launchBlocked)} title={blocked ?? (empty ? t('Write a brief first') : (launchBlocked ?? undefined))}>
+              {t('Start draft in Superset')}
             </Pressable>
           </div>
         </div>
@@ -322,19 +324,19 @@ function ConfirmDialog({ view, c, setup, onClose }: { view: ClientsView; c: Acti
     else setError(r.error);
   };
   return (
-    <LDialog title={view.attioState === 'connected' ? 'Confirm a client' : 'Add client'} sub="A payer is not a client until you confirm them here." onClose={onClose}>
+    <LDialog title={view.attioState === 'connected' ? t('Confirm a client') : t('Add client')} sub={t('A payer is not a client until you confirm them here.')} onClose={onClose}>
       {view.attioState === 'connected' && (
         <div className="mb-5">
-          <div className="l-form-label">Attio deals</div>
+          <div className="l-form-label">{t('Attio deals')}</div>
           {view.candidates.length === 0 ? (
-            <p className="l-body-text">Every Attio deal is already confirmed.</p>
+            <p className="l-body-text">{t('Every Attio deal is already confirmed.')}</p>
           ) : (
             <ul className="l-rows l-rows-ruled">
               {view.candidates.map((d) => (
                 <li key={d.clientId} className="l-cl-cand">
                   <span className="min-w-0">
                     <span className="l-sym">{d.name}</span>
-                    <span className="l-sub-line">{d.status || 'No stage'}</span>
+                    <span className="l-sub-line">{d.status || t('No stage')}</span>
                   </span>
                   <Pressable
                     disabled={c.busy === `confirm:${d.clientId}`}
@@ -343,7 +345,7 @@ function ConfirmDialog({ view, c, setup, onClose }: { view: ClientsView; c: Acti
                       if (!r.ok) setError(r.error);
                     }}
                   >
-                    Confirm
+                    {t('Confirm')}
                   </Pressable>
                 </li>
               ))}
@@ -351,13 +353,13 @@ function ConfirmDialog({ view, c, setup, onClose }: { view: ClientsView; c: Acti
           )}
         </div>
       )}
-      {view.attioState === 'not_configured' && <LUnconfigured what="Attio" href={setup.attio} hint="set ATTIO_API_KEY" />}
-      <div className="l-form-label">Add by hand</div>
-      <input className="l-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Client or contact name" aria-label="Name" maxLength={200} />
-      <input className="l-input mt-2" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company (optional)" aria-label="Company" maxLength={200} />
+      {view.attioState === 'not_configured' && <LUnconfigured what="Attio" href={setup.attio} hint={t('set ATTIO_API_KEY')} />}
+      <div className="l-form-label">{t('Add by hand')}</div>
+      <input className="l-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Client or contact name')} aria-label={t('Name')} maxLength={200} />
+      <input className="l-input mt-2" value={company} onChange={(e) => setCompany(e.target.value)} placeholder={t('Company (optional)')} aria-label={t('Company')} maxLength={200} />
       <div className="mt-3 flex justify-end">
         <Pressable tone="primary" onClick={() => void add()} disabled={!name.trim() || c.busy === 'add'}>
-          Add client
+          {t('Add client')}
         </Pressable>
       </div>
       {error && <p className="l-err-text mt-3">{error}</p>}
@@ -367,7 +369,7 @@ function ConfirmDialog({ view, c, setup, onClose }: { view: ClientsView; c: Acti
 
 function WorkDialog({ view, w, c, setup, error, onClose, onLaunch }: { view: ClientsView; w: ClientWorkRow; c: Actions; setup: ClientsSetup; error: string | null; onClose: () => void; onLaunch: () => void }) {
   const blocked = launchBlockedReason(view, w);
-  const local = writeBlockedReason(view) ?? (w.sample ? 'Sample data: nothing is saved' : null);
+  const local = writeBlockedReason(view) ?? (w.sample ? t('Sample data: nothing is saved') : null);
   return (
     <LDialog
       title={w.clientName}
@@ -376,13 +378,13 @@ function WorkDialog({ view, w, c, setup, error, onClose, onLaunch }: { view: Cli
       footer={
         <>
           <Pressable onClick={() => void c.setStatus(w.id, 'failed')} disabled={Boolean(local) || w.status === 'failed'} title={local ?? undefined}>
-            Mark failed
+            {t('Mark failed')}
           </Pressable>
           <Pressable onClick={() => void c.setStatus(w.id, 'done')} disabled={Boolean(local) || w.status === 'done'} title={local ?? undefined}>
-            Mark done
+            {t('Mark done')}
           </Pressable>
           <Pressable tone="primary" onClick={onLaunch} disabled={Boolean(blocked)} title={blocked ?? undefined}>
-            {w.status === 'failed' ? 'Retry in Superset' : 'Start draft in Superset'}
+            {w.status === 'failed' ? t('Retry in Superset') : t('Start draft in Superset')}
           </Pressable>
         </>
       }
@@ -390,18 +392,18 @@ function WorkDialog({ view, w, c, setup, error, onClose, onLaunch }: { view: Cli
       <p className="l-quote">{w.brief}</p>
       <dl className="l-kv mt-4">
         <div>
-          <dt>Requested</dt>
-          <dd>{new Date(w.createdAt).toLocaleString()}</dd>
+          <dt>{t('Requested')}</dt>
+          <dd>{new Date(w.createdAt).toLocaleString(localeTag())}</dd>
         </div>
         {w.finishedAt && (
           <div>
-            <dt>{w.status === 'failed' ? 'Failed' : 'Finished'}</dt>
-            <dd>{new Date(w.finishedAt).toLocaleString()}</dd>
+            <dt>{w.status === 'failed' ? t('Failed') : t('Finished')}</dt>
+            <dd>{new Date(w.finishedAt).toLocaleString(localeTag())}</dd>
           </div>
         )}
         {w.supersetWorkspace && (
           <div>
-            <dt>Superset workspace</dt>
+            <dt>{t('Superset workspace')}</dt>
             <dd>{w.supersetWorkspace}</dd>
           </div>
         )}
@@ -419,12 +421,12 @@ function ClientDialog({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
   const [project, setProject] = useState(r.supersetProject ?? '');
   const [arm, setArm] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const local = writeBlockedReason(view) ?? (view.sample ? 'Sample data: nothing is saved' : null);
+  const local = writeBlockedReason(view) ?? (view.sample ? t('Sample data: nothing is saved') : null);
   const dirty = retainer !== r.retainer || slack !== (r.slackChannel ?? '') || project !== (r.supersetProject ?? '');
   return (
     <LDialog
       title={r.name}
-      sub={`${r.source === 'attio' ? 'Attio deal' : 'Added by hand'} · confirmed ${new Date(r.confirmedAt).toLocaleDateString()}`}
+      sub={`${r.source === 'attio' ? t('Attio deal') : t('Added by hand')} · ${t('confirmed {date}', { date: new Date(r.confirmedAt).toLocaleDateString(localeTag()) })}`}
       onClose={onClose}
       footer={
         <>
@@ -437,11 +439,11 @@ function ClientDialog({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
                 else setError(res.error);
               }}
             >
-              Unconfirm {r.name}: they leave the roster
+              {t('Unconfirm {name}: they leave the roster', { name: r.name })}
             </Pressable>
           ) : (
             <Pressable onClick={() => setArm(true)} disabled={Boolean(local)} title={local ?? undefined}>
-              Unconfirm
+              {t('Unconfirm')}
             </Pressable>
           )}
           <Pressable
@@ -454,7 +456,7 @@ function ClientDialog({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
               if (!res.ok) setError(res.error);
             }}
           >
-            Save
+            {t('Save')}
           </Pressable>
         </>
       }
@@ -465,24 +467,24 @@ function ClientDialog({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
           onClose();
         }}
       >
-        Show this client&apos;s requests
+        {t("Show this client's requests")}
       </Pressable>
       <label className="l-cl-check">
-        <input type="checkbox" checked={retainer} onChange={(e) => setRetainer(e.target.checked)} disabled={Boolean(local)} /> On retainer
+        <input type="checkbox" checked={retainer} onChange={(e) => setRetainer(e.target.checked)} disabled={Boolean(local)} /> {t('On retainer')}
       </label>
       <label className="l-form-label" htmlFor="l-cl-slack">
-        Slack channel
+        {t('Slack channel')}
       </label>
-      <input id="l-cl-slack" className="l-input" value={slack} onChange={(e) => setSlack(e.target.value)} placeholder="client-name or C0123ABCD" disabled={Boolean(local)} />
+      <input id="l-cl-slack" className="l-input" value={slack} onChange={(e) => setSlack(e.target.value)} placeholder={t('client-name or C0123ABCD')} disabled={Boolean(local)} />
       {r.slackHref && (
         <a className="l-link mt-1 inline-block" href={r.slackHref} target="_blank" rel="noreferrer">
-          Open Slack channel
+          {t('Open Slack channel')}
         </a>
       )}
       <label className="l-form-label" htmlFor="l-cl-project">
-        Superset project
+        {t('Superset project')}
       </label>
-      <input id="l-cl-project" className="l-input" value={project} onChange={(e) => setProject(e.target.value)} placeholder="Project id (empty uses SUPERSET_PROJECT_ID)" disabled={Boolean(local)} />
+      <input id="l-cl-project" className="l-input" value={project} onChange={(e) => setProject(e.target.value)} placeholder={t('Project id (empty uses SUPERSET_PROJECT_ID)')} disabled={Boolean(local)} />
       {error && <p className="l-err-text mt-3">{error}</p>}
     </LDialog>
   );

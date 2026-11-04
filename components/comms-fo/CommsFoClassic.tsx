@@ -26,14 +26,15 @@ import {
   type WeekData,
 } from '@/lib/comms-extras';
 import { dayLabel, hhmm, slackIso, useDigestReads, useRecordings } from './hooks';
+import { t } from '@/lib/i18n';
 
-const TIER_LABEL: Record<string, string> = { call: 'Call booked', client: 'Client', people: 'Person', branddeal: 'Brand deal', group: 'Group', noise: 'Automated' };
+const TIER_LABEL: Record<string, string> = { call: t('Call booked'), client: t('Client'), people: t('Person'), branddeal: t('Brand deal'), group: t('Group'), noise: t('Automated') };
 const CARD = 'rounded-lg-t border border-os-border bg-os-surface';
 
 function SampleChip({ fixture }: { fixture: string }) {
   return (
-    <span data-sample-badge={fixture} title={`Sample data (${fixture})`} className="c-chip whitespace-nowrap">
-      Sample
+    <span data-sample-badge={fixture} title={t('Sample data ({fixture})', { fixture })} className="c-chip whitespace-nowrap">
+      {t('Sample')}
     </span>
   );
 }
@@ -66,49 +67,49 @@ export function DigestPanelClassic({ data }: { data: DigestPanelData }) {
   const waiting = lanes.reduce((n, l) => n + l.needsReply, 0);
   const sub =
     data.state === 'ready' && data.digest
-      ? `Built ${dayLabel(data.digest.createdAt)}, ${hhmm(data.digest.createdAt)} · ${waiting} need a reply`
+      ? t('Built {day}, {time} · {waiting} need a reply', { day: dayLabel(data.digest.createdAt), time: hhmm(data.digest.createdAt), waiting })
       : data.state === 'pending'
-        ? DIGEST_COPY.pending
-        : DIGEST_COPY.off;
+        ? t(DIGEST_COPY.pending)
+        : t(DIGEST_COPY.off);
 
   return (
     <Panel
-      title="Morning digest"
+      title={t('Morning digest')}
       sub={sub}
       right={
         <>
           {data.sample && <SampleChip fixture="lib/fo-sample.ts sampleDigestBody" />}
-          {data.state === 'off' && <SetupLink href="/setup" hint={DIGEST_COPY.offHint} />}
+          {data.state === 'off' && <SetupLink href="/setup" hint={t(DIGEST_COPY.offHint)} />}
         </>
       }
     >
-      {data.state === 'off' && <p className="text-[13px] text-os-muted">{DIGEST_COPY.offHint}</p>}
-      {data.state !== 'ready' && data.digest && <p className="text-[13px] text-os-muted">Showing the last digest, from {dayLabel(data.digest.createdAt)}.</p>}
+      {data.state === 'off' && <p className="text-[13px] text-os-muted">{t(DIGEST_COPY.offHint)}</p>}
+      {data.state !== 'ready' && data.digest && <p className="text-[13px] text-os-muted">{t('Showing the last digest, from {day}.', { day: dayLabel(data.digest.createdAt) })}</p>}
       {data.digest && (
         <div className="grid gap-4 min-[1100px]:grid-cols-2">
           {lanes.map((lane) => (
             <div key={lane.id} className={`${CARD} flex flex-col gap-3 p-4`}>
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[14px] font-medium text-os-text">{lane.label}</span>
+                <span className="text-[14px] font-medium text-os-text">{t(lane.label)}</span>
                 <span className="font-mono text-[11.5px] text-os-muted">
-                  {lane.id === 'calendar' ? `${lane.events.length} today` : `${lane.entries.length} · ${lane.needsReply} need a reply`}
+                  {lane.id === 'calendar' ? t('{n} today', { n: lane.events.length }) : t('{n} · {waiting} need a reply', { n: lane.entries.length, waiting: lane.needsReply })}
                 </span>
               </div>
               {lane.id === 'calendar' ? (
                 lane.events.length === 0 ? (
-                  <p className="text-[12.5px] text-os-muted">Nothing on the calendar today.</p>
+                  <p className="text-[12.5px] text-os-muted">{t('Nothing on the calendar today.')}</p>
                 ) : (
                   <ul className="flex flex-col divide-y divide-os-border">
                     {lane.events.map((ev) => (
                       <li key={ev.id} className="flex items-baseline gap-3 py-2">
-                        <span className="w-14 shrink-0 font-mono text-[11.5px] text-os-muted">{ev.allDay ? 'all day' : hhmm(ev.start)}</span>
+                        <span className="w-14 shrink-0 font-mono text-[11.5px] text-os-muted">{ev.allDay ? t('all day') : hhmm(ev.start)}</span>
                         <span className="min-w-0 truncate text-[13px] text-os-text">{ev.title}</span>
                       </li>
                     ))}
                   </ul>
                 )
               ) : lane.entries.length === 0 ? (
-                <p className="text-[12.5px] text-os-muted">Nothing came in here.</p>
+                <p className="text-[12.5px] text-os-muted">{t('Nothing came in here.')}</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-os-border">
                   {lane.entries.map((e) => (
@@ -132,12 +133,12 @@ function DigestRow({ entry, onClear }: { entry: DigestEntry; onClear: () => void
         <span className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-os-text">
           {entry.sender}
           <Badge tone={needsReply(entry) ? 'accent' : 'default'}>{TIER_LABEL[entry.tier] ?? entry.tier}</Badge>
-          {entry.carried && <Badge>Held over</Badge>}
+          {entry.carried && <Badge>{t('Held over')}</Badge>}
         </span>
         <span className="line-clamp-2 text-[12.5px] text-os-muted">{entry.preview || entry.title}</span>
       </span>
-      <button type="button" onClick={onClear} className="cf-btn shrink-0" aria-label={`Clear ${entry.sender}`}>
-        Clear
+      <button type="button" onClick={onClear} className="cf-btn shrink-0" aria-label={t('Clear {name}', { name: entry.sender })}>
+        {t('Clear')}
       </button>
     </li>
   );
@@ -153,9 +154,9 @@ export function RecordingsClassic({ initial, active }: { initial: RecordingsData
   const source = (name: string, s: RecordingsData['sources']['plaud']) => (
     <span className="inline-flex items-center gap-2 text-[12.5px] text-os-muted">
       {name}
-      {s.configured ? <Badge tone="ok">Connected</Badge> : (
+      {s.configured ? <Badge tone="ok">{t('Connected')}</Badge> : (
         <>
-          <Badge>Not configured</Badge>
+          <Badge>{t('Not configured')}</Badge>
           <SetupLink href={s.setupHref} />
         </>
       )}
@@ -163,8 +164,8 @@ export function RecordingsClassic({ initial, active }: { initial: RecordingsData
   );
   return (
     <Panel
-      title="Recordings"
-      sub="Call recordings from Plaud and Fathom"
+      title={t('Recordings')}
+      sub={t('Call recordings from Plaud and Fathom')}
       right={data.sample ? <SampleChip fixture="lib/fo-sample.ts sampleRecordings" /> : (
         <>
           {source('Plaud', plaud)}
@@ -174,17 +175,17 @@ export function RecordingsClassic({ initial, active }: { initial: RecordingsData
     >
       {fathom.error && (
         <p role="alert" className="text-[12.5px] text-os-err">
-          Fathom did not answer: {fathom.error}{' '}
+          {t('Fathom did not answer:')} {fathom.error}{' '}
           <button type="button" className="cf-btn" onClick={() => void refresh()}>
-            Retry
+            {t('Retry')}
           </button>
         </p>
       )}
       {noneConfigured && data.rows.length === 0 ? (
-        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>No recording source is connected. Connect Plaud or Fathom and recordings land here.</div>
+        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>{t('No recording source is connected. Connect Plaud or Fathom and recordings land here.')}</div>
       ) : data.rows.length === 0 ? (
         <div className={`${CARD} p-5 text-[13px] text-os-muted`}>
-          {RECORDINGS_EMPTY} {busy ? 'Checking Fathom now.' : 'A Plaud push or the next Fathom pull adds them.'}
+          {t(RECORDINGS_EMPTY)} {busy ? t('Checking Fathom now.') : t('A Plaud push or the next Fathom pull adds them.')}
         </div>
       ) : (
         <ul className="grid gap-3 min-[900px]:grid-cols-2">
@@ -200,17 +201,17 @@ export function RecordingsClassic({ initial, active }: { initial: RecordingsData
                   <span className="font-mono text-[11.5px] text-os-muted">
                     {dayLabel(r.startedAt)} {hhmm(r.startedAt)} · {formatDuration(r.durationS)}
                   </span>
-                  <span className="text-[12.5px] text-os-muted">{r.participants.length ? r.participants.join(', ') : 'People not recorded'}</span>
+                  <span className="text-[12.5px] text-os-muted">{r.participants.length ? r.participants.join(', ') : t('People not recorded')}</span>
                 </button>
                 {isOpen && (
                   <div className="flex flex-col gap-2 border-t border-os-border pt-3">
-                    <p className="text-[13px] leading-relaxed text-os-text">{r.summary || 'No summary came with this recording.'}</p>
+                    <p className="text-[13px] leading-relaxed text-os-text">{r.summary || t('No summary came with this recording.')}</p>
                     {r.transcriptUrl ? (
                       <a href={r.transcriptUrl} target="_blank" rel="noreferrer" className="cf-btn inline-flex w-fit items-center gap-1.5">
-                        <FileText className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Open transcript
+                        <FileText className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> {t('Open transcript')}
                       </a>
                     ) : (
-                      <span className="text-[12px] text-os-muted">No transcript link for this recording.</span>
+                      <span className="text-[12px] text-os-muted">{t('No transcript link for this recording.')}</span>
                     )}
                   </div>
                 )}
@@ -229,29 +230,31 @@ export function ClientLanesClassic({ data, nowISO }: { data: ClientBoardData; no
   const now = new Date(nowISO);
   if (data.state === 'unconfigured') {
     return (
-      <Panel title="Clients" sub="One lane per client Slack channel" right={<><Badge>Not configured</Badge><SetupLink href={data.setupHref} hint="set SLACK_BOT_TOKEN" /></>}>
-        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>Connect Slack and each confirmed client&apos;s channel gets a lane here.</div>
+      <Panel title={t('Clients')} sub={t('One lane per client Slack channel')} right={<><Badge>{t('Not configured')}</Badge><SetupLink href={data.setupHref} hint={t('set SLACK_BOT_TOKEN')} /></>}>
+        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>{t("Connect Slack and each confirmed client's channel gets a lane here.")}</div>
       </Panel>
     );
   }
   return (
     <Panel
-      title="Clients"
+      title={t('Clients')}
       sub={
         data.clientsWithoutChannel > 0
-          ? `One lane per client Slack channel · ${data.clientsWithoutChannel} confirmed ${data.clientsWithoutChannel === 1 ? 'client has' : 'clients have'} no channel yet`
-          : 'One lane per client Slack channel'
+          ? data.clientsWithoutChannel === 1
+            ? t('One lane per client Slack channel · {n} confirmed client has no channel yet', { n: data.clientsWithoutChannel })
+            : t('One lane per client Slack channel · {n} confirmed clients have no channel yet', { n: data.clientsWithoutChannel })
+          : t('One lane per client Slack channel')
       }
       right={data.sample ? <SampleChip fixture="lib/fo-sample.ts sampleClientLanes" /> : undefined}
     >
-      {data.error && <p role="alert" className="text-[12.5px] text-os-err">Slack did not answer: {data.error}</p>}
+      {data.error && <p role="alert" className="text-[12.5px] text-os-err">{t('Slack did not answer:')} {data.error}</p>}
       {data.lanes.length === 0 ? (
         <div className={`${CARD} p-5 text-[13px] text-os-muted`}>
-          No client channels yet. Confirm a client on{' '}
+          {t('No client channels yet. Confirm a client on')}{' '}
           <a href="/clients" className="text-os-accent underline-offset-2 hover:underline">
-            Clients
+            {t('Clients')}
           </a>{' '}
-          and give it a Slack channel; its lane appears here.
+          {t('and give it a Slack channel; its lane appears here.')}
         </div>
       ) : (
         <div className="cf-lanes flex gap-4 overflow-x-auto pb-2" data-matrix-scroll>
@@ -262,12 +265,12 @@ export function ClientLanesClassic({ data, nowISO }: { data: ClientBoardData; no
                   <div className="truncate text-[14px] font-medium text-os-text">{lane.name}</div>
                   <div className="font-mono text-[11.5px] text-os-muted">#{lane.channel}</div>
                 </div>
-                <a href={lane.openUrl} target="_blank" rel="noreferrer" className="cf-btn inline-flex shrink-0 items-center gap-1.5" aria-label={`Open #${lane.channel} in Slack`}>
+                <a href={lane.openUrl} target="_blank" rel="noreferrer" className="cf-btn inline-flex shrink-0 items-center gap-1.5" aria-label={t('Open #{channel} in Slack', { channel: lane.channel })}>
                   <ExternalLink className="h-3 w-3" strokeWidth={1.8} aria-hidden /> Slack
                 </a>
               </div>
               {lane.messages.length === 0 ? (
-                <p className="text-[12.5px] text-os-muted">No recent messages here. If this stays empty, invite the Slack bot to #{lane.channel}.</p>
+                <p className="text-[12.5px] text-os-muted">{t('No recent messages here. If this stays empty, invite the Slack bot to #{channel}.', { channel: lane.channel })}</p>
               ) : (
                 <ul className="flex max-h-[360px] flex-col divide-y divide-os-border overflow-y-auto">
                   {lane.messages.map((m) => (
@@ -294,17 +297,17 @@ export function ClientLanesClassic({ data, nowISO }: { data: ClientBoardData; no
 export function WeekClassic({ data }: { data: WeekData }) {
   if (!data.configured) {
     return (
-      <Panel title="Week" sub="The next seven days" right={<><Badge>Not configured</Badge><SetupLink href={data.setupHref} /></>}>
-        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>Connect a calendar and the week fills in.</div>
+      <Panel title={t('Week')} sub={t('The next seven days')} right={<><Badge>{t('Not configured')}</Badge><SetupLink href={data.setupHref} /></>}>
+        <div className={`${CARD} p-5 text-[13px] text-os-muted`}>{t('Connect a calendar and the week fills in.')}</div>
       </Panel>
     );
   }
   const hours = Array.from({ length: data.hiHour - data.loHour }, (_, i) => data.loHour + i);
   const empty = data.days.every((d) => d.timed.length === 0 && d.allDay.length === 0);
   return (
-    <Panel title="Week" sub={empty ? 'Nothing on the calendar in the next seven days.' : 'The next seven days'} right={data.sample ? <SampleChip fixture="lib/fo-sample.ts sampleWeekEvents" /> : undefined}>
+    <Panel title={t('Week')} sub={empty ? t('Nothing on the calendar in the next seven days.') : t('The next seven days')} right={data.sample ? <SampleChip fixture="lib/fo-sample.ts sampleWeekEvents" /> : undefined}>
       <div className="overflow-x-auto" data-matrix-scroll>
-        <div className="cf-week grid min-w-[760px]" style={{ gridTemplateColumns: `48px repeat(7, minmax(0, 1fr))` }} role="grid" aria-label="Week calendar">
+        <div className="cf-week grid min-w-[760px]" style={{ gridTemplateColumns: `48px repeat(7, minmax(0, 1fr))` }} role="grid" aria-label={t('Week calendar')}>
           <div aria-hidden>
             <div className="h-8" />
             <div className="h-7" />
@@ -333,7 +336,7 @@ export function WeekClassic({ data }: { data: WeekData }) {
                   <span
                     key={e.id}
                     role="gridcell"
-                    title={`${e.title} · ${hhmm(e.start)}${e.end ? ` to ${hhmm(e.end)}` : ''}`}
+                    title={`${e.title} · ${hhmm(e.start)}${e.end ? t(' to {time}', { time: hhmm(e.end) }) : ''}`}
                     className="absolute overflow-hidden rounded-[6px] border border-[var(--accent-line)] bg-[var(--accent-soft)] px-1.5 py-1 text-[11px] leading-tight text-os-text"
                     style={{ top: `${e.topPct}%`, height: `${e.heightPct}%`, left: `calc(${(e.lane / e.lanes) * 100}% + 2px)`, width: `calc(${100 / e.lanes}% - 4px)` }}
                   >

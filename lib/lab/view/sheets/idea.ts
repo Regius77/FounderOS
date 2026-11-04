@@ -14,6 +14,7 @@ import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fill } from '@/lib/lab/view/format';
 import { withSample } from '@/lib/lab/view/section';
 import type { IdeaSheetView } from '@/lib/lab/gen/view';
+import { t } from '@/lib/i18n';
 
 export type IdeaSheetUi = {
   /** section 07 ideaSheetView(store, id, opts), unchanged */
@@ -31,7 +32,7 @@ export type IdeaSheetUi = {
   /** "Grounded in 4 breakouts and 1 dud from the same creators" (07 7.5 grounding counts) */
   groundingText: string;
   actions: {
-    writeScript: { label: 'Write script' | 'Open script'; disabledReason: string | null };
+    writeScript: { label: string; disabledReason: string | null };
     sendEngine: { disabledReason: string | null };
     askWizard: { disabledReason: string | null };
     dismiss: boolean;
@@ -80,7 +81,7 @@ export function buildIdeaSheet(store: LabStore, id: string, now: Date, env: LabL
     prediction,
     groundingText: groundingTextOf(data),
     actions: {
-      writeScript: { label: data.scriptId ? 'Open script' : 'Write script', disabledReason: data.scriptId ? null : ro },
+      writeScript: { label: data.scriptId ? t('Open script') : t('Write script'), disabledReason: data.scriptId ? null : ro },
       sendEngine: { disabledReason: ro },
       askWizard: { disabledReason: ro },
       dismiss: !ro && data.status === 'open',

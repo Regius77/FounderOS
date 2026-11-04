@@ -22,7 +22,20 @@ import type { LabFrameView } from '@/lib/lab/view/frame';
 import type { SheetPayload } from '@/lib/lab/view/index';
 import type { IdeaSheetUi } from '@/lib/lab/view/sheets/idea';
 import type { StudioView } from '@/lib/lab/gen/view';
+import { t } from '@/lib/i18n';
 
+
+/** ANGLE_LABEL as the form shows it (the English map also feeds prompts and stored titles, so it stays as is). */
+const ANGLE_LABEL_UI: Partial<Record<string, string>> = {
+  first_look: t('First look'),
+  real_examples: t('Real examples'),
+  hours_spent: t('I spent N hours'),
+  comparison: t('Comparison'),
+  how_to: t('How-to'),
+  money: t('Money'),
+  drama: t('Drama'),
+  other: t('Other'),
+};
 export type StudioPageView = {
   frame: LabFrameView;
   /** never kind 'idea' at >= 768px (D5); the server fills `selected` instead */
@@ -43,7 +56,7 @@ export type StudioPageView = {
   diversity: { state: SectionState; text: string };
   /** copy table 11.4, from 07 7.3.8 */
   generate: { state: 'ready' | 'no_material' | 'full' | 'running' | 'dry' | 'read_only' | 'cli_missing'; disabledReason: string | null; line: string; lineHref: string | null };
-  seeds: { state: SectionState; title: 'Your audience keeps asking'; rows: SeedRowView[] };
+  seeds: { state: SectionState; title: string; rows: SeedRowView[] };
   /** ?idea= or the first open idea (16) */
   selected: IdeaSheetUi | null;
   /** when ?new=1 */
@@ -63,19 +76,19 @@ export type SeedRowView = {
   countText: string;
   /** "/lab/studio?idea=<id>" when an open idea already came from this seed */
   ideaHref: string | null;
-  make: { label: 'Make this'; disabledReason: string | null };
+  make: { label: string; disabledReason: string | null };
 };
 
 export type NewIdeaFormView = {
   fields: {
-    title: { label: 'Idea'; placeholder: 'What is the video about, in one line?'; max: 120 };
+    title: { label: string; placeholder: string; max: 120 };
     /** section 05 LAUNCH_ANGLES with 05 labels, 'other' last */
-    angle: { label: 'Angle'; options: { id: LaunchAngle; label: string }[] };
+    angle: { label: string; options: { id: LaunchAngle; label: string }[] };
     /** open and closing events */
-    eventId: { label: 'Launch (optional)'; options: { id: string; label: string }[] };
-    notes: { label: 'Notes (optional)'; max: 500 };
+    eventId: { label: string; options: { id: string; label: string }[] };
+    notes: { label: string; max: 500 };
   };
-  submitLabel: 'Ground it';
+  submitLabel: string;
 };
 
 /* ── builder (01 11) ──────────────────────────────────────────────────── */
@@ -97,7 +110,7 @@ export function buildStudio(store: LabStore, params: LabParams, flags: LabContex
     scripts: { state: state('empty', L.noScripts), rows: [] },
     diversity: { state: READY, text: studio.diversity.text },
     generate: { state: studio.generate.state, disabledReason: studio.generate.disabledReason, line: studio.generate.line, lineHref: studio.generate.state === 'no_material' ? S('?setup=checklist') : null },
-    seeds: { state: state('not_built'), title: 'Your audience keeps asking', rows: [] },
+    seeds: { state: state('not_built'), title: t('Your audience keeps asking'), rows: [] },
     selected: null,
     newIdea: null,
     emptyCard: null,
@@ -152,18 +165,18 @@ export function buildStudio(store: LabStore, params: LabParams, flags: LabContex
 
   const cl = inp.frame.layers.comments;
   view.seeds = cl === 'not_built'
-    ? { state: state('not_built'), title: 'Your audience keeps asking', rows: [] }
+    ? { state: state('not_built'), title: t('Your audience keeps asking'), rows: [] }
     : cl === 'off'
-      ? { state: state('off', LAB_COPY.layer.commentsOff, { label: LAB_COPY.frame.setUp, href: S('?setup=spend') }), title: 'Your audience keeps asking', rows: [] }
+      ? { state: state('off', LAB_COPY.layer.commentsOff, { label: LAB_COPY.frame.setUp, href: S('?setup=spend') }), title: t('Your audience keeps asking'), rows: [] }
       : {
           state: studio.seeds.length ? READY : state('empty', L.noSeeds),
-          title: 'Your audience keeps asking',
+          title: t('Your audience keeps asking'),
           rows: studio.seeds.map((sd) => ({
             seedId: sd.id,
             label: sd.label.slice(0, 80),
             countText: fill(L.seedCount, { asks: sd.comments, posts: sd.posts }),
             ideaHref: sd.ideaId ? S(`/lab/studio?idea=${encodeURIComponent(sd.ideaId)}`) : null,
-            make: { label: 'Make this', disabledReason: inp.env.readOnly },
+            make: { label: t('Make this'), disabledReason: inp.env.readOnly },
           })),
         };
 
@@ -171,12 +184,12 @@ export function buildStudio(store: LabStore, params: LabParams, flags: LabContex
     const events = store.events.all({ status: ['confirmed'] }).filter((e) => e.windowState === 'open' || e.windowState === 'closing');
     view.newIdea = {
       fields: {
-        title: { label: 'Idea', placeholder: 'What is the video about, in one line?', max: 120 },
-        angle: { label: 'Angle', options: LAUNCH_ANGLES.map((a) => ({ id: a, label: ANGLE_LABEL[a] })) },
-        eventId: { label: 'Launch (optional)', options: events.map((e) => ({ id: e.id, label: e.name })) },
-        notes: { label: 'Notes (optional)', max: 500 },
+        title: { label: t('Idea'), placeholder: t('What is the video about, in one line?'), max: 120 },
+        angle: { label: t('Angle'), options: LAUNCH_ANGLES.map((a) => ({ id: a, label: ANGLE_LABEL_UI[a] ?? ANGLE_LABEL[a] })) },
+        eventId: { label: t('Launch (optional)'), options: events.map((e) => ({ id: e.id, label: e.name })) },
+        notes: { label: t('Notes (optional)'), max: 500 },
       },
-      submitLabel: 'Ground it',
+      submitLabel: t('Ground it'),
     };
   }
   return view;

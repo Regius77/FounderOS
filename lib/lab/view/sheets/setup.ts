@@ -9,6 +9,7 @@ import type { LabLayerEnv } from '@/lib/lab/view/sheets/env';
 import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fill } from '@/lib/lab/view/format';
 import { withSample } from '@/lib/lab/view/section';
+import { t } from '@/lib/i18n';
 
 export type SetupSheetView = {
   /** resolved: '1' or empty -> checklist until setup.checklist.complete, then keys (08.3) */
@@ -31,8 +32,8 @@ export function buildSetupSheet(store: LabStore, requested: string, focusAdd: bo
   const keysOff = setup.keys.filter((k) => k.state === 'not_configured' || k.state === 'needs_connect').length;
   const badge = (id: SetupSection): string | null => {
     if (id === 'checklist') return setup.checklist.complete ? null : `${setup.checklist.requiredDone}/${setup.checklist.requiredTotal}`;
-    if (id === 'keys') return keysOff >= 1 ? `${keysOff} not set up` : null;
-    if (id === 'spend') return setup.spend.blocked ? 'Blocked' : null;
+    if (id === 'keys') return keysOff >= 1 ? t('{n} not set up', { n: keysOff }) : null;
+    if (id === 'spend') return setup.spend.blocked ? t('Blocked') : null;
     return null;
   };
   const p = setup.schedule.paused;

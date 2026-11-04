@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 import { Focus, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Scan, X } from 'lucide-react';
 import { KIND_ICON, KIND_LABEL, STATUS_LABEL, relationsOf, type HAny, type Hierarchy, type HierarchyIndex } from '@/lib/blueprint/hierarchy';
 import { iconFor } from './icons';
+import { t } from '@/lib/i18n';
 
 const colorOf = (it: HAny) => `var(--bh-k-${it.kind}, var(--text-2))`;
 
@@ -44,7 +45,7 @@ export function HierarchyInspector({
   const has = opened.length > 0;
   const current = active && opened.includes(active) ? active : opened[opened.length - 1];
   const it = current ? idx.items.get(current) : undefined;
-  const handleLabel = (active && idx.items.get(active)?.name) || it?.name || 'Details';
+  const handleLabel = (active && idx.items.get(active)?.name) || it?.name || t('Details');
 
   const rels = it ? relationsOf(h, idx, it.id) : [];
   const grouped = new Map<string, typeof rels>();
@@ -60,7 +61,7 @@ export function HierarchyInspector({
 
   return (
     <>
-      <button type="button" className={gc('bh-insp-handle g-btn g-btn-sm', 'bh-insp-handle')} title="Show details (i)" onClick={() => onMinimize(false)} style={{ display: has && minimized ? 'inline-flex' : 'none' }}>
+      <button type="button" className={gc('bh-insp-handle g-btn g-btn-sm', 'bh-insp-handle')} title={t('Show details (i)')} onClick={() => onMinimize(false)} style={{ display: has && minimized ? 'inline-flex' : 'none' }}>
         <PanelRightOpen />
         <span>{handleLabel}</span>
       </button>
@@ -73,7 +74,7 @@ export function HierarchyInspector({
                 <span
                   className="x"
                   role="button"
-                  aria-label="Close"
+                  aria-label={t('Close')}
                   onClick={(e) => {
                     e.stopPropagation();
                     onCloseTab(id);
@@ -84,7 +85,7 @@ export function HierarchyInspector({
               </button>
             ))}
           </div>
-          <button type="button" className={gc('bh-insp-min g-btn g-btn-icon g-btn-sm', 'bh-insp-min')} aria-label="Hide panel" title="Hide panel (i)" onClick={() => onMinimize(true)}>
+          <button type="button" className={gc('bh-insp-min g-btn g-btn-icon g-btn-sm', 'bh-insp-min')} aria-label={t('Hide panel')} title={t('Hide panel (i)')} onClick={() => onMinimize(true)}>
             <PanelRightClose />
           </button>
         </div>
@@ -98,12 +99,12 @@ export function HierarchyInspector({
                 <div className="t">{it.name}</div>
                 <div className="s">
                   <span className="bh-kchip" style={{ '--c': colorOf(it) } as CSSProperties}>
-                    {KIND_LABEL[it.kind]}
+                    {t(KIND_LABEL[it.kind])}
                   </span>
                   {status && (
                     <span className="bh-badge" data-s={status}>
                       <i />
-                      {STATUS_LABEL[status]}
+                      {t(STATUS_LABEL[status])}
                     </span>
                   )}
                 </div>
@@ -121,18 +122,18 @@ export function HierarchyInspector({
             )}
             {it.sub && (
               <div className="bh-insp-sec">
-                <div className="h">What it is</div>
+                <div className="h">{t('What it is')}</div>
                 <div className="bh-insp-what">{it.sub}</div>
               </div>
             )}
             {facts.length > 0 && (
               <div className="bh-insp-sec">
-                <div className="h">Facts</div>
+                <div className="h">{t('Facts')}</div>
                 <div className="bh-kv">
                   {facts.map(([k, v]) => (
                     <div key={k} className="contents">
                       <div className="k">{k}</div>
-                      <div className="v">{v === '' ? 'none' : v}</div>
+                      <div className="v">{v === '' ? t('none') : v}</div>
                     </div>
                   ))}
                 </div>
@@ -141,7 +142,7 @@ export function HierarchyInspector({
             {members.length > 0 && (
               <div className="bh-insp-sec">
                 <div className="h">
-                  <span>Inside</span>
+                  <span>{t('Inside')}</span>
                   <span>{members.length}</span>
                 </div>
                 {members.slice(0, 14).map((m) => {
@@ -155,17 +156,17 @@ export function HierarchyInspector({
                         <div className="t">{m.name}</div>
                         <div className="s">{m.sub}</div>
                       </div>
-                      <span className="kind">{m.type === 'node' ? STATUS_LABEL[m.status] : ''}</span>
+                      <span className="kind">{m.type === 'node' ? t(STATUS_LABEL[m.status]) : ''}</span>
                     </div>
                   );
                 })}
-                {members.length > 14 && <div className="bh-insp-more">+{members.length - 14} more</div>}
+                {members.length > 14 && <div className="bh-insp-more">{t('+{n} more', { n: members.length - 14 })}</div>}
               </div>
             )}
             {rels.length > 0 && (
               <div className="bh-insp-sec">
                 <div className="h">
-                  <span>Connections</span>
+                  <span>{t('Connections')}</span>
                   <span>{rels.length}</span>
                 </div>
                 {[...grouped.entries()].map(([label, list]) =>
@@ -192,17 +193,17 @@ export function HierarchyInspector({
             <div className="bh-insp-actions">
               <button type="button" className={gc('g-btn g-btn-sm', 'bh-btn')} onClick={onFocus}>
                 <Focus />
-                <span>Focus</span>
+                <span>{t('Focus')}</span>
               </button>
               {it.type === 'group' ? (
                 <button type="button" className={gc('g-btn g-btn-sm', 'bh-btn')} onClick={() => onToggle(it.id)}>
                   {expanded.has(it.id) ? <Minimize2 /> : <Maximize2 />}
-                  <span>{expanded.has(it.id) ? 'Collapse' : 'Expand'}</span>
+                  <span>{expanded.has(it.id) ? t('Collapse') : t('Expand')}</span>
                 </button>
               ) : (
                 <button type="button" className={gc('g-btn g-btn-sm', 'bh-btn')} onClick={onFit}>
                   <Scan />
-                  <span>Whole map</span>
+                  <span>{t('Whole map')}</span>
                 </button>
               )}
             </div>

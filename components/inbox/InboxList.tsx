@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { ArrowDownWideNarrow, Check, Video, X } from 'lucide-react';
 import { BUCKET_LABEL, SORTS, TRIAGE, clock, dateBucket, relativeTime, type InboxThread, type Sort, type Triage } from '@/lib/inbox';
 import { Avatar, Mono, SourceBadge } from './bits';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * Middle column: the list. Each row leads with who, and the channel is its own
@@ -58,18 +59,18 @@ export function InboxList({
     <section className="ib-col ib-list">
       <header className="ib-list-h">
         <span className="ib-list-title">
-          Inbox <Mono className="ib-list-n">{threads.length}</Mono>
+          {t('Inbox')} <Mono className="ib-list-n">{threads.length}</Mono>
         </span>
         {triage !== 'all' && (
-          <button className="ib-filter-chip" onClick={() => onTriage('all')} title="Clear this filter">
-            {TRIAGE.find((x) => x.id === triage)?.label ?? triage}
+          <button className="ib-filter-chip" onClick={() => onTriage('all')} title={t('Clear this filter')}>
+            {t(TRIAGE.find((x) => x.id === triage)?.label ?? triage)}
             <X strokeWidth={2.4} />
           </button>
         )}
         <div className="ib-sort" ref={sortRef}>
           <button className={`ib-sort-btn ${menu ? 'is-on' : ''}`} onClick={() => setMenu((v) => !v)} aria-haspopup="listbox" aria-expanded={menu}>
             <ArrowDownWideNarrow strokeWidth={1.8} />
-            Sort by: <b>{active.label}</b>
+            {t('Sort by:')} <b>{t(active.label)}</b>
           </button>
           {menu && (
             <ul className="ib-sort-menu" role="listbox">
@@ -85,7 +86,7 @@ export function InboxList({
                     }}
                   >
                     <span className="ib-sort-tick">{s.id === sort && <Check strokeWidth={3} />}</span>
-                    {s.label}
+                    {t(s.label)}
                   </button>
                 </li>
               ))}
@@ -94,40 +95,40 @@ export function InboxList({
         </div>
       </header>
       <div className="ib-rows" ref={listRef}>
-        {threads.length === 0 && <p className="ib-empty">Nothing matches these filters.</p>}
-        {threads.map((t) => {
-          const bucket = dateBucket(t.ts, now);
+        {threads.length === 0 && <p className="ib-empty">{t('Nothing matches these filters.')}</p>}
+        {threads.map((th) => {
+          const bucket = dateBucket(th.ts, now);
           const showBucket = grouped && bucket !== lastBucket;
           lastBucket = bucket;
-          const isSel = t.key === selected;
+          const isSel = th.key === selected;
           return (
-            <Fragment key={t.key}>
-              {showBucket && <Mono className="ib-bucket">{BUCKET_LABEL[bucket]}</Mono>}
-              <button className={`ib-row ${isSel ? 'is-sel' : ''} ${t.unread ? 'is-unread' : ''}`} data-key={t.key} onClick={() => onSelect(t.key)}>
-                <Avatar name={t.sender} source={t.source} src={t.avatarUrl} />
+            <Fragment key={th.key}>
+              {showBucket && <Mono className="ib-bucket">{t(BUCKET_LABEL[bucket])}</Mono>}
+              <button className={`ib-row ${isSel ? 'is-sel' : ''} ${th.unread ? 'is-unread' : ''}`} data-key={th.key} onClick={() => onSelect(th.key)}>
+                <Avatar name={th.sender} source={th.source} src={th.avatarUrl} />
                 <span className="ib-row-main">
                   <span className="ib-row-top">
-                    <span className="ib-row-who">{t.sender}</span>
-                    <span className="ib-row-ctx">{t.context}</span>
-                    <Mono className="ib-row-time">{t.source === 'calendar' ? new Date(t.ts).toLocaleDateString('en-US', { weekday: 'short' }) : relativeTime(t.ts, now)}</Mono>
+                    <span className="ib-row-who">{th.sender}</span>
+                    <span className="ib-row-ctx">{th.context}</span>
+                    <Mono className="ib-row-time">{th.source === 'calendar' ? new Date(th.ts).toLocaleDateString(localeTag(), { weekday: 'short' }) : relativeTime(th.ts, now)}</Mono>
                   </span>
                   <span className="ib-row-mid">
-                    <SourceBadge source={t.source} unread={t.unread > 0} selected={isSel} />
-                    <span className="ib-row-prev">{t.preview}</span>
+                    <SourceBadge source={th.source} unread={th.unread > 0} selected={isSel} />
+                    <span className="ib-row-prev">{th.preview}</span>
                   </span>
                   <span className="ib-row-bot">
-                    {t.source === 'calendar' && t.event ? (
+                    {th.source === 'calendar' && th.event ? (
                       <Mono className="ib-row-when">
-                        {t.event.allDay ? 'All day' : `${clock(t.ts)}${t.event.end ? ` – ${clock(t.event.end)}` : ''}`}
+                        {th.event.allDay ? t('All day') : `${clock(th.ts)}${th.event.end ? ` – ${clock(th.event.end)}` : ''}`}
                       </Mono>
                     ) : null}
-                    {t.unread > 0 && <Mono className="ib-row-unread">{t.unread} unread</Mono>}
-                    {t.event?.joinUrl && (
+                    {th.unread > 0 && <Mono className="ib-row-unread">{t('{n} unread', { n: th.unread })}</Mono>}
+                    {th.event?.joinUrl && (
                       <span className="ib-row-join">
-                        <Video strokeWidth={1.8} /> video
+                        <Video strokeWidth={1.8} /> {t('video')}
                       </span>
                     )}
-                    {t.priority && <Mono className="ib-row-pri">P{t.priority}</Mono>}
+                    {th.priority && <Mono className="ib-row-pri">P{th.priority}</Mono>}
                   </span>
                 </span>
               </button>

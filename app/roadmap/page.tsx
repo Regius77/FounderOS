@@ -6,14 +6,15 @@ import type { RoadmapStatus } from '@/lib/schemas';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { RoadmapG } from '@/components/roadmap/RoadmapG';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
 const STATUS_BADGE: Record<RoadmapStatus, { tone: BadgeTone; ghost: boolean; label: string }> = {
-  done: { tone: 'ok', ghost: false, label: 'Done' },
-  now: { tone: 'accent', ghost: false, label: 'Now' },
-  next: { tone: 'warn', ghost: false, label: 'Next' },
-  later: { tone: 'default', ghost: true, label: 'Later' },
+  done: { tone: 'ok', ghost: false, label: t('Done') },
+  now: { tone: 'accent', ghost: false, label: t('Now') },
+  next: { tone: 'warn', ghost: false, label: t('Next') },
+  later: { tone: 'default', ghost: true, label: t('Later') },
 };
 
 export default function RoadmapPage(props: { searchParams?: { show?: string } }) {
@@ -37,18 +38,18 @@ export default function RoadmapPage(props: { searchParams?: { show?: string } })
   return (
     <div>
       <PageHeader
-        eyebrow="Build plan"
+        eyebrow={t('Build plan')}
         title="Roadmap"
       />
 
       {/* High-level functionality phases */}
       <section className="mb-9">
-        <SectionHead label="Phases" count={phases.length} />
+        <SectionHead label={t('Phases')} count={phases.length} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 ultra:grid-cols-6">
           {phases.map((phase) => (
             <div key={phase.id} className="rounded-lg-t border border-os-border bg-os-surface px-[17px] py-[15px]">
               <div className="mb-[7px] text-[12.5px] text-os-muted">
-                Phase {String(phase.number).padStart(2, '0')}
+                {t('Phase {n}', { n: String(phase.number).padStart(2, '0') })}
               </div>
               <h2 className="text-sm font-medium">{phase.title}</h2>
               <ul className="mt-3.5 flex flex-col gap-2.5">
@@ -65,7 +66,7 @@ export default function RoadmapPage(props: { searchParams?: { show?: string } })
       </section>
 
       {/* Quarterly columns */}
-      <SectionHead label="Quarter by quarter" />
+      <SectionHead label={t('Quarter by quarter')} />
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 ultra:grid-cols-6">
         {quarters.map(({ quarter, items }) => {
           const doneN = items.filter((r) => r.status === 'done').length;
@@ -76,7 +77,7 @@ export default function RoadmapPage(props: { searchParams?: { show?: string } })
                   {quarter.replace('-', ' · ')}
                 </span>
                 <span className="text-[12.5px] text-os-dim">
-                  {doneN}/{items.length} done
+                  {t('{done}/{total} done', { done: doneN, total: items.length })}
                 </span>
                 <span className="h-px flex-1 bg-os-border" />
               </div>

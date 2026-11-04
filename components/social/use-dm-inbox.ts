@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { DmThread } from '@/lib/social';
 import type { SocialDmMessage } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * The Instagram DM inbox state, shared by both UI styles (glados-ui SPEC X5).
@@ -15,11 +16,11 @@ export function relativeTime(iso: string, nowMs: number): string {
   const diff = nowMs - new Date(iso).getTime();
   if (Number.isNaN(diff)) return '';
   const m = Math.round(diff / 60000);
-  if (m < 1) return 'now';
-  if (m < 60) return `${m}m`;
+  if (m < 1) return t('now');
+  if (m < 60) return t('{n}m', { n: m });
   const h = Math.round(m / 60);
-  if (h < 24) return `${h}h`;
-  return `${Math.round(h / 24)}d`;
+  if (h < 24) return t('{n}h', { n: h });
+  return t('{n}d', { n: Math.round(h / 24) });
 }
 
 export function initials(name: string): string {
@@ -51,11 +52,11 @@ export function groupThreads(messages: SocialDmMessage[]): DmThread[] {
 }
 
 export function useDmInbox(initial: DmThread[]) {
-  const [messages, setMessages] = useState<SocialDmMessage[]>(() => initial.flatMap((t) => t.messages));
+  const [messages, setMessages] = useState<SocialDmMessage[]>(() => initial.flatMap((th) => th.messages));
   const threads = useMemo(() => groupThreads(messages), [messages]);
 
   const [selected, setSelected] = useState<string | null>(initial[0]?.subscriberId ?? null);
-  const active = threads.find((t) => t.subscriberId === selected) ?? threads[0] ?? null;
+  const active = threads.find((th) => th.subscriberId === selected) ?? threads[0] ?? null;
 
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -75,13 +76,13 @@ export function useDmInbox(initial: DmThread[]) {
       });
       const body = await res.json().catch(() => null);
       if (!res.ok || !body?.ok) {
-        setError(typeof body?.error === 'string' ? body.error : 'Send failed — connect ManyChat (MANYCHAT_API_KEY) to reply.');
+        setError(typeof body?.error === 'string' ? body.error : t('Send failed — connect ManyChat (MANYCHAT_API_KEY) to reply.'));
         return;
       }
       setMessages((prev) => [body.message as SocialDmMessage, ...prev]);
       setDraft('');
     } catch {
-      setError('Network error while sending.');
+      setError(t('Network error while sending.'));
     } finally {
       setSending(false);
     }

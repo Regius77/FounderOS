@@ -8,6 +8,7 @@ import { KIND_ICON } from '@/lib/blueprint/hierarchy';
 import { fitAllCam, fitTopCam, flyToCam, GRID, rep, roundedPath, zoomCam, type Box, type Cam, type DrawnEdge, type Layout } from '@/lib/blueprint/hierarchy-layout';
 import { HierarchyNode } from './HierarchyNode';
 import { iconFor } from './icons';
+import { t } from '@/lib/i18n';
 
 export type FocusMode = { mode: 'none' } | { mode: 'filter'; match: Set<string> } | { mode: 'focus'; selected: string; hot: Set<string> };
 
@@ -86,11 +87,11 @@ export const HierarchyCanvas = forwardRef<CanvasHandle, Props>(function Hierarch
       const from = { ...cam.current };
       const t0 = performance.now();
       const step = (now: number) => {
-        const t = Math.min(1, (now - t0) / dur);
-        const k = EASE(t);
+        const frac = Math.min(1, (now - t0) / dur);
+        const k = EASE(frac);
         cam.current = { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k, s: from.s + (to.s - from.s) * k };
         applyCam();
-        if (t < 1) anim.current = requestAnimationFrame(step);
+        if (frac < 1) anim.current = requestAnimationFrame(step);
       };
       anim.current = requestAnimationFrame(step);
     },
@@ -137,11 +138,11 @@ export const HierarchyCanvas = forwardRef<CanvasHandle, Props>(function Hierarch
           layer.appendChild(c);
           const t0 = performance.now();
           const step = (now: number) => {
-            const t = Math.min(1, (now - t0) / ms);
-            const p = path.getPointAtLength(len * t);
+            const frac = Math.min(1, (now - t0) / ms);
+            const p = path.getPointAtLength(len * frac);
             c.setAttribute('cx', String(p.x));
             c.setAttribute('cy', String(p.y));
-            if (t < 1) requestAnimationFrame(step);
+            if (frac < 1) requestAnimationFrame(step);
             else {
               c.remove();
               resolve();
@@ -411,10 +412,10 @@ export const HierarchyCanvas = forwardRef<CanvasHandle, Props>(function Hierarch
         </div>
       </div>
       <div className="bh-hud bh-hud-zoom">
-        <button type="button" className={gc('bh-hud-btn g-btn g-btn-icon g-btn-sm', 'bh-hud-btn')} aria-label="Zoom in" onClick={() => tween(zoomCam(cam.current, 1.25, view().w / 2, view().h / 2), 260)}>
+        <button type="button" className={gc('bh-hud-btn g-btn g-btn-icon g-btn-sm', 'bh-hud-btn')} aria-label={t('Zoom in')} onClick={() => tween(zoomCam(cam.current, 1.25, view().w / 2, view().h / 2), 260)}>
           <PlusIcon />
         </button>
-        <button type="button" className={gc('bh-hud-btn g-btn g-btn-icon g-btn-sm', 'bh-hud-btn')} aria-label="Zoom out" onClick={() => tween(zoomCam(cam.current, 0.8, view().w / 2, view().h / 2), 260)}>
+        <button type="button" className={gc('bh-hud-btn g-btn g-btn-icon g-btn-sm', 'bh-hud-btn')} aria-label={t('Zoom out')} onClick={() => tween(zoomCam(cam.current, 0.8, view().w / 2, view().h / 2), 260)}>
           <MinusIcon />
         </button>
         <div ref={pctRef} className="bh-hud-pct">

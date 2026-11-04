@@ -10,12 +10,13 @@ import { HierarchyCanvas, type CanvasHandle, type FocusMode } from './HierarchyC
 import { HierarchySearch } from './HierarchySearch';
 import { HierarchyInspector } from './HierarchyInspector';
 import { AskBar, type AskHandle } from './AskBar';
+import { t } from '@/lib/i18n';
 
 type Level = 1 | 2 | 3;
 const LEVELS: Array<{ n: Level; label: string; Icon: typeof Layers }> = [
-  { n: 1, label: 'Overview', Icon: Minimize2 },
-  { n: 2, label: 'Systems', Icon: Layers },
-  { n: 3, label: 'Everything', Icon: Maximize2 },
+  { n: 1, label: t('Overview'), Icon: Minimize2 },
+  { n: 2, label: t('Systems'), Icon: Layers },
+  { n: 3, label: t('Everything'), Icon: Maximize2 },
 ];
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -232,11 +233,11 @@ export function HierarchyWorkspace({ graph, subline }: { graph: BlueprintGraph; 
         <div className="bh-actions">
           <button type="button" className={gc('g-btn g-btn-sm', 'bh-btn')} onClick={() => canvas.current?.fitAll()}>
             <Scan />
-            <span>Fit</span>
+            <span>{t('Fit')}</span>
           </button>
           <button type="button" className={gc(`g-btn g-btn-sm g-btn-ink ${tracing ? 'is-busy' : ''}`, `bh-btn bh-btn-primary ${tracing ? 'is-busy' : ''}`)} aria-busy={g ? tracing || undefined : undefined} onClick={() => void trace()}>
             <Play />
-            <span>Trace the chain</span>
+            <span>{t('Trace the chain')}</span>
           </button>
         </div>
       </header>
@@ -256,7 +257,7 @@ export function HierarchyWorkspace({ graph, subline }: { graph: BlueprintGraph; 
             }}
           >
             <i className="sw" />
-            {KIND_LABEL[k]}
+            {t(KIND_LABEL[k])}
           </button>
         ))}
       </div>

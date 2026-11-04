@@ -6,6 +6,7 @@ import { DatabaseG, DatabaseHeaderStats } from '@/components/database/DatabaseG'
 import { GCard, GEmpty, GPage, GSectionHeader } from '@/components/g';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,8 +23,8 @@ export default function DatabasePage() {
       <GPage className="kg-page">
         <GSectionHeader
           size="page"
-          title="Brain files"
-          caption={db.configured ? <DatabaseHeaderStats total={db.tree.size} files={db.tree.files} root={db.root} /> : 'The brain folder, block by block'}
+          title={t('Brain files')}
+          caption={db.configured ? <DatabaseHeaderStats total={db.tree.size} files={db.tree.files} root={db.root} /> : t('The brain folder, block by block')}
         />
         {db.configured ? (
           <DatabaseG initial={{ root: db.root, tree: db.tree, scannedAt: db.scannedAt, truncated: db.truncated }} />
@@ -31,10 +32,10 @@ export default function DatabasePage() {
           <GCard p={24}>
             <GEmpty
               kind="unconfigured"
-              title="No brain folder found on this machine"
-              body={`Looked in ${db.tried.join(' and ')}. Set BRAIN_DIR in .env.local to point at it.`}
+              title={t('No brain folder found on this machine')}
+              body={t('Looked in {paths}. Set BRAIN_DIR in .env.local to point at it.', { paths: db.tried.join(t(' and ')) })}
               setupHref="/setup"
-              setupHint="Set BRAIN_DIR to the brain folder's path"
+              setupHint={t("Set BRAIN_DIR to the brain folder's path")}
             />
           </GCard>
         )}
@@ -43,17 +44,17 @@ export default function DatabasePage() {
   }
   return (
     <div>
-      <PageHeader title="Brain files" eyebrow="The brain folder, block by block" />
+      <PageHeader title={t('Brain files')} eyebrow={t('The brain folder, block by block')} />
       {db.configured ? (
         <DatabaseExplorer initial={{ root: db.root, tree: db.tree, scannedAt: db.scannedAt, truncated: db.truncated }} />
       ) : (
         <div className="rounded-[12px] border border-[var(--hairline)] bg-os-surface p-5">
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-[var(--hairline)] px-2 py-[2px] text-[11px] text-os-muted">Not configured</span>
-            <span className="text-[13px] text-os-text">No brain folder found on this machine.</span>
-            <SetupLink href="/setup" hint="Set BRAIN_DIR to the brain folder's path" />
+            <span className="rounded-full border border-[var(--hairline)] px-2 py-[2px] text-[11px] text-os-muted">{t('Not configured')}</span>
+            <span className="text-[13px] text-os-text">{t('No brain folder found on this machine.')}</span>
+            <SetupLink href="/setup" hint={t("Set BRAIN_DIR to the brain folder's path")} />
           </div>
-          <p className="mt-2 text-[12.5px] text-os-muted">Looked in {db.tried.join(' and ')}. Set BRAIN_DIR in .env.local to point at it.</p>
+          <p className="mt-2 text-[12.5px] text-os-muted">{t('Looked in {paths}. Set BRAIN_DIR in .env.local to point at it.', { paths: db.tried.join(t(' and ')) })}</p>
         </div>
       )}
     </div>

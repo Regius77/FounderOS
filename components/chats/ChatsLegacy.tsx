@@ -15,6 +15,7 @@ import { Badge, Chip, ConductorEmblem, Dot, Kbd, LAvatar, LSampleChip, LSkeleton
 import { relativeTime } from '@/lib/wizard/helpers';
 import type { ChatsView } from '@/lib/chats-view';
 import { useChats, WIZARD, type ChatsState } from './useChats';
+import { t } from '@/lib/i18n';
 
 export function ChatsLegacy({ view, initialView }: { view: ChatsView; initialView: 'rail' | 'thread' }) {
   const c = useChats(view, { initialView });
@@ -22,11 +23,11 @@ export function ChatsLegacy({ view, initialView }: { view: ChatsView; initialVie
     <div data-l="ChatsLegacy" className="l-page l-ch-page">
       <div className="l-ch-title l-rise" style={{ ['--l-rise-i' as string]: 0 }}>
         <div className="min-w-0">
-          <div className="l-eyebrow">{'// Every conversation'}</div>
-          <h1 className="l-ch-h1">Chats</h1>
+          <div className="l-eyebrow">{t('// Every conversation')}</div>
+          <h1 className="l-ch-h1">{t('Chats')}</h1>
         </div>
         {view.sample && (
-          <span title={view.mode === 'filming' ? 'Sample data: Filming threads' : 'Sample data: sample threads (?sample=1)'}>
+          <span title={view.mode === 'filming' ? t('Sample data: Filming threads') : t('Sample data: sample threads (?sample=1)')}>
             <LSampleChip />
           </span>
         )}
@@ -55,13 +56,13 @@ function Rail({ c }: { c: ChatsState }) {
   return (
     <aside className="l-ch-rail">
       <div className="l-ch-rail-head">
-        <span className="l-ch-label">{c.picking ? 'New chat' : 'Conversations'}</span>
+        <span className="l-ch-label">{c.picking ? t('New chat') : t('Conversations')}</span>
         {c.picking ? (
-          <Pressable tone="ghost" className="l-btn-icon-xs" onClick={() => c.setPicking(false)} aria-label="Back to conversations" title="Back to conversations (Esc)">
+          <Pressable tone="ghost" className="l-btn-icon-xs" onClick={() => c.setPicking(false)} aria-label={t('Back to conversations')} title={t('Back to conversations (Esc)')}>
             <ArrowLeft size={12} strokeWidth={1.7} aria-hidden />
           </Pressable>
         ) : (
-          <Pressable tone="ghost" className="l-btn-icon-xs l-ch-wide-only" onClick={c.toggleRail} aria-label="Collapse the conversation list">
+          <Pressable tone="ghost" className="l-btn-icon-xs l-ch-wide-only" onClick={c.toggleRail} aria-label={t('Collapse the conversation list')}>
             <PanelLeftClose size={12} strokeWidth={1.7} aria-hidden />
           </Pressable>
         )}
@@ -79,12 +80,12 @@ function Rail({ c }: { c: ChatsState }) {
                 c.setSearch('');
               }
             }}
-            placeholder={c.picking ? 'search agents' : 'search threads'}
-            aria-label={c.picking ? 'Search agents' : 'Search threads'}
+            placeholder={c.picking ? t('search agents') : t('search threads')}
+            aria-label={c.picking ? t('Search agents') : t('Search threads')}
           />
         </label>
         {!c.picking && (
-          <Pressable tone="ghost" className="l-btn-icon-sm l-ch-new" onClick={startNew} aria-label="New chat" aria-expanded={c.picking} title="New chat">
+          <Pressable tone="ghost" className="l-btn-icon-sm l-ch-new" onClick={startNew} aria-label={t('New chat')} aria-expanded={c.picking} title={t('New chat')}>
             <Plus size={13} strokeWidth={1.8} aria-hidden />
           </Pressable>
         )}
@@ -92,14 +93,14 @@ function Rail({ c }: { c: ChatsState }) {
       <div className="l-ch-rail-list">
         {c.picking ? (
           c.roster.length > 0 ? (
-            <ul aria-label="Agents without a thread">
+            <ul aria-label={t('Agents without a thread')}>
               {c.roster.map((r) => (
                 <li key={r.id}>
                   <Pressable tone="row" className="l-ch-row" onClick={() => c.select(r.id)}>
                     <Face id={r.id} src={r.avatar} name={r.name} size={26} />
                     <span className="min-w-0 flex-1">
                       <span className="l-ch-row-name">{r.name}</span>
-                      <span className="l-ch-row-sub">{r.description || 'Agent'}</span>
+                      <span className="l-ch-row-sub">{r.description || t('Agent')}</span>
                     </span>
                   </Pressable>
                 </li>
@@ -107,38 +108,38 @@ function Rail({ c }: { c: ChatsState }) {
             </ul>
           ) : c.rosterTotal === 0 && c.view.agentCount === 0 ? (
             <p className="l-ch-note">
-              No agents yet.{' '}
+              {t('No agents yet.')}{' '}
               <Link href="/agents" className="l-link">
-                Open Agents
+                {t('Open Agents')}
               </Link>
             </p>
           ) : (
-            <p className="l-ch-note">{c.rosterTotal === 0 ? 'Every agent already has a thread.' : 'No agent matches that search.'}</p>
+            <p className="l-ch-note">{c.rosterTotal === 0 ? t('Every agent already has a thread.') : t('No agent matches that search.')}</p>
           )
         ) : (
           <>
-            <ul aria-label="Conversations">
-              {c.threads.map((t) => (
-                <li key={t.agentId}>
-                  <Pressable tone="row" kind="r" className="l-ch-row" aria-pressed={t.agentId === c.selected} onClick={() => c.select(t.agentId)}>
+            <ul aria-label={t('Conversations')}>
+              {c.threads.map((th) => (
+                <li key={th.agentId}>
+                  <Pressable tone="row" kind="r" className="l-ch-row" aria-pressed={th.agentId === c.selected} onClick={() => c.select(th.agentId)}>
                     <span className="l-ch-row-led" aria-hidden>
-                      <Dot state={t.agentId === WIZARD || t.messageCount > 0 ? 'ok' : 'off'} />
+                      <Dot state={th.agentId === WIZARD || th.messageCount > 0 ? 'ok' : 'off'} />
                     </span>
-                    <Face id={t.agentId} src={t.avatar} name={t.name} size={24} />
+                    <Face id={th.agentId} src={th.avatar} name={th.name} size={24} />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
-                        <span className="l-ch-row-name">{t.name}</span>
-                        {t.pinned && <span className="l-ch-pin">pinned</span>}
-                        {t.lastAt && <span className="l-ch-time">{relativeTime(t.lastAt, c.now)}</span>}
+                        <span className="l-ch-row-name">{th.name}</span>
+                        {th.pinned && <span className="l-ch-pin">{t('pinned')}</span>}
+                        {th.lastAt && <span className="l-ch-time">{relativeTime(th.lastAt, c.now)}</span>}
                       </span>
-                      <span className="l-ch-row-sub">{t.lastMessage ?? (t.pinned ? t.role : 'No messages yet')}</span>
+                      <span className="l-ch-row-sub">{th.lastMessage ?? (th.pinned ? th.role : t('No messages yet'))}</span>
                     </span>
                   </Pressable>
                 </li>
               ))}
             </ul>
-            {empty && <p className="l-ch-note">No direct chats yet. Hit New chat and pick an agent.</p>}
-            {!empty && c.threads.length === 0 && <p className="l-ch-note">No threads match that search.</p>}
+            {empty && <p className="l-ch-note">{t('No direct chats yet. Hit New chat and pick an agent.')}</p>}
+            {!empty && c.threads.length === 0 && <p className="l-ch-note">{t('No threads match that search.')}</p>}
           </>
         )}
       </div>
@@ -149,14 +150,14 @@ function Rail({ c }: { c: ChatsState }) {
 function Strip({ c }: { c: ChatsState }) {
   return (
     <aside className="l-ch-strip">
-      <Pressable tone="ghost" className="l-btn-icon-sm" onClick={c.toggleRail} aria-label="Show the conversation list">
+      <Pressable tone="ghost" className="l-btn-icon-sm" onClick={c.toggleRail} aria-label={t('Show the conversation list')}>
         <PanelLeftOpen size={13} strokeWidth={1.7} aria-hidden />
       </Pressable>
-      <ul aria-label="Conversations" className="flex flex-col items-center gap-2">
-        {c.threads.map((t) => (
-          <li key={t.agentId}>
-            <Pressable tone="ghost" className="l-ch-strip-btn" title={t.name} aria-label={`Open ${t.name}`} aria-pressed={t.agentId === c.selected} onClick={() => c.select(t.agentId)}>
-              <Face id={t.agentId} src={t.avatar} name={t.name} size={26} />
+      <ul aria-label={t('Conversations')} className="flex flex-col items-center gap-2">
+        {c.threads.map((th) => (
+          <li key={th.agentId}>
+            <Pressable tone="ghost" className="l-ch-strip-btn" title={th.name} aria-label={t('Open {name}', { name: th.name })} aria-pressed={th.agentId === c.selected} onClick={() => c.select(th.agentId)}>
+              <Face id={th.agentId} src={th.avatar} name={th.name} size={26} />
             </Pressable>
           </li>
         ))}
@@ -179,12 +180,12 @@ function Thread({ c }: { c: ChatsState }) {
   const composer = c.view.composer;
   const nothing = c.status === 'ready' && c.messages.length === 0 && c.pending.length === 0 && c.routed.length === 0;
   const submit = () => c.send(c.draft);
-  const modelText = c.view.model.state === 'configured' ? 'model ready' : 'model not configured';
+  const modelText = c.view.model.state === 'configured' ? t('model ready') : t('model not configured');
 
   return (
-    <section className="l-ch-thread" aria-label={`Conversation with ${h.name}`}>
+    <section className="l-ch-thread" aria-label={t('Conversation with {name}', { name: h.name })}>
       <header className="l-ch-head">
-        <Pressable tone="ghost" className="l-btn-icon-sm l-ch-narrow-only" onClick={c.back} aria-label="Back to conversations">
+        <Pressable tone="ghost" className="l-btn-icon-sm l-ch-narrow-only" onClick={c.back} aria-label={t('Back to conversations')}>
           <ArrowLeft size={14} strokeWidth={1.7} aria-hidden />
         </Pressable>
         <Face id={h.agentId} src={h.avatar} name={h.name} size={36} />
@@ -192,16 +193,16 @@ function Thread({ c }: { c: ChatsState }) {
           <div className="flex flex-wrap items-center gap-2">
             <Dot state={h.wizard ? (c.view.model.state === 'configured' ? 'ok' : 'warn') : 'ok'} />
             <span className="l-ch-name">{h.name}</span>
-            <Chip>{h.wizard ? `board · ${modelText}` : 'direct line'}</Chip>
+            <Chip>{h.wizard ? t('board · {model}', { model: modelText }) : t('direct line')}</Chip>
           </div>
           <p className="l-ch-role">
             {h.wizard
-              ? `your conductor · hands each message to the agent best placed to answer${h.projectName ? ` · latest project ${h.projectName}` : ''}`
-              : `${h.role || 'agent'} · can read your data here, not change it`}
+              ? `${t('your conductor · hands each message to the agent best placed to answer')}${h.projectName ? t(' · latest project {name}', { name: h.projectName }) : ''}`
+              : t('{role} · can read your data here, not change it', { role: h.role || t('agent') })}
           </p>
         </div>
         <Pressable href={h.wizard ? '/wizard' : `/agents?agent=${encodeURIComponent(h.agentId)}`} className="l-ch-open">
-          {h.wizard ? 'Open Wizard' : 'Open agent'}
+          {h.wizard ? t('Open Wizard') : t('Open agent')}
         </Pressable>
       </header>
 
@@ -209,23 +210,23 @@ function Thread({ c }: { c: ChatsState }) {
         {c.status === 'loading' && c.messages.length === 0 && <LSkeleton lines={3} />}
         {c.status === 'error' && (
           <div className="l-ch-alert" role="alert">
-            <Dot state="err" /> {c.error ?? 'Could not load the thread.'}
+            <Dot state="err" /> {c.error ?? t('Could not load the thread.')}
             <Pressable onClick={c.reload}>
-              <RotateCcw size={11} strokeWidth={1.8} aria-hidden /> Retry
+              <RotateCcw size={11} strokeWidth={1.8} aria-hidden /> {t('Retry')}
             </Pressable>
           </div>
         )}
         {nothing && (
           <div className="l-ch-empty">
-            <p className="l-lead">{h.wizard ? 'No Wizard conversation yet' : `No messages with ${h.name} yet`}</p>
-            <p className="l-caption">{h.wizard ? 'Your latest Wizard project shows here. Ask below and the Wizard routes it.' : 'Ask what it can see. It reads its connectors to answer.'}</p>
+            <p className="l-lead">{h.wizard ? t('No Wizard conversation yet') : t('No messages with {name} yet', { name: h.name })}</p>
+            <p className="l-caption">{h.wizard ? t('Your latest Wizard project shows here. Ask below and the Wizard routes it.') : t('Ask what it can see. It reads its connectors to answer.')}</p>
           </div>
         )}
         <div className="flex flex-col gap-4">
           {c.messages.map((m) =>
             m.role === 'tool' ? (
               <div key={m.id} className="l-ch-tool">
-                <Wrench size={11} strokeWidth={1.7} aria-hidden /> read {m.tools.join(', ') || 'a tool'}
+                <Wrench size={11} strokeWidth={1.7} aria-hidden /> {t('read {tools}', { tools: m.tools.join(', ') || t('a tool') })}
               </div>
             ) : m.role === 'user' ? (
               <div key={m.id} className="flex justify-end">
@@ -256,9 +257,9 @@ function Thread({ c }: { c: ChatsState }) {
                 <div className="min-w-0">
                   <p>{r.reply}</p>
                   <span className="l-ch-stamp">
-                    Answered by {r.routedName}{' '}
+                    {t('Answered by {name}', { name: r.routedName })}{' '}
                     <button type="button" className="l-link" onClick={() => c.select(r.routedTo)}>
-                      Open thread
+                      {t('Open thread')}
                     </button>
                   </span>
                 </div>
@@ -270,19 +271,19 @@ function Thread({ c }: { c: ChatsState }) {
               <div className="flex justify-end">
                 <div className="l-ch-bubble" data-state={p.state}>
                   <p>{p.text}</p>
-                  {p.state === 'sending' && <span className="l-ch-stamp">sending</span>}
+                  {p.state === 'sending' && <span className="l-ch-stamp">{t('sending')}</span>}
                 </div>
               </div>
               {p.state === 'sending' ? (
                 <div className="l-ch-reply items-center">
                   <ConductorEmblem size={24} thinking={h.wizard} />
-                  <span className="l-caption mt-0">Thinking</span>
+                  <span className="l-caption mt-0">{t('Thinking')}</span>
                 </div>
               ) : (
                 <div className="l-ch-alert" role="alert">
-                  <Dot state="err" /> Not sent. {p.error}
+                  <Dot state="err" /> {t('Not sent.')} {p.error}
                   <Pressable onClick={() => c.retry(p.key)}>
-                    <RotateCcw size={11} strokeWidth={1.8} aria-hidden /> Retry
+                    <RotateCcw size={11} strokeWidth={1.8} aria-hidden /> {t('Retry')}
                   </Pressable>
                 </div>
               )}
@@ -292,10 +293,10 @@ function Thread({ c }: { c: ChatsState }) {
       </div>
 
       <div className="l-ch-foot">
-        {composer.reason === 'not_configured' && <LUnconfigured what="The model key agent chat uses" href={c.view.model.setupHref} hint="Add the AI Gateway key the agent chat uses" />}
+        {composer.reason === 'not_configured' && <LUnconfigured what={t('The model key agent chat uses')} href={c.view.model.setupHref} hint={t('Add the AI Gateway key the agent chat uses')} />}
         {composer.reason === 'sample' && (
           <p className="l-ch-note">
-            <Badge tone="warn">Sample</Badge> Sample threads. Sending is off in this preview.
+            <Badge tone="warn">{t('Sample')}</Badge> {t('Sample threads. Sending is off in this preview.')}
           </p>
         )}
         <div data-l="Composer" className="l-ch-composer" data-disabled={!composer.enabled || undefined}>
@@ -304,8 +305,8 @@ function Thread({ c }: { c: ChatsState }) {
             value={c.draft}
             rows={1}
             disabled={!composer.enabled}
-            aria-label={`Message ${h.name}`}
-            placeholder={`Message ${h.wizard ? 'the Wizard' : h.name}…`}
+            aria-label={t('Message {name}', { name: h.name })}
+            placeholder={t('Message {name}…', { name: h.wizard ? t('the Wizard') : h.name })}
             onChange={(e) => {
               c.setDraft(e.target.value);
               e.target.style.height = 'auto';
@@ -322,11 +323,11 @@ function Thread({ c }: { c: ChatsState }) {
             <span className="l-ch-hint">
               {composer.enabled ? (
                 <>
-                  <Kbd size="sm">Enter</Kbd> sends · <Kbd size="sm">Shift+Enter</Kbd> breaks
+                  <Kbd size="sm">Enter</Kbd> {t('sends')} · <Kbd size="sm">Shift+Enter</Kbd> {t('breaks')}
                 </>
               ) : null}
             </span>
-            <Pressable tone="ghost" className="l-btn-icon-sm l-ch-send" onClick={submit} disabled={!composer.enabled || c.busy || !c.draft.trim()} aria-label="Send">
+            <Pressable tone="ghost" className="l-btn-icon-sm l-ch-send" onClick={submit} disabled={!composer.enabled || c.busy || !c.draft.trim()} aria-label={t('Send')}>
               <ArrowUp size={14} strokeWidth={2} aria-hidden />
             </Pressable>
           </div>

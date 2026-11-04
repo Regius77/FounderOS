@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 
 /**
@@ -55,7 +56,7 @@ export function TickGauge({ value, max = 90, ticks = 30, label }: { value: numbe
 
 export function DriverBars({ drivers, top = 3, max = 10 }: { drivers: Record<string, number>; top?: number; max?: number }) {
   const entries = Object.entries(drivers).sort((a, b) => b[1] - a[1]).slice(0, Math.max(top, 5));
-  if (entries.length === 0) return <div className="ae-faint">no driver data</div>;
+  if (entries.length === 0) return <div className="ae-faint">{t('no driver data')}</div>;
   return (
     <div className="space-y-1.5">
       {entries.map(([k, v], i) => (
@@ -121,12 +122,12 @@ export function ErrorLine({ text }: { text: string }) {
 }
 
 export function ago(iso: string | null): string {
-  if (!iso) return 'never';
+  if (!iso) return t('never');
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} min ago`;
-  if (mins < 60 * 36) return `${Math.round(mins / 60)} h ago`;
-  return `${Math.round(mins / 1440)} d ago`;
+  if (mins < 1) return t('just now');
+  if (mins < 60) return t('{n} min ago', { n: mins });
+  if (mins < 60 * 36) return t('{n} h ago', { n: Math.round(mins / 60) });
+  return t('{n} d ago', { n: Math.round(mins / 1440) });
 }
 
 export function fmtMs(ms: number): string {

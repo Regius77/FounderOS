@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { CountUp } from './CountUp';
 import { Chip } from './Status';
 import { isKnown, type CountKind, type StatChip } from './format';
+import { t } from '@/lib/i18n';
 
 /**
  * The 50px headline number, status chips beside it, a caption under it (FO
@@ -29,7 +30,7 @@ export function BigStat({
     <div data-l="BigStat">
       <div className="l-bigstat-row">
         <span className={size === 50 ? 'l-bigstat' : 'l-bigstat is-small'}>
-          {display != null ? display : isKnown(value) ? <CountUp value={value} kind={kind} /> : <span data-unknown className="l-unknown">unknown</span>}
+          {display != null ? display : isKnown(value) ? <CountUp value={value} kind={kind} /> : <span data-unknown className="l-unknown">{t('unknown')}</span>}
           {unit && <span className="l-bigstat-unit">{unit}</span>}
         </span>
         {chips.map((c) => (

@@ -7,10 +7,11 @@ import type { DmThread } from '@/lib/social';
 import { InstagramDmInbox } from '@/components/InstagramDmInbox';
 import { seriesColor } from '@/lib/series';
 import { channelsNetChange, netChange, seriesWindow, windowPoints } from '@/lib/social-range';
+import { localeTag, t } from '@/lib/i18n';
 
 type Range = 7 | 30 | 60 | 'all';
 const RANGES: Range[] = [7, 30, 60, 'all'];
-const RANGE_LABEL: Record<string, string> = { '7': '7d', '30': '30d', '60': '60d', all: 'All' };
+const RANGE_LABEL: Record<string, string> = { '7': t('7d'), '30': t('30d'), '60': t('60d'), all: t('All') };
 const RANGE_KEY: Record<string, keyof SocialGrowth> = { '7': 'd7', '30': 'd30', '60': 'd60', all: 'allTime' };
 
 type SeriesPoint = { date: string; value: number };
@@ -23,7 +24,7 @@ function fmtPct(n: number | null): string {
   return `${n >= 0 ? '+' : ''}${r}%`;
 }
 function fmtNum(n: number | null): string {
-  return n === null ? '—' : n.toLocaleString('en-US');
+  return n === null ? '—' : n.toLocaleString(localeTag());
 }
 function pctClass(n: number | null): string {
   return n === null ? 'text-os-muted' : n >= 0 ? 'text-os-ok' : 'text-os-err';
@@ -71,7 +72,7 @@ function LineChart({ series, range }: { series: LabelledSeries[]; range: Range }
   const pad = { l: 8, r: 8, t: 14, b: 18 };
   const ranged = series.map((s) => ({ ...s, points: inRange(s.points, range) }));
   const allPts = ranged.flatMap((s) => s.points);
-  if (allPts.length === 0) return <div className="py-16 text-center font-mono text-xs text-os-dim">no history in range</div>;
+  if (allPts.length === 0) return <div className="py-16 text-center font-mono text-xs text-os-dim">{t('no history in range')}</div>;
 
   const dates = [...new Set(allPts.map((p) => p.date))].sort();
   const xByDate = new Map(dates.map((d, i) => [d, i]));
@@ -142,7 +143,7 @@ function StatPopout({
   }, [metric]);
 
   const shown = useMemo(() => (data ?? []).filter((s) => active.has(s.key)), [data, active]);
-  const title = metric === 'audience' ? 'Audience growth' : 'Total DMs';
+  const title = metric === 'audience' ? t('Audience growth') : t('Total DMs');
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-os-bg/70 p-6 backdrop-blur-sm" onClick={onClose}>
@@ -162,7 +163,7 @@ function StatPopout({
 
         <div className="p-5">
           {data === null ? (
-            <div className="py-20 text-center text-[12.5px] text-os-dim">Loading history…</div>
+            <div className="py-20 text-center text-[12.5px] text-os-dim">{t('Loading history…')}</div>
           ) : (
             <>
               {metric === 'audience' && (
@@ -215,10 +216,10 @@ function StatPopout({
                     </div>
                   );
                 })}
-                {shown.length === 0 && <div className="text-[12.5px] text-os-dim">Select a series to plot</div>}
+                {shown.length === 0 && <div className="text-[12.5px] text-os-dim">{t('Select a series to plot')}</div>}
               </div>
               <p className="mt-5 text-[12px] text-os-dim">
-                {RANGE_LABEL[String(range)]} window · {metric === 'dms' ? 'DM totals are seeded dummy until a source is wired' : 'email tracks the real Beehiiv subscriber count (the Newsletter)'}
+                {t('{range} window', { range: RANGE_LABEL[String(range)] })} · {metric === 'dms' ? t('DM totals are seeded dummy until a source is wired') : t('email tracks the real Beehiiv subscriber count (the Newsletter)')}
               </p>
             </>
           )}
@@ -287,7 +288,7 @@ function DmInboxPopout({ threads, nowMs, onClose }: { threads: DmThread[]; nowMs
         <div className="flex items-center justify-between border-b border-os-border px-5 py-3.5">
           <div className="flex items-center gap-3">
             <MessageSquare className="h-4 w-4 text-os-muted" />
-            <h2 className="text-[15px] font-medium">Instagram DMs</h2>
+            <h2 className="text-[15px] font-medium">{t('Instagram DMs')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -316,18 +317,18 @@ function DmTile({ unreplied, total, onOpen }: { unreplied: number; total: number
       className="hoverable group flex cursor-pointer flex-col gap-1 rounded-lg-t border border-os-border bg-os-surface px-4 py-3 text-left"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[12.5px] text-os-muted">Instagram DMs</span>
+        <span className="text-[12.5px] text-os-muted">{t('Instagram DMs')}</span>
         <ArrowUpRight className="h-3 w-3 text-os-dim opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="flex items-center gap-2 text-[30px] font-normal leading-none tracking-[-0.01em] tabular-nums">
           {unreplied > 0 && <span className="dot warn" />}
-          {unreplied > 0 ? `${unreplied} to reply` : `${total} threads`}
+          {unreplied > 0 ? t('{n} to reply', { n: unreplied }) : t('{n} threads', { n: total })}
         </span>
-        <span className="min-w-0 truncate text-[11.5px] text-os-dim">{total} conversations</span>
+        <span className="min-w-0 truncate text-[11.5px] text-os-dim">{t('{n} conversations', { n: total })}</span>
       </div>
       <span className="flex items-center gap-2.5 text-[12px] text-os-dim">
-        <MessageSquare className="h-3 w-3" /> Open inbox · reply here
+        <MessageSquare className="h-3 w-3" /> {t('Open inbox · reply here')}
       </span>
     </div>
   );
@@ -356,26 +357,26 @@ export function SocialStatStrip({
 
   const audPct = audienceGrowth[RANGE_KEY[String(audRange)]];
   const dmPct = dmGrowth[RANGE_KEY[String(dmRange)]];
-  const unreplied = dmThreads.filter((t) => t.unreplied).length;
+  const unreplied = dmThreads.filter((thread) => thread.unreplied).length;
 
   return (
     <>
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total reach — static (design package) */}
         <div className="flex flex-col gap-1 rounded-lg-t border border-os-border bg-os-surface px-4 py-3">
-          <span className="text-[12.5px] text-os-muted">Total reach</span>
+          <span className="text-[12.5px] text-os-muted">{t('Total reach')}</span>
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[30px] font-normal leading-none tracking-[-0.01em] tabular-nums">{fmtNum(audienceTotal)}</span>
-            <span className="min-w-0 truncate text-[11.5px] text-os-dim">{platformsCount} platforms + email</span>
+            <span className="min-w-0 truncate text-[11.5px] text-os-dim">{t('{n} platforms + email', { n: platformsCount })}</span>
           </div>
         </div>
 
         {/* Audience growth — interactive (kept exactly) */}
         <MetricTile
-          label="Audience growth"
+          label={t('Audience growth')}
           headline={fmtPct(audPct)}
           headlineClass={pctClass(audPct)}
-          sub={`${fmtNum(audienceTotal)} total audience`}
+          sub={t('{n} total audience', { n: fmtNum(audienceTotal) })}
           range={audRange}
           onRange={setAudRange}
           onOpen={() => setPopout('audience')}
@@ -383,7 +384,7 @@ export function SocialStatStrip({
 
         {/* Total DMs — interactive (kept exactly) */}
         <MetricTile
-          label="Total DMs"
+          label={t('Total DMs')}
           headline={fmtNum(totalDms)}
           sub={
             <span className="flex items-center gap-1">

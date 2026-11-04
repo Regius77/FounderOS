@@ -17,6 +17,7 @@ import {
 import { formatFull } from '@/lib/format-number';
 import { fmtDay } from '@/lib/social-view';
 import { channelVizColor } from '@/components/social/channel';
+import { t } from '@/lib/i18n';
 
 export type AnalyticsTileG = {
   id: string;
@@ -63,23 +64,23 @@ export function AnalyticsG(p: AnalyticsGProps) {
       <GSectionHeader
         size="page"
         title="Analytics"
-        caption="Operating metrics"
-        action={<GTag tone="accent" title="Live connector reads and metrics still waiting on a key">{p.liveCount} live · {p.pendingCount} pending</GTag>}
+        caption={t('Operating metrics')}
+        action={<GTag tone="accent" title={t('Live connector reads and metrics still waiting on a key')}>{t('{live} live · {pending} pending', { live: p.liveCount, pending: p.pendingCount })}</GTag>}
       />
 
       {/* Live tiles (F16, F17) */}
       {tiles.length > 0 && (
         <div className="an-g-tiles">
-          {tiles.map((t) => (
-            <GCard key={t.id} p={20} href={t.href} className="an-g-tile" title={`${t.label}: ${t.source}`}>
-              <span className="an-g-tile-label">{t.label}</span>
+          {tiles.map((tile) => (
+            <GCard key={tile.id} p={20} href={tile.href} className="an-g-tile" title={`${tile.label}: ${tile.source}`}>
+              <span className="an-g-tile-label">{tile.label}</span>
               <span className="an-g-tile-value">
-                <span className="soc-g-num">{t.value}</span>
-                {t.unit && <span className="soc-g-cap">{t.unit}</span>}
+                <span className="soc-g-num">{tile.value}</span>
+                {tile.unit && <span className="soc-g-cap">{tile.unit}</span>}
               </span>
               <span className="an-g-tile-foot">
-                {t.change ? <GDelta cur={t.change.cur} prev={t.change.prev} window={t.change.window} /> : <span className="soc-g-cap">{t.note ?? t.source}</span>}
-                {t.spark && t.spark.length > 1 && <GSparkline values={t.spark} label={`${t.label}, last ${t.spark.length} points`} color="accent" width={96} height={26} />}
+                {tile.change ? <GDelta cur={tile.change.cur} prev={tile.change.prev} window={tile.change.window} /> : <span className="soc-g-cap">{tile.note ?? tile.source}</span>}
+                {tile.spark && tile.spark.length > 1 && <GSparkline values={tile.spark} label={t('{label}, last {n} points', { label: tile.label, n: tile.spark.length })} color="accent" width={96} height={26} />}
               </span>
             </GCard>
           ))}
@@ -89,36 +90,36 @@ export function AnalyticsG(p: AnalyticsGProps) {
       {/* Distribution (F18) */}
       {(audience.total > 0 || runs.total > 0) && (
         <section className="soc-g-sec" aria-labelledby="an-g-dist">
-          <GSectionHeader id="an-g-dist" size={22} title="Distribution" caption="Share of each total" />
+          <GSectionHeader id="an-g-dist" size={22} title={t('Distribution')} caption={t('Share of each total')} />
           <div className="an-g-dist">
             {audience.total > 0 && (
               <GCard p={24} className="an-g-card">
-                <GSectionHeader size={22} title="Audience share" caption={`${formatFull(audience.total)} total audience`} />
-                <GDonut slices={audience.slices} size={150} formatValue={formatFull} centreLabel="total audience" label="Audience share by channel" />
+                <GSectionHeader size={22} title={t('Audience share')} caption={t('{n} total audience', { n: formatFull(audience.total) })} />
+                <GDonut slices={audience.slices} size={150} formatValue={formatFull} centreLabel={t('total audience')} label={t('Audience share by channel')} />
               </GCard>
             )}
             {runs.total > 0 && (
               <GCard p={24} className="an-g-card">
-                <GSectionHeader size={22} title="Runs by agent" caption={`${formatFull(runs.total)} runs, ${runs.scope}`} />
-                <GDonut slices={runs.byAgent} size={150} formatValue={formatFull} centreLabel="runs" label={`Agent runs by agent, ${runs.scope}`} />
+                <GSectionHeader size={22} title={t('Runs by agent')} caption={t('{n} runs, {scope}', { n: formatFull(runs.total), scope: runs.scope })} />
+                <GDonut slices={runs.byAgent} size={150} formatValue={formatFull} centreLabel={t('runs')} label={t('Agent runs by agent, {scope}', { scope: runs.scope })} />
               </GCard>
             )}
             {runs.total > 0 && (
               <GCard p={24} className="an-g-card" aria-labelledby="an-g-outcomes">
-                <GSectionHeader id="an-g-outcomes" size={22} title="Run outcomes" caption={runs.scope.charAt(0).toUpperCase() + runs.scope.slice(1)} />
+                <GSectionHeader id="an-g-outcomes" size={22} title={t('Run outcomes')} caption={runs.scope.charAt(0).toUpperCase() + runs.scope.slice(1)} />
                 <div className="an-g-outcome">
-                  <span className="soc-g-num">{okPct}% succeeded</span>
+                  <span className="soc-g-num">{t('{pct}% succeeded', { pct: okPct })}</span>
                   <GBar
-                    label={`${formatFull(runs.ok)} succeeded, ${formatFull(failed)} failed`}
+                    label={t('{ok} succeeded, {failed} failed', { ok: formatFull(runs.ok), failed: formatFull(failed) })}
                     segments={[
-                      { value: runs.ok, tone: 'ok', label: `${formatFull(runs.ok)} succeeded` },
-                      ...(failed > 0 ? [{ value: failed, tone: 'err' as const, label: `${formatFull(failed)} failed` }] : []),
+                      { value: runs.ok, tone: 'ok', label: t('{n} succeeded', { n: formatFull(runs.ok) }) },
+                      ...(failed > 0 ? [{ value: failed, tone: 'err' as const, label: t('{n} failed', { n: formatFull(failed) }) }] : []),
                     ]}
                   />
-                  <span className="soc-g-cap">{formatFull(failed)} failed of {formatFull(runs.total)}</span>
+                  <span className="soc-g-cap">{t('{failed} failed of {total}', { failed: formatFull(failed), total: formatFull(runs.total) })}</span>
                 </div>
                 {runs.recentFailures.length > 0 && (
-                  <GList divided label="Most recent failures">
+                  <GList divided label={t('Most recent failures')}>
                     {runs.recentFailures.map((f) => <GRow key={f.id} title={f.agent} trailing={<span className="soc-g-cap">{fmtDay(f.at.slice(0, 10))}</span>} />)}
                   </GList>
                 )}
@@ -133,52 +134,52 @@ export function AnalyticsG(p: AnalyticsGProps) {
           next to a tall list. */}
       <div className="an-g-pair" data-volume={runs.windowRuns === 0 ? 'empty' : undefined}>
         <GCard p={24} className="an-g-card" aria-labelledby="an-g-volume">
-          <GSectionHeader id="an-g-volume" size={22} title="Agent run volume" caption={`${formatFull(runs.windowRuns)} runs in the last 14 days`} />
+          <GSectionHeader id="an-g-volume" size={22} title={t('Agent run volume')} caption={t('{n} runs in the last 14 days', { n: formatFull(runs.windowRuns) })} />
           {runs.windowRuns === 0 ? (
             <p className="soc-g-cap an-g-volume-empty" data-run-volume-empty="">
-              {runs.total === 0 ? 'No agent runs recorded yet.' : 'No runs in the last 14 days.'}
-              {runs.lastRunAt ? ` Last run ${fmtDay(runs.lastRunAt.slice(0, 10))}.` : ''}
+              {runs.total === 0 ? t('No agent runs recorded yet.') : t('No runs in the last 14 days.')}
+              {runs.lastRunAt ? ` ${t('Last run {date}.', { date: fmtDay(runs.lastRunAt.slice(0, 10)) })}` : ''}
             </p>
           ) : (
             <GAreaChart
               labels={runs.volume.map((d) => fmtDay(d.date))}
-              series={[{ id: 'runs', label: 'Runs', values: runs.volume.map((d) => d.count), color: 'accent' }]}
+              series={[{ id: 'runs', label: t('Runs'), values: runs.volume.map((d) => d.count), color: 'accent' }]}
               height={170}
               formatValue={formatFull}
-              label="Agent runs per day, last 14 days"
+              label={t('Agent runs per day, last 14 days')}
             />
           )}
         </GCard>
         <GCard p={24} className="an-g-card" aria-labelledby="an-g-pending">
-          <GSectionHeader id="an-g-pending" size={22} title="Awaiting credentials" caption={pending.length === 0 ? 'Every connector is live' : `${pending.length} metrics need a key`} />
+          <GSectionHeader id="an-g-pending" size={22} title={t('Awaiting credentials')} caption={pending.length === 0 ? t('Every connector is live') : t('{n} metrics need a key', { n: pending.length })} />
           {pending.length > 0 && (
-            <GList divided label="Metrics awaiting credentials">
+            <GList divided label={t('Metrics awaiting credentials')}>
               {pending.map((m) => (
-                <GRow key={m.id} title={m.label} meta={m.source} trailing={<GButton size="sm" href={m.setupHref} title={`Connect ${m.source}`}>Set up</GButton>} />
+                <GRow key={m.id} title={m.label} meta={m.source} trailing={<GButton size="sm" href={m.setupHref} title={t('Connect {source}', { source: m.source })}>{t('Set up')}</GButton>} />
               ))}
             </GList>
           )}
-          <GButton href="/integrations" className="an-g-open">Open integrations</GButton>
+          <GButton href="/integrations" className="an-g-open">{t('Open integrations')}</GButton>
         </GCard>
       </div>
 
       {/* Audience by platform (F21) */}
       {platforms.length > 0 && (
         <section className="soc-g-sec" aria-labelledby="an-g-platforms">
-          <GSectionHeader id="an-g-platforms" size={22} title="Audience by platform" action={<GButton size="sm" href="/social">Open Social</GButton>} />
+          <GSectionHeader id="an-g-platforms" size={22} title={t('Audience by platform')} action={<GButton size="sm" href="/social">{t('Open Social')}</GButton>} />
           <div className="an-g-platforms">
             {platforms.map((pl) => {
               const Icon = ICONS[pl.platform] ?? Instagram;
               return (
-                <GCard key={pl.platform} p={20} href={pl.href} className="an-g-tile" title={`${pl.label}: open details`}>
+                <GCard key={pl.platform} p={20} href={pl.href} className="an-g-tile" title={t('{label}: open details', { label: pl.label })}>
                   <span className="soc-g-acct-head">
                     <span className="soc-g-icon"><Icon size={14} strokeWidth={1.75} aria-hidden /></span>
                     <span className="soc-g-acct-name">{pl.label}</span>
                   </span>
                   <span className="an-g-tile-value"><span className="soc-g-num">{pl.followers == null ? '—' : formatFull(pl.followers)}</span></span>
                   <span className="an-g-tile-foot">
-                    {pl.cur != null && pl.prev != null ? <GDelta cur={pl.cur} prev={pl.prev} window="7 days" /> : <span className="soc-g-cap">no 7d history</span>}
-                    {pl.spark.length > 1 && <GSparkline values={pl.spark} label={`${pl.label} followers, last ${pl.spark.length} snapshots`} color={channelVizColor(pl.platform)} width={96} height={26} />}
+                    {pl.cur != null && pl.prev != null ? <GDelta cur={pl.cur} prev={pl.prev} window={t('7 days')} /> : <span className="soc-g-cap">{t('no 7d history')}</span>}
+                    {pl.spark.length > 1 && <GSparkline values={pl.spark} label={t('{label} followers, last {n} snapshots', { label: pl.label, n: pl.spark.length })} color={channelVizColor(pl.platform)} width={96} height={26} />}
                   </span>
                 </GCard>
               );

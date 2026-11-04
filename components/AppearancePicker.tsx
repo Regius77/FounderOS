@@ -25,6 +25,7 @@ import {
 import { useAppearance } from '@/lib/use-appearance';
 import { AppearanceLegacy, type StoredChoice } from '@/components/legacy/AppearanceLegacy';
 import { rolloutLine, type RolloutProgress } from '@/lib/g-rollout';
+import { t } from '@/lib/i18n';
 
 /**
  * Settings → Appearance (SPEC S00 FR-13, C14; S05 F05.91). Three controls in
@@ -48,9 +49,9 @@ import { rolloutLine, type RolloutProgress } from '@/lib/g-rollout';
  */
 
 const MODE_OPTIONS: { value: ModePref; label: string }[] = [
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-  { value: 'system', label: 'System' },
+  { value: 'dark', label: t('Dark') },
+  { value: 'light', label: t('Light') },
+  { value: 'system', label: t('System') },
 ];
 
 type Stored = StoredChoice;
@@ -101,9 +102,9 @@ export function AppearancePicker({ initial, rollout }: AppearancePickerProps) {
   };
 
   const styleOptions: { value: UiStyle; label: string; title: string }[] = [
-    { value: 'glados', label: STYLE_LABELS.glados, title: `The ${BRAND.name} widgets, with your colour and mode` },
-    { value: 'classic', label: STYLE_LABELS.classic, title: 'The original widgets and the five Classic themes' },
-    { value: 'legacy', label: STYLE_LABELS.legacy, title: "Bennett's design: JetBrains Mono, one slab per page, colour for status only" },
+    { value: 'glados', label: STYLE_LABELS.glados, title: t('The {brand} widgets, with your colour and mode', { brand: BRAND.name }) },
+    { value: 'classic', label: STYLE_LABELS.classic, title: t('The original widgets and the five Classic themes') },
+    { value: 'legacy', label: STYLE_LABELS.legacy, title: t("Bennett's design: JetBrains Mono, one slab per page, colour for status only") },
   ];
 
   if (stored.ui === 'legacy') {
@@ -114,14 +115,14 @@ export function AppearancePicker({ initial, rollout }: AppearancePickerProps) {
     return (
       <div data-appearance="classic" className="appset appset-classic">
         <div className="appset-row">
-          <span className="appset-label">Style</span>
-          <GSegmented className="appset-seg" size="md" label="Style" options={styleOptions} value={stored.ui} onChange={setStyle} />
+          <span className="appset-label">{t('Style')}</span>
+          <GSegmented className="appset-seg" size="md" label={t('Style')} options={styleOptions} value={stored.ui} onChange={setStyle} />
         </div>
         <div className="appset-row">
-          <span className="appset-label">Colour</span>
+          <span className="appset-label">{t('Colour')}</span>
           <ThemePicker />
         </div>
-        <p className="appset-caption">Saved on this browser.</p>
+        <p className="appset-caption">{t('Saved on this browser.')}</p>
       </div>
     );
   }
@@ -129,33 +130,33 @@ export function AppearancePicker({ initial, rollout }: AppearancePickerProps) {
   const line = rolloutLine(rollout);
   return (
     <div data-appearance="glados" className="appset appset-g">
-      <GCard p={20} aria-label="Appearance">
+      <GCard p={20} aria-label={t('Appearance')}>
         <div className="appset-row">
-          <span className="appset-label">Style</span>
-          <GSegmented size="md" label="Style" options={styleOptions} value={stored.ui} onChange={setStyle} />
+          <span className="appset-label">{t('Style')}</span>
+          <GSegmented size="md" label={t('Style')} options={styleOptions} value={stored.ui} onChange={setStyle} />
           {line && <p className="appset-note">{line}</p>}
         </div>
         <div className="appset-row">
           <span className="appset-label" id="appset-colour-label">
-            Colour
+            {t('Colour')}
           </span>
           <AccentSwatches value={stored.accent} onChange={(accent) => save({ ...stored, accent })} />
         </div>
         <div className="appset-row">
-          <span className="appset-label">Mode</span>
+          <span className="appset-label">{t('Mode')}</span>
           <GSegmented
             size="md"
-            label="Mode"
+            label={t('Mode')}
             options={MODE_OPTIONS}
             value={stored.mode}
             onChange={(mode) => save({ ...stored, mode })}
           />
           {stored.mode === 'system' && (
-            <p className="appset-note">following your OS: {applied.mode === 'light' ? 'Light' : 'Dark'}</p>
+            <p className="appset-note">{t('following your OS:')} {applied.mode === 'light' ? t('Light') : t('Dark')}</p>
           )}
         </div>
       </GCard>
-      <p className="appset-caption">Saved on this browser.</p>
+      <p className="appset-caption">{t('Saved on this browser.')}</p>
     </div>
   );
 }

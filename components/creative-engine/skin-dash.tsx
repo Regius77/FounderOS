@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 import { GBadge, GButton, GCardRaised, GDialog, GDotCloud, GDotNumber, GDrawer, GDriverBars, GEmpty, GEyebrow, GRuler, GSelect, GSheet, GStat, GTag, DOT_CLOUD_CAP, type DotSize, type GTagTone } from '@/components/g';
 import { cx } from '@/components/g/cx';
@@ -20,7 +21,7 @@ import {
 export function Numeral({ value, size, onHero = false }: { value: string; size: 3 | 4 | 5 | 6 | 7; onHero?: boolean }) {
   const g = useG();
   if (!g) return <DotNumeral value={value} size={size} color={onHero ? 'var(--p-on-hero)' : undefined} />;
-  return <GDotNumber value={value} size={size as DotSize} tone={onHero ? 'on-hero' : 'ink'} label={value === '—' ? 'Not applicable' : value} />;
+  return <GDotNumber value={value} size={size as DotSize} tone={onHero ? 'on-hero' : 'ink'} label={value === '—' ? t('Not applicable') : value} />;
 }
 
 /** A tick gauge for one value on its scale. */
@@ -36,7 +37,7 @@ export function ProofGauge({ value, max = 90, ticks = 30, label }: { value: numb
   if (!g) return <TickGauge value={value} max={max} ticks={ticks} label={label} />;
   return (
     <div className="w-full">
-      <GRuler value={value} max={max} ticks={ticks} label={value === null ? 'No proof ads' : `Median ${value} days live on a 0 to ${max} day scale`} />
+      <GRuler value={value} max={max} ticks={ticks} label={value === null ? t('No proof ads') : t('Median {value} days live on a 0 to {max} day scale', { value, max })} />
       {label && <div className="ae-faint mt-1">{label}</div>}
     </div>
   );
@@ -46,8 +47,8 @@ export function ProofGauge({ value, max = 90, ticks = 30, label }: { value: numb
 export function Drivers({ drivers, top = 3, max = 10 }: { drivers: Record<string, number>; top?: number; max?: number }) {
   const g = useG();
   if (!g) return <DriverBars drivers={drivers} top={top} max={max} />;
-  const rows = Object.entries(drivers).sort((a, b) => b[1] - a[1]).slice(0, Math.max(top, 5)).map(([k, v]) => ({ id: k, label: k, value: Math.min(v, max), display: String(v), title: `${k}: ${v} of ${max}` }));
-  return <GDriverBars rows={rows} max={max} top={top} emptyText="No driver data" label="Drivers, scored out of 10" />;
+  const rows = Object.entries(drivers).sort((a, b) => b[1] - a[1]).slice(0, Math.max(top, 5)).map(([k, v]) => ({ id: k, label: k, value: Math.min(v, max), display: String(v), title: t('{k}: {v} of {max}', { k, v, max }) }));
+  return <GDriverBars rows={rows} max={max} top={top} emptyText={t('No driver data')} label={t('Drivers, scored out of 10')} />;
 }
 
 /** An empty state; `action` is the one button that opens the step it names (S04 B34). */
@@ -69,7 +70,7 @@ export function Cloud({ total, lit, label, onHero = false }: { total: number; li
   const g = useG();
   const n = Math.min(DOT_CLOUD_CAP, total);
   if (n === 0) return null;
-  if (!g) return <ClassicDotCloud n={n} lit={Math.min(n, lit)} label={total > DOT_CLOUD_CAP ? `${label} (first ${DOT_CLOUD_CAP} shown)` : label} />;
+  if (!g) return <ClassicDotCloud n={n} lit={Math.min(n, lit)} label={total > DOT_CLOUD_CAP ? t('{label} (first {n} shown)', { label, n: DOT_CLOUD_CAP }) : label} />;
   return <GDotCloud total={total} lit={lit} label={label} onHero={onHero} />;
 }
 
@@ -139,7 +140,7 @@ export function ConfirmDelete({ title, body, error, busy, onCancel, onConfirm }:
   const g = useG();
   if (!g) return <ClassicConfirmDelete title={title} body={body} error={error} busy={busy} onCancel={onCancel} onConfirm={onConfirm} />;
   return (
-    <GDialog open onClose={onCancel} title={title} tone="danger" confirmLabel={busy ? 'Deleting' : 'Delete'} onConfirm={onConfirm} busy={busy}>
+    <GDialog open onClose={onCancel} title={title} tone="danger" confirmLabel={busy ? t('Deleting') : t('Delete')} onConfirm={onConfirm} busy={busy}>
       <p>{body}</p>
       {error && <p role="alert" className="mt-3 text-[12.5px] text-[var(--g-err)]">{error}</p>}
     </GDialog>
@@ -153,8 +154,8 @@ export function ConfirmDelete({ title, body, error, busy, onCancel, onConfirm }:
  */
 export function Stat({ value, badge, lime = false, tip, unconfigured = false, missing, onOpen }: { value: number; badge: string; lime?: boolean; tip: string; unconfigured?: boolean; missing?: string; onOpen: () => void }) {
   const g = useG();
-  const title = unconfigured ? 'Research needs the Foreplay key' : tip;
-  const text = value.toLocaleString('en-US');
+  const title = unconfigured ? t('Research needs the Foreplay key') : tip;
+  const text = value.toLocaleString(localeTag());
   if (!g) return <ClassicStat lg={<DotNumeral value={text} size={4} />} sm={<DotNumeral value={text} size={3} />} badge={badge} lime={lime} title={title} ariaLabel={`${text} ${badge}. ${title}`} empty={value === 0} onClick={onOpen} />;
   return <GStat value={text} label={badge} badge={lime} source={tip} state={unconfigured ? 'unconfigured' : 'ready'} missing={missing} onClick={onOpen} />;
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -40,7 +41,7 @@ import { useGStyle, useGc } from '@/components/system-g/style-context';
 /** Set up link for the current style: the kit button under GladOS (GP4), the Classic SetupLink otherwise. */
 function Setup({ href, hint }: { href: string; hint?: string }) {
   const g = useGStyle();
-  return g ? <GButton size="sm" href={href} title={hint}>Set up</GButton> : <SetupLink href={href} hint={hint} />;
+  return g ? <GButton size="sm" href={href} title={hint}>{t('Set up')}</GButton> : <SetupLink href={href} hint={hint} />;
 }
 
 /**
@@ -84,9 +85,9 @@ const UNDO_MS = 5000;
 /** How long an armed spend button waits for its confirm click. */
 const ARM_MS = 6000;
 
-const nf = new Intl.NumberFormat('en-US');
+const nf = new Intl.NumberFormat(localeTag());
 const FOREPLAY_SETUP = setupHrefFor('foreplay');
-const NOT_CONFIGURED = 'Foreplay is not configured';
+const NOT_CONFIGURED = t('Foreplay is not configured');
 
 /** A spend button that needs a second click within ARM_MS (SPEC §3.1.7). */
 function useArm() {
@@ -152,10 +153,10 @@ export function AdLibrary({
     setLibOpenState(open);
     writeLocal(LS_OPEN, open ? '1' : null);
   }, []);
-  const setTab = useCallback((t: Tab) => {
-    setTabState(t);
-    writeLocal(LS_TAB, t);
-    if (t !== 'watchlist') patchUrlParams({ brand: null });
+  const setTab = useCallback((next: Tab) => {
+    setTabState(next);
+    writeLocal(LS_TAB, next);
+    if (next !== 'watchlist') patchUrlParams({ brand: null });
   }, []);
 
   // Per-viewer conveniences: the library's open state and tab survive reloads.
@@ -163,8 +164,8 @@ export function AdLibrary({
     if (readLocal(LS_OPEN) === '1') setLibOpenState(true);
     // A ?brand= deep link picks the tab itself; the stored tab must not win.
     if (new URLSearchParams(window.location.search).has('brand')) return;
-    const t = readLocal(LS_TAB);
-    if (isTab(t)) setTabState(t);
+    const stored = readLocal(LS_TAB);
+    if (isTab(stored)) setTabState(stored);
   }, []);
 
   // For-you: watchlist store + saved snapshots + last mine results, scored
@@ -204,7 +205,7 @@ export function AdLibrary({
       setWatchlist(list.filter((w) => !pending.current.has(w.id)));
     } catch (err) {
       if (keepalive) return;
-      toast({ text: `Could not stop watching: ${err instanceof Error ? err.message : 'request failed'}`, tone: 'err' });
+      toast({ text: t('Could not stop watching: {error}', { error: err instanceof Error ? err.message : t('request failed') }), tone: 'err' });
     }
   }, [toast]);
 
@@ -219,11 +220,11 @@ export function AdLibrary({
       }, UNDO_MS);
       pending.current.set(entry.id, { timer, entry, index });
       toast({
-        text: `Stopped watching ${entry.name}`,
+        text: t('Stopped watching {name}', { name: entry.name }),
         tone: 'info',
         ms: UNDO_MS,
         action: {
-          label: 'Undo',
+          label: t('Undo'),
           onClick: () => {
             const p = pending.current.get(entry.id);
             if (!p) return;
@@ -270,9 +271,9 @@ export function AdLibrary({
         const body = await readJson(res);
         if (!res.ok || !body.ok) throw new Error(String(body.error ?? `HTTP ${res.status}`));
         setWatchlist(body.watchlist as WatchEntry[]);
-        toast({ text: `Watching ${brand.name}. Refresh data to pull its ads.`, tone: 'ok' });
+        toast({ text: t('Watching {name}. Refresh data to pull its ads.', { name: brand.name }), tone: 'ok' });
       } catch (err) {
-        toast({ text: `Could not track ${brand.name}: ${err instanceof Error ? err.message : 'request failed'}`, tone: 'err' });
+        toast({ text: t('Could not track {name}: {error}', { name: brand.name, error: err instanceof Error ? err.message : t('request failed') }), tone: 'err' });
       }
     },
     [toast],
@@ -291,7 +292,7 @@ export function AdLibrary({
         if (!res.ok || !body.ok) throw new Error(String(body.error ?? `HTTP ${res.status}`));
         setSaved(body.saved as SavedAd[]);
       } catch (err) {
-        toast({ text: `Could not ${isSaved ? 'unsave' : 'save'} the ad: ${err instanceof Error ? err.message : 'request failed'}`, tone: 'err' });
+        toast({ text: isSaved ? t('Could not unsave the ad: {error}', { error: err instanceof Error ? err.message : t('request failed') }) : t('Could not save the ad: {error}', { error: err instanceof Error ? err.message : t('request failed') }), tone: 'err' });
       }
     },
     [savedIds, toast],
@@ -316,7 +317,7 @@ export function AdLibrary({
     } else {
       setTabState('foryou');
       patchUrlParams({ ad: null });
-      toast({ text: 'That ad is no longer in the library.', tone: 'info' });
+      toast({ text: t('That ad is no longer in the library.'), tone: 'info' });
     }
   }, [adParam, initialWall, savedAds, mineResults, linkedAd, toast]);
 
@@ -336,11 +337,11 @@ export function AdLibrary({
     patchUrlParams({ brand: null });
     const known = initialWall.find((a) => a.brandId === brandParam);
     toast({
-      text: 'That brand is not on your watchlist.',
+      text: t('That brand is not on your watchlist.'),
       tone: 'info',
       ms: known ? 8000 : undefined,
       action: known
-        ? { label: 'Track brand', onClick: () => void watchBrand({ brandId: brandParam, name: known.brand, avatar: known.thumbnail }) }
+        ? { label: t('Track brand'), onClick: () => void watchBrand({ brandId: brandParam, name: known.brand, avatar: known.thumbnail }) }
         : undefined,
     });
     // Only a new ?brand= value re-runs this; the watchlist changing under it does not.
@@ -365,11 +366,11 @@ export function AdLibrary({
       }
       if (!res.ok || !body.ok) throw new Error(String(body.error ?? `HTTP ${res.status}`));
       const newSignals = Array.isArray(body.signals) ? body.signals.length : 0;
-      toast({ text: `Refreshed: ${body.brands ?? 0} brands · ${newSignals} new signals`, tone: 'ok' });
+      toast({ text: t('Refreshed: {brands} brands · {signals} new signals', { brands: String(body.brands ?? 0), signals: newSignals }), tone: 'ok' });
       // Re-reads the server data in place: the open tab, scroll and selection stay.
       router.refresh();
     } catch (err) {
-      toast({ text: `Refresh failed: ${err instanceof Error ? err.message : 'request failed'}`, tone: 'err' });
+      toast({ text: t('Refresh failed: {error}', { error: err instanceof Error ? err.message : t('request failed') }), tone: 'err' });
     } finally {
       setBusy(null);
     }
@@ -378,11 +379,11 @@ export function AdLibrary({
   /* ---------------------------------- tabs ---------------------------------- */
 
   const TABS: { key: Tab; label: string; count?: number }[] = [
-    { key: 'foryou', label: 'For you' },
-    { key: 'search', label: 'Search' },
-    { key: 'saved', label: 'Saved', count: saved.length },
-    { key: 'watchlist', label: 'Watchlist', count: watchlist.length },
-    { key: 'activity', label: 'Activity', count: signalsTotal },
+    { key: 'foryou', label: t('For you') },
+    { key: 'search', label: t('Search') },
+    { key: 'saved', label: t('Saved'), count: saved.length },
+    { key: 'watchlist', label: t('Watchlist'), count: watchlist.length },
+    { key: 'activity', label: t('Activity'), count: signalsTotal },
   ];
   const tabRefs = useRef(new Map<Tab, HTMLButtonElement | null>());
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -394,7 +395,7 @@ export function AdLibrary({
     tabRefs.current.get(TAB_KEYS[next])?.focus();
   };
 
-  const syncDisabledReason = !foreplayConfigured ? NOT_CONFIGURED : busy === 'sync' ? 'Refreshing now' : null;
+  const syncDisabledReason = !foreplayConfigured ? NOT_CONFIGURED : busy === 'sync' ? t('Refreshing now') : null;
 
   return (
     <div className="ap-lib">
@@ -415,7 +416,7 @@ export function AdLibrary({
           libOpen={libOpen}
           onToggle={() => setLibOpen(!libOpen)}
           wallCount={initialWall.length}
-          longevity={initialWall.slice(0, 60).map((a) => ({ days: a.daysRunning, title: `${a.brand}: ${a.daysRunning} days${a.live ? ', live' : ''}` }))}
+          longevity={initialWall.slice(0, 60).map((a) => ({ days: a.daysRunning, title: `${t('{brand}: {n} days', { brand: a.brand, n: a.daysRunning })}${a.live ? t(', live') : ''}` }))}
           savedCount={saved.length}
           credits={credits}
           configured={foreplayConfigured}
@@ -440,10 +441,10 @@ export function AdLibrary({
           <span>
             <span className="ap-ink flex items-center gap-2 text-[16px] font-medium">
               <LibraryBig aria-hidden className="h-5 w-5" strokeWidth={1.7} />
-              {libOpen ? 'Close ad library' : 'Open ad library'}
+              {libOpen ? t('Close ad library') : t('Open ad library')}
             </span>
             <span className="ap-ink-2 mt-1 block text-[12.5px]">
-              {nf.format(initialWall.length)} tracked ads · {saved.length} saved · search by concept, save winners
+              {t('{n} tracked ads · {saved} saved · search by concept, save winners', { n: nf.format(initialWall.length), saved: saved.length })}
             </span>
           </span>
           <ChevronDown aria-hidden className={`ap-ink-2 h-5 w-5 shrink-0 transition-transform ${libOpen ? 'rotate-180' : ''}`} strokeWidth={1.9} />
@@ -457,22 +458,22 @@ export function AdLibrary({
             onClick={runSync}
             onBlur={sync.disarm}
             disabled={syncDisabledReason !== null}
-            title={syncDisabledReason ?? (sync.armed ? 'Click again to spend Foreplay credits on a refresh' : 'Pull new ads and signals for every watched brand')}
+            title={syncDisabledReason ?? (sync.armed ? t('Click again to spend Foreplay credits on a refresh') : t('Pull new ads and signals for every watched brand'))}
             className="c-btn c-btn-primary flex items-center justify-center gap-2 py-2.5 text-[13px]"
           >
             {busy === 'sync' ? <Loader2 aria-hidden className="h-4 w-4 animate-spin" strokeWidth={1.7} /> : <RefreshCw aria-hidden className="h-4 w-4" strokeWidth={1.7} />}
-            {sync.armed ? 'Confirm refresh' : 'Refresh data'}
+            {sync.armed ? t('Confirm refresh') : t('Refresh data')}
           </button>
           <div className="mt-2 text-center text-[12px] text-os-dim" aria-live="polite">
             {!foreplayConfigured || syncSetup ? (
               <span className="inline-flex flex-wrap items-center justify-center gap-1.5">
-                Not configured <Setup href={FOREPLAY_SETUP} hint="Add a Foreplay API key" />
+                {t('Not configured')} <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
               </span>
             ) : sync.armed ? (
-              'Uses Foreplay credits (one call per watched brand)'
+              t('Uses Foreplay credits (one call per watched brand)')
             ) : (
               <>
-                last synced {relativeAgo(lastSyncAt, now)} · uses Foreplay credits
+                {t('last synced {ago} · uses Foreplay credits', { ago: relativeAgo(lastSyncAt, now) })}
               </>
             )}
           </div>
@@ -484,26 +485,26 @@ export function AdLibrary({
       {libOpen && (
         <div id="ap-library" className={gc('ap-g-library', 'ap-panel mt-4 flex h-[80vh] flex-col overflow-hidden')}>
           {/* Tab rail */}
-          <div role="tablist" aria-label="Ad library" onKeyDown={onTabKey} className={gc('g-seg ap-g-tabs', 'ap-hair flex gap-1 overflow-x-auto border-b px-3')}>
-            {TABS.map((t) => (
+          <div role="tablist" aria-label={t('Ad library')} onKeyDown={onTabKey} className={gc('g-seg ap-g-tabs', 'ap-hair flex gap-1 overflow-x-auto border-b px-3')}>
+            {TABS.map((tb) => (
               <button
-                key={t.key}
+                key={tb.key}
                 ref={(el) => {
-                  tabRefs.current.set(t.key, el);
+                  tabRefs.current.set(tb.key, el);
                 }}
-                id={`ap-tab-${t.key}`}
+                id={`ap-tab-${tb.key}`}
                 type="button"
                 role="tab"
-                aria-selected={tab === t.key}
+                aria-selected={tab === tb.key}
                 aria-controls="ap-tabpanel"
-                tabIndex={tab === t.key ? 0 : -1}
-                onClick={() => setTab(t.key)}
-                className={gc(`g-seg-opt${tab === t.key ? ' is-on' : ''}`, `flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[12.5px] transition-colors ${
-                  tab === t.key ? 'border-[var(--accent)] text-os-text' : 'border-transparent text-os-dim hover:text-os-muted'
+                tabIndex={tab === tb.key ? 0 : -1}
+                onClick={() => setTab(tb.key)}
+                className={gc(`g-seg-opt${tab === tb.key ? ' is-on' : ''}`, `flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[12.5px] transition-colors ${
+                  tab === tb.key ? 'border-[var(--accent)] text-os-text' : 'border-transparent text-os-dim hover:text-os-muted'
                 }`)}
               >
-                {t.label}
-                {t.count !== undefined && t.count > 0 && <span className="text-[10.5px] tabular-nums text-os-dim">{nf.format(t.count)}</span>}
+                {tb.label}
+                {tb.count !== undefined && tb.count > 0 && <span className="text-[10.5px] tabular-nums text-os-dim">{nf.format(tb.count)}</span>}
               </button>
             ))}
           </div>
@@ -514,7 +515,7 @@ export function AdLibrary({
               <>
                 <CardGrid ads={feed.map((f) => f.ad)} savedIds={savedIds} onOpen={openAd} onSave={toggleSave} />
                 <p className="mt-3 text-center text-[11px] text-os-dim">
-                  ranked by fit to your niche + your saves + proven longevity · saves teach this feed
+                  {t('ranked by fit to your niche + your saves + proven longevity · saves teach this feed')}
                 </p>
               </>
             )}
@@ -529,7 +530,7 @@ export function AdLibrary({
             )}
             {tab === 'saved' &&
               (saved.length === 0 ? (
-                <Empty line1="Nothing saved yet." line2="The bookmark on any ad saves it here, and teaches the For-you feed." />
+                <Empty line1={t('Nothing saved yet.')} line2={t('The bookmark on any ad saves it here, and teaches the For-you feed.')} />
               ) : (
                 <CardGrid ads={savedAds} savedIds={savedIds} onOpen={openAd} onSave={toggleSave} />
               ))}
@@ -585,27 +586,27 @@ function CreditsPanel({
   return (
     <div className="ap-panel ap-band-credits p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[12.5px] text-os-dim">API credits</span>
-        {configured && <span className="text-[11px] text-os-dim">as of {relativeAgo(lastSyncAt, now)}</span>}
+        <span className="text-[12.5px] text-os-dim">{t('API credits')}</span>
+        {configured && <span className="text-[11px] text-os-dim">{t('as of {ago}', { ago: relativeAgo(lastSyncAt, now) })}</span>}
       </div>
       <div className="mt-1 text-[25px] font-light tabular-nums text-os-text">
         {!configured ? (
           <span className="flex flex-wrap items-center gap-2 text-[15px] text-os-muted">
-            Not configured <Setup href={FOREPLAY_SETUP} hint="Add a Foreplay API key" />
+            {t('Not configured')} <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
           </span>
         ) : credits ? (
           <>
             {nf.format(credits.remaining)} <span className="text-[14px] text-os-dim">/ {nf.format(credits.total)}</span>
           </>
         ) : (
-          <span title="No usage reported yet: credits are read on each refresh">—</span>
+          <span title={t('No usage reported yet: credits are read on each refresh')}>—</span>
         )}
       </div>
       <div
         className="mt-2.5 flex gap-[3px]"
         role="img"
-        aria-label={share === null ? 'Credits unknown' : `${Math.round(share * 100)}% of credits remaining${low ? ', running low' : ''}`}
-        title={low ? 'Under 10% of credits remain' : undefined}
+        aria-label={share === null ? t('Credits unknown') : `${t('{n}% of credits remaining', { n: Math.round(share * 100) })}${low ? t(', running low') : ''}`}
+        title={low ? t('Under 10% of credits remain') : undefined}
       >
         {Array.from({ length: METER }, (_, i) => (
           <span
@@ -685,7 +686,7 @@ function AskWidget({
       }
       setState({ phase: 'done', text: String(body.answer ?? '') });
     } catch (err) {
-      setState({ phase: 'error', text: err instanceof Error ? err.message : 'ask failed', status: 0 });
+      setState({ phase: 'error', text: err instanceof Error ? err.message : t('ask failed'), status: 0 });
     }
   };
 
@@ -702,30 +703,30 @@ function AskWidget({
           onSubmit={() => void ask()}
           busy={state.phase === 'running'}
           minChars={ASK_MIN}
-          label="Ask Adscout"
-          placeholder="Ask Adscout what's working in your niche right now"
+          label={t('Ask Adscout')}
+          placeholder={t("Ask Adscout what's working in your niche right now")}
         />
         <div aria-live="polite">
-          {state.phase === 'running' && <p className="soc-g-cap ap-g-ask-note">Checking the library: hooks, longevity, drivers, signals.</p>}
+          {state.phase === 'running' && <p className="soc-g-cap ap-g-ask-note">{t('Checking the library: hooks, longevity, drivers, signals.')}</p>}
           {state.phase === 'error' && (
             <div className="ap-g-ask-note ap-g-inline">
-              <span className="soc-g-cap">{state.status === 503 ? 'Analyst unavailable' : state.text}</span>
-              {state.status === 503 && <Setup href="/setup" hint="The analyst runs on the local Claude CLI" />}
-              {state.status === 409 && <GButton size="sm" onClick={onOpenWatchlist}>Open watchlist</GButton>}
+              <span className="soc-g-cap">{state.status === 503 ? t('Analyst unavailable') : state.text}</span>
+              {state.status === 503 && <Setup href="/setup" hint={t('The analyst runs on the local Claude CLI')} />}
+              {state.status === 409 && <GButton size="sm" onClick={onOpenWatchlist}>{t('Open watchlist')}</GButton>}
             </div>
           )}
           {state.phase === 'done' && (
             <GCard p={20} className="ap-g-answer">
               <div className="ap-g-inline">
                 <p className="ap-g-answer-text">{state.text}</p>
-                <GButton variant="icon" size="sm" aria-label="Dismiss answer" title="Dismiss answer" onClick={() => setState({ phase: 'idle' })}><X aria-hidden size={13} strokeWidth={1.75} /></GButton>
+                <GButton variant="icon" size="sm" aria-label={t('Dismiss answer')} title={t('Dismiss answer')} onClick={() => setState({ phase: 'idle' })}><X aria-hidden size={13} strokeWidth={1.75} /></GButton>
               </div>
               {examples.length > 0 && (
                 <div className="ap-g-examples">
                   {examples.map((ad) => (
-                    <GCard key={ad.id} p={16} onClick={() => onOpen(ad)} className="ap-g-example" aria-label={`Open ${ad.brand} dossier`}>
+                    <GCard key={ad.id} p={16} onClick={() => onOpen(ad)} className="ap-g-example" aria-label={t('Open {brand} dossier', { brand: ad.brand })}>
                       <span className="soc-g-sub">{ad.brand}</span>
-                      <span className="soc-g-cap">{ad.daysRunning}d {ad.live ? 'live' : 'off'}</span>
+                      <span className="soc-g-cap">{ad.live ? t('{n}d live', { n: ad.daysRunning }) : t('{n}d off', { n: ad.daysRunning })}</span>
                     </GCard>
                   ))}
                 </div>
@@ -745,7 +746,7 @@ function AskWidget({
       <div className="relative px-6 py-5">
         <div className="flex items-center gap-3">
           <label htmlFor="ap-ask" className="shrink-0 text-[14px] font-medium text-[var(--accent-2)]">
-            Ask Adscout
+            {t('Ask Adscout')}
           </label>
           <input
             id="ap-ask"
@@ -760,15 +761,15 @@ function AskWidget({
                 setState({ phase: 'idle' });
               }
             }}
-            placeholder="what's working in my niche right now?"
+            placeholder={t("what's working in my niche right now?")}
             className="min-w-0 flex-1 bg-transparent text-[14.5px] text-os-text outline-none placeholder:text-os-dim"
           />
           <button
             type="button"
             onClick={() => void ask()}
             disabled={state.phase === 'running' || tooShort}
-            aria-label="Ask Adscout"
-            title={state.phase === 'running' ? 'Asking now' : tooShort ? `Type at least ${ASK_MIN} characters` : 'Ask (Enter)'}
+            aria-label={t('Ask Adscout')}
+            title={state.phase === 'running' ? t('Asking now') : tooShort ? t('Type at least {n} characters', { n: ASK_MIN }) : t('Ask (Enter)')}
             className="c-btn px-3 py-2"
           >
             {state.phase === 'running' ? <Loader2 aria-hidden className="h-4 w-4 animate-spin" strokeWidth={1.7} /> : <Send aria-hidden className="h-4 w-4" strokeWidth={1.7} />}
@@ -778,15 +779,15 @@ function AskWidget({
         {/* the widget grows downward for the answer */}
         <div aria-live="polite">
           {state.phase === 'running' && (
-            <p className="mt-3 text-[13px] text-os-muted">Checking the library: hooks, longevity, drivers, signals…</p>
+            <p className="mt-3 text-[13px] text-os-muted">{t('Checking the library: hooks, longevity, drivers, signals…')}</p>
           )}
           {state.phase === 'error' && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
-              <span className="ap-err">{state.status === 503 ? 'Analyst unavailable' : state.text}</span>
-              {state.status === 503 && <Setup href="/setup" hint="The analyst runs on the local Claude CLI" />}
+              <span className="ap-err">{state.status === 503 ? t('Analyst unavailable') : state.text}</span>
+              {state.status === 503 && <Setup href="/setup" hint={t('The analyst runs on the local Claude CLI')} />}
               {state.status === 409 && (
                 <button type="button" onClick={onOpenWatchlist} className="c-btn px-2.5 py-1 text-[12px]">
-                  Open watchlist
+                  {t('Open watchlist')}
                 </button>
               )}
             </div>
@@ -798,8 +799,8 @@ function AskWidget({
                 <button
                   type="button"
                   onClick={() => setState({ phase: 'idle' })}
-                  aria-label="Dismiss answer"
-                  title="Dismiss answer (Esc in the field)"
+                  aria-label={t('Dismiss answer')}
+                  title={t('Dismiss answer (Esc in the field)')}
                   className="shrink-0 text-os-dim hover:text-os-text"
                 >
                   <X aria-hidden className="h-4 w-4" strokeWidth={1.7} />
@@ -807,7 +808,7 @@ function AskWidget({
               </div>
               {examples.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-[12px] text-os-dim">From the library</div>
+                  <div className="text-[12px] text-os-dim">{t('From the library')}</div>
                   <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {examples.map((ad) => (
                       <button
@@ -827,7 +828,7 @@ function AskWidget({
                         <span className="min-w-0">
                           <span className="block truncate text-[12px] text-os-text">{ad.brand}</span>
                           <span className="block text-[11px] tabular-nums text-os-dim">
-                            {ad.daysRunning}d {ad.live ? 'live' : 'off'}
+                            {ad.live ? t('{n}d live', { n: ad.daysRunning }) : t('{n}d off', { n: ad.daysRunning })}
                           </span>
                         </span>
                       </button>
@@ -865,7 +866,7 @@ function CardGrid({
 
   const g = useGStyle();
   if (display.length === 0) {
-    return <Empty line1="Nothing here yet." line2="Add brands to the watchlist or run a search. The library builds itself." />;
+    return <Empty line1={t('Nothing here yet.')} line2={t('Add brands to the watchlist or run a search. The library builds itself.')} />;
   }
   if (g) return <CardGridG ads={display} savedIds={savedIds} onOpen={onOpen} onSave={onSave} />;
 
@@ -878,7 +879,7 @@ function CardGrid({
             <button
               type="button"
               onClick={() => onOpen(ad)}
-              aria-label={`${ad.brand}: ${ad.daysRunning} days${ad.live ? ', still running' : ''}. Open dossier`}
+              aria-label={`${t('{brand}: {n} days', { brand: ad.brand, n: ad.daysRunning })}${ad.live ? t(', still running') : ''}${t('. Open dossier')}`}
               className="ap-card hoverable block w-full overflow-hidden rounded-[12px] text-left"
             >
               <div className={`ap-tile relative w-full ${i === 0 ? 'aspect-[4/3.05]' : 'aspect-[4/3]'}`}>
@@ -886,7 +887,7 @@ function CardGrid({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={ad.thumbnail ?? ad.image ?? ''}
-                    alt={`${ad.brand} ad creative`}
+                    alt={t('{brand} ad creative', { brand: ad.brand })}
                     className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
                     loading="lazy"
                   />
@@ -900,11 +901,11 @@ function CardGrid({
                     <span className={`text-[19px] font-light tabular-nums ${ad.live ? 'text-[var(--accent)]' : 'text-os-dim'}`}>
                       {ad.daysRunning}
                     </span>
-                    <span className="text-[10px] text-os-dim">days</span>
+                    <span className="text-[10px] text-os-dim">{t('days')}</span>
                   </span>
                 </div>
                 {ad.live && (
-                  <span role="img" aria-label="live" title="Still running" className="ap-solid absolute left-2 top-2 h-2 w-2 rounded-full" />
+                  <span role="img" aria-label={t('live')} title={t('Still running')} className="ap-solid absolute left-2 top-2 h-2 w-2 rounded-full" />
                 )}
               </div>
               {ad.hook && (
@@ -916,9 +917,9 @@ function CardGrid({
             {/* Save toggle: the swipe-file affordance on every card */}
             <button
               type="button"
-              aria-label={isSaved ? `Unsave ${ad.brand} ad` : `Save ${ad.brand} ad`}
+              aria-label={isSaved ? t('Unsave {brand} ad', { brand: ad.brand }) : t('Save {brand} ad', { brand: ad.brand })}
               aria-pressed={isSaved}
-              title={isSaved ? 'Saved: click to remove from Saved' : 'Save to your swipe file'}
+              title={isSaved ? t('Saved: click to remove from Saved') : t('Save to your swipe file')}
               onClick={(e) => {
                 e.stopPropagation();
                 onSave(ad);
@@ -955,7 +956,7 @@ function Empty({ line1, line2, children }: { line1: string; line2: string; child
 
 /* --------------------------------- search --------------------------------- */
 
-const SEARCH_COST = '~5 Foreplay credits';
+const SEARCH_COST = t('~5 Foreplay credits');
 
 function SearchTab({
   savedIds,
@@ -985,9 +986,9 @@ function SearchTab({
   const reason = !configured
     ? NOT_CONFIGURED
     : state.phase === 'running'
-      ? 'Searching now'
+      ? t('Searching now')
       : tooShort
-        ? 'Describe the concept in at least 3 characters'
+        ? t('Describe the concept in at least 3 characters')
         : null;
 
   const run = async () => {
@@ -1020,7 +1021,7 @@ function SearchTab({
       });
       onResults(winners);
     } catch (err) {
-      setState({ phase: 'error', message: err instanceof Error ? err.message : 'search failed', status: 0 });
+      setState({ phase: 'error', message: err instanceof Error ? err.message : t('search failed'), status: 0 });
     }
   };
 
@@ -1041,7 +1042,7 @@ function SearchTab({
   return (
     <div>
       <label className="block text-[12.5px] text-os-muted" htmlFor="ap-concept">
-        Describe a concept. Probes expand it and the library answers with proven ads.
+        {t('Describe a concept. Probes expand it and the library answers with proven ads.')}
       </label>
       <div className={gc('ap-g-searchbar', 'ap-glow ap-hair-strong ap-inset mt-2 flex items-center gap-2 rounded-[12px] border p-1.5')}>
         <Search aria-hidden className="ml-2 h-4 w-4 shrink-0 text-[var(--accent)]" strokeWidth={1.7} />
@@ -1053,7 +1054,7 @@ function SearchTab({
             gate.disarm();
           }}
           onKeyDown={(e) => e.key === 'Enter' && void run()}
-          placeholder="Describe a concept to search proven ads"
+          placeholder={t('Describe a concept to search proven ads')}
           className={gc('g-input ap-g-grow', 'min-w-0 flex-1 bg-transparent px-1 py-2 text-[14px] text-os-text outline-none placeholder:text-os-dim')}
         />
         <button
@@ -1061,41 +1062,41 @@ function SearchTab({
           onClick={() => void run()}
           onBlur={gate.disarm}
           disabled={reason !== null}
-          title={reason ?? (gate.armed ? `Click again to spend ${SEARCH_COST}` : `Search (${SEARCH_COST})`)}
+          title={reason ?? (gate.armed ? t('Click again to spend {cost}', { cost: SEARCH_COST }) : t('Search ({cost})', { cost: SEARCH_COST }))}
           className={gc('g-btn g-btn-ink', 'c-btn c-btn-primary flex items-center gap-1.5 text-[12.5px]')}
         >
           {state.phase === 'running' ? <Loader2 aria-hidden className="h-4 w-4 animate-spin" strokeWidth={1.7} /> : <Search aria-hidden className="h-4 w-4" strokeWidth={1.7} />}
-          {gate.armed ? 'Confirm search' : 'Search ads'}
+          {gate.armed ? t('Confirm search') : t('Search ads')}
         </button>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[11px] text-os-dim">Proven for</span>
-        {[21, 30, 60].map((d) => chip(minDays === d, `${d}+ days`, () => setMinDays(d)))}
-        <span className="ml-3 mr-1 text-[11px] text-os-dim">Format</span>
-        {(['all', 'video', 'image'] as const).map((f) => chip(format === f, f, () => setFormat(f)))}
+        <span className="mr-1 text-[11px] text-os-dim">{t('Proven for')}</span>
+        {[21, 30, 60].map((d) => chip(minDays === d, t('{n}+ days', { n: d }), () => setMinDays(d)))}
+        <span className="ml-3 mr-1 text-[11px] text-os-dim">{t('Format')}</span>
+        {(['all', 'video', 'image'] as const).map((f) => chip(format === f, t(f), () => setFormat(f)))}
         <span className={`ml-auto text-[11px] ${gate.armed ? 'text-os-muted' : 'text-os-dim'}`} aria-live="polite">
-          {gate.armed ? `Spends ${SEARCH_COST}. Click Confirm search.` : `${SEARCH_COST} per search`}
+          {gate.armed ? t('Spends {cost}. Click Confirm search.', { cost: SEARCH_COST }) : t('{cost} per search', { cost: SEARCH_COST })}
         </span>
       </div>
 
       <div className="mt-4">
         {!configured && state.phase === 'idle' && (
-          <Empty line1="Search needs Foreplay." line2="Concept search reads Foreplay's ad database. Add a key to turn it on.">
+          <Empty line1={t('Search needs Foreplay.')} line2={t("Concept search reads Foreplay's ad database. Add a key to turn it on.")}>
             <div className="mt-3">
-              <Setup href={FOREPLAY_SETUP} hint="Add a Foreplay API key" />
+              <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
             </div>
           </Empty>
         )}
         {configured && state.phase === 'idle' && (
-          <Empty line1="Search the 100M-ad database by idea, not by brand." line2="Results are filtered to ads still paying off after your chosen threshold: the honest proof filter." />
+          <Empty line1={t('Search the 100M-ad database by idea, not by brand.')} line2={t('Results are filtered to ads still paying off after your chosen threshold: the honest proof filter.')} />
         )}
         {state.phase === 'running' && (
-          <p className="py-8 text-center text-[12.5px] text-os-dim">expanding concept → probing discovery → filtering to proven ads…</p>
+          <p className="py-8 text-center text-[12.5px] text-os-dim">{t('expanding concept → probing discovery → filtering to proven ads…')}</p>
         )}
         {state.phase === 'error' && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <p className="ap-err text-[12px]">{state.status === 503 ? NOT_CONFIGURED : state.message}</p>
-            {state.status === 503 && <Setup href={FOREPLAY_SETUP} hint="Add a Foreplay API key" />}
+            {state.status === 503 && <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />}
           </div>
         )}
         {state.phase === 'done' && (
@@ -1107,7 +1108,7 @@ function SearchTab({
                 </span>
               ))}
               <span className="text-os-muted">
-                · {state.pooled} pooled · {state.apiCalls} credits
+                {t('· {pooled} pooled · {credits} credits', { pooled: state.pooled, credits: state.apiCalls })}
               </span>
             </div>
             <CardGrid ads={state.winners} savedIds={savedIds} onOpen={onOpen} onSave={onSave} />
@@ -1159,12 +1160,12 @@ function WatchlistTab({
     return counts;
   }, [wall]);
 
-  const reason = !configured ? `${NOT_CONFIGURED}: finding a brand by its website needs a key` : adding ? 'Looking the brand up' : null;
+  const reason = !configured ? t('{reason}: finding a brand by its website needs a key', { reason: NOT_CONFIGURED }) : adding ? t('Looking the brand up') : null;
 
   const add = async () => {
     const d = parseBrandDomain(domain);
     if (!d) {
-      setError(domain.trim() ? 'Enter a website like brand.com' : 'Enter the brand website first');
+      setError(domain.trim() ? t('Enter a website like brand.com') : t('Enter the brand website first'));
       return;
     }
     if (reason) return;
@@ -1181,9 +1182,9 @@ function WatchlistTab({
       setWatchlist(body.watchlist as WatchEntry[]);
       setDomain('');
       const added = body.added as WatchEntry | undefined;
-      toast({ text: `Watching ${added?.name ?? d}. Refresh data to pull its ads.`, tone: 'ok' });
+      toast({ text: t('Watching {name}. Refresh data to pull its ads.', { name: added?.name ?? d }), tone: 'ok' });
     } catch (err) {
-      toast({ text: `Could not track ${d}: ${err instanceof Error ? err.message : 'request failed'}`, tone: 'err' });
+      toast({ text: t('Could not track {name}: {error}', { name: d, error: err instanceof Error ? err.message : t('request failed') }), tone: 'err' });
     } finally {
       setAdding(false);
     }
@@ -1192,7 +1193,7 @@ function WatchlistTab({
   return (
     <div className="mx-auto max-w-2xl">
       <label className="block text-[12px] text-os-muted" htmlFor="ap-domain">
-        Track a brand: enter its website and Adscout finds its ad pages
+        {t('Track a brand: enter its website and Adscout finds its ad pages')}
       </label>
       <div className="mt-1.5 flex items-center gap-2">
         <input
@@ -1212,11 +1213,11 @@ function WatchlistTab({
           type="button"
           onClick={() => void add()}
           disabled={reason !== null}
-          title={reason ?? 'Track this brand (one Foreplay lookup)'}
+          title={reason ?? t('Track this brand (one Foreplay lookup)')}
           className={gc('g-btn', 'c-btn flex items-center gap-1.5 text-[12.5px]')}
         >
           {adding ? <Loader2 aria-hidden className="h-4 w-4 animate-spin" strokeWidth={1.7} /> : <Plus aria-hidden className="h-4 w-4" strokeWidth={1.7} />}
-          Track brand
+          {t('Track brand')}
         </button>
       </div>
       {error && (
@@ -1226,14 +1227,14 @@ function WatchlistTab({
       )}
       {!configured && (
         <p className="mt-1.5 flex flex-wrap items-center gap-2 text-[11.5px] text-os-dim">
-          Adding by website needs Foreplay. Track brand on any ad&apos;s dossier works without it.
-          <Setup href={FOREPLAY_SETUP} hint="Add a Foreplay API key" />
+          {t("Adding by website needs Foreplay. Track brand on any ad's dossier works without it.")}
+          <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
         </p>
       )}
 
       <div className="mt-4 flex flex-col gap-2">
         {watchlist.length === 0 && (
-          <Empty line1="No brands tracked." line2="Tracked brands get synced daily: new launches, longevity winners, kills, velocity moves." />
+          <Empty line1={t('No brands tracked.')} line2={t('Tracked brands get synced daily: new launches, longevity winners, kills, velocity moves.')} />
         )}
         {watchlist.map((w) => {
           const counts = liveCounts.get(w.id);
@@ -1257,17 +1258,17 @@ function WatchlistTab({
               )}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] text-os-text">{w.name}</div>
-                <div className="text-[11px] text-os-dim">{w.domain ?? 'added from a result'}</div>
+                <div className="text-[11px] text-os-dim">{w.domain ?? t('added from a result')}</div>
               </div>
               {counts && (
                 <div className="text-right text-[11.5px] tabular-nums text-os-muted">
-                  {counts.live} live · longest {counts.top}d
+                  {t('{live} live · longest {top}d', { live: counts.live, top: counts.top })}
                 </div>
               )}
               <button
                 type="button"
-                aria-label={`Stop watching ${w.name}`}
-                title={`Stop watching ${w.name} (undo for ${UNDO_MS / 1000}s)`}
+                aria-label={t('Stop watching {name}', { name: w.name })}
+                title={t('Stop watching {name} (undo for {n}s)', { name: w.name, n: UNDO_MS / 1000 })}
                 onClick={() => onRemove(w)}
                 className={gc('g-btn g-btn-icon g-btn-sm', 'c-btn p-1.5')}
               >
@@ -1302,14 +1303,14 @@ function ActivityRow({ s, ad, onOpen, sub = false }: { s: Signal; ad: WallAd | u
   if (!ad) {
     // Nothing to open: a plain row, no hover, so it never reads as clickable.
     return (
-      <div className={`${rowBase} opacity-80`} title="This ad is no longer in the library">
+      <div className={`${rowBase} opacity-80`} title={t('This ad is no longer in the library')}>
         {icon}
         {text}
       </div>
     );
   }
   return (
-    <button type="button" onClick={() => onOpen(ad)} className={gc(`g-btn ap-g-rowbtn`, `${rowBase} ap-inset ap-row`)} title={`Open ${ad.brand} dossier`}>
+    <button type="button" onClick={() => onOpen(ad)} className={gc(`g-btn ap-g-rowbtn`, `${rowBase} ap-inset ap-row`)} title={t('Open {brand} dossier', { brand: ad.brand })}>
       {icon}
       {text}
       {(ad.thumbnail || ad.image) && (
@@ -1349,14 +1350,14 @@ function ActivityTab({
   }, [signals]);
 
   if (signals.length === 0) {
-    return <Empty line1="Quiet." line2="After each refresh this lists what changed across your watchlist: launches, ads crossing 21/30/60 days, kills, and spend-velocity moves." />;
+    return <Empty line1={t('Quiet.')} line2={t('After each refresh this lists what changed across your watchlist: launches, ads crossing 21/30/60 days, kills, and spend-velocity moves.')} />;
   }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
       <p className="text-[12px] text-os-dim">
-        What changed across your watchlist, newest first.
-        {total > signals.length && ` Showing the latest ${signals.length} of ${nf.format(total)}.`}
+        {t('What changed across your watchlist, newest first.')}
+        {total > signals.length && t(' Showing the latest {n} of {total}.', { n: signals.length, total: nf.format(total) })}
       </p>
       {groups.map(({ day, rows, runs }) => (
         <div key={day}>
@@ -1385,7 +1386,7 @@ function ActivityTab({
                         return next;
                       })
                     }
-                    title={expanded ? 'Collapse' : `Show all ${run.count}`}
+                    title={expanded ? t('Collapse') : t('Show all {n}', { n: run.count })}
                     className={gc('g-btn ap-g-rowbtn', `${rowBase} ap-inset ap-row`)}
                   >
                     <Icon aria-hidden className={`h-4 w-4 shrink-0 ${first.type === 'winner' ? 'text-[var(--accent)]' : 'text-os-dim'}`} strokeWidth={1.7} />
@@ -1463,15 +1464,15 @@ function Dossier({
         style={swipeStyle}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => {
-          const t = e.touches[0];
-          touch.current = { x: t.clientX, y: t.clientY };
+          const pt = e.touches[0];
+          touch.current = { x: pt.clientX, y: pt.clientY };
         }}
         onTouchMove={(e) => {
           const start = touch.current;
           if (!start) return;
-          const t = e.touches[0];
-          const ddx = t.clientX - start.x;
-          if (Math.abs(t.clientY - start.y) > Math.abs(ddx)) return;
+          const pt = e.touches[0];
+          const ddx = pt.clientX - start.x;
+          if (Math.abs(pt.clientY - start.y) > Math.abs(ddx)) return;
           setDx(Math.max(0, ddx));
         }}
         onTouchEnd={() => {
@@ -1486,11 +1487,11 @@ function Dossier({
               {ad.brand}
             </h2>
             <div className="mt-0.5 text-[12px] text-os-dim">
-              {ad.format ?? 'ad'} · {ad.daysRunning} days {ad.live ? '· live' : '· off'}
+              {ad.format ?? 'ad'} · {t('{n} days', { n: ad.daysRunning })} {ad.live ? t('· live') : t('· off')}
               {ad.ctaType ? ` · ${ad.ctaType.toLowerCase().replaceAll('_', ' ')}` : ''}
             </div>
           </div>
-          <button type="button" data-dialog-close onClick={onClose} aria-label="Close dossier" title="Close (Esc)" className={gc('g-btn g-btn-icon g-btn-sm', 'c-btn p-1.5')}>
+          <button type="button" data-dialog-close onClick={onClose} aria-label={t('Close dossier')} title={t('Close (Esc)')} className={gc('g-btn g-btn-icon g-btn-sm', 'c-btn p-1.5')}>
             <X aria-hidden className="h-4 w-4" strokeWidth={1.7} />
           </button>
         </div>
@@ -1499,51 +1500,51 @@ function Dossier({
           <video ref={videoRef} src={ad.video} controls playsInline preload="metadata" className="ap-media w-full rounded-[10px]" />
         ) : ad.thumbnail || ad.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={ad.thumbnail ?? ad.image ?? ''} alt={`${ad.brand} creative`} className="ap-media w-full rounded-[10px]" />
+          <img src={ad.thumbnail ?? ad.image ?? ''} alt={t('{brand} creative', { brand: ad.brand })} className="ap-media w-full rounded-[10px]" />
         ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           <button type="button" onClick={() => onSave(ad)} aria-pressed={isSaved} className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
             <Bookmark aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} fill={isSaved ? 'currentColor' : 'none'} />
-            {isSaved ? 'Saved' : 'Save'}
+            {isSaved ? t('Saved') : t('Save')}
           </button>
           {ad.brandId &&
             (isWatched ? (
-              <button type="button" disabled title={`${ad.brand} is already on your watchlist`} className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
-                <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> Tracking
+              <button type="button" disabled title={t('{brand} is already on your watchlist', { brand: ad.brand })} className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
+                <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> {t('Tracking')}
               </button>
             ) : (
               <button type="button" onClick={() => onWatch(ad)} className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
-                <Plus aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> Track brand
+                <Plus aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> {t('Track brand')}
               </button>
             ))}
           {ad.hook && (
             <button type="button" onClick={copyHook} className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
-              <Copy aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> {copied ? 'Copied' : 'Copy hook'}
+              <Copy aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> {copied ? t('Copied') : t('Copy hook')}
             </button>
           )}
           {ad.linkUrl && (
             <a href={ad.linkUrl} target="_blank" rel="noreferrer" className={gc('g-btn g-btn-sm', 'c-btn flex items-center gap-1.5 text-[12px]')}>
-              <ExternalLink aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> Landing page
+              <ExternalLink aria-hidden className="h-3.5 w-3.5" strokeWidth={1.7} /> {t('Landing page')}
             </a>
           )}
         </div>
 
         {ad.hook && (
           <div className="mt-4">
-            <div className="text-[11px] text-os-dim">Hook ({ad.hookSource})</div>
+            <div className="text-[11px] text-os-dim">{t('Hook ({source})', { source: ad.hookSource })}</div>
             <p className="mt-1 text-[13.5px] leading-snug text-os-text">“{ad.hook}”</p>
           </div>
         )}
 
         {topDrivers.length > 0 && (
           <div className="mt-4">
-            <div className="text-[11px] text-os-dim">Emotional drivers</div>
+            <div className="text-[11px] text-os-dim">{t('Emotional drivers')}</div>
             <div className="mt-2 flex flex-col gap-1.5">
               {topDrivers.map(([axis, score]) => (
                 <div key={axis} className="flex items-center gap-2">
                   <span className="w-24 shrink-0 text-[12px] text-os-muted">{axis}</span>
-                  <div className="ap-inset h-[7px] flex-1 overflow-hidden rounded-full" role="img" aria-label={`${axis} ${score} of 10`}>
+                  <div className="ap-inset h-[7px] flex-1 overflow-hidden rounded-full" role="img" aria-label={t('{axis} {score} of 10', { axis, score })}>
                     <div className="ap-solid h-full rounded-full" style={{ width: `${(score / 10) * 100}%`, opacity: 0.4 + 0.06 * score }} />
                   </div>
                   <span className="w-6 shrink-0 text-right text-[11.5px] tabular-nums text-os-dim">{score}</span>
@@ -1555,7 +1556,7 @@ function Dossier({
 
         {ad.transcript.length > 0 && (
           <div className="mt-4">
-            <div className="text-[11px] text-os-dim">{ad.video ? 'Transcript: click a line to seek' : 'Transcript'}</div>
+            <div className="text-[11px] text-os-dim">{ad.video ? t('Transcript: click a line to seek') : t('Transcript')}</div>
             <div className="mt-2 flex flex-col">
               {ad.transcript.map((line, i) => {
                 const stamp = `${Math.floor(line.t / 60)}:${String(Math.floor(line.t % 60)).padStart(2, '0')}`;
@@ -1577,7 +1578,7 @@ function Dossier({
                         v.play().catch(() => undefined);
                       }
                     }}
-                    title={`Play from ${stamp}`}
+                    title={t('Play from {stamp}', { stamp })}
                     className={gc('g-btn ap-g-rowbtn group', 'ap-inset-hover group flex gap-2.5 rounded-[7px] px-2 py-1.5 text-left')}
                   >
                     {body}
@@ -1626,12 +1627,12 @@ function BandG({
       <GHeroCard
         variant="b"
         size="sm"
-        caption={libOpen ? 'Close ad library' : 'Open ad library'}
+        caption={libOpen ? t('Close ad library') : t('Open ad library')}
         value={nf.format(wallCount)}
-        label={`${nf.format(wallCount)} tracked ads`}
-        status={`tracked ads · ${savedCount} saved`}
-        title="Search by concept, save winners, watch brands"
-        strip={longevity.length > 1 ? <GTickStrip onHero values={longevity.map((l) => l.days)} titles={longevity.map((l) => l.title)} label="Days each tracked ad has run" /> : undefined}
+        label={t('{n} tracked ads', { n: nf.format(wallCount) })}
+        status={t('tracked ads · {n} saved', { n: savedCount })}
+        title={t('Search by concept, save winners, watch brands')}
+        strip={longevity.length > 1 ? <GTickStrip onHero values={longevity.map((l) => l.days)} titles={longevity.map((l) => l.title)} label={t('Days each tracked ad has run')} /> : undefined}
         onClick={onToggle}
         aria-expanded={libOpen}
         aria-controls="ap-library"
@@ -1640,19 +1641,19 @@ function BandG({
       <GCard p={24} className="ap-g-foreplay" aria-labelledby="ap-g-foreplay">
         <div className="ap-g-inline">
           <h3 id="ap-g-foreplay" className="ap-g-card-title">Foreplay</h3>
-          {configured && <span className="soc-g-cap">as of {relativeAgo(lastSyncAt, now)}</span>}
+          {configured && <span className="soc-g-cap">{t('as of {ago}', { ago: relativeAgo(lastSyncAt, now) })}</span>}
         </div>
         {setupNeeded ? (
-          <GEmpty kind="unconfigured" inline title="No Foreplay key yet" body="Credits and refresh both need a Foreplay API key." setupHref={FOREPLAY_SETUP} setupHint="Add a Foreplay API key" />
+          <GEmpty kind="unconfigured" inline title={t('No Foreplay key yet')} body={t('Credits and refresh both need a Foreplay API key.')} setupHref={FOREPLAY_SETUP} setupHint={t('Add a Foreplay API key')} />
         ) : (
           <>
             <div className="ap-g-credits">
               <span className="soc-g-num">{credits ? nf.format(credits.remaining) : '—'}</span>
-              <span className="soc-g-cap">{credits ? `of ${nf.format(credits.total)} credits left` : 'credits are read on each refresh'}</span>
+              <span className="soc-g-cap">{credits ? t('of {n} credits left', { n: nf.format(credits.total) }) : t('credits are read on each refresh')}</span>
             </div>
-            <GBar label={share === null ? 'Credits unknown' : `${Math.round(share * 100)}% of credits remaining${low ? ', running low' : ''}`} value={credits?.remaining ?? null} max={credits?.total ?? 1} tone={low ? 'warn' : undefined} />
+            <GBar label={share === null ? t('Credits unknown') : `${t('{n}% of credits remaining', { n: Math.round(share * 100) })}${low ? t(', running low') : ''}`} value={credits?.remaining ?? null} max={credits?.total ?? 1} tone={low ? 'warn' : undefined} />
             <div className="ap-g-inline">
-              <span className="soc-g-cap" aria-live="polite">{armed ? 'Uses Foreplay credits: one call per watched brand' : 'Pull new ads and signals for every watched brand'}</span>
+              <span className="soc-g-cap" aria-live="polite">{armed ? t('Uses Foreplay credits: one call per watched brand') : t('Pull new ads and signals for every watched brand')}</span>
               <GButton
                 variant={armed ? 'ink' : 'default'}
                 size="sm"
@@ -1661,9 +1662,9 @@ function BandG({
                 busy={syncing}
                 disabled={syncDisabledReason !== null}
                 disabledReason={syncDisabledReason ?? undefined}
-                title={armed ? 'Click again to spend Foreplay credits on a refresh' : 'Refresh data'}
+                title={armed ? t('Click again to spend Foreplay credits on a refresh') : t('Refresh data')}
               >
-                <RefreshCw aria-hidden size={13} strokeWidth={1.75} /> {armed ? 'Confirm refresh' : 'Refresh data'}
+                <RefreshCw aria-hidden size={13} strokeWidth={1.75} /> {armed ? t('Confirm refresh') : t('Refresh data')}
               </GButton>
             </div>
           </>
@@ -1684,26 +1685,26 @@ function CardGridG({ ads, savedIds, onOpen, onSave }: { ads: WallAd[]; savedIds:
             <GCard
               p={16}
               onClick={() => onOpen(ad)}
-              aria-label={`${ad.brand}: ${ad.daysRunning} days${ad.live ? ', still running' : ''}. Open dossier`}
+              aria-label={`${t('{brand}: {n} days', { brand: ad.brand, n: ad.daysRunning })}${ad.live ? t(', still running') : ''}${t('. Open dossier')}`}
               media={ad.thumbnail || ad.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={ad.thumbnail ?? ad.image ?? ''} alt={`${ad.brand} ad creative`} loading="lazy" />
+                <img src={ad.thumbnail ?? ad.image ?? ''} alt={t('{brand} ad creative', { brand: ad.brand })} loading="lazy" />
               ) : (
                 <span className="ap-g-noimg">{ad.format ?? 'ad'}</span>
               )}
             >
               <span className="ap-g-inline">
                 <span className="soc-g-sub ap-g-trunc">{ad.brand}</span>
-                <GTag tone={ad.live ? 'accent' : 'neutral'} dot={ad.live} title={ad.live ? 'Still running' : 'No longer running'}>{ad.daysRunning} days</GTag>
+                <GTag tone={ad.live ? 'accent' : 'neutral'} dot={ad.live} title={ad.live ? t('Still running') : t('No longer running')}>{t('{n} days', { n: ad.daysRunning })}</GTag>
               </span>
               {ad.hook && <span className="ap-g-hook">“{ad.hook}”</span>}
             </GCard>
             <GButton
               variant="icon"
               size="sm"
-              aria-label={isSaved ? `Unsave ${ad.brand} ad` : `Save ${ad.brand} ad`}
+              aria-label={isSaved ? t('Unsave {brand} ad', { brand: ad.brand }) : t('Save {brand} ad', { brand: ad.brand })}
               aria-pressed={isSaved}
-              title={isSaved ? 'Saved: click to remove from Saved' : 'Save to your swipe file'}
+              title={isSaved ? t('Saved: click to remove from Saved') : t('Save to your swipe file')}
               onClick={() => onSave(ad)}
               className="ap-g-save"
             >

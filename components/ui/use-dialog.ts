@@ -67,7 +67,7 @@ export function trapTabIndex(count: number, current: number, shift: boolean): nu
 
 /** Close-ish label: what the default initial focus looks for. */
 export function isCloseLabel(text: string | null | undefined): boolean {
-  return /^\s*(close|cancel|dismiss|done)\b/i.test(text ?? '');
+  return /^\s*(close|cancel|dismiss|done|chiudi|annulla|ignora|fatto)\b/i.test(text ?? '');
 }
 
 let scrollLocks = 0;

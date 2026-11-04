@@ -15,6 +15,7 @@ import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { buildAgentDirectory } from '@/lib/agent-directory';
 import { OrgG, type OrgAgentRow } from '@/components/org/OrgG';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -161,7 +162,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
   return (
     <div>
       <PageHeader
-        title="Agent hierarchy"
+        title={t('Agent hierarchy')}
       />
 
       {/* Venture switcher: Acme / Workshop — one click swaps which
@@ -173,7 +174,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
             !venture ? 'border-os-text bg-os-text text-os-bg' : 'border-os-border bg-os-surface text-os-muted hover:text-os-text'
           }`}
         >
-          All ventures
+          {t('All ventures')}
         </Link>
         {readVentures().map((v) => {
           const active = venture?.id === v.id;
@@ -200,7 +201,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
           style={{ borderColor: `color-mix(in srgb, ${ventureColor(venture.color)} 40%, transparent)`, boxShadow: `inset 3px 0 0 ${ventureColor(venture.color)}` }}
         >
           <div className="text-[11.5px]" style={{ color: ventureColor(venture.color) }}>
-            {venture.label} — executive focus
+            {venture.label} — {t('executive focus')}
           </div>
           <ul className="mt-1.5 space-y-1">
             {venture.focus.map((f) => (
@@ -211,18 +212,18 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
             ))}
           </ul>
           <div className="mt-3 font-mono text-[11.5px] text-os-dim">
-            Optimal Engine tag: #{venture.brainTag} · {ventureSet?.size} agents on this venture
+            {t('Optimal Engine tag: #{tag}', { tag: venture.brainTag })} · {t('{n} agents on this venture', { n: ventureSet?.size ?? '' })}
           </div>
         </div>
       )}
 
       {/* Life-area legend: every crew below is tinted by the part of life it serves */}
       <div className="mb-8 flex flex-wrap items-center gap-5 rounded-lg border border-os-border bg-os-surface px-4 py-3">
-        <span className="text-[11.5px] text-os-dim">Life areas</span>
+        <span className="text-[11.5px] text-os-dim">{t('Life areas')}</span>
         {LIFE_AREAS.map((area) => (
           <span key={area.id} className="flex items-center gap-2.5 text-[11.5px] text-os-muted">
             <span className="h-2 w-2 rounded-full" style={{ background: lifeColor(area) }} />
-            {area.label}
+            {t(area.label)}
           </span>
         ))}
       </div>
@@ -231,25 +232,25 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
       <div className="flex flex-col items-center">
         <Users className="h-7 w-7 text-os-text" />
         <div className="mt-1 text-base font-medium">{OPERATOR_NAME}</div>
-        <div className="text-[12.5px] text-os-dim">Operator</div>
+        <div className="text-[12.5px] text-os-dim">{t('Operator')}</div>
         <div className="mt-3 h-6 w-px bg-os-border-bright" />
-        <div className="text-[12.5px] text-os-muted">Wizard (super agent)</div>
+        <div className="text-[12.5px] text-os-muted">{t('Wizard (super agent)')}</div>
         <div className="h-3 w-px bg-os-border-bright" />
       </div>
 
       {/* AI Head row: Optimal Engine ── Wizard ── Comms Feed */}
       <div className="flex flex-wrap items-center justify-center gap-3 md:flex-nowrap md:gap-0">
-        <SystemCard href="/brain" title="Optimal Engine" caption="markdown + pgvector knowledge store" />
+        <SystemCard href="/brain" title="Optimal Engine" caption={t('markdown + pgvector knowledge store')} />
         <div className="hidden h-px w-10 bg-os-border-bright md:block" />
         {conductor ? (
           <ConductorCard conductor={conductor} agentNames={agentNames} initialBroadcast={lastBroadcast} />
         ) : (
           <div className="rounded-xl border border-dashed border-os-border px-6 py-4 text-xs text-os-dim">
-            conductor missing — run npm run seed
+            {t('conductor missing — run npm run seed')}
           </div>
         )}
         <div className="hidden h-px w-10 bg-os-border-bright md:block" />
-        <SystemCard href="/inbox" title="Comms Feed" caption="Gmail · WhatsApp · Slack, unified" />
+        <SystemCard href="/inbox" title={t('Comms Feed')} caption={t('Gmail · WhatsApp · Slack, unified')} />
       </div>
 
       {/* Trunk down to the department rail */}
@@ -285,7 +286,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
                 {area && (
                   <div className="flex items-center gap-2.5 text-[11.5px]" style={{ color: lifeColor(area) }}>
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: lifeColor(area) }} />
-                    {area.label}
+                    {t(area.label)}
                   </div>
                 )}
                 <div
@@ -298,7 +299,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
               {instanceAgents.length > 0 && (
                 <div className="w-full space-y-2.5">
                   <div className="text-center text-[11.5px] text-os-dim">
-                    {department.name} crew
+                    {t('{name} crew', { name: department.name })}
                   </div>
                   {/* Instance slots: each becomes an OpenClaw / Claude Code process on the host */}
                   {instanceAgents.map((agent) => (
@@ -341,14 +342,14 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
 
               {all.length === 0 && (
                 <div className="w-full rounded-xl border border-dashed border-os-border px-3 py-5 text-center text-[11.5px] text-os-dim">
-                  Agents land here as this department goes live
+                  {t('Agents land here as this department goes live')}
                 </div>
               )}
 
               {deptTools.length > 0 && (
                 <div className="w-full">
                   <div className="rounded-md bg-os-raised px-2 py-1 text-center text-[11px] text-os-muted">
-                    Agent tools
+                    {t('Agent tools')}
                   </div>
                   <div className="mt-1.5 flex flex-wrap justify-center gap-1">
                     {deptTools.map((tool) => (

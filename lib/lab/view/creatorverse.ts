@@ -20,6 +20,7 @@ import type { LabParams, LabPlatformId, SectionState } from '@/lib/lab/view/shar
 import { creatorLinks } from '@/lib/lab/view/hero-graphs';
 import { fill, fmtCount } from '@/lib/lab/view/format';
 import { READY, section, state, withSample } from '@/lib/lab/view/section';
+import { t } from '@/lib/i18n';
 
 const DAY = 86_400_000;
 const SOCIAL: ReadonlySet<string> = new Set(['instagram', 'tiktok', 'youtube', 'linkedin', 'twitter', 'x']);
@@ -30,33 +31,33 @@ export const VERSE_MAX_NODES = 240;
 
 export const VERSE_COPY = {
   title: 'Creatorverse',
-  lead: 'Every creator the Lab follows, in one network. Bigger audiences sit nearer the centre.',
-  noCreators: 'No creators yet. Add your accounts or a creator to follow and they appear here.',
-  addSource: 'Add source',
-  kinds: { owned: 'Your accounts', tracked: 'Tracked', watch: 'Watch list', suggested: 'Suggested' },
+  lead: t('Every creator the Lab follows, in one network. Bigger audiences sit nearer the centre.'),
+  noCreators: t('No creators yet. Add your accounts or a creator to follow and they appear here.'),
+  addSource: t('Add source'),
+  kinds: { owned: t('Your accounts'), tracked: t('Tracked'), watch: t('Watch list'), suggested: t('Suggested') },
   /** one creator's kind, in a sentence */
-  kindOne: { owned: 'your account', tracked: 'tracked', watch: 'on the watch list', suggested: 'suggested' },
+  kindOne: { owned: t('your account'), tracked: t('tracked'), watch: t('on the watch list'), suggested: t('suggested') },
   /** a count of a kind, in a sentence */
-  kindMany: { owned: 'yours', tracked: 'tracked', watch: 'on the watch list', suggested: 'suggested' },
+  kindMany: { owned: t('yours'), tracked: t('tracked'), watch: t('on the watch list'), suggested: t('suggested') },
   kindNotes: {
-    owned: 'One of your accounts.',
-    tracked: 'A creator the Lab tracks: posts are scraped and measured.',
-    watch: 'An X account on the Radar watch list: its launches are tracked, its posts are not.',
-    suggested: 'Suggested by discovery, not tracked yet.',
+    owned: t('One of your accounts.'),
+    tracked: t('A creator the Lab tracks: posts are scraped and measured.'),
+    watch: t('An X account on the Radar watch list: its launches are tracked, its posts are not.'),
+    suggested: t('Suggested by discovery, not tracked yet.'),
   },
-  audience: { followers: '{n} followers', subscribers: '{n} subscribers', views: '{n} median views', none: 'No audience size yet' },
-  legendSize: 'Size is audience: followers, or subscribers on YouTube, from the latest profile read.',
-  legendCentre: 'Bigger audiences pull toward the centre; the smallest sit at the edge.',
-  legendFallback: '{n} with no follower count are sized by the median views of their posts and drawn faded.',
-  legendNone: '{n} with no size data yet are small hollow rings at the edge.',
-  legendEdges: 'Solid lines: covered the same launch. Dotted: share a topic.',
-  legendK: 'Showing each creator\'s {k} strongest links.',
-  legendAll: 'Showing every link.',
-  summary: '{n} creators: {kinds}. {f} sized by followers{rest}. {e} links, {s} of them among each creator\'s {k} strongest.',
-  summaryRest: ', {v} by median views, {z} without size data',
-  biggest: 'Biggest: {list}.',
-  capped: 'The {n} smallest creators are left out to keep the graph readable.',
-  nodeTitle: '{name}, {platform}, {kind}. {size}. {b} in 30 days.',
+  audience: { followers: t('{n} followers'), subscribers: t('{n} subscribers'), views: t('{n} median views'), none: t('No audience size yet') },
+  legendSize: t('Size is audience: followers, or subscribers on YouTube, from the latest profile read.'),
+  legendCentre: t('Bigger audiences pull toward the centre; the smallest sit at the edge.'),
+  legendFallback: t('{n} with no follower count are sized by the median views of their posts and drawn faded.'),
+  legendNone: t('{n} with no size data yet are small hollow rings at the edge.'),
+  legendEdges: t('Solid lines: covered the same launch. Dotted: share a topic.'),
+  legendK: t('Showing each creator\'s {k} strongest links.'),
+  legendAll: t('Showing every link.'),
+  summary: t('{n} creators: {kinds}. {f} sized by followers{rest}. {e} links, {s} of them among each creator\'s {k} strongest.'),
+  summaryRest: t(', {v} by median views, {z} without size data'),
+  biggest: t('Biggest: {list}.'),
+  capped: t('The {n} smallest creators are left out to keep the graph readable.'),
+  nodeTitle: t('{name}, {platform}, {kind}. {size}. {b} in 30 days.'),
 } as const;
 
 export type VerseKind = 'owned' | 'tracked' | 'watch' | 'suggested';
@@ -64,6 +65,13 @@ export type VersePlatform = LabPlatformId | 'x';
 export type VerseSizeBasis = 'followers' | 'median_views' | 'none';
 
 const KIND_ORDER: VerseKind[] = ['owned', 'tracked', 'watch', 'suggested'];
+/** A count of a kind, in a sentence (VERSE_COPY.kindMany with its number, one key per phrase so Italian can agree). */
+const KIND_MANY_N: Record<VerseKind, (n: number) => string> = {
+  owned: (n) => t('{n} yours', { n }),
+  tracked: (n) => t('{n} tracked', { n }),
+  watch: (n) => t('{n} on the watch list', { n }),
+  suggested: (n) => t('{n} suggested', { n }),
+};
 const PLATFORM_ORDER: VersePlatform[] = ['instagram', 'tiktok', 'youtube', 'linkedin', 'twitter', 'x'];
 const PLATFORM_NAME: Record<VersePlatform, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X', x: 'X' };
 /**
@@ -379,7 +387,7 @@ export function creatorverse(store: LabStore, now: Date, sample: boolean, select
       breakoutsHref: nPosts ? withSample(`/lab/breakouts?creator=${encodeURIComponent(s.id)}${kind === 'owned' ? '&mine=1' : ''}`, sample) : null,
       setupHref: withSample('?setup=sources', sample),
       url: s.url,
-      title: fill(C.nodeTitle, { name, platform: PLATFORM_NAME[platform], kind: C.kindOne[kind], size: sizeText, b: b === 1 ? '1 breakout' : `${b} breakouts` }),
+      title: fill(C.nodeTitle, { name, platform: PLATFORM_NAME[platform], kind: C.kindOne[kind], size: sizeText, b: b === 1 ? t('1 breakout') : t('{n} breakouts', { n: b }) }),
       ...pos[i],
     };
   });
@@ -398,7 +406,7 @@ export function creatorverse(store: LabStore, now: Date, sample: boolean, select
   const summary = [
     fill(C.summary, {
       n: nodes.length,
-      kinds: kinds.map((k) => `${k.n} ${C.kindMany[k.id]}`).join(', '),
+      kinds: kinds.map((k) => KIND_MANY_N[k.id](k.n)).join(', '),
       f: nFollow,
       rest: nViews || nNone ? fill(C.summaryRest, { v: nViews, z: nNone }) : '',
       e: edges.length,

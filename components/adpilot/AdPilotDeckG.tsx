@@ -11,7 +11,7 @@
  * coloured by the accent (C30) through the scoped .ap-g tokens.
  */
 
-import { t } from '@/lib/i18n';
+import { localeTag, t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -34,7 +34,7 @@ const Globe = dynamic(() => import('@/components/adpilot/Globe').then((m) => m.G
   loading: () => <div className="h-[560px] w-full" />,
 });
 
-const nf = new Intl.NumberFormat('en-US');
+const nf = new Intl.NumberFormat(localeTag());
 const money = (v: number) => `$${nf.format(Math.round(v))}`;
 const money2 = (v: number | null) => (v === null ? null : `$${v.toFixed(2)}`);
 const pct = (v: number | null) => (v === null ? null : `${(v * 100).toFixed(2)}%`);

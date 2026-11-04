@@ -3,6 +3,7 @@
 import { ArrowRight, Inbox } from 'lucide-react';
 import type { Chart, StatCard } from '@/lib/inbox-stats';
 import { Mono } from './bits';
+import { t } from '@/lib/i18n';
 
 /**
  * The report row above the inbox columns. Structure follows the reference
@@ -77,7 +78,7 @@ export function InboxWidgets({
   onOpenTriage: () => void;
 }) {
   return (
-    <section className="ib-widgets" aria-label="Comms report">
+    <section className="ib-widgets" aria-label={t('Comms report')}>
       <Card card={cards[0]} />
       <article className="ib-w-card is-accent">
         <span className="ib-w-chip">
@@ -85,16 +86,18 @@ export function InboxWidgets({
         </span>
         <h2 className="ib-w-accent-h">
           {replyCount === 0
-            ? 'Nothing waiting on you'
-            : `${replyCount} thread${replyCount === 1 ? '' : 's'} waiting on you`}
+            ? t('Nothing waiting on you')
+            : replyCount === 1
+              ? t('{n} thread waiting on you', { n: replyCount })
+              : t('{n} threads waiting on you', { n: replyCount })}
         </h2>
         <p className="ib-w-accent-p">
           {replyCount === 0
-            ? 'Every thread here is read or already answered.'
-            : 'Questions asked of you, and conversations with unread messages.'}
+            ? t('Every thread here is read or already answered.')
+            : t('Questions asked of you, and conversations with unread messages.')}
         </p>
         <button className="ib-w-accent-btn" onClick={onOpenTriage} disabled={replyCount === 0}>
-          Open triage <ArrowRight strokeWidth={2} />
+          {t('Open triage')} <ArrowRight strokeWidth={2} />
         </button>
       </article>
       {cards.slice(1).map((c) => (

@@ -9,6 +9,7 @@
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useDialog } from '@/components/ui/use-dialog';
+import { t } from '@/lib/i18n';
 
 export function CCard({ title, right, children, className = '', id }: { title?: ReactNode; right?: ReactNode; children: ReactNode; className?: string; id?: string }) {
   return (
@@ -38,7 +39,7 @@ export function CPill({ tone = 'default', children, title }: { tone?: PillTone; 
 export function CSampleBadge({ title }: { title: string }) {
   return (
     <span data-sample-badge="" className="fo-c-pill" data-tone="warn" title={title}>
-      Sample
+      {t('Sample')}
     </span>
   );
 }
@@ -52,7 +53,7 @@ export function CModal({ open, onClose, title, children, footer, width = 520 }: 
       <div {...dlg.props} className="fo-c-modal c-pop" style={{ maxWidth: width }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-[16px] font-medium text-os-text">{title}</h2>
-          <button type="button" data-dialog-close="" onClick={onClose} className="fo-c-icon-btn" aria-label="Close">
+          <button type="button" data-dialog-close="" onClick={onClose} className="fo-c-icon-btn" aria-label={t('Close')}>
             <X size={15} strokeWidth={1.75} aria-hidden />
           </button>
         </div>
@@ -107,7 +108,7 @@ export function CLineChart({
             </span>
           ))}
         </span>
-        <span className="font-mono">{hover != null ? labels[hover] : `${labels[0]} to ${labels[n - 1]}`}</span>
+        <span className="font-mono">{hover != null ? labels[hover] : t('{from} to {to}', { from: labels[0], to: labels[n - 1] })}</span>
       </figcaption>
     </figure>
   );
@@ -143,7 +144,7 @@ export function CMeter({ label, value, of, tone = 'accent' }: { label: ReactNode
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3 text-[12.5px]">
         <span className="text-os-muted">{label}</span>
-        <span className="font-mono text-os-text">{value}<span className="text-os-dim"> of {of}</span></span>
+        <span className="font-mono text-os-text">{value}<span className="text-os-dim"> {t('of {n}', { n: of })}</span></span>
       </div>
       <div className="fo-c-track" role="meter" aria-valuemin={0} aria-valuemax={of} aria-valuenow={value} aria-label={typeof label === 'string' ? label : undefined}>
         <div className="fo-c-fill" data-tone={tone} style={{ width: `${pct}%` }} />

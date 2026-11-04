@@ -3,6 +3,7 @@
 import { CalendarDays, Hash, Mail, MessageSquare, type LucideIcon } from 'lucide-react';
 import { initials, SOURCES, TRIAGE, type InboxSource, type Triage } from '@/lib/inbox';
 import { BRAND_MARK } from './brand';
+import { t } from '@/lib/i18n';
 
 export const SOURCE_ICON: Record<InboxSource, LucideIcon> = {
   email: Mail,
@@ -11,8 +12,8 @@ export const SOURCE_ICON: Record<InboxSource, LucideIcon> = {
   calendar: CalendarDays,
 };
 
-export const sourceLabel = (s: InboxSource): string => SOURCES.find((x) => x.id === s)?.label ?? s;
-export const triageLabel = (t: Triage): string => TRIAGE.find((x) => x.id === t)?.label ?? t;
+export const sourceLabel = (s: InboxSource): string => t(SOURCES.find((x) => x.id === s)?.label ?? s);
+export const triageLabel = (tr: Triage): string => t(TRIAGE.find((x) => x.id === tr)?.label ?? tr);
 
 /**
  * The channel as its own app mark, raised off the page. Three states, and the
@@ -35,7 +36,7 @@ export function SourceBadge({
       className="ib-badge"
       data-source={source}
       data-state={state}
-      title={`${sourceLabel(source)}${unread ? ' · unread' : ''}`}
+      title={`${sourceLabel(source)}${unread ? t(' · unread') : ''}`}
     >
       <Mark className="ib-badge-mark" />
     </span>

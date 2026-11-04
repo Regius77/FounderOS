@@ -4,6 +4,7 @@ import { useId, useState, type ReactNode } from 'react';
 import { Bot, X } from 'lucide-react';
 import { useDialog } from '@/components/ui/use-dialog';
 import { cx } from './format';
+import { t } from '@/lib/i18n';
 
 /**
  * Bennett Legacy overlays and small parts the page trees share: the modal
@@ -42,7 +43,7 @@ export function LDialog({
             </h2>
             {sub && <div className="l-dialog-sub">{sub}</div>}
           </div>
-          <button type="button" data-dialog-close="" data-l="Pressable" data-lens="c" className="l-pressable is-dark l-btn-icon l-btn-icon-sm" onClick={onClose} aria-label="Close">
+          <button type="button" data-dialog-close="" data-l="Pressable" data-lens="c" className="l-pressable is-dark l-btn-icon l-btn-icon-sm" onClick={onClose} aria-label={t('Close')}>
             <X size={14} strokeWidth={1.7} aria-hidden />
           </button>
         </div>
@@ -65,7 +66,7 @@ export function LAvatar({ src, name, size = 28 }: { src: string | null; name?: s
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img data-l="Avatar" src={src} alt={name ? `${name} avatar` : ''} width={size} height={size} className="l-avatar is-photo" style={{ width: size, height: size }} onError={() => setFailed(true)} />
+    <img data-l="Avatar" src={src} alt={name ? t('{name} avatar', { name }) : ''} width={size} height={size} className="l-avatar is-photo" style={{ width: size, height: size }} onError={() => setFailed(true)} />
   );
 }
 

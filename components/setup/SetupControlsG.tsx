@@ -29,8 +29,7 @@ export function KeyInputG({ envVar, present, masked }: { envVar: string; present
       {state === 'saved' ? (
         <>
           <GTag tone="ok" dot>
-            {t('Set')}
-            {masked ? ` · ${masked}` : ''}
+            {masked ? t('Set · {masked}', { masked }) : t('Set')}
           </GTag>
           <GButton variant="sm" onClick={() => setState('idle')}>
             {t('Replace')}

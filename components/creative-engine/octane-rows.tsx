@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import { OBtn, OInput, OSelect, OTextarea } from '@/components/creative-engine/skin';
@@ -13,20 +14,20 @@ import { OBtn, OInput, OSelect, OTextarea } from '@/components/creative-engine/s
  */
 export type ResetProps = { modified?: boolean; onReset?: () => void; resetTo?: string };
 
-const kindOf = (bound?: boolean) => (bound ? 'sent to Arcads as a field' : 'composed into the prompt');
+const kindOf = (bound?: boolean) => (bound ? t('sent to Arcads as a field') : t('composed into the prompt'));
 
 export function Caret({ bound, label, modified, onReset, resetTo }: { bound?: boolean; label?: string } & ResetProps) {
   const kind = kindOf(bound);
   // without a reset handler (the workflow node sheet) the caret is a legend: what kind of field this row is
-  if (!onReset || !label) return <span className="ae-o-caret" data-display-only="field kind" title={kind[0].toUpperCase() + kind.slice(1)}><b data-bound={!!bound} /></span>;
+  if (!onReset || !label) return <span className="ae-o-caret" data-display-only="field kind" title={bound ? t('Sent to Arcads as a field') : t('Composed into the prompt')}><b data-bound={!!bound} /></span>;
   return (
     <OBtn kind="row" cls="ae-o-caret" keep="ae-o-caret"
       
       data-modified={!!modified}
       aria-disabled={!modified}
       tabIndex={modified ? 0 : -1}
-      aria-label={`Reset ${label}`}
-      title={modified ? `Reset ${label}${resetTo ? ` to ${resetTo}` : ''} · ${kind}` : `${label} is at its default · ${kind}`}
+      aria-label={t('Reset {label}', { label })}
+      title={modified ? `${resetTo ? t('Reset {label} to {value}', { label, value: resetTo }) : t('Reset {label}', { label })} · ${kind}` : t('{label} is at its default · {kind}', { label, kind })}
       onClick={() => { if (modified) onReset(); }}
     >
       <b data-bound={!!bound} />
@@ -80,7 +81,7 @@ export function SliderRow({ label, value, min, max, readout, onChange, bound, ed
         max={max}
         step={1}
         value={draft}
-        aria-label={`${label}, ${min} to ${max}`}
+        aria-label={t('{label}, {min} to {max}', { label, min, max })}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
@@ -90,12 +91,12 @@ export function SliderRow({ label, value, min, max, readout, onChange, bound, ed
       />
     );
   } else if (edit === 'number') {
-    box = <OBtn kind="row" cls={`ae-o-value ${popCls}`} keep={`ae-o-value ${popCls}`} key={pops}  title={`Type a value from ${min} to ${max}`} aria-label={`${label}: ${readout}. Edit`} onClick={() => setDraft(String(value))}>{readout}</OBtn>;
+    box = <OBtn kind="row" cls={`ae-o-value ${popCls}`} keep={`ae-o-value ${popCls}`} key={pops}  title={t('Type a value from {min} to {max}', { min, max })} aria-label={t('{label}: {value}. Edit', { label, value: readout })} onClick={() => setDraft(String(value))}>{readout}</OBtn>;
   } else if (edit === 'enum' && options) {
     box = (
       <span key={pops} className={`ae-o-value ae-o-value-sel ${popCls}`}>
         {readout}
-        <OSelect value={value} onChange={(e) => onChange(Number(e.target.value))} aria-label={label} title={`Pick ${label.toLowerCase()}`}>
+        <OSelect value={value} onChange={(e) => onChange(Number(e.target.value))} aria-label={label} title={t('Pick {label}', { label: label.toLowerCase() })}>
           {options.map((o, i) => (<option key={o} value={min + i}>{o}</option>))}
         </OSelect>
       </span>
@@ -138,7 +139,7 @@ export function SwatchRow<T extends string>({ label, value, options, attr, onCha
       <OBtn kind="row" cls="ae-o-swatch" keep="ae-o-swatch"
         
         {...{ [attr]: value }}
-        title={`${value}. Click for ${next}; Shift+click or Left arrow for ${prev}`}
+        title={t('{value}. Click for {next}; Shift+click or Left arrow for {prev}', { value, next, prev })}
         onClick={(e) => onChange(e.shiftKey ? prev : next)}
         onKeyDown={(e) => {
           if (e.key === 'ArrowRight') { e.preventDefault(); onChange(next); }
@@ -152,7 +153,7 @@ export function SwatchRow<T extends string>({ label, value, options, attr, onCha
 
 export function LinkRow({ label, value, onClick, bound, disabled, title }: { label: string; value: string; onClick: () => void; bound?: boolean; disabled?: boolean; title?: string }) {
   return (
-    <OBtn kind="row" cls="ae-o-row w-full text-left" keep="ae-o-row w-full text-left"  onClick={onClick} disabled={disabled} title={title ?? (disabled ? 'Not available on this model' : 'Open the Refs tab')}>
+    <OBtn kind="row" cls="ae-o-row w-full text-left" keep="ae-o-row w-full text-left"  onClick={onClick} disabled={disabled} title={title ?? (disabled ? t('Not available on this model') : t('Open the Refs tab'))}>
       <Caret bound={bound} /><span className="ae-o-label">{label}</span>
       <span className="ae-o-selwrap" data-disabled={disabled}><span>{value}</span></span>
     </OBtn>
@@ -175,7 +176,7 @@ export function TextRow({ label, value, placeholder, onChange, maxLength = 300, 
   return (
     <div className="ae-o-row">
       <Caret label={label} modified={modified} onReset={reset} resetTo={resetTo} /><span className="ae-o-label">{label}</span>
-      <OInput cls="ae-o-text !w-[104px]" keep="!w-[104px]" value={value} placeholder={placeholder} maxLength={maxLength} onChange={(e) => onChange(e.target.value)}  aria-label={label} title={`${value.length} / ${maxLength} characters`} />
+      <OInput cls="ae-o-text !w-[104px]" keep="!w-[104px]" value={value} placeholder={placeholder} maxLength={maxLength} onChange={(e) => onChange(e.target.value)}  aria-label={label} title={t('{n} / {max} characters', { n: value.length, max: maxLength })} />
     </div>
   );
 }

@@ -11,10 +11,11 @@ import { Send } from 'lucide-react';
 import { GButton, GEmpty, GErrorLine, GList, GRow, GSheet, GTag, GTextarea } from '@/components/g';
 import type { DmThread } from '@/lib/social';
 import { initials, relativeTime, useDmInbox } from './use-dm-inbox';
+import { t } from '@/lib/i18n';
 
 export function DmInboxSheetG({ open, threads, nowMs, onClose }: { open: boolean; threads: DmThread[]; nowMs: number; onClose: () => void }) {
   return (
-    <GSheet open={open} onClose={onClose} title="Instagram DMs" caption="Reply here. Replies send through ManyChat." width={1040}>
+    <GSheet open={open} onClose={onClose} title={t('Instagram DMs')} caption={t('Reply here. Replies send through ManyChat.')} width={1040}>
       <DmInboxG threads={threads} nowMs={nowMs} />
     </GSheet>
   );
@@ -25,27 +26,27 @@ function DmInboxG({ threads: initial, nowMs }: { threads: DmThread[]; nowMs: num
   return (
     <div className="soc-g-inbox">
       <div className="soc-g-inbox-status">
-        <GTag tone={isLive ? 'ok' : 'neutral'} dot>{isLive ? 'Live · ManyChat' : 'Seeded · goes live via the ManyChat webhook'}</GTag>
-        <span className="soc-g-cap">{threads.length} conversations</span>
+        <GTag tone={isLive ? 'ok' : 'neutral'} dot>{isLive ? t('Live · ManyChat') : t('Seeded · goes live via the ManyChat webhook')}</GTag>
+        <span className="soc-g-cap">{t('{n} conversations', { n: threads.length })}</span>
       </div>
       {threads.length === 0 ? (
-        <GEmpty title="No DMs yet" body="They appear here as ManyChat posts them to the webhook." />
+        <GEmpty title={t('No DMs yet')} body={t('They appear here as ManyChat posts them to the webhook.')} />
       ) : (
         <div className="soc-g-inbox-grid">
           <div className="soc-g-threads">
-            <GList label="Conversations">
-              {threads.map((t) => (
+            <GList label={t('Conversations')}>
+              {threads.map((th) => (
                 <GRow
-                  key={t.subscriberId}
-                  selected={t.subscriberId === active?.subscriberId}
-                  onClick={() => setSelected(t.subscriberId)}
-                  leading={<span className="soc-g-avatar" aria-hidden>{initials(t.name)}</span>}
-                  title={t.name}
-                  meta={`${t.last.direction === 'out' ? 'You: ' : ''}${t.last.text}`}
+                  key={th.subscriberId}
+                  selected={th.subscriberId === active?.subscriberId}
+                  onClick={() => setSelected(th.subscriberId)}
+                  leading={<span className="soc-g-avatar" aria-hidden>{initials(th.name)}</span>}
+                  title={th.name}
+                  meta={`${th.last.direction === 'out' ? t('You: ') : ''}${th.last.text}`}
                   trailing={
                     <span className="soc-g-thread-trail">
-                      <span className="soc-g-cap">{relativeTime(t.last.ts, nowMs)}</span>
-                      {t.unreplied && <GTag tone="warn" size="xs" title="The last message is inbound">Reply</GTag>}
+                      <span className="soc-g-cap">{relativeTime(th.last.ts, nowMs)}</span>
+                      {th.unreplied && <GTag tone="warn" size="xs" title={t('The last message is inbound')}>{t('Reply')}</GTag>}
                     </span>
                   }
                 />
@@ -57,7 +58,7 @@ function DmInboxG({ threads: initial, nowMs }: { threads: DmThread[]; nowMs: num
               <div className="soc-g-convo-head">
                 <span className="soc-g-convo-name">{active.name}</span>
                 {active.handle && <span className="soc-g-cap">@{active.handle.replace(/^@/, "")}</span>}
-                {active.unreplied && <GTag tone="warn" dot>Needs reply</GTag>}
+                {active.unreplied && <GTag tone="warn" dot>{t('Needs reply')}</GTag>}
               </div>
               <div className="soc-g-msgs">
                 {active.messages.map((m) => (
@@ -81,11 +82,11 @@ function DmInboxG({ threads: initial, nowMs }: { threads: DmThread[]; nowMs: num
                     }}
                     rows={1}
                     maxLines={5}
-                    aria-label={`Reply to ${active.name}`}
-                    placeholder={`Reply to ${active.name} (⌘ Enter sends)`}
+                    aria-label={t('Reply to {name}', { name: active.name })}
+                    placeholder={t('Reply to {name} (⌘ Enter sends)', { name: active.name })}
                   />
-                  <GButton variant="ink" onClick={() => void send()} busy={sending} disabled={!draft.trim()} disabledReason="Write a reply first">
-                    <Send size={14} strokeWidth={1.75} aria-hidden /> Send
+                  <GButton variant="ink" onClick={() => void send()} busy={sending} disabled={!draft.trim()} disabledReason={t('Write a reply first')}>
+                    <Send size={14} strokeWidth={1.75} aria-hidden /> {t('Send')}
                   </GButton>
                 </div>
               </div>

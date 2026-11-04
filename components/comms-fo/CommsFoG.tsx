@@ -39,8 +39,9 @@ import {
 } from '@/lib/comms-extras';
 import type { CallRecording } from '@/lib/schemas';
 import { dayLabel, hhmm, slackIso, useDigestReads, useRecordings } from './hooks';
+import { locale, t } from '@/lib/i18n';
 
-const TIER_LABEL: Record<string, string> = { call: 'Call booked', client: 'Client', people: 'Person', branddeal: 'Brand deal', group: 'Group', noise: 'Automated' };
+const TIER_LABEL: Record<string, string> = { call: t('Call booked'), client: t('Client'), people: t('Person'), branddeal: t('Brand deal'), group: t('Group'), noise: t('Automated') };
 
 /* ── F3 Morning digest ─────────────────────────────────────────────────── */
 
@@ -55,18 +56,18 @@ export function DigestBannerG({ data }: { data: DigestPanelData }) {
 
   const caption =
     data.state === 'ready'
-      ? `${waiting} need a reply · ${total} in the report`
+      ? t('{waiting} need a reply · {total} in the report', { waiting, total })
       : data.state === 'pending'
-        ? DIGEST_COPY.pending
-        : DIGEST_COPY.off;
+        ? t(DIGEST_COPY.pending)
+        : t(DIGEST_COPY.off);
 
   return (
     <>
       <GCardRaised className="wg-cf-digest" p={16}>
         <div className="wg-cf-digest-head">
           <span className="wg-cf-digest-title">
-            {unread && <span className="wg-cf-dot" aria-label="Unread" />}
-            Morning digest
+            {unread && <span className="wg-cf-dot" aria-label={t('Unread')} />}
+            {t('Morning digest')}
           </span>
           {data.sample && <GSampleBadge fixture="lib/fo-sample.ts sampleDigestBody" />}
         </div>
@@ -75,7 +76,7 @@ export function DigestBannerG({ data }: { data: DigestPanelData }) {
           <div className="wg-tags">
             {lanes.map((l) => (
               <GTag key={l.id} size="xs" tone={l.needsReply > 0 ? 'accent' : 'neutral'}>
-                {l.label} {l.id === 'calendar' ? l.events.length : l.entries.length}
+                {t(l.label)} {l.id === 'calendar' ? l.events.length : l.entries.length}
               </GTag>
             ))}
           </div>
@@ -89,37 +90,37 @@ export function DigestBannerG({ data }: { data: DigestPanelData }) {
                 void reads.markRead();
               }}
             >
-              {data.state === 'ready' ? 'Open digest' : `Open the ${dayLabel(data.digest.createdAt)} digest`}
+              {data.state === 'ready' ? t('Open digest') : t('Open the {day} digest', { day: dayLabel(data.digest.createdAt) })}
             </GButton>
           ) : null}
           {data.state === 'off' && (
-            <GButton variant="sm" href="/setup" title={DIGEST_COPY.offHint}>
-              Set up
+            <GButton variant="sm" href="/setup" title={t(DIGEST_COPY.offHint)}>
+              {t('Set up')}
             </GButton>
           )}
         </div>
-        {data.state === 'off' && <p className="wg-cap">{DIGEST_COPY.offHint}</p>}
+        {data.state === 'off' && <p className="wg-cap">{t(DIGEST_COPY.offHint)}</p>}
       </GCardRaised>
 
       <GSheet
         open={open}
         onClose={() => setOpen(false)}
-        title="Morning digest"
-        caption={data.digest ? `Built ${dayLabel(data.digest.createdAt)}, ${hhmm(data.digest.createdAt)} · ${waiting} need a reply` : undefined}
+        title={t('Morning digest')}
+        caption={data.digest ? t('Built {day}, {time} · {waiting} need a reply', { day: dayLabel(data.digest.createdAt), time: hhmm(data.digest.createdAt), waiting }) : undefined}
         width={640}
         className="wg-cf-sheet"
       >
         {lanes.map((lane) => (
-          <section key={lane.id} className="wg-cf-lane" aria-label={lane.label}>
-            <GSectionHeader size={22} title={lane.label} caption={lane.id === 'calendar' ? `${lane.events.length} today` : `${lane.entries.length} in the report · ${lane.needsReply} need a reply`} />
+          <section key={lane.id} className="wg-cf-lane" aria-label={t(lane.label)}>
+            <GSectionHeader size={22} title={t(lane.label)} caption={lane.id === 'calendar' ? t('{n} today', { n: lane.events.length }) : t('{n} in the report · {waiting} need a reply', { n: lane.entries.length, waiting: lane.needsReply })} />
             {lane.id === 'calendar' ? (
               lane.events.length === 0 ? (
-                <p className="wg-cap">Nothing on the calendar today.</p>
+                <p className="wg-cap">{t('Nothing on the calendar today.')}</p>
               ) : (
                 <ul className="wg-cf-entries">
                   {lane.events.map((ev) => (
                     <li key={ev.id} className="wg-cf-entry">
-                      <span className="wg-cf-entry-when">{ev.allDay ? 'All day' : hhmm(ev.start)}</span>
+                      <span className="wg-cf-entry-when">{ev.allDay ? t('All day') : hhmm(ev.start)}</span>
                       <span className="wg-cf-entry-main">
                         <span className="wg-cf-entry-who">{ev.title}</span>
                       </span>
@@ -128,7 +129,7 @@ export function DigestBannerG({ data }: { data: DigestPanelData }) {
                 </ul>
               )
             ) : lane.entries.length === 0 ? (
-              <p className="wg-cap">Nothing came in here.</p>
+              <p className="wg-cap">{t('Nothing came in here.')}</p>
             ) : (
               <ul className="wg-cf-entries">
                 {lane.entries.map((e) => (
@@ -153,12 +154,12 @@ function DigestEntryG({ entry, onClear }: { entry: DigestEntry; onClear: () => v
           <GTag size="xs" tone={needsReply(entry) ? 'accent' : 'neutral'}>
             {TIER_LABEL[entry.tier] ?? entry.tier}
           </GTag>
-          {entry.carried && <GTag size="xs">Held over</GTag>}
+          {entry.carried && <GTag size="xs">{t('Held over')}</GTag>}
         </span>
         <span className="wg-cf-entry-text">{entry.preview || entry.title}</span>
       </span>
-      <GButton variant="sm" onClick={onClear} aria-label={`Clear ${entry.sender}`}>
-        Clear
+      <GButton variant="sm" onClick={onClear} aria-label={t('Clear {name}', { name: entry.sender })}>
+        {t('Clear')}
       </GButton>
     </li>
   );
@@ -177,8 +178,8 @@ export function RecordingsG({ initial, active }: { initial: RecordingsData; acti
     <GCard className="wg-cf-card" p={20}>
       <GSectionHeader
         size={22}
-        title="Recordings"
-        caption="Call recordings from Plaud and Fathom"
+        title={t('Recordings')}
+        caption={t('Call recordings from Plaud and Fathom')}
         action={data.sample ? <GSampleBadge fixture="lib/fo-sample.ts sampleRecordings" /> : undefined}
       />
       {!data.sample && (
@@ -189,51 +190,51 @@ export function RecordingsG({ initial, active }: { initial: RecordingsData; acti
       )}
       {fathom.error && (
         <GErrorLine align="left" onRetry={() => void refresh()}>
-          Fathom did not answer: {fathom.error}
+          {t('Fathom did not answer:')} {fathom.error}
         </GErrorLine>
       )}
       {noneConfigured && data.rows.length === 0 ? (
-        <GEmpty kind="unconfigured" title="No recording source is connected" body="Connect Plaud or Fathom and recordings land here." setupHref={fathom.setupHref} />
+        <GEmpty kind="unconfigured" title={t('No recording source is connected')} body={t('Connect Plaud or Fathom and recordings land here.')} setupHref={fathom.setupHref} />
       ) : (
         <div className="wg-cf-tablewrap" data-matrix-scroll>
         <GTable<CallRecording>
-          caption="Call recordings"
+          caption={t('Call recordings')}
           rows={data.rows}
           rowKey={(r) => r.id}
           onRowClick={(r) => setOpenId(r.id)}
-          rowLabel={(r) => `Open ${r.title}`}
+          rowLabel={(r) => t('Open {name}', { name: r.title })}
           selectedKey={openId}
-          empty={<GEmpty inline title={RECORDINGS_EMPTY} body={busy ? 'Checking Fathom now.' : 'A Plaud push or the next Fathom pull adds them.'} />}
+          empty={<GEmpty inline title={t(RECORDINGS_EMPTY)} body={busy ? t('Checking Fathom now.') : t('A Plaud push or the next Fathom pull adds them.')} />}
           sort={{ key: 'date', dir: 'desc' }}
           columns={[
-            { key: 'title', label: 'Title', render: (r) => <span className="wg-cf-rec-title">{r.title}</span>, sortValue: (r) => r.title },
-            { key: 'date', label: 'Date', render: (r) => dayLabel(r.startedAt), sortValue: (r) => r.startedAt },
-            { key: 'len', label: 'Length', align: 'right', numeric: true, render: (r) => formatDuration(r.durationS), sortValue: (r) => r.durationS ?? -1 },
-            { key: 'people', label: 'People', render: (r) => (r.participants.length ? r.participants.join(', ') : 'Not recorded') },
-            { key: 'source', label: 'Source', render: (r) => <GTag size="xs">{r.source === 'plaud' ? 'Plaud' : 'Fathom'}</GTag> },
+            { key: 'title', label: t('Title'), render: (r) => <span className="wg-cf-rec-title">{r.title}</span>, sortValue: (r) => r.title },
+            { key: 'date', label: t('Date'), render: (r) => dayLabel(r.startedAt), sortValue: (r) => r.startedAt },
+            { key: 'len', label: t('Length'), align: 'right', numeric: true, render: (r) => formatDuration(r.durationS), sortValue: (r) => r.durationS ?? -1 },
+            { key: 'people', label: t('People'), render: (r) => (r.participants.length ? r.participants.join(', ') : t('Not recorded')) },
+            { key: 'source', label: t('Source'), render: (r) => <GTag size="xs">{r.source === 'plaud' ? 'Plaud' : 'Fathom'}</GTag> },
           ]}
         />
         </div>
       )}
-      <GDrawer open={!!current} onClose={() => setOpenId(null)} title={current?.title ?? 'Recording'} width={520}>
+      <GDrawer open={!!current} onClose={() => setOpenId(null)} title={current?.title ?? t('Recording')} width={520}>
         {current && (
           <div className="wg-cf-drawer">
             <GKeyValue
               items={[
-                { label: 'Date', value: `${dayLabel(current.startedAt)}, ${hhmm(current.startedAt)}` },
-                { label: 'Length', value: formatDuration(current.durationS) },
-                { label: 'People', value: current.participants.length ? current.participants.join(', ') : 'Not recorded' },
-                { label: 'Source', value: current.source === 'plaud' ? 'Plaud' : 'Fathom' },
+                { label: t('Date'), value: `${dayLabel(current.startedAt)}, ${hhmm(current.startedAt)}` },
+                { label: t('Length'), value: formatDuration(current.durationS) },
+                { label: t('People'), value: current.participants.length ? current.participants.join(', ') : t('Not recorded') },
+                { label: t('Source'), value: current.source === 'plaud' ? 'Plaud' : 'Fathom' },
               ]}
             />
-            <GSectionHeader size={22} title="Summary" />
-            <p className="wg-cf-summary">{current.summary || 'No summary came with this recording.'}</p>
+            <GSectionHeader size={22} title={t('Summary')} />
+            <p className="wg-cf-summary">{current.summary || t('No summary came with this recording.')}</p>
             {current.transcriptUrl ? (
               <GButton href={current.transcriptUrl} external>
-                <FileText size={14} strokeWidth={1.75} aria-hidden /> Open transcript
+                <FileText size={14} strokeWidth={1.75} aria-hidden /> {t('Open transcript')}
               </GButton>
             ) : (
-              <p className="wg-cap">No transcript link for this recording.</p>
+              <p className="wg-cap">{t('No transcript link for this recording.')}</p>
             )}
           </div>
         )}
@@ -248,13 +249,13 @@ function SourceState({ name, s }: { name: string; s: RecordingsData['sources']['
       {name}
       {s.configured ? (
         <GTag size="xs" tone="ok" dot>
-          Connected
+          {t('Connected')}
         </GTag>
       ) : (
         <>
-          <GTag size="xs">Not configured</GTag>
+          <GTag size="xs">{t('Not configured')}</GTag>
           <GButton variant="sm" href={s.setupHref}>
-            Set up
+            {t('Set up')}
           </GButton>
         </>
       )}
@@ -269,27 +270,29 @@ export function ClientsBoardG({ data, nowISO }: { data: ClientBoardData; nowISO:
   if (data.state === 'unconfigured') {
     return (
       <GCard className="wg-cf-card" p={20}>
-        <GSectionHeader size={22} title="Clients" caption="One lane per client Slack channel" />
-        <GEmpty kind="unconfigured" title="Slack is not connected" body="Connect Slack and each confirmed client's channel gets a lane here." setupHref={data.setupHref} setupHint="set SLACK_BOT_TOKEN" />
+        <GSectionHeader size={22} title={t('Clients')} caption={t('One lane per client Slack channel')} />
+        <GEmpty kind="unconfigured" title={t('Slack is not connected')} body={t("Connect Slack and each confirmed client's channel gets a lane here.")} setupHref={data.setupHref} setupHint={t('set SLACK_BOT_TOKEN')} />
       </GCard>
     );
   }
   return (
-    <section className="wg-cf-board" aria-label="Client Slack channels">
+    <section className="wg-cf-board" aria-label={t('Client Slack channels')}>
       <GSectionHeader
         size={22}
-        title="Clients"
+        title={t('Clients')}
         caption={
           data.clientsWithoutChannel > 0
-            ? `One lane per client Slack channel · ${data.clientsWithoutChannel} confirmed ${data.clientsWithoutChannel === 1 ? 'client has' : 'clients have'} no channel yet`
-            : 'One lane per client Slack channel'
+            ? data.clientsWithoutChannel === 1
+              ? t('One lane per client Slack channel · {n} confirmed client has no channel yet', { n: data.clientsWithoutChannel })
+              : t('One lane per client Slack channel · {n} confirmed clients have no channel yet', { n: data.clientsWithoutChannel })
+            : t('One lane per client Slack channel')
         }
         action={data.sample ? <GSampleBadge fixture="lib/fo-sample.ts sampleClientLanes" /> : undefined}
       />
-      {data.error && <GErrorLine align="left">Slack did not answer: {data.error}</GErrorLine>}
+      {data.error && <GErrorLine align="left">{t('Slack did not answer:')} {data.error}</GErrorLine>}
       {data.lanes.length === 0 ? (
         <GCard p={20}>
-          <GEmpty title="No client channels yet" body="Confirm a client on Clients and give it a Slack channel; its lane appears here." action={{ label: 'Open Clients', href: '/clients' }} />
+          <GEmpty title={t('No client channels yet')} body={t('Confirm a client on Clients and give it a Slack channel; its lane appears here.')} action={{ label: t('Open Clients'), href: '/clients' }} />
         </GCard>
       ) : (
         <div className="wg-cf-lanes" data-matrix-scroll>
@@ -297,13 +300,13 @@ export function ClientsBoardG({ data, nowISO }: { data: ClientBoardData; nowISO:
             <GCard key={lane.clientId} className="wg-cf-lanecard" p={16}>
               <div className="wg-cf-lane-head">
                 <span className="wg-cf-lane-name">{lane.name}</span>
-                <GButton variant="sm" href={lane.openUrl} external aria-label={`Open #${lane.channel} in Slack`}>
+                <GButton variant="sm" href={lane.openUrl} external aria-label={t('Open #{channel} in Slack', { channel: lane.channel })}>
                   <ExternalLink size={12} strokeWidth={1.75} aria-hidden /> Slack
                 </GButton>
               </div>
               <p className="wg-cap">#{lane.channel}</p>
               {lane.messages.length === 0 ? (
-                <p className="wg-cap">No recent messages here. If this stays empty, invite the Slack bot to #{lane.channel}.</p>
+                <p className="wg-cap">{t('No recent messages here. If this stays empty, invite the Slack bot to #{channel}.', { channel: lane.channel })}</p>
               ) : (
                 <ul className="wg-cf-msgs">
                   {lane.messages.map((m) => (
@@ -331,8 +334,8 @@ export function WeekG({ data }: { data: WeekData }) {
   if (!data.configured) {
     return (
       <GCard className="wg-cf-card" p={20}>
-        <GSectionHeader size={22} title="Week" caption="The next seven days" />
-        <GEmpty kind="unconfigured" title="No calendar is connected" body="Connect a calendar and the week fills in." setupHref={data.setupHref} />
+        <GSectionHeader size={22} title={t('Week')} caption={t('The next seven days')} />
+        <GEmpty kind="unconfigured" title={t('No calendar is connected')} body={t('Connect a calendar and the week fills in.')} setupHref={data.setupHref} />
       </GCard>
     );
   }
@@ -342,20 +345,20 @@ export function WeekG({ data }: { data: WeekData }) {
     <GCard className="wg-cf-card" p={20}>
       <GSectionHeader
         size={22}
-        title="Week"
-        caption="The next seven days"
+        title={t('Week')}
+        caption={t('The next seven days')}
         action={data.sample ? <GSampleBadge fixture="lib/fo-sample.ts sampleWeekEvents" /> : undefined}
       />
-      {empty && <p className="wg-cap">Nothing on the calendar in the next seven days.</p>}
+      {empty && <p className="wg-cap">{t('Nothing on the calendar in the next seven days.')}</p>}
       <div className="wg-cf-week-scroll" data-matrix-scroll>
-        <div className="wg-cf-week" role="grid" aria-label="Week calendar">
+        <div className="wg-cf-week" role="grid" aria-label={t('Week calendar')}>
           <div className="wg-cf-week-hours" aria-hidden>
             <span className="wg-cf-week-dayhead" />
             <span className="wg-cf-week-allday" />
             <div className="wg-cf-week-grid" style={{ ['--hours' as string]: hours.length }}>
               {hours.map((h) => (
                 <span key={h} className="wg-cf-week-hour">
-                  {h === 12 ? '12 pm' : h > 12 ? `${h - 12} pm` : `${h} am`}
+                  {locale() === 'it' ? `${h}:00` : h === 12 ? '12 pm' : h > 12 ? `${h - 12} pm` : `${h} am`}
                 </span>
               ))}
             </div>
@@ -363,7 +366,7 @@ export function WeekG({ data }: { data: WeekData }) {
           {data.days.map((d) => (
             <div key={d.key} className="wg-cf-week-day" role="row" data-today={d.isToday || undefined}>
               <span className="wg-cf-week-dayhead" role="columnheader">
-                {d.isToday ? `Today, ${d.label}` : d.label}
+                {d.isToday ? t('Today, {label}', { label: d.label }) : d.label}
               </span>
               <span className="wg-cf-week-allday">
                 {d.allDay.map((e) => (
@@ -378,7 +381,7 @@ export function WeekG({ data }: { data: WeekData }) {
                     key={e.id}
                     role="gridcell"
                     className="wg-cf-week-ev"
-                    title={`${e.title} · ${hhmm(e.start)}${e.end ? ` to ${hhmm(e.end)}` : ''}`}
+                    title={`${e.title} · ${hhmm(e.start)}${e.end ? t(' to {time}', { time: hhmm(e.end) }) : ''}`}
                     style={{ top: `${e.topPct}%`, height: `${e.heightPct}%`, left: `${(e.lane / e.lanes) * 100}%`, width: `${100 / e.lanes}%` }}
                   >
                     <span className="wg-cf-week-ev-title">{e.title}</span>

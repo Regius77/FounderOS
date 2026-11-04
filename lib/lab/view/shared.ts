@@ -5,6 +5,7 @@
 import type { LabEventClass, LabWindowState } from '@/lib/schemas';
 import type { SetupSection } from '@/lib/lab/setup/view';
 import type { Measured } from '@/lib/lab/view/legacy';
+import { t } from '@/lib/i18n';
 
 export type {
   Measured, StrandView, LadderView, CreatorRef, MetricsView, SpecimenCard, SpecimenSheet, FieldView, FieldPoint,
@@ -14,13 +15,13 @@ export type {
 
 export type LabPage = 'today' | 'radar' | 'breakouts' | 'playbook' | 'studio' | 'ledger' | 'creatorverse';
 export const LAB_PAGES: { id: LabPage; label: string; path: string }[] = [
-  { id: 'today', label: 'Today', path: '/lab' },
-  { id: 'radar', label: 'Radar', path: '/lab/radar' },
-  { id: 'breakouts', label: 'Breakouts', path: '/lab/breakouts' },
-  { id: 'playbook', label: 'Playbook', path: '/lab/playbook' },
-  { id: 'studio', label: 'Studio', path: '/lab/studio' },
-  { id: 'ledger', label: 'Ledger', path: '/lab/ledger' },
-  { id: 'creatorverse', label: 'Creatorverse', path: '/lab/creatorverse' },
+  { id: 'today', label: t('Today'), path: '/lab' },
+  { id: 'radar', label: t('Radar'), path: '/lab/radar' },
+  { id: 'breakouts', label: t('Breakouts'), path: '/lab/breakouts' },
+  { id: 'playbook', label: t('Playbook'), path: '/lab/playbook' },
+  { id: 'studio', label: t('Studio'), path: '/lab/studio' },
+  { id: 'ledger', label: t('Ledger'), path: '/lab/ledger' },
+  { id: 'creatorverse', label: t('Creatorverse'), path: '/lab/creatorverse' },
 ];
 export type SheetKind = 'post' | 'event' | 'idea' | 'script' | 'test' | 'setup' | 'ask';
 /** 01 D4: when several sheet params are present, the first in this order wins. */

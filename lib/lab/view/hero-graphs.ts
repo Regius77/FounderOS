@@ -11,25 +11,26 @@ import type { LabPlatformId, SectionState } from '@/lib/lab/view/shared';
 import { fill, fmtRatio } from '@/lib/lab/view/format';
 import { readOf } from '@/lib/lab/view/posts';
 import { READY, state, withSample } from '@/lib/lab/view/section';
+import { t } from '@/lib/i18n';
 
 const DAY = 86_400_000;
 const SOCIAL: ReadonlySet<string> = new Set(['instagram', 'tiktok', 'youtube', 'linkedin', 'twitter']);
 
 export const HERO_GRAPH_COPY = {
-  networkLabel: 'Creator network',
-  chartLabel: 'Breakouts',
-  briefTag: 'Brief',
-  windowTag: 'Window',
-  noCreators: 'No tracked creators yet.',
-  addCreators: 'Add creators',
-  noPosts: 'No judged posts from your creators in the last 14 days.',
-  schedule: 'Schedule runs',
-  networkSummary: '{n} tracked creators, {b} with breakouts in the last 30 days. Linked when they covered the same launch or share a topic; the {e} strongest links are drawn.',
-  networkTop: 'Most breakouts: {name} ({k}).',
-  chartSummary: '{n} posts from the last 14 days by age and ratio to their creator\'s normal. {w} broke out this week, {o} the week before.',
-  chartTop: 'Highest: {name} at {ratio}.',
-  nodeTitle: '{name}: {k} in 30 days',
-  pointTitle: '{name}: {ratio} at {age}',
+  networkLabel: t('Creator network'),
+  chartLabel: t('Breakouts'),
+  briefTag: t('Brief'),
+  windowTag: t('Window'),
+  noCreators: t('No tracked creators yet.'),
+  addCreators: t('Add creators'),
+  noPosts: t('No judged posts from your creators in the last 14 days.'),
+  schedule: t('Schedule runs'),
+  networkSummary: t('{n} tracked creators, {b} with breakouts in the last 30 days. Linked when they covered the same launch or share a topic; the {e} strongest links are drawn.'),
+  networkTop: t('Most breakouts: {name} ({k}).'),
+  chartSummary: t('{n} posts from the last 14 days by age and ratio to their creator\'s normal. {w} broke out this week, {o} the week before.'),
+  chartTop: t('Highest: {name} at {ratio}.'),
+  nodeTitle: t('{name}: {k} in 30 days'),
+  pointTitle: t('{name}: {ratio} at {age}'),
 } as const;
 
 export type NetworkNodeView = {
@@ -351,7 +352,7 @@ export function creatorNetwork(store: LabStore, now: Date, sample: boolean): Cre
       hot: hot[i],
       topic: topic[i],
       href: withSample(`/lab/breakouts?creator=${encodeURIComponent(s.id)}`, sample),
-      title: fill(C.nodeTitle, { name, k: breakouts[i] === 1 ? '1 breakout' : `${breakouts[i]} breakouts` }),
+      title: fill(C.nodeTitle, { name, k: breakouts[i] === 1 ? t('1 breakout') : t('{n} breakouts', { n: breakouts[i] }) }),
       ...pos[i],
     };
   });
@@ -397,7 +398,7 @@ export function breakoutChart(store: LabStore, now: Date, sample: boolean): Brea
       ratio: Math.round(ratio * 100) / 100,
       breakout,
       thisWeek: breakout && ageD <= 7,
-      title: fill(C.pointTitle, { name: handle, ratio: fmtRatio(ratio), age: ageD < 1 ? `${Math.max(1, Math.round(ageD * 24))}h` : `${Math.round(ageD)}d` }),
+      title: fill(C.pointTitle, { name: handle, ratio: fmtRatio(ratio), age: ageD < 1 ? `${Math.max(1, Math.round(ageD * 24))}h` : t('{n}d', { n: Math.round(ageD) }) }),
     });
   }
   if (!pts.length) {

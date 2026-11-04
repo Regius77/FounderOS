@@ -24,6 +24,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { SectionHead } from '@/components/terminal';
+import { t } from '@/lib/i18n';
 
 export type SkillCard = {
   id: string; // slug — also the /api/skills/[slug] key
@@ -146,9 +147,9 @@ export function SkillsGrid({
     try {
       const res = await fetch(`/api/skills/${encodeURIComponent(card.id)}`);
       const body = (await res.json()) as { markdown?: string; error?: string };
-      setMd(body.markdown ?? `SKILL.md could not be read (${body.error ?? res.status}).`);
+      setMd(body.markdown ?? t('SKILL.md could not be read ({reason}).', { reason: body.error ?? res.status }));
     } catch {
-      setMd('SKILL.md could not be read.');
+      setMd(t('SKILL.md could not be read.'));
     }
   };
 
@@ -186,11 +187,11 @@ export function SkillsGrid({
     <div>
       <p className="mb-4 text-[12.5px] text-os-muted">
         {sourceNote}
-        {q !== '' && ` · ${visible.length} match${visible.length === 1 ? '' : 'es'} for “${query.trim()}”`}
+        {q !== '' && ` · ${visible.length === 1 ? t('{n} match for “{q}”', { n: visible.length, q: query.trim() }) : t('{n} matches for “{q}”', { n: visible.length, q: query.trim() })}`}
       </p>
       {q !== '' && visible.length === 0 && (
         <p className="rounded-md-t border border-dashed border-os-border-strong px-3 py-4 text-center text-[12.5px] text-os-dim">
-          no skill matches “{query.trim()}”
+          {t('no skill matches “{q}”', { q: query.trim() })}
         </p>
       )}
       {groups.map((group) => {
@@ -205,7 +206,7 @@ export function SkillsGrid({
                   <button
                     key={c.id}
                     onClick={() => open(c)}
-                    title={`${c.name} — open SKILL.md`}
+                    title={t('{name} — open SKILL.md', { name: c.name })}
                     className="group flex flex-col gap-2.5 rounded-lg border border-os-border bg-os-surface p-2.5 text-left transition-colors hover:border-os-border-strong hover:bg-os-surface2"
                   >
                     <div className="flex items-center gap-2.5">
@@ -230,13 +231,13 @@ export function SkillsGrid({
                 <ViewingIcon className="h-3.5 w-3.5 shrink-0 text-os-accent" strokeWidth={1.7} />
                 <span className="truncate">{viewing.filePath}</span>
               </span>
-              <button onClick={() => setViewing(null)} aria-label="Close" className="shrink-0 text-os-dim transition-colors hover:text-os-text">
+              <button onClick={() => setViewing(null)} aria-label={t('Close')} className="shrink-0 text-os-dim transition-colors hover:text-os-text">
                 <X className="h-4 w-4" strokeWidth={1.7} />
               </button>
             </div>
             <div className="overflow-y-auto px-5 py-4">
               {md === null ? (
-                <p className="animate-pulse text-[12.5px] text-os-muted">Loading SKILL.md…</p>
+                <p className="animate-pulse text-[12.5px] text-os-muted">{t('Loading SKILL.md…')}</p>
               ) : (
                 <Markdown src={md} />
               )}

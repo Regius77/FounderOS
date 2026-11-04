@@ -20,6 +20,7 @@ import { checklistView, type ChecklistView } from '@/lib/lab/setup/checklist';
 import { healthResults } from '@/lib/lab/setup/health';
 import { radarTiles } from '@/lib/lab/radar/view';
 import { pausedBy, automationDirs } from '@/lib/lab/schedule';
+import { t } from '@/lib/i18n';
 
 export type LabFrameView = {
   generatedAt: string;
@@ -35,7 +36,7 @@ export type LabFrameView = {
   pages: { id: LabPage; label: string; href: string; active: boolean; badge: number | null }[];
   quickActions: { id: 'add_source' | 'new_idea' | 'log_test' | 'run_now'; label: string; href: string | null; disabledReason: string | null }[];
   createMenu: { id: 'add_source' | 'new_idea' | 'generate_ideas' | 'log_test' | 'log_outside_score' | 'run_intel'; label: string; href: string | null; disabledReason: string | null }[];
-  search: { placeholder: 'Ask the Lab'; shortcut: 'Cmd K' | 'Ctrl K' };
+  search: { placeholder: string; shortcut: 'Cmd K' | 'Ctrl K' };
   menuHref: string;
   banner: { tone: 'info' | 'warn'; text: string; action: { label: string; href: string } | null } | null;
   run: RunDialogView;
@@ -109,7 +110,7 @@ export function frameLayers(store: LabStore, env: FrameEnv): Record<LayerId, Lay
 export function frameChecklist(store: LabStore, flags: LabContext['flags'], now: Date, env: FrameEnv): ChecklistView {
   const recorded = Boolean(flags.dry || flags.sample || flags.filming);
   const health = healthResults(store, { now, env });
-  return checklistView(store, { health, dry: recorded, dryLabel: flags.sample ? 'sample data' : flags.dryLabel ?? null, now });
+  return checklistView(store, { health, dry: recorded, dryLabel: flags.sample ? t('sample data') : flags.dryLabel ?? null, now });
 }
 
 export function runDialogView(store: LabStore, flags: LabContext['flags'], now: Date, env: FrameEnv, readOnly: string | null): RunDialogView {
@@ -214,7 +215,7 @@ export function buildFrame(page: LabPage, store: LabStore, params: LabParams, fl
       { id: 'log_outside_score', label: c.logOutsideScore, href: null, disabledReason: writeBlock ?? (layers.ledger === 'live' ? null : LAB_COPY.layer.ledger) },
       { id: 'run_intel', label: c.runIntel, href: null, disabledReason: writeBlock },
     ],
-    search: { placeholder: 'Ask the Lab', shortcut: 'Cmd K' },
+    search: { placeholder: t('Ask the Lab'), shortcut: 'Cmd K' },
     menuHref: s(notConfigured ? '?setup=keys' : checklist && !checklist.complete ? '?setup=checklist' : '?setup=keys'),
     banner,
     run,

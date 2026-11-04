@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { OBtn, OInput } from '@/components/creative-engine/skin';
 import { createPortal } from 'react-dom';
@@ -34,7 +35,7 @@ export function Palette({ at, title, ctx, recent, needsArcads, needsClaude = fal
   /** true when the LLM node can't run here: Claude isn't on this host and runs are live (Q-WF-4: still addable) */
   needsClaude?: boolean;
   container: Element;
-  onPick: (t: NodeType) => void;
+  onPick: (type: NodeType) => void;
   onClose: () => void;
 }) {
   const [q, setQ] = useState('');
@@ -54,9 +55,9 @@ export function Palette({ at, title, ctx, recent, needsArcads, needsClaude = fal
   const groups: Group[] = useMemo(() => {
     if (q.trim()) { const hits = paletteMatches(q, ctx); return hits.length ? [{ label: 'Matches', types: hits }] : []; }
     const out: Group[] = [];
-    const rec = recent.filter((t) => fitsContext(t, ctx));
+    const rec = recent.filter((ty) => fitsContext(ty, ctx));
     if (rec.length) out.push({ label: 'Recent', types: rec });
-    for (const g of PALETTE) { const types = g.types.filter((t) => fitsContext(t, ctx)); if (types.length) out.push({ label: g.label, types }); }
+    for (const g of PALETTE) { const types = g.types.filter((ty) => fitsContext(ty, ctx)); if (types.length) out.push({ label: g.label, types }); }
     return out;
   }, [q, ctx, recent]);
   const flat = useMemo(() => groups.flatMap((g) => g.types), [groups]);
@@ -94,32 +95,32 @@ export function Palette({ at, title, ctx, recent, needsArcads, needsClaude = fal
     if (!flat.length) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => (i + 1) % flat.length); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => (i - 1 + flat.length) % flat.length); }
-    else if (e.key === 'Enter') { e.preventDefault(); const t = flat[active]; if (t) onPick(t); }
+    else if (e.key === 'Enter') { e.preventDefault(); const ty = flat[active]; if (ty) onPick(ty); }
   };
 
   let idx = -1;
   return createPortal(
-    <div ref={root} className="ae-o-wf-palette" data-sheet={sheet || undefined} data-flip-x={pos.flipX || undefined} data-flip-y={pos.flipY || undefined} style={style} role="dialog" aria-label={title ?? 'Add a node'} onPointerDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
+    <div ref={root} className="ae-o-wf-palette" data-sheet={sheet || undefined} data-flip-x={pos.flipX || undefined} data-flip-y={pos.flipY || undefined} style={style} role="dialog" aria-label={title ?? t('Add a node')} onPointerDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
       {title && <div className="hd">{title}</div>}
       <label className="search">
         <Search className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-        <OInput ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search nodes" aria-label="Search nodes" role="combobox" aria-expanded="true" aria-controls={`${uid}-list`} aria-activedescendant={flat.length ? `${uid}-opt-${active}` : undefined} autoComplete="off" spellCheck={false} />
+        <OInput ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder={t('Search nodes')} aria-label={t('Search nodes')} role="combobox" aria-expanded="true" aria-controls={`${uid}-list`} aria-activedescendant={flat.length ? `${uid}-opt-${active}` : undefined} autoComplete="off" spellCheck={false} />
       </label>
-      <div ref={list} className="list" id={`${uid}-list`} role="listbox" aria-label="Node types">
+      <div ref={list} className="list" id={`${uid}-list`} role="listbox" aria-label={t('Node types')}>
         {groups.map((g) => (
-          <div key={g.label} role="group" aria-label={g.label}>
-            <div className="grp">{g.label}</div>
-            {g.types.map((t) => {
+          <div key={g.label} role="group" aria-label={t(g.label)}>
+            <div className="grp">{t(g.label)}</div>
+            {g.types.map((ty) => {
               idx += 1;
               const i = idx;
-              const paid = !NODE_SPECS[t].local;
-              const off = (paid && needsArcads) ? 'arcads' : (t === 'llm' && needsClaude) ? 'claude' : null;
+              const paid = !NODE_SPECS[ty].local;
+              const off = (paid && needsArcads) ? 'arcads' : (ty === 'llm' && needsClaude) ? 'claude' : null;
               return (
-                <OBtn kind="row" cls="item" keep="item" key={`${g.label}-${t}`} id={`${uid}-opt-${i}`} data-idx={i} role="option" aria-selected={i === active}  data-active={i === active} data-off={off ?? undefined} onPointerEnter={() => setActive(i)} onClick={() => onPick(t)}>
-                  <span className="ae-o-node-icon" style={{ width: 22, height: 22 }}>{NODE_ICON[t]}</span>
-                  <span className="min-w-0 flex-1">{NODE_SPECS[t].label}<small>{NODE_SPECS[t].hint}</small></span>
-                  {off === 'arcads' && <span className="badge" title="Paid node: Run needs an Arcads connection. You can still design with it.">Needs Arcads</span>}
-                  {off === 'claude' && <span className="badge" title="Claude is not available on this host: you can still design with it, and it fails at run until Claude is installed.">Needs Claude</span>}
+                <OBtn kind="row" cls="item" keep="item" key={`${g.label}-${ty}`} id={`${uid}-opt-${i}`} data-idx={i} role="option" aria-selected={i === active}  data-active={i === active} data-off={off ?? undefined} onPointerEnter={() => setActive(i)} onClick={() => onPick(ty)}>
+                  <span className="ae-o-node-icon" style={{ width: 22, height: 22 }}>{NODE_ICON[ty]}</span>
+                  <span className="min-w-0 flex-1">{t(NODE_SPECS[ty].label)}<small>{t(NODE_SPECS[ty].hint)}</small></span>
+                  {off === 'arcads' && <span className="badge" title={t('Paid node: Run needs an Arcads connection. You can still design with it.')}>{t('Needs Arcads')}</span>}
+                  {off === 'claude' && <span className="badge" title={t('Claude is not available on this host: you can still design with it, and it fails at run until Claude is installed.')}>{t('Needs Claude')}</span>}
                 </OBtn>
               );
             })}
@@ -127,7 +128,7 @@ export function Palette({ at, title, ctx, recent, needsArcads, needsClaude = fal
         ))}
         {!flat.length && (
           <div className="none">
-            {q.trim() ? <>No node matches &ldquo;{q.trim()}&rdquo;<OBtn kind="pill" cls="ae-o-pill"  onClick={() => { setQ(''); input.current?.focus(); }}>Clear</OBtn></> : 'No node takes this link.'}
+            {q.trim() ? <>{t('No node matches “{q}”', { q: q.trim() })}<OBtn kind="pill" cls="ae-o-pill"  onClick={() => { setQ(''); input.current?.focus(); }}>{t('Clear')}</OBtn></> : t('No node takes this link.')}
           </div>
         )}
       </div>

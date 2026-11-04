@@ -38,6 +38,7 @@ import { treeFor } from '@/lib/appearance';
 import { channelsNetChange, netChange, seriesWindow } from '@/lib/social-range';
 import { formatFull } from '@/lib/format-number';
 import { SERIES_INDEX } from '@/lib/series';
+import { localeTag, t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,9 +52,9 @@ const PLATFORM_ICONS: Record<SocialPlatform, LucideIcon> = {
 
 // Value + small-unit split per tile (compact for audience, $ for money).
 function tileValue(value: number, unit: string): { main: string; small: string } {
-  if (unit === 'usd') return { main: `$${value.toLocaleString('en-US')}`, small: '' };
+  if (unit === 'usd') return { main: `$${value.toLocaleString(localeTag())}`, small: '' };
   if (unit === 'followers') return { main: formatFollowers(value), small: '' };
-  return { main: value.toLocaleString('en-US'), small: unit };
+  return { main: value.toLocaleString(localeTag()), small: unit };
 }
 
 // Sparks only where real history exists (H21): no invented shapes. A tile
@@ -62,11 +63,11 @@ const SPARK_POINTS = 14;
 
 function fmtShort(iso: string): string {
   return new Date(`${iso}T00:00:00Z`)
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    .toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' })
     .toLowerCase();
 }
 
-const fmtCount = (n: number) => n.toLocaleString('en-US');
+const fmtCount = (n: number) => n.toLocaleString(localeTag());
 
 /** Responsive area chart for daily agent-run counts (real log, honest zeros). */
 function RunVolumeChart({ data }: { data: { date: string; count: number }[] }) {
@@ -205,20 +206,20 @@ export default async function AnalyticsPage() {
   const inputs: MetricInput[] = [
     {
       id: 'audience',
-      label: 'Total audience',
+      label: t('Total audience'),
       unit: 'followers',
-      source: '7d · Zernio + email',
+      source: t('7d · Zernio + email'),
       value: totalAudience || null,
       delta: audience7d != null ? Math.round(audience7d * 10) / 10 : 0,
       deltaPct: audience7d != null,
     },
-    { id: 'subscribers', label: 'Subscribers', unit: 'subs', source: 'Beehiiv', value: subs },
-    { id: 'pipeline', label: 'Open Pipeline', unit: 'deals', source: 'Attio', value: pipelineDeals },
-    { id: 'stripe', label: 'Stripe Available', unit: 'usd', source: 'Stripe', value: stripeAvail },
-    { id: 'agent-runs', label: 'Agent Runs', unit: 'runs', source: 'all time', value: runs.length || null, delta: runs7d },
-    { id: 'unread', label: 'Unread · all inboxes', unit: 'emails', source: 'Email', value: emailUnread },
-    { id: 'brain', label: 'Brain-store Pages', unit: 'pages', source: 'Optimal Engine', value: brainPages },
-    { id: 'dictations', label: 'Dictations', unit: 'dictations', source: 'Wispr Flow', value: dictations },
+    { id: 'subscribers', label: t('Subscribers'), unit: t('subs'), source: 'Beehiiv', value: subs },
+    { id: 'pipeline', label: t('Open Pipeline'), unit: t('deals'), source: 'Attio', value: pipelineDeals },
+    { id: 'stripe', label: t('Stripe Available'), unit: 'usd', source: 'Stripe', value: stripeAvail },
+    { id: 'agent-runs', label: t('Agent Runs'), unit: t('runs'), source: t('all time'), value: runs.length || null, delta: runs7d },
+    { id: 'unread', label: t('Unread · all inboxes'), unit: t('emails'), source: 'Email', value: emailUnread },
+    { id: 'brain', label: t('Brain-store Pages'), unit: t('pages'), source: 'Optimal Engine', value: brainPages },
+    { id: 'dictations', label: t('Dictations'), unit: t('dictations'), source: 'Wispr Flow', value: dictations },
   ];
   const { live, pending } = splitMetrics(inputs);
   const sparks: Record<string, number[]> = {
@@ -241,7 +242,7 @@ export default async function AnalyticsPage() {
     value: p.followers,
     color: channelColor(p.platform),
   }));
-  if (emailSubs) audienceItems.push({ key: 'email', label: 'Email list', value: emailSubs, color: channelColor('email') });
+  if (emailSubs) audienceItems.push({ key: 'email', label: t('Email list'), value: emailSubs, color: channelColor('email') });
   const audienceReach = totalAudience;
 
   // Agent runs by agent — top handful, the long tail folded into "Other".
@@ -253,29 +254,29 @@ export default async function AnalyticsPage() {
     .slice(0, 6)
     .map(([id, n]) => ({ key: id, label: agentName.get(id) ?? id, value: n }));
   const tailRuns = rankedAgents.slice(6).reduce((s, [, n]) => s + n, 0);
-  if (tailRuns > 0) runsByAgentItems.push({ key: 'other', label: 'Other agents', value: tailRuns });
+  if (tailRuns > 0) runsByAgentItems.push({ key: 'other', label: t('Other agents'), value: tailRuns });
 
   // Run outcomes — reliability at a glance.
   const okRuns = runs.filter((r) => r.ok).length;
   const outcomeItems: PieItem[] = [
-    { key: 'ok', label: 'Succeeded', value: okRuns },
-    { key: 'fail', label: 'Failed', value: runs.length - okRuns },
+    { key: 'ok', label: t('Succeeded'), value: okRuns },
+    { key: 'fail', label: t('Failed'), value: runs.length - okRuns },
   ];
 
   // Two trees, one fetch (glados-ui SPEC X5): the GladOS style renders AnalyticsG.
   if (treeFor(getAppearance(), '/analytics') === 'glados') {
     const aud7 = channelsNetChange(audience.channels.map((c) => c.points), 7, today);
     const runCount = db.agentRuns.count();
-    const tiles: AnalyticsTileG[] = live.map((t) => {
-      const base = { id: t.id, label: t.label, source: t.source, spark: sparks[t.id] };
-      if (t.id === 'audience') {
-        return { ...base, value: formatFull(t.value), unit: '', change: aud7 ? { cur: aud7.current, prev: aud7.baseline, window: '7 days' } : null, href: '/social' };
+    const tiles: AnalyticsTileG[] = live.map((tile) => {
+      const base = { id: tile.id, label: tile.label, source: tile.source, spark: sparks[tile.id] };
+      if (tile.id === 'audience') {
+        return { ...base, value: formatFull(tile.value), unit: '', change: aud7 ? { cur: aud7.current, prev: aud7.baseline, window: t('7 days') } : null, href: '/social' };
       }
-      if (t.id === 'agent-runs') {
-        return { ...base, value: formatFull(runCount), unit: 'runs', note: `${formatFull(runs7d)} in the last 7 days`, href: '/agents' };
+      if (tile.id === 'agent-runs') {
+        return { ...base, value: formatFull(runCount), unit: t('runs'), note: t('{n} in the last 7 days', { n: formatFull(runs7d) }), href: '/agents' };
       }
-      const v = tileValue(t.value, t.unit);
-      return { ...base, value: v.main, unit: v.small, note: t.source };
+      const v = tileValue(tile.value, tile.unit);
+      return { ...base, value: v.main, unit: v.small, note: tile.source };
     });
     const week = (key: string) => {
       const pts = audience.channels.find((c) => c.key === key)?.points ?? [];
@@ -293,7 +294,7 @@ export default async function AnalyticsPage() {
           slices: audienceItems.map((i) => ({ id: i.key, label: i.label, value: i.value ?? 0, color: slot(i.key) })),
         }}
         runs={{
-          scope: runCount > runs.length ? `latest ${formatFull(runs.length)}` : 'all time',
+          scope: runCount > runs.length ? t('latest {n}', { n: formatFull(runs.length) }) : t('all time'),
           total: runs.length,
           byAgent: runsByAgentItems.map((i) => ({ id: i.key, label: i.label, value: i.value ?? 0 })),
           ok: okRuns,
@@ -318,9 +319,9 @@ export default async function AnalyticsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="Operating metrics"
+        eyebrow={t('Operating metrics')}
         title="Analytics"
-        right={<Badge tone="accent">{live.length} live · {pending.length} pending</Badge>}
+        right={<Badge tone="accent">{t('{live} live · {pending} pending', { live: live.length, pending: pending.length })}</Badge>}
       />
 
       {/* Live metric tiles */}
@@ -334,39 +335,39 @@ export default async function AnalyticsPage() {
 
       {/* Distribution — share donuts across audience, agents, run outcomes */}
       <section className="mb-8">
-        <SectionHead label="Distribution" count="share of totals" />
+        <SectionHead label={t('Distribution')} count={t('share of totals')} />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           {audienceReach > 0 && (
             <PieCard
-              title="Audience share"
-              sub={`${formatFollowers(audienceReach)} total audience`}
+              title={t('Audience share')}
+              sub={t('{n} total audience', { n: formatFollowers(audienceReach) })}
               items={audienceItems}
               total={audienceReach}
-              centerLabel="total audience"
+              centerLabel={t('total audience')}
               format={formatFollowers}
-              ariaLabel="Audience share by channel"
+              ariaLabel={t('Audience share by channel')}
             />
           )}
           {runs.length > 0 && (
             <PieCard
-              title="Agent runs · by agent"
-              sub={`${fmtCount(runs.length)} runs`}
+              title={t('Agent runs · by agent')}
+              sub={t('{n} runs', { n: fmtCount(runs.length) })}
               items={runsByAgentItems}
               total={runs.length}
-              centerLabel="agent runs"
+              centerLabel={t('agent runs')}
               format={fmtCount}
-              ariaLabel="Agent runs by agent"
+              ariaLabel={t('Agent runs by agent')}
             />
           )}
           {runs.length > 0 && (
             <PieCard
-              title="Run outcomes"
-              sub={`${Math.round((okRuns / runs.length) * 100)}% ok`}
+              title={t('Run outcomes')}
+              sub={t('{pct}% ok', { pct: Math.round((okRuns / runs.length) * 100) })}
               items={outcomeItems}
               total={runs.length}
-              centerLabel="run outcomes"
+              centerLabel={t('run outcomes')}
               format={fmtCount}
-              ariaLabel="Agent run outcomes"
+              ariaLabel={t('Agent run outcomes')}
             />
           )}
         </div>
@@ -376,16 +377,16 @@ export default async function AnalyticsPage() {
       <section className="mb-8 grid grid-cols-1 gap-5 xl:grid-cols-3">
         <div className="rounded-lg-t border border-os-border bg-os-surface p-6 xl:col-span-2">
           <div className="flex items-center justify-between gap-3">
-            <Label>Agent run volume · 14d</Label>
-            <span className="font-mono text-[12.5px] text-os-muted">{windowRuns} runs</span>
+            <Label>{t('Agent run volume · 14d')}</Label>
+            <span className="font-mono text-[12.5px] text-os-muted">{t('{n} runs', { n: windowRuns })}</span>
           </div>
           {windowRuns === 0 ? (
             // A flat zero line explains nothing (H23): say why it is empty.
             <div className="mt-5 flex h-[170px] flex-col items-center justify-center gap-1.5 text-center" data-run-volume-empty="">
               <span className="text-[13px] text-os-muted">
-                {runs.length === 0 ? 'No agent runs recorded yet' : 'No runs in the last 14 days'}
+                {runs.length === 0 ? t('No agent runs recorded yet') : t('No runs in the last 14 days')}
               </span>
-              {lastRunAt && <span className="text-[12px] text-os-dim">Last run {fmtShort(lastRunAt.slice(0, 10))}</span>}
+              {lastRunAt && <span className="text-[12px] text-os-dim">{t('Last run {date}', { date: fmtShort(lastRunAt.slice(0, 10)) })}</span>}
             </div>
           ) : (
             <>
@@ -402,11 +403,11 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="flex flex-col rounded-lg-t border border-os-border bg-os-surface p-6">
-          <Label>Awaiting credentials</Label>
+          <Label>{t('Awaiting credentials')}</Label>
           <div className="mt-4 flex flex-1 flex-col gap-3">
             {pending.length === 0 ? (
               <div className="flex flex-1 items-center justify-center gap-2.5 text-[12.5px] text-os-muted">
-                <span className="dot ok" /> All connectors live
+                <span className="dot ok" /> {t('All connectors live')}
               </div>
             ) : (
               pending.map((m) => (
@@ -428,14 +429,14 @@ export default async function AnalyticsPage() {
             href="/integrations"
             className="mt-4 flex items-center justify-center gap-2.5 rounded-sm-t border border-os-border-strong bg-os-surface2 py-3.5 text-[13px] text-os-text transition-colors hover:bg-os-surface3"
           >
-            Wire connectors → flip to live
+            {t('Wire connectors → flip to live')}
           </Link>
         </div>
       </section>
 
       {/* Audience by platform — real Zernio snapshot data */}
       <section>
-        <SectionHead label="Audience · by platform" count={`${formatFollowers(totalAudience)} total audience`} link="Open Social" href="/social" />
+        <SectionHead label={t('Audience · by platform')} count={t('{n} total audience', { n: formatFollowers(totalAudience) })} link={t('Open Social')} href="/social" />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 ultra:grid-cols-4">
           {dash.platforms.map((p) => {
             const Icon = PLATFORM_ICONS[p.platform];
@@ -468,7 +469,7 @@ export default async function AnalyticsPage() {
                 <div className="mt-4 h-1 overflow-hidden rounded-sm-t bg-os-surface2">
                   <div className="h-full bg-os-accent opacity-60" style={{ width: `${share}%` }} />
                 </div>
-                <div className="mt-1.5 text-[11.5px] text-os-dim">{share.toFixed(0)}% of total audience</div>
+                <div className="mt-1.5 text-[11.5px] text-os-dim">{t('{pct}% of total audience', { pct: share.toFixed(0) })}</div>
               </Link>
             );
           })}

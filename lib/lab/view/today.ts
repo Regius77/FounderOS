@@ -29,6 +29,7 @@ import type { RadarTile, WindowCardView } from '@/lib/lab/radar/view';
 import type { AngleId } from '@/lib/lab/radar/angles';
 import type { TestMark } from '@/lib/lab/ledger/tests';
 import { emptyHeroGraphs, heroGraphs, type HeroGraphsView } from '@/lib/lab/view/hero-graphs';
+import { t } from '@/lib/i18n';
 
 export type TodayPageView = {
   frame: LabFrameView;
@@ -44,7 +45,7 @@ export type TodayPageView = {
   graphs: HeroGraphsView;
   seg: 'brief' | 'ask';
   askPanel: { state: SectionState; recent: { q: string; href: string }[]; examples: string[] };
-  yourPosts: { title: 'Your posts'; description: 'Judged at their age, against your normal'; state: SectionState; tiles: PostTileView[]; total: number; seeAllHref: string };
+  yourPosts: { title: string; description: string; state: SectionState; tiles: PostTileView[]; total: number; seeAllHref: string };
   /** RadarTile from section 05 radarTiles() */
   launchRadar: { title: 'Launch radar'; description: 'Events with an open window'; state: SectionState; tiles: RadarTile[]; total: number; seeAllHref: '/lab/radar' };
   nextToMake: { title: 'Next to make'; state: SectionState; rows: IdeaRowView[]; total: number; allHref: '/lab/studio' };
@@ -56,7 +57,7 @@ export type TodayPageView = {
 
 export type BriefCardView = {
   state: 'finding' | 'not_enough' | 'not_built' | 'error';
-  label: 'Brief';
+  label: string;
   /** finding: 7.4; not_enough: LAB_COPY.notEnoughBrief + " The Brief needs 8 breakouts in one format."; not_built: LAB_COPY.layer.measure */
   sentence: string;
   /** "n 24 · 90% 2.9x to 4.6x · confirmed by test (2 of 2)"; last part = section 06 testMark().label */
@@ -70,7 +71,7 @@ export type BriefCardView = {
 /** Wraps section 05's WindowCardView. The only time-left value is 05's `progress`. */
 export type TodayWindowView = {
   layer: 'live' | 'not_built' | 'error';
-  label: 'Window';
+  label: string;
   /** section 05 windowCardView(store, now); null when layer is not 'live' */
   card: WindowCardView | null;
   /** not_built: LAB_COPY.layer.radar; error: section error copy (4.7) */
@@ -117,7 +118,7 @@ export type IdeaRowView = {
   /** "grounded in 4" */
   groundedText: string;
   scriptId: string | null;
-  action: { label: 'Write script' | 'Open script'; kind: 'write_script' | 'open_script' };
+  action: { label: string; kind: 'write_script' | 'open_script' };
 };
 
 export type PipelineCardView = {
@@ -267,15 +268,15 @@ export function localDayIndex(now: Date): number {
 
 export function briefCard(store: LabStore, now: Date, measureLive: boolean, sample: boolean): BriefCardView {
   const c = LAB_COPY.today;
-  if (!measureLive) return { state: 'not_built', label: 'Brief', sentence: LAB_COPY.layer.measure, meta: null, href: null, mark: null };
+  if (!measureLive) return { state: 'not_built', label: t('Brief'), sentence: LAB_COPY.layer.measure, meta: null, href: null, mark: null };
   const cands = briefCandidates(store);
-  if (!cands.length) return { state: 'not_enough', label: 'Brief', sentence: c.briefNotEnough, meta: null, href: withSample('/lab/playbook', sample), mark: null };
+  if (!cands.length) return { state: 'not_enough', label: t('Brief'), sentence: c.briefNotEnough, meta: null, href: withSample('/lab/playbook', sample), mark: null };
   const pick = cands[localDayIndex(now) % cands.length];
   const nounKey = FEATURE_NOUN_ALIAS[pick.feature] ?? pick.feature;
   const noun = LAB_COPY.featureNoun[nounKey] ?? (FEATURE_LABEL[pick.feature] ?? humanize(pick.feature)).toLowerCase();
   return {
     state: 'finding',
-    label: 'Brief',
+    label: t('Brief'),
     sentence: fill(c.briefSentence, { value: humanize(pick.value), noun, lift: fmtRatio(pick.lift), family: familyLabel(pick.family) }),
     meta: `${nText(pick.n)} · 90% ${fmtRange(pick.lo, pick.hi)} · ${pick.markLabel}`,
     href: withSample(`/lab/playbook?format=${encodeURIComponent(pick.family)}`, sample) + `#lift-${pick.feature}-${pick.value}`,
@@ -284,15 +285,15 @@ export function briefCard(store: LabStore, now: Date, measureLive: boolean, samp
 }
 
 export function windowView(store: LabStore, now: Date, radarLive: boolean, opts: { sample: boolean; dry: boolean }): TodayWindowView {
-  if (!radarLive) return { layer: 'not_built', label: 'Window', card: null, message: LAB_COPY.layer.radar, meta: null, makeAngle: null, href: null };
+  if (!radarLive) return { layer: 'not_built', label: t('Window'), card: null, message: LAB_COPY.layer.radar, meta: null, makeAngle: null, href: null };
   const card = windowCardView(store, now, opts);
-  if (card.kind !== 'open' && card.kind !== 'closing') return { layer: 'live', label: 'Window', card, message: null, meta: null, makeAngle: null, href: null };
+  if (card.kind !== 'open' && card.kind !== 'closing') return { layer: 'live', label: t('Window'), card, message: null, meta: null, makeAngle: null, href: null };
   const ev = eventSheetView(store, card.eventId, now, opts);
   const first = (ev?.posts ?? []).filter((p) => p.wavePosition === 'first' && p.ratio !== null && !p.isOwned).map((p) => p.ratio as number);
   const m = median(first);
   return {
     layer: 'live',
-    label: 'Window',
+    label: t('Window'),
     card,
     message: null,
     meta: m !== null && first.length >= 1 ? fill(LAB_COPY.today.windowMeta, { ratio: fmtRatio(m), k: first.length }) : null,
@@ -331,7 +332,7 @@ export function ideaRows(store: LabStore, now: Date, sample: boolean, max = 3): 
       groundedN: card.evidence.length,
       groundedText: fill(LAB_COPY.today.grounded, { n: card.evidence.length }),
       scriptId: card.scriptId,
-      action: card.scriptId ? { label: 'Open script', kind: 'open_script' } : { label: 'Write script', kind: 'write_script' },
+      action: card.scriptId ? { label: t('Open script'), kind: 'open_script' } : { label: t('Write script'), kind: 'write_script' },
       fit: card.fit,
       openEvent: Boolean(idea?.eventId) && (ws === 'open' || ws === 'closing'),
     };
@@ -400,12 +401,12 @@ export function buildToday(store: LabStore, params: LabParams, flags: LabContext
     hp: params.hp,
     heroPlatforms: [{ id: 'all', label: c.allPlatforms }],
     heroes: {} as TodayPageView['heroes'],
-    brief: { state: 'not_enough', label: 'Brief', sentence: c.briefNotEnough, meta: null, href: null, mark: null },
-    window: { layer: 'live', label: 'Window', card: null, message: null, meta: null, makeAngle: null, href: null },
+    brief: { state: 'not_enough', label: t('Brief'), sentence: c.briefNotEnough, meta: null, href: null, mark: null },
+    window: { layer: 'live', label: t('Window'), card: null, message: null, meta: null, makeAngle: null, href: null },
     graphs: emptyHeroGraphs(),
     seg: params.seg,
     askPanel: { state: layers.ask === 'live' ? READY : state('not_built', LAB_COPY.layer.ask), recent: [], examples: [...c.askExamples] },
-    yourPosts: { title: 'Your posts', description: 'Judged at their age, against your normal', state: emptyState, tiles: [], total: 0, seeAllHref: S('/lab/breakouts?mine=1&window=30') },
+    yourPosts: { title: t('Your posts'), description: t('Judged at their age, against your normal'), state: emptyState, tiles: [], total: 0, seeAllHref: S('/lab/breakouts?mine=1&window=30') },
     launchRadar: { title: 'Launch radar', description: 'Events with an open window', state: emptyState, tiles: [], total: 0, seeAllHref: '/lab/radar' },
     nextToMake: { title: 'Next to make', state: emptyState, rows: [], total: 0, allHref: '/lab/studio' },
     pipeline: { state: emptyState, scraped: { value: 0, n: 0, enough: true, text: '0' }, transcribed: { value: 0, n: 0, enough: true, text: '0' }, dissected: { value: 0, n: 0, enough: true, text: '0' }, spend: { text: fmtUsd(0), pct: null, tone: 'ok' }, lastRunText: c.noRuns, href: '?setup=spend' },
@@ -414,8 +415,8 @@ export function buildToday(store: LabStore, params: LabParams, flags: LabContext
   };
   if (notConfigured) {
     base.heroPlatforms = [];
-    base.brief = { state: 'not_enough', label: 'Brief', sentence: '', meta: null, href: null, mark: null };
-    base.window = { layer: 'live', label: 'Window', card: null, message: null, meta: null, makeAngle: null, href: null };
+    base.brief = { state: 'not_enough', label: t('Brief'), sentence: '', meta: null, href: null, mark: null };
+    base.window = { layer: 'live', label: t('Window'), card: null, message: null, meta: null, makeAngle: null, href: null };
     return base;
   }
 
@@ -429,9 +430,9 @@ export function buildToday(store: LabStore, params: LabParams, flags: LabContext
     if (!base.heroes[base.hp]) base.hp = 'all';
   }, () => undefined);
 
-  base.brief = section(P, 'brief', () => briefCard(store, now, measureLive, sample), (s) => ({ state: 'error', label: 'Brief', sentence: s.message ?? '', meta: null, href: null, mark: null }));
+  base.brief = section(P, 'brief', () => briefCard(store, now, measureLive, sample), (s) => ({ state: 'error', label: t('Brief'), sentence: s.message ?? '', meta: null, href: null, mark: null }));
   base.graphs = section(P, 'graphs', () => heroGraphs(store, now, sample), (s) => emptyHeroGraphs(s));
-  base.window = section(P, 'window', () => windowView(store, now, layers.radar === 'live', { sample, dry: Boolean(flags.dry) }), (s) => ({ layer: 'error', label: 'Window', card: null, message: s.message, meta: null, makeAngle: null, href: null }));
+  base.window = section(P, 'window', () => windowView(store, now, layers.radar === 'live', { sample, dry: Boolean(flags.dry) }), (s) => ({ layer: 'error', label: t('Window'), card: null, message: s.message, meta: null, makeAngle: null, href: null }));
 
   if (!sample && inp.checklist && (empty || !inp.checklist.complete)) base.checklist = checklistSummary(inp.checklist, sample);
   const from = Date.parse(period.from);

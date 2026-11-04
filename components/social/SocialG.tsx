@@ -23,7 +23,7 @@ import type { PostDay } from '@/lib/posting-activity';
 import type { SocialPost } from '@/lib/schemas';
 import { channelsNetChange, netChange, seriesWindow, type RangePoint, type SocialRange } from '@/lib/social-range';
 import { formatFull } from '@/lib/format-number';
-import { fmtPct, parseRange, RANGE_OPTIONS, rangeParam, rangePhrase, stripValues } from '@/lib/social-view';
+import { fmtPct, parseRange, RANGE_OPTIONS, rangeParam, stripValues } from '@/lib/social-view';
 import { channelVizColor } from './channel';
 import { SocialChartsG } from './SocialChartsG';
 import { SeriesSheetG } from './SeriesSheetG';
@@ -31,6 +31,10 @@ import { DmInboxSheetG } from './DmInboxG';
 import { PostComposerG } from './PostComposerG';
 import { ContentCrewG } from './ContentCrew';
 import type { ContentCrew } from '@/lib/social-crew';
+import { t } from '@/lib/i18n';
+
+/** "over 30 days" / "all time" (lib/social-view rangePhrase, translated). */
+const rangePhrase = (r: SocialRange): string => (r === 'all' ? t('all time') : t('over {n} days', { n: r }));
 
 export type SocialAccountG = {
   platform: string;
@@ -74,7 +78,7 @@ export type SocialGProps = {
 const ICONS: Record<string, LucideIcon> = { instagram: Instagram, tiktok: Music2, twitter: Twitter, youtube: Youtube, linkedin: Linkedin, email: Mail };
 
 
-const toneOf = (t: SocialStatusPill['tone']) => (t === 'off' ? 'neutral' : t);
+const toneOf = (tone: SocialStatusPill['tone']) => (tone === 'off' ? 'neutral' : tone);
 
 export function SocialG(props: SocialGProps) {
   const { pill, accounts, unconnected, zernioSetupHref, total, channels, audience, dmPoints, totalDms, dmThreads, nowMs, postDays, today, recent, posts, queuedCount, crew } = props;
@@ -100,7 +104,7 @@ export function SocialG(props: SocialGProps) {
   const growth = useMemo(() => channelsNetChange(channelPoints, range, today), [channelPoints, range, today]);
   const strip = useMemo(() => stripValues(audience, range, today), [audience, range, today]);
   const dm = useMemo(() => (dmPoints.length ? netChange(dmPoints, seriesWindow(range, dmPoints, today)) : null), [dmPoints, range, today]);
-  const unreplied = dmThreads.filter((t) => t.unreplied).length;
+  const unreplied = dmThreads.filter((th) => th.unreplied).length;
   const hasEmail = channels.some((c) => c.key === 'email');
 
   const slices: DonutSlice[] = [
@@ -114,30 +118,30 @@ export function SocialG(props: SocialGProps) {
       <GSectionHeader
         size="page"
         title="Social"
-        caption="Audience, growth and publishing"
+        caption={t('Audience, growth and publishing')}
         action={
           <span className="soc-g-status" title={pill.title} data-social-status="">
             <GTag tone={toneOf(pill.tone)} dot>{pill.text}</GTag>
-            {pill.setupHref && <GButton size="sm" href={pill.setupHref} title={pill.title}>Set up</GButton>}
+            {pill.setupHref && <GButton size="sm" href={pill.setupHref} title={pill.title}>{t('Set up')}</GButton>}
           </span>
         }
       />
 
       {/* Accounts (F2): one card per channel; the total lives in the hero only. */}
       <section className="soc-g-sec" aria-labelledby="soc-g-accounts">
-        <GSectionHeader id="soc-g-accounts" size={22} title="Accounts" />
+        <GSectionHeader id="soc-g-accounts" size={22} title={t('Accounts')} />
         <div className="soc-g-accounts">
           {accounts.map((a) => {
             const Icon = ICONS[a.platform] ?? Mail;
             return (
-              <GCard key={a.platform} href={a.href} p={20} className="soc-g-acct" title={`${a.label}: ${a.followers == null ? 'no count yet' : `${formatFull(a.followers)} ${a.platform === 'email' ? 'subscribers' : 'followers'}`} · open details`}>
+              <GCard key={a.platform} href={a.href} p={20} className="soc-g-acct" title={`${a.label}: ${a.followers == null ? t('no count yet') : a.platform === 'email' ? t('{n} subscribers', { n: formatFull(a.followers) }) : t('{n} followers', { n: formatFull(a.followers) })} · ${t('open details')}`}>
                 <span className="soc-g-acct-head">
                   <span className="soc-g-icon"><Icon size={14} strokeWidth={1.75} aria-hidden /></span>
                   <span className="soc-g-acct-name">{a.label}</span>
                 </span>
                 <span className="soc-g-num">{a.followers == null ? '—' : formatFull(a.followers)}</span>
                 <span className="soc-g-acct-delta">
-                  {a.cur != null && a.prev != null ? <GDelta cur={a.cur} prev={a.prev} window="7 days" /> : <span className="soc-g-cap">no 7d history</span>}
+                  {a.cur != null && a.prev != null ? <GDelta cur={a.cur} prev={a.prev} window={t('7 days')} /> : <span className="soc-g-cap">{t('no 7d history')}</span>}
                 </span>
               </GCard>
             );
@@ -152,8 +156,8 @@ export function SocialG(props: SocialGProps) {
                 </span>
                 <span className="soc-g-num soc-g-num-dim">—</span>
                 <span className="soc-g-acct-delta">
-                  <span className="soc-g-cap">Not connected</span>
-                  <GButton size="sm" href={zernioSetupHref} title={`Connect ${u.label} through Zernio`}>Set up</GButton>
+                  <span className="soc-g-cap">{t('Not connected')}</span>
+                  <GButton size="sm" href={zernioSetupHref} title={t('Connect {label} through Zernio', { label: u.label })}>{t('Set up')}</GButton>
                 </span>
               </GCard>
             );
@@ -167,45 +171,45 @@ export function SocialG(props: SocialGProps) {
           id="soc-g-audience"
           size={22}
           title="Audience"
-          action={<GSegmented label="Range" options={RANGE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} value={rangeParam(range)} onChange={setRange} />}
+          action={<GSegmented label={t('Range')} options={RANGE_OPTIONS.map((o) => ({ value: o.value, label: t(o.label) }))} value={rangeParam(range)} onChange={setRange} />}
         />
         <div className="soc-g-heroes">
           <GHeroCard
             variant="a"
-            caption="Total audience"
+            caption={t('Total audience')}
             value={formatFull(total)}
-            label={`Total audience ${formatFull(total)}`}
-            title={`Every platform's latest follower count${hasEmail ? ' plus the email list' : ''}. Open the history by channel.`}
-            status={growth?.pct != null ? `${fmtPct(growth.pct)} ${rangePhrase(range)}` : `No history ${rangePhrase(range)}`}
-            strip={strip.values.length > 1 ? <GTickStrip onHero values={strip.values} titles={strip.titles} label={`Total audience by day, ${rangePhrase(range)}`} /> : undefined}
+            label={t('Total audience {n}', { n: formatFull(total) })}
+            title={hasEmail ? t("Every platform's latest follower count plus the email list. Open the history by channel.") : t("Every platform's latest follower count. Open the history by channel.")}
+            status={growth?.pct != null ? `${fmtPct(growth.pct)} ${rangePhrase(range)}` : t('No history {range}', { range: rangePhrase(range) })}
+            strip={strip.values.length > 1 ? <GTickStrip onHero values={strip.values} titles={strip.titles} label={t('Total audience by day, {range}', { range: rangePhrase(range) })} /> : undefined}
             onClick={() => setSheet('audience')}
             className="soc-g-hero-a"
           />
           <GHeroCard
             variant="b"
-            caption="Instagram DMs"
+            caption={t('Instagram DMs')}
             value={unreplied}
-            label={`${unreplied} Instagram conversations need a reply`}
-            title="Conversations whose last message is inbound. Open the inbox to reply."
-            status={dmThreads.length === 0 ? 'No conversations yet' : unreplied === 0 ? 'Inbox clear' : `to reply · ${dmThreads.length} conversations`}
+            label={t('{n} Instagram conversations need a reply', { n: unreplied })}
+            title={t('Conversations whose last message is inbound. Open the inbox to reply.')}
+            status={dmThreads.length === 0 ? t('No conversations yet') : unreplied === 0 ? t('Inbox clear') : t('to reply · {n} conversations', { n: dmThreads.length })}
             strip={dmThreads.length > 0 ? (
               <GShareBar
                 onHero
-                label="Conversations by reply state"
+                label={t('Conversations by reply state')}
                 segments={[
-                  { id: 'reply', label: 'To reply', value: unreplied, title: `${unreplied} to reply` },
-                  { id: 'done', label: 'Replied', value: dmThreads.length - unreplied, title: `${dmThreads.length - unreplied} replied` },
+                  { id: 'reply', label: t('To reply'), value: unreplied, title: t('{n} to reply', { n: unreplied }) },
+                  { id: 'done', label: t('Replied'), value: dmThreads.length - unreplied, title: t('{n} replied', { n: dmThreads.length - unreplied }) },
                 ]}
               />
             ) : undefined}
             onClick={() => setSheet('inbox')}
           />
-          <GCard p={24} className="soc-g-dms" onClick={() => setSheet('dms')} title="DMs across every platform (seeded until a DM source is wired). Open the history." aria-label={`Total DMs ${formatFull(totalDms)}. Open the history.`}>
+          <GCard p={24} className="soc-g-dms" onClick={() => setSheet('dms')} title={t('DMs across every platform (seeded until a DM source is wired). Open the history.')} aria-label={t('Total DMs {n}. Open the history.', { n: formatFull(totalDms) })}>
             <GStat
               value={formatFull(totalDms)}
-              label="Total DMs"
-              source="DMs across every platform (seeded until a DM source is wired)"
-              extra={dm ? <GDelta cur={dm.current} prev={dm.baseline} window={rangePhrase(range)} /> : <span className="soc-g-cap">no history {rangePhrase(range)}</span>}
+              label={t('Total DMs')}
+              source={t('DMs across every platform (seeded until a DM source is wired)')}
+              extra={dm ? <GDelta cur={dm.current} prev={dm.baseline} window={rangePhrase(range)} /> : <span className="soc-g-cap">{t('no history {range}', { range: rangePhrase(range) })}</span>}
             />
           </GCard>
         </div>
@@ -213,7 +217,7 @@ export function SocialG(props: SocialGProps) {
         <div className="soc-g-charts">
           <SocialChartsG audience={audience} channels={channelPoints} postDays={postDays} range={range} today={today} />
           <GCard p={24} className="soc-g-share" aria-labelledby="soc-g-share">
-            <GSectionHeader id="soc-g-share" size={22} title="Share" caption="Of the total audience" />
+            <GSectionHeader id="soc-g-share" size={22} title={t('Share')} caption={t('Of the total audience')} />
             <GDonut
               slices={slices}
               size={168}
@@ -224,7 +228,7 @@ export function SocialG(props: SocialGProps) {
                   <span className="g-donut-cap">{largest.label}</span>
                 </>
               ) : undefined}
-              label="Share of the total audience by channel"
+              label={t('Share of the total audience by channel')}
             />
           </GCard>
         </div>
@@ -236,29 +240,29 @@ export function SocialG(props: SocialGProps) {
         <GSectionHeader
           id="soc-g-recent"
           size={22}
-          title="Recent posts"
-          caption={recent.kind === 'live' ? `${recent.posts.length} from Zernio` : recent.kind === 'sample' ? `${recent.avg} average likes per view` : undefined}
-          action={recent.kind === 'sample' ? <GSampleBadge fixture="Filming mode sample posts, not Zernio history" /> : undefined}
+          title={t('Recent posts')}
+          caption={recent.kind === 'live' ? t('{n} from Zernio', { n: recent.posts.length }) : recent.kind === 'sample' ? t('{avg} average likes per view', { avg: recent.avg }) : undefined}
+          action={recent.kind === 'sample' ? <GSampleBadge fixture={t('Filming mode sample posts, not Zernio history')} /> : undefined}
         />
         <GCard p={16} className="soc-g-recent">
           {recent.kind === 'empty' ? (
             recent.setupHref ? (
-              <GEmpty kind="unconfigured" title="No published posts from Zernio yet" body="Connect Zernio to list what went out." setupHref={recent.setupHref} setupHint={recent.hint} />
+              <GEmpty kind="unconfigured" title={t('No published posts from Zernio yet')} body={t('Connect Zernio to list what went out.')} setupHref={recent.setupHref} setupHint={recent.hint} />
             ) : (
-              <GEmpty title="No published posts from Zernio yet" body="Posts the Social agent publishes show here." />
+              <GEmpty title={t('No published posts from Zernio yet')} body={t('Posts the Social agent publishes show here.')} />
             )
           ) : (
-            <GList divided label="Recent posts">
+            <GList divided label={t('Recent posts')}>
               {recent.kind === 'live'
                 ? recent.posts.map((p) => (
                     <GRow
                       key={p.key}
                       title={<span className="soc-g-caption">{p.caption}</span>}
-                      meta={`${p.platform}${p.ago ? ` · ${p.ago} ago` : ''}`}
+                      meta={`${p.platform}${p.ago ? ` · ${t('{ago} ago', { ago: p.ago })}` : ''}`}
                       trailing={
                         <span className="soc-g-row-trail">
-                          <GTag tone={p.status === 'success' ? 'ok' : 'warn'} dot>{p.status}</GTag>
-                          {p.url && <GButton size="sm" href={p.url} external title="Open the post">Open</GButton>}
+                          <GTag tone={p.status === 'success' ? 'ok' : 'warn'} dot>{p.status === 'success' ? t('success') : p.status}</GTag>
+                          {p.url && <GButton size="sm" href={p.url} external title={t('Open the post')}>{t('Open')}</GButton>}
                         </span>
                       }
                     />
@@ -267,11 +271,11 @@ export function SocialG(props: SocialGProps) {
                     <GRow
                       key={p.caption}
                       title={<span className="soc-g-caption">{p.caption}</span>}
-                      meta={`${p.tag} · ${p.ago} ago`}
-                      hint={`${formatFull(p.views)} ${p.kind} · ${formatFull(p.likes)} likes · like-to-view ${p.ratio}`}
+                      meta={`${p.tag} · ${t('{ago} ago', { ago: p.ago })}`}
+                      hint={t('{views} {kind} · {likes} likes · like-to-view {ratio}', { views: formatFull(p.views), kind: t(p.kind), likes: formatFull(p.likes), ratio: p.ratio })}
                       trailing={
-                        <span className="soc-g-row-trail soc-g-cap" title={`${formatFull(p.views)} ${p.kind} · ${formatFull(p.likes)} likes · like-to-view ${p.ratio}`}>
-                          {formatFull(p.views)} {p.kind} · {p.ratio}
+                        <span className="soc-g-row-trail soc-g-cap" title={t('{views} {kind} · {likes} likes · like-to-view {ratio}', { views: formatFull(p.views), kind: t(p.kind), likes: formatFull(p.likes), ratio: p.ratio })}>
+                          {formatFull(p.views)} {t(p.kind)} · {p.ratio}
                         </span>
                       }
                     />
@@ -288,9 +292,9 @@ export function SocialG(props: SocialGProps) {
         <GSectionHeader
           id="soc-g-publish"
           size={22}
-          title="Publish"
-          caption={`${queuedCount} queued`}
-          action={<GButton size="sm" href="/agents" title="The Social agent publishes the queue on its next run">Social agent</GButton>}
+          title={t('Publish')}
+          caption={t('{n} queued', { n: queuedCount })}
+          action={<GButton size="sm" href="/agents" title={t('The Social agent publishes the queue on its next run')}>{t('Social agent')}</GButton>}
         />
         <PostComposerG initialPosts={posts} unconnected={unconnected.map((u) => u.platform)} />
       </section>

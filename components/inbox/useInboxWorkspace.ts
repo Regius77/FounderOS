@@ -9,6 +9,7 @@ import {
   EMPTY_TRIAGE, browserStorage, loadTriage, saveTriage, setDone as setDoneIn, snooze as snoozeIn,
   snoozedKeys, unsnooze, type TriageStore,
 } from '@/lib/inbox-triage';
+import { t } from '@/lib/i18n';
 
 /**
  * The /inbox state and behaviour (filters, selection, Done and Snooze on this
@@ -45,8 +46,8 @@ export function useInboxWorkspace({
   const effective = useMemo(
     () =>
       threads
-        .filter((t) => !snoozed.has(t.key))
-        .map((t) => (done.has(t.key) ? { ...t, triage: 'done' as const } : t)),
+        .filter((th) => !snoozed.has(th.key))
+        .map((th) => (done.has(th.key) ? { ...th, triage: 'done' as const } : th)),
     [threads, done, snoozed],
   );
   const now = useMemo(() => new Date(nowISO), [nowISO]);
@@ -54,15 +55,15 @@ export function useInboxWorkspace({
     () => sortThreads(filterThreads(effective, { source, triage, range, query }, now), sort, now),
     [effective, source, triage, range, query, sort, now],
   );
-  const current = useMemo(() => effective.find((t) => t.key === selected) ?? null, [effective, selected]);
+  const current = useMemo(() => effective.find((th) => th.key === selected) ?? null, [effective, selected]);
   const connectedCount = SOURCES.filter((s) => connected[s.id]).length;
   const cards = useMemo(() => buildStatCards(effective, connected, weekly, now), [effective, connected, weekly, now]);
-  const replyCount = useMemo(() => effective.filter((t) => t.triage === 'reply').length, [effective]);
+  const replyCount = useMemo(() => effective.filter((th) => th.triage === 'reply').length, [effective]);
 
   const move = useCallback(
     (dir: 1 | -1) => {
       if (visible.length === 0) return;
-      const i = visible.findIndex((t) => t.key === selected);
+      const i = visible.findIndex((th) => th.key === selected);
       const next = i < 0 ? (dir === 1 ? 0 : visible.length - 1) : Math.min(visible.length - 1, Math.max(0, i + dir));
       setSelected(visible[next].key);
     },
@@ -72,7 +73,7 @@ export function useInboxWorkspace({
   // threads that no longer exist, and writes the pruned store back.
   useEffect(() => {
     const storage = browserStorage();
-    const loaded = loadTriage(storage, Date.now(), threads.map((t) => t.key));
+    const loaded = loadTriage(storage, Date.now(), threads.map((th) => th.key));
     storeRef.current = loaded;
     setStore(loaded);
     saveTriage(storage, loaded);
@@ -93,10 +94,10 @@ export function useInboxWorkspace({
     const saved = apply((s) => setDoneIn(s, key, !wasDone));
     toast({
       text: wasDone
-        ? saved ? 'Back in the inbox. Saved on this browser.' : 'Back in the inbox for this session.'
-        : saved ? 'Marked done. Saved on this browser.' : 'Marked done for this session.',
+        ? saved ? t('Back in the inbox. Saved on this browser.') : t('Back in the inbox for this session.')
+        : saved ? t('Marked done. Saved on this browser.') : t('Marked done for this session.'),
       tone: 'ok',
-      action: { label: 'Undo', onClick: () => apply((s) => setDoneIn(s, key, wasDone)) },
+      action: { label: t('Undo'), onClick: () => apply((s) => setDoneIn(s, key, wasDone)) },
       ms: 5000,
     });
   }, [selected, apply, toast]);
@@ -106,10 +107,10 @@ export function useInboxWorkspace({
     const saved = apply((s) => snoozeIn(s, key, Date.now()));
     setSelected(null);
     toast({
-      text: saved ? 'Snoozed for 24 hours. Saved on this browser.' : 'Hidden until you reload.',
+      text: saved ? t('Snoozed for 24 hours. Saved on this browser.') : t('Hidden until you reload.'),
       tone: 'ok',
       action: {
-        label: 'Undo',
+        label: t('Undo'),
         onClick: () => {
           apply((s) => unsnooze(s, key));
           setSelected(key);

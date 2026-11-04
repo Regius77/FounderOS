@@ -5,6 +5,7 @@ import { RotateCw } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Badge } from './Status';
 import { cx } from './format';
+import { t } from '@/lib/i18n';
 
 /**
  * Bennett Legacy states (founderos-ui pages/README "States, defined once").
@@ -27,10 +28,10 @@ export function LEmpty({ children, className }: { children: ReactNode; className
 export function LUnconfigured({ what, href = '/integrations', hint }: { what: string; href?: string; hint?: string }) {
   return (
     <div data-l="Unconfigured" className="l-state l-unconfigured">
-      <Badge tone="warn">Not configured</Badge>
-      <span className="l-state-text">{what} is not connected yet.</span>
+      <Badge tone="warn">{t('Not configured')}</Badge>
+      <span className="l-state-text">{t('{what} is not connected yet.', { what })}</span>
       <Link data-l="SetupLink" href={href} title={hint} className="l-pressable is-dark l-pill l-setup-link" data-lens="c">
-        Set up <span aria-hidden>›</span>
+        {t('Set up')} <span aria-hidden>›</span>
       </Link>
     </div>
   );
@@ -57,17 +58,17 @@ export function LError({
         <>
           <div className="l-error-last">{lastGood}</div>
           <span className="l-state-text">
-            <Badge tone="err">Stale</Badge> {age ? `last good value, ${age} old.` : 'last good value.'} {message}
+            <Badge tone="err">{t('Stale')}</Badge> {age ? t('last good value, {age} old.', { age }) : t('last good value.')} {message}
           </span>
         </>
       ) : (
         <span className="l-state-text">
-          <Badge tone="err">Error</Badge> {message}
+          <Badge tone="err">{t('Error')}</Badge> {message}
         </span>
       )}
       {onRetry && (
         <button type="button" data-l="Pressable" data-lens="c" className="l-pressable is-dark l-btn" onClick={onRetry}>
-          <RotateCw size={12} strokeWidth={1.8} aria-hidden /> Retry
+          <RotateCw size={12} strokeWidth={1.8} aria-hidden /> {t('Retry')}
         </button>
       )}
     </div>
@@ -86,7 +87,7 @@ export function LSkeleton({ lines = 3, height, className }: { lines?: number; he
 }
 
 /** The amber SAMPLE chip on a fixture (?sample=1) or in Filming mode. */
-export function LSampleChip({ label = 'Sample' }: { label?: string }) {
+export function LSampleChip({ label = t('Sample') }: { label?: string }) {
   return (
     <span data-l="SampleChip" data-sample-badge className="l-badge l-sample" data-tone="warn">
       {label}

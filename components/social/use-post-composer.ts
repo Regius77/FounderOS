@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
 import type { SocialPost } from '@/lib/schemas';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * The publish composer and queue, shared by both UI styles (glados-ui SPEC X5:
@@ -30,7 +31,7 @@ type PendingRemoval = { timer: ReturnType<typeof setTimeout>; post: SocialPost; 
 
 export function fmtWhen(iso: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(localeTag(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
 export function usePostComposer(initialPosts: SocialPost[], initialPlatforms: string[] = ['instagram', 'tiktok']) {
@@ -62,16 +63,16 @@ export function usePostComposer(initialPosts: SocialPost[], initialPlatforms: st
       });
       if (res.status === 409) {
         restore(entry);
-        toast({ text: 'Already publishing, so it stays in the queue', tone: 'err' });
+        toast({ text: t('Already publishing, so it stays in the queue'), tone: 'err' });
       } else if (!res.ok && res.status !== 404) {
         restore(entry);
-        toast({ text: `Could not remove the post (HTTP ${res.status})`, tone: 'err' });
+        toast({ text: t('Could not remove the post (HTTP {status})', { status: res.status }), tone: 'err' });
       } else {
         router.refresh(); // the page's "N queued" count
       }
     } catch {
       restore(entry);
-      toast({ text: 'Could not remove the post', tone: 'err' });
+      toast({ text: t('Could not remove the post'), tone: 'err' });
     }
   }
 
@@ -88,11 +89,11 @@ export function usePostComposer(initialPosts: SocialPost[], initialPlatforms: st
     }, QUEUE_UNDO_MS);
     pending.current.set(post.id, { timer, post, index: Math.max(0, index) });
     toast({
-      text: 'Removed from the queue',
+      text: t('Removed from the queue'),
       tone: 'info',
       ms: QUEUE_UNDO_MS,
       action: {
-        label: 'Undo',
+        label: t('Undo'),
         onClick: () => {
           const entry = pending.current.get(post.id);
           if (!entry) return;
@@ -126,8 +127,8 @@ export function usePostComposer(initialPosts: SocialPost[], initialPlatforms: st
 
   async function submit() {
     setError(null);
-    if (!caption.trim()) return setError('Add a caption first.');
-    if (selected.size === 0) return setError('Pick at least one platform.');
+    if (!caption.trim()) return setError(t('Add a caption first.'));
+    if (selected.size === 0) return setError(t('Pick at least one platform.'));
     setBusy(true);
     try {
       const res = await fetch('/api/social/posts', {

@@ -14,6 +14,7 @@ import type { WorkflowInput } from '@/app/api/workflows/shared';
 import type { AgentRun, BrandDealRules, Workflow } from '@/lib/schemas';
 import { mountWorkflowEditor, type EditorApi, type RulesState } from './workflow-canvas/engine';
 import './workflow-canvas/canvas.css';
+import { t } from '@/lib/i18n';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
@@ -59,7 +60,7 @@ export function WorkflowCanvas(props: {
     <div className="wfc" ref={ref} data-skin={props.skin}>
       <header className="topbar">
         <div className="topbar-left">
-          <button className="tb-btn tb-icon" id="btnNewWorkflow" title="New workflow" />
+          <button className="tb-btn tb-icon" id="btnNewWorkflow" title={t('New workflow')} />
           <div className="title-block">
             <div className="title-row">
               <h1 className="wf-title" id="wfTitle" contentEditable suppressContentEditableWarning spellCheck={false} />
@@ -68,15 +69,15 @@ export function WorkflowCanvas(props: {
             <button className="crumb" id="wfCrumb" />
           </div>
           <nav className="tabs" id="tabs">
-            <button className="tab is-active" data-tab="editor">Editor</button>
-            <button className="tab" data-tab="executions">Executions</button>
-            <button className="tab" data-tab="tests">Tests</button>
+            <button className="tab is-active" data-tab="editor">{t('Editor')}</button>
+            <button className="tab" data-tab="executions">{t('Executions')}</button>
+            <button className="tab" data-tab="tests">{t('Tests')}</button>
           </nav>
         </div>
         <div className="topbar-right">
-          <button className="tb-btn tb-primary" id="btnSave">Saved</button>
-          <button className="tb-btn tb-icon" id="btnHistory" title="Version history" />
-          <button className="tb-btn tb-icon" id="btnMore" title="More" />
+          <button className="tb-btn tb-primary" id="btnSave">{t('Saved')}</button>
+          <button className="tb-btn tb-icon" id="btnHistory" title={t('Version history')} />
+          <button className="tb-btn tb-icon" id="btnMore" title={t('More')} />
         </div>
       </header>
 
@@ -91,7 +92,7 @@ export function WorkflowCanvas(props: {
             <div className="nodes" id="nodes" />
             <svg className="edges edges-temp" id="edgesTemp" />
           </div>
-          <div className="drop-hint" id="dropHint">Drop to add</div>
+          <div className="drop-hint" id="dropHint">{t('Drop to add')}</div>
         </div>
 
         <div className="hud hud-tl">
@@ -100,70 +101,70 @@ export function WorkflowCanvas(props: {
             <div className="minimap-view" id="minimapView" />
           </div>
           <div className="hud-row">
-            <button className="hud-btn" data-action="fit" title="Fit view (F)" />
-            <button className="hud-btn" data-action="zoom-in" title="Zoom in (+)" />
-            <button className="hud-btn" data-action="zoom-out" title="Zoom out (−)" />
-            <button className="hud-btn" data-action="undo" title="Undo (⌘Z)" />
+            <button className="hud-btn" data-action="fit" title={t('Fit view (F)')} />
+            <button className="hud-btn" data-action="zoom-in" title={t('Zoom in (+)')} />
+            <button className="hud-btn" data-action="zoom-out" title={t('Zoom out (−)')} />
+            <button className="hud-btn" data-action="undo" title={t('Undo (⌘Z)')} />
           </div>
         </div>
 
         <div className="dock dock-chat is-hidden" id="dockChat">
           <div className="chat-head">
-            <span className="chat-title">Draft with Claude</span>
+            <span className="chat-title">{t('Draft with Claude')}</span>
             <span className="chat-id mono" id="chatId" />
           </div>
           <div className="chat-log" id="chatLog" />
           <form className="chat-form" id="chatForm">
-            <input className="chat-input" id="chatInput" placeholder="Describe the workflow you want…" autoComplete="off" />
-            <button className="chat-send" type="submit" title="Send" />
+            <input className="chat-input" id="chatInput" placeholder={t('Describe the workflow you want…')} autoComplete="off" />
+            <button className="chat-send" type="submit" title={t('Send')} />
           </form>
         </div>
 
         <div className="dock dock-bar" id="dockBar">
-          <button className="bar-btn bar-run" id="btnTest">Test workflow</button>
-          <button className="bar-btn" id="btnChat">Show chat</button>
+          <button className="bar-btn bar-run" id="btnTest">{t('Test workflow')}</button>
+          <button className="bar-btn" id="btnChat">{t('Show chat')}</button>
           <span className="bar-sep" />
           <div className="bar-timer" id="barTimer">
             <span className="mono" id="timerText">00:00</span>
-            <button className="timer-btn" id="btnPause" title="Pause" />
+            <button className="timer-btn" id="btnPause" title={t('Pause')} />
           </div>
         </div>
 
         <div className="dock dock-logs is-hidden" id="dockLogs">
           <div className="logs-head">
-            <span id="logsTitle">Run log</span>
+            <span id="logsTitle">{t('Run log')}</span>
             <div className="lh">
-              <button className="logs-toggle" id="btnLogs" title="Expand" />
-              <button className="logs-toggle" id="btnLogsClose" title="Close" />
+              <button className="logs-toggle" id="btnLogs" title={t('Expand')} />
+              <button className="logs-toggle" id="btnLogsClose" title={t('Close')} />
             </div>
           </div>
           <div className="logs-body" id="logsBody" />
         </div>
 
         <div className="dock dock-ratio is-collapsed" id="dockRatio">
-          <button className="ratio-mini" id="ratioMini" title="Human to agent ratio · click to pin open">
-            Human <span className="ratio-arrow" id="ratioArrowMini" /> Agent <span className="mono" id="ratioMiniPct">0%</span>
+          <button className="ratio-mini" id="ratioMini" title={t('Human to agent ratio · click to pin open')}>
+            {t('Human')} <span className="ratio-arrow" id="ratioArrowMini" /> {t('Agent')} <span className="mono" id="ratioMiniPct">0%</span>
           </button>
-          <button className="ratio-collapse" id="btnRatioCollapse" title="Collapse" />
+          <button className="ratio-collapse" id="btnRatioCollapse" title={t('Collapse')} />
           <div className="ratio-head">
             <div className="ratio-title">
-              Human <span className="ratio-arrow" id="ratioArrow" /> Agent ratio
+              {t('Human')} <span className="ratio-arrow" id="ratioArrow" /> {t('Agent ratio')}
             </div>
             <div className="ratio-stat">
               <span className="ratio-bars"><i /><i /><i /></span>
-              <span id="ratioStat">Human hours: 0h/wk</span>
+              <span id="ratioStat">{t('Human hours: 0h/wk')}</span>
             </div>
           </div>
           <div className="ratio-track" id="ratioTrack">
             <canvas className="ratio-grid" id="ratioGrid" />
             <div className="ratio-line" id="ratioLine" />
-            <div className="ratio-marker" id="ratioMarker" title="Drag to set a target ratio · double-click to reset" />
+            <div className="ratio-marker" id="ratioMarker" title={t('Drag to set a target ratio · double-click to reset')} />
           </div>
           <div className="ratio-ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
         </div>
 
-        <button className="pill-set" id="btnSettings" title="Settings for the selection" />
-        <button className="pill-add" id="btnPanelToggle" title="What happens next? (⌘K)" />
+        <button className="pill-set" id="btnSettings" title={t('Settings for the selection')} />
+        <button className="pill-add" id="btnPanelToggle" title={t('What happens next? (⌘K)')} />
         <aside className="panel" id="panel" />
       </section>
 
@@ -177,13 +178,13 @@ export function WorkflowCanvas(props: {
         <div className="list-wrap">
           <div className="list-head">
             <div>
-              <h2>Executions</h2>
+              <h2>{t('Executions')}</h2>
               <p className="muted" id="execSummary" />
             </div>
             <div className="list-actions">
-              <button className="tb-btn" data-exec-filter="all">All</button>
-              <button className="tb-btn" data-exec-filter="success">Ok</button>
-              <button className="tb-btn" data-exec-filter="failed">Failed</button>
+              <button className="tb-btn" data-exec-filter="all">{t('All')}</button>
+              <button className="tb-btn" data-exec-filter="success">{t('Ok')}</button>
+              <button className="tb-btn" data-exec-filter="failed">{t('Failed')}</button>
             </div>
           </div>
           <div className="table" id="execTable" />
@@ -194,7 +195,7 @@ export function WorkflowCanvas(props: {
         <div className="list-wrap">
           <div className="list-head">
             <div>
-              <h2>Tests</h2>
+              <h2>{t('Tests')}</h2>
               <p className="muted" id="testSummary" />
             </div>
           </div>
@@ -204,7 +205,7 @@ export function WorkflowCanvas(props: {
 
       {props.skin === 'g' && (
         <p className="wfc-g-narrow" role="note">
-          Edit workflows on a larger screen. Pan and zoom work here.
+          {t('Edit workflows on a larger screen. Pan and zoom work here.')}
         </p>
       )}
       <div className="modal-root" id="modalRoot" />

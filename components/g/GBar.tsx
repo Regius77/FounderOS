@@ -20,11 +20,11 @@ export type GBarProps = {
   className?: string;
 };
 
-function toneFill(t: GBarTone | undefined, onHero: boolean): string {
-  if (!t || t === 'ink') return onHero ? 'var(--g-on-hero)' : 'var(--g-ink)';
-  if (t === 'soft') return 'var(--g-track-soft)';
-  if (t === 'over') return 'var(--g-err)';
-  return colorVar(t);
+function toneFill(tn: GBarTone | undefined, onHero: boolean): string {
+  if (!tn || tn === 'ink') return onHero ? 'var(--g-on-hero)' : 'var(--g-ink)';
+  if (tn === 'soft') return 'var(--g-track-soft)';
+  if (tn === 'over') return 'var(--g-err)';
+  return colorVar(tn);
 }
 
 /**
@@ -49,7 +49,7 @@ export function GBar({ label, value = null, max, tone, segments, onHero = false,
   const m = max ?? 100;
   const v = value === null || !Number.isFinite(value) ? null : value;
   const pct = v === null || m <= 0 ? 0 : Math.max(0, Math.min(1, v / m));
-  const t = v !== null && v > m && tone !== 'warn' ? 'over' : tone;
+  const tn = v !== null && v > m && tone !== 'warn' ? 'over' : tone;
   return (
     <span
       data-g="GBar"
@@ -63,7 +63,7 @@ export function GBar({ label, value = null, max, tone, segments, onHero = false,
       className={`g-bar ${className}`}
       data-on-hero={onHero || undefined}
     >
-      {v !== null && <i style={{ width: `${pct * 100}%`, background: toneFill(t, onHero) }} />}
+      {v !== null && <i style={{ width: `${pct * 100}%`, background: toneFill(tn, onHero) }} />}
     </span>
   );
 }

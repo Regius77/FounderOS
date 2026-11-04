@@ -16,12 +16,11 @@ import {
 import { launchBlockedReason, writeBlockedReason, type ClientRosterRow, type ClientWorkRow, type ClientsView } from '@/lib/clients-view';
 import type { ClientWorkStatus } from '@/lib/schemas';
 import { BRIEF_PLACEHOLDER, LAUNCH_DIALOG_BODY, LAUNCH_DIALOG_TITLE, useClients } from './use-clients';
+import { localeTag, t } from '@/lib/i18n';
 
 export type ClientsSetup = { attio: string; superset: string };
 
 export const STATUS_TONE: Record<ClientWorkStatus, GTagTone> = { draft: 'neutral', queued: 'outline', running: 'accent', done: 'ok', failed: 'err' };
-
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSetup }) {
   const c = useClients();
@@ -32,7 +31,7 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
   const [launchError, setLaunchError] = useState<string | null>(null);
 
   const readOnly = writeBlockedReason(view);
-  const newRequestBlocked = readOnly ?? (view.sample ? 'Sample data: add a client to write a real request' : view.roster.length === 0 ? 'Confirm or add a client first' : null);
+  const newRequestBlocked = readOnly ?? (view.sample ? t('Sample data: add a client to write a real request') : view.roster.length === 0 ? t('Confirm or add a client first') : null);
   const rows = useMemo(() => (view.selected ? view.work.filter((w) => w.clientId === view.selected) : view.work), [view.work, view.selected]);
   const selectedName = view.roster.find((r) => r.clientId === view.selected)?.name ?? null;
   const work = view.work.find((w) => w.id === openWork) ?? null;
@@ -53,18 +52,18 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
 
   const menuFor = (w: ClientWorkRow) => {
     const blocked = launchBlockedReason(view, w);
-    const local = readOnly ?? (w.sample ? 'Sample data: nothing is saved' : null);
+    const local = readOnly ?? (w.sample ? t('Sample data: nothing is saved') : null);
     return (
       <GMenu
-        label={`Actions for ${w.clientName}`}
+        label={t('Actions for {name}', { name: w.clientName })}
         items={[
-          { id: 'open', label: 'Open brief', onSelect: () => setOpenWork(w.id) },
-          { id: 'launch', label: 'Start draft in Superset', onSelect: () => setLaunchId(w.id), disabled: Boolean(blocked), disabledReason: blocked ?? undefined },
-          { id: 'done', label: 'Mark done', onSelect: () => void c.setStatus(w.id, 'done'), disabled: Boolean(local) || w.status === 'done', disabledReason: local ?? 'Already done' },
-          { id: 'failed', label: 'Mark failed', danger: true, onSelect: () => void c.setStatus(w.id, 'failed'), disabled: Boolean(local) || w.status === 'failed', disabledReason: local ?? 'Already failed' },
+          { id: 'open', label: t('Open brief'), onSelect: () => setOpenWork(w.id) },
+          { id: 'launch', label: t('Start draft in Superset'), onSelect: () => setLaunchId(w.id), disabled: Boolean(blocked), disabledReason: blocked ?? undefined },
+          { id: 'done', label: t('Mark done'), onSelect: () => void c.setStatus(w.id, 'done'), disabled: Boolean(local) || w.status === 'done', disabledReason: local ?? t('Already done') },
+          { id: 'failed', label: t('Mark failed'), danger: true, onSelect: () => void c.setStatus(w.id, 'failed'), disabled: Boolean(local) || w.status === 'failed', disabledReason: local ?? t('Already failed') },
         ]}
         trigger={(p) => (
-          <GButton {...p} variant="icon" size="sm" aria-label={`Actions for ${w.clientName}`} title="Actions">
+          <GButton {...p} variant="icon" size="sm" aria-label={t('Actions for {name}', { name: w.clientName })} title={t('Actions')}>
             <MoreHorizontal size={15} strokeWidth={1.75} aria-hidden />
           </GButton>
         )}
@@ -73,11 +72,11 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
   };
 
   const columns: GColumn<ClientWorkRow>[] = [
-    { key: 'client', label: 'Client', sortValue: (w) => w.clientName, render: (w) => <span className="cl-g-strong">{w.clientName}</span> },
-    { key: 'brief', label: 'Brief', render: (w) => <span className="cl-g-brief" title={w.brief}>{w.briefLine}</span> },
-    { key: 'status', label: 'Status', sortValue: (w) => w.status, render: (w) => <GTag tone={STATUS_TONE[w.status]} dot>{w.statusLabel}</GTag> },
-    { key: 'age', label: 'Age', align: 'right', sortValue: (w) => -Date.parse(w.createdAt), render: (w) => <span className="cl-g-cap" title={new Date(w.createdAt).toLocaleString()}>{w.age}</span> },
-    { key: 'menu', label: <span className="sr-only">Actions</span>, align: 'right', render: (w) => menuFor(w) },
+    { key: 'client', label: t('Client'), sortValue: (w) => w.clientName, render: (w) => <span className="cl-g-strong">{w.clientName}</span> },
+    { key: 'brief', label: t('Brief'), render: (w) => <span className="cl-g-brief" title={w.brief}>{w.briefLine}</span> },
+    { key: 'status', label: t('Status'), sortValue: (w) => w.status, render: (w) => <GTag tone={STATUS_TONE[w.status]} dot>{w.statusLabel}</GTag> },
+    { key: 'age', label: t('Age'), align: 'right', sortValue: (w) => -Date.parse(w.createdAt), render: (w) => <span className="cl-g-cap" title={new Date(w.createdAt).toLocaleString(localeTag())}>{w.age}</span> },
+    { key: 'menu', label: <span className="sr-only">{t('Actions')}</span>, align: 'right', render: (w) => menuFor(w) },
   ];
 
   return (
@@ -88,9 +87,9 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
         caption={view.subtitle}
         action={
           <div className="cl-g-head-actions">
-            {view.sample && <GSampleBadge fixture={view.mode === 'filming' ? 'Filming mode fixture, three invented clients' : 'Preview on a blank install, three invented clients'} />}
+            {view.sample && <GSampleBadge fixture={view.mode === 'filming' ? t('Filming mode fixture, three invented clients') : t('Preview on a blank install, three invented clients')} />}
             <GButton variant="ink" onClick={() => setSheet('request')} disabled={Boolean(newRequestBlocked)} disabledReason={newRequestBlocked ?? undefined}>
-              <Plus size={14} strokeWidth={1.75} aria-hidden /> New request
+              <Plus size={14} strokeWidth={1.75} aria-hidden /> {t('New request')}
             </GButton>
           </div>
         }
@@ -100,37 +99,37 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
         <GHeroCard
           variant="b"
           className="cl-g-hero"
-          caption="Open requests"
+          caption={t('Open requests')}
           value={String(view.volume.open)}
-          label={`${view.volume.open} open requests`}
-          title="Drafts, queued and running requests across every confirmed client"
-          status={`${plural(view.volume.thisMonth, 'request')} this month · ${view.volume.doneThisMonth} done`}
+          label={t('{n} open requests', { n: view.volume.open })}
+          title={t('Drafts, queued and running requests across every confirmed client')}
+          status={`${view.volume.thisMonth === 1 ? t('{n} request this month', { n: view.volume.thisMonth }) : t('{n} requests this month', { n: view.volume.thisMonth })} · ${t('{n} done', { n: view.volume.doneThisMonth })}`}
           strip={
             view.volume.thisMonth > 0 ? (
-              <GDotCloud total={view.volume.thisMonth} lit={view.volume.doneThisMonth} onHero label={`${view.volume.thisMonth} requests this month · ${view.volume.doneThisMonth} done`} />
+              <GDotCloud total={view.volume.thisMonth} lit={view.volume.doneThisMonth} onHero label={`${t('{n} requests this month', { n: view.volume.thisMonth })} · ${t('{n} done', { n: view.volume.doneThisMonth })}`} />
             ) : undefined
           }
         />
         <GCard p={24} className="cl-g-activity" aria-labelledby="cl-g-activity">
-          <GSectionHeader id="cl-g-activity" size={22} title="Request activity" action={<span className="cl-g-cap">Last 14 days</span>} />
+          <GSectionHeader id="cl-g-activity" size={22} title={t('Request activity')} action={<span className="cl-g-cap">{t('Last 14 days')}</span>} />
           <div className="cl-g-stats">
-            <Figure value={view.activity.total14} label="Requested" />
-            <Figure value={view.volume.doneThisMonth} label="Done this month" />
-            <Figure value={view.volume.failedThisMonth} label="Failed this month" tone={view.volume.failedThisMonth > 0 ? 'err' : undefined} />
+            <Figure value={view.activity.total14} label={t('Requested')} />
+            <Figure value={view.volume.doneThisMonth} label={t('Done this month')} />
+            <Figure value={view.volume.failedThisMonth} label={t('Failed this month')} tone={view.volume.failedThisMonth > 0 ? 'err' : undefined} />
           </div>
           <GAreaChart
             labels={view.activity.labels}
             axisLabels={view.activity.axisLabels}
             series={[
-              { id: 'created', label: 'Requested', values: view.activity.created, color: 'accent' },
-              { id: 'finished', label: 'Finished', values: view.activity.finished, color: 'series-3' },
+              { id: 'created', label: t('Requested'), values: view.activity.created, color: 'accent' },
+              { id: 'finished', label: t('Finished'), values: view.activity.finished, color: 'series-3' },
             ]}
             variant="step"
             height={112}
             yAxis={false}
             state={view.work.length === 0 ? 'empty' : 'ready'}
-            emptyText="Requests appear here as you save drafts."
-            label="Requests made and finished per day, last 14 days, from client work"
+            emptyText={t('Requests appear here as you save drafts.')}
+            label={t('Requests made and finished per day, last 14 days, from client work')}
           />
         </GCard>
       </div>
@@ -140,38 +139,38 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
           <GSectionHeader
             id="cl-g-roster"
             size={22}
-            title="Roster"
-            action={view.roster.length > 0 ? <span className="cl-g-cap">{plural(view.roster.length, 'client')}</span> : undefined}
+            title={t('Roster')}
+            action={view.roster.length > 0 ? <span className="cl-g-cap">{view.roster.length === 1 ? t('{n} client', { n: view.roster.length }) : t('{n} clients', { n: view.roster.length })}</span> : undefined}
           />
           {view.attioState === 'not_configured' && view.roster.length === 0 && (
-            <GEmpty kind="unconfigured" title="Attio not configured" body="Add clients by hand, or connect Attio to confirm them from your deals." setupHref={setup.attio} setupHint="set ATTIO_API_KEY" />
+            <GEmpty kind="unconfigured" title={t('Attio not configured')} body={t('Add clients by hand, or connect Attio to confirm them from your deals.')} setupHref={setup.attio} setupHint={t('set ATTIO_API_KEY')} />
           )}
-          {view.attioState === 'error' && <GErrorLine align="left">Attio did not answer. Confirmed clients still show; the deal picker is empty until it does.</GErrorLine>}
+          {view.attioState === 'error' && <GErrorLine align="left">{t('Attio did not answer. Confirmed clients still show; the deal picker is empty until it does.')}</GErrorLine>}
           {view.roster.length > 0 ? (
-            <GList divided label="Confirmed clients">
+            <GList divided label={t('Confirmed clients')}>
               {view.roster.map((r) => (
                 <GRow
                   key={r.clientId}
                   title={r.name}
                   meta={rosterMeta(r)}
                   selected={view.selected === r.clientId}
-                  trailing={r.retainer ? <GTag tone="accent" size="xs">Retainer</GTag> : <GTag tone="outline" size="xs">Project</GTag>}
+                  trailing={r.retainer ? <GTag tone="accent" size="xs">{t('Retainer')}</GTag> : <GTag tone="outline" size="xs">{t('Project')}</GTag>}
                   onClick={() => setOpenClient(r.clientId)}
                 />
               ))}
             </GList>
           ) : view.attioState === 'connected' ? (
-            <GEmpty title="No confirmed clients." body="Confirm a client from your Attio deals." />
+            <GEmpty title={t('No confirmed clients.')} body={t('Confirm a client from your Attio deals.')} />
           ) : null}
           <div className="cl-g-roster-foot">
             {view.attioState === 'not_configured' && view.roster.length > 0 && (
-              <span className="cl-g-attio" title="Hand-added clients only. Connect Attio to confirm clients from your deals.">
-                <GTag tone="outline" size="xs">Attio not configured</GTag>
-                <GButton size="sm" href={setup.attio} title="set ATTIO_API_KEY">Set up</GButton>
+              <span className="cl-g-attio" title={t('Hand-added clients only. Connect Attio to confirm clients from your deals.')}>
+                <GTag tone="outline" size="xs">{t('Attio not configured')}</GTag>
+                <GButton size="sm" href={setup.attio} title={t('set ATTIO_API_KEY')}>{t('Set up')}</GButton>
               </span>
             )}
             <GButton onClick={() => setSheet('confirm')} disabled={Boolean(readOnly)} disabledReason={readOnly ?? undefined}>
-              <UserPlus size={14} strokeWidth={1.75} aria-hidden /> {view.attioState === 'connected' ? 'Confirm a client' : 'Add client'}
+              <UserPlus size={14} strokeWidth={1.75} aria-hidden /> {view.attioState === 'connected' ? t('Confirm a client') : t('Add client')}
             </GButton>
           </div>
         </GCard>
@@ -181,30 +180,30 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
             <GSectionHeader
               id="cl-g-work"
               size={22}
-              title="Work requests"
+              title={t('Work requests')}
               action={
                 selectedName ? (
-                  <GButton size="sm" onClick={() => c.selectClient(null)} title="Show every client's requests">
-                    {selectedName} · Clear
+                  <GButton size="sm" onClick={() => c.selectClient(null)} title={t("Show every client's requests")}>
+                    {selectedName} · {t('Clear')}
                   </GButton>
                 ) : (
-                  <span className="cl-g-cap">{plural(view.work.length, 'request')}</span>
+                  <span className="cl-g-cap">{view.work.length === 1 ? t('{n} request', { n: view.work.length }) : t('{n} requests', { n: view.work.length })}</span>
                 )
               }
             />
             {launchError && !work && <GErrorLine align="left">{launchError}</GErrorLine>}
             {rows.length === 0 ? (
               <GEmpty
-                title={selectedName ? `No requests for ${selectedName} yet.` : 'No work requests yet.'}
-                body="Write a brief for a confirmed client and save it as a draft. Nothing starts until you launch it."
+                title={selectedName ? t('No requests for {name} yet.', { name: selectedName }) : t('No work requests yet.')}
+                body={t('Write a brief for a confirmed client and save it as a draft. Nothing starts until you launch it.')}
               />
             ) : (
               <>
                 <div className="cl-g-table">
-                  <GTable columns={columns} rows={rows} rowKey={(w) => w.id} caption="Work requests" onRowClick={(w) => setOpenWork(w.id)} rowLabel={(w) => `${w.clientName}: ${w.briefLine}`} sticky={false} />
+                  <GTable columns={columns} rows={rows} rowKey={(w) => w.id} caption={t('Work requests')} onRowClick={(w) => setOpenWork(w.id)} rowLabel={(w) => `${w.clientName}: ${w.briefLine}`} sticky={false} />
                 </div>
                 <div className="cl-g-list">
-                  <GList divided label="Work requests">
+                  <GList divided label={t('Work requests')}>
                     {rows.map((w) => (
                       <GRow
                         key={w.id}
@@ -224,8 +223,8 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
             <GSectionHeader
               id="cl-g-rhythm"
               size={22}
-              title="Request rhythm"
-              action={<span className="cl-g-cap">{view.busiestDay ? `Busiest day · ${view.busiestDay}` : 'By weekday'}</span>}
+              title={t('Request rhythm')}
+              action={<span className="cl-g-cap">{view.busiestDay ? `${t('Busiest day')} · ${view.busiestDay}` : t('By weekday')}</span>}
             />
             <GBarChart
               variant="series"
@@ -233,8 +232,8 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
               highlight={view.busiestDay}
               height={96}
               state={view.work.length === 0 ? 'empty' : 'ready'}
-              emptyText="The weekday pattern shows once requests exist."
-              label="Requests by weekday, all time, from client work"
+              emptyText={t('The weekday pattern shows once requests exist.')}
+              label={t('Requests by weekday, all time, from client work')}
             />
           </GCard>
         </div>
@@ -258,7 +257,7 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
         open={Boolean(launchRow)}
         onClose={() => setLaunchId(null)}
         title={LAUNCH_DIALOG_TITLE}
-        confirmLabel="Start draft"
+        confirmLabel={t('Start draft')}
         onConfirm={() => void doLaunch()}
         busy={launchRow ? c.busy === `launch:${launchRow.id}` : false}
       >
@@ -270,7 +269,7 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
 }
 
 function rosterMeta(r: ClientRosterRow): string {
-  const parts = [r.company && r.company !== r.name ? r.company : null, r.openRequests ? `${r.openRequests} open` : null, r.lastRequestAge ? `last request ${r.lastRequestAge} ago` : 'no requests yet'];
+  const parts = [r.company && r.company !== r.name ? r.company : null, r.openRequests ? t('{n} open', { n: r.openRequests }) : null, r.lastRequestAge ? t('last request {age} ago', { age: r.lastRequestAge }) : t('no requests yet')];
   return parts.filter(Boolean).join(' · ');
 }
 
@@ -304,29 +303,29 @@ function RequestSheet({ view, c, onClose, onLaunch, setup }: { view: ClientsView
     <GSheet
       open
       onClose={onClose}
-      title="New request"
-      caption="Saved as a draft. Nothing starts until you launch it, and nothing is sent to the client."
+      title={t('New request')}
+      caption={t('Saved as a draft. Nothing starts until you launch it, and nothing is sent to the client.')}
       width={520}
       footer={
         <div className="cl-g-sheet-foot">
-          <GButton onClick={() => void save(true)} disabled={empty || Boolean(launchBlocked)} disabledReason={empty ? 'Write a brief first' : launchBlocked ?? undefined}>
-            Start in Superset
+          <GButton onClick={() => void save(true)} disabled={empty || Boolean(launchBlocked)} disabledReason={empty ? t('Write a brief first') : launchBlocked ?? undefined}>
+            {t('Start in Superset')}
           </GButton>
-          <GButton variant="ink" onClick={() => void save(false)} busy={c.busy === 'draft'} disabled={empty || !clientId} disabledReason="Pick a client and write a brief">
-            Save draft
+          <GButton variant="ink" onClick={() => void save(false)} busy={c.busy === 'draft'} disabled={empty || !clientId} disabledReason={t('Pick a client and write a brief')}>
+            {t('Save draft')}
           </GButton>
         </div>
       }
     >
       <div className="cl-g-form">
-        <GField label="Client" htmlFor="cl-g-client">
+        <GField label={t('Client')} htmlFor="cl-g-client">
           <GSelect id="cl-g-client" value={clientId} onChange={(e) => setClientId(e.target.value)} options={view.roster.map((r) => ({ value: r.clientId, label: r.name }))} />
         </GField>
-        <GField label="Brief" htmlFor="cl-g-brief" hint="One brief per request. The agent drafts from exactly this text.">
+        <GField label={t('Brief')} htmlFor="cl-g-brief" hint={t('One brief per request. The agent drafts from exactly this text.')}>
           <GTextarea id="cl-g-brief" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder={BRIEF_PLACEHOLDER} rows={6} maxLines={12} />
         </GField>
         {view.supersetState !== 'connected' && (
-          <GEmpty inline kind="unconfigured" title="Superset not configured" body="Drafts save without it; launching needs it." setupHref={setup.superset} setupHint={view.supersetDetail} />
+          <GEmpty inline kind="unconfigured" title={t('Superset not configured')} body={t('Drafts save without it; launching needs it.')} setupHref={setup.superset} setupHint={view.supersetDetail} />
         )}
         {error && <GErrorLine align="left">{error}</GErrorLine>}
       </div>
@@ -352,21 +351,21 @@ function ConfirmSheet({ view, c, onClose, setup }: { view: ClientsView; c: Actio
   };
 
   return (
-    <GSheet open onClose={onClose} title={view.attioState === 'connected' ? 'Confirm a client' : 'Add client'} caption="A payer is not a client until you confirm them here." width={520}>
+    <GSheet open onClose={onClose} title={view.attioState === 'connected' ? t('Confirm a client') : t('Add client')} caption={t('A payer is not a client until you confirm them here.')} width={520}>
       <div className="cl-g-form">
         {view.attioState === 'connected' && (
           <section aria-labelledby="cl-g-deals" className="cl-g-form-sec">
-            <h3 id="cl-g-deals" className="cl-g-sub">Attio deals</h3>
+            <h3 id="cl-g-deals" className="cl-g-sub">{t('Attio deals')}</h3>
             {view.candidates.length === 0 ? (
-              <GEmpty inline title="Every Attio deal is already confirmed." body="New deals appear here within a minute of Attio having them." />
+              <GEmpty inline title={t('Every Attio deal is already confirmed.')} body={t('New deals appear here within a minute of Attio having them.')} />
             ) : (
-              <GList divided label="Attio deals not yet confirmed">
+              <GList divided label={t('Attio deals not yet confirmed')}>
                 {view.candidates.map((d) => (
                   <GRow
                     key={d.clientId}
                     title={d.name}
-                    meta={d.status || 'No stage'}
-                    trailing={<GButton size="sm" busy={c.busy === `confirm:${d.clientId}`} onClick={() => void confirm(d.clientId, d.name)}>Confirm</GButton>}
+                    meta={d.status || t('No stage')}
+                    trailing={<GButton size="sm" busy={c.busy === `confirm:${d.clientId}`} onClick={() => void confirm(d.clientId, d.name)}>{t('Confirm')}</GButton>}
                   />
                 ))}
               </GList>
@@ -374,19 +373,19 @@ function ConfirmSheet({ view, c, onClose, setup }: { view: ClientsView; c: Actio
           </section>
         )}
         {view.attioState === 'not_configured' && (
-          <GEmpty inline kind="unconfigured" title="Attio not configured" body="Connect Attio to confirm clients from your deals." setupHref={setup.attio} setupHint="set ATTIO_API_KEY" />
+          <GEmpty inline kind="unconfigured" title={t('Attio not configured')} body={t('Connect Attio to confirm clients from your deals.')} setupHref={setup.attio} setupHint={t('set ATTIO_API_KEY')} />
         )}
         <section aria-labelledby="cl-g-manual" className="cl-g-form-sec">
-          <h3 id="cl-g-manual" className="cl-g-sub">Add by hand</h3>
-          <GField label="Name" htmlFor="cl-g-name">
-            <GInput id="cl-g-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Client or contact name" maxLength={200} />
+          <h3 id="cl-g-manual" className="cl-g-sub">{t('Add by hand')}</h3>
+          <GField label={t('Name')} htmlFor="cl-g-name">
+            <GInput id="cl-g-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Client or contact name')} maxLength={200} />
           </GField>
-          <GField label="Company" htmlFor="cl-g-company">
-            <GInput id="cl-g-company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Optional" maxLength={200} />
+          <GField label={t('Company')} htmlFor="cl-g-company">
+            <GInput id="cl-g-company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder={t('Optional')} maxLength={200} />
           </GField>
           <div className="cl-g-sheet-foot">
-            <GButton variant="ink" onClick={() => void add()} busy={c.busy === 'add'} disabled={!name.trim()} disabledReason="Name the client first">
-              Add client
+            <GButton variant="ink" onClick={() => void add()} busy={c.busy === 'add'} disabled={!name.trim()} disabledReason={t('Name the client first')}>
+              {t('Add client')}
             </GButton>
           </div>
         </section>
@@ -398,7 +397,7 @@ function ConfirmSheet({ view, c, onClose, setup }: { view: ClientsView; c: Actio
 
 function WorkDrawer({ view, w, c, error, onClose, onLaunch, setup }: { view: ClientsView; w: ClientWorkRow; c: Actions; error: string | null; onClose: () => void; onLaunch: () => void; setup: ClientsSetup }) {
   const blocked = launchBlockedReason(view, w);
-  const local = writeBlockedReason(view) ?? (w.sample ? 'Sample data: nothing is saved' : null);
+  const local = writeBlockedReason(view) ?? (w.sample ? t('Sample data: nothing is saved') : null);
   return (
     <GDrawer
       open
@@ -407,10 +406,10 @@ function WorkDrawer({ view, w, c, error, onClose, onLaunch, setup }: { view: Cli
       width={480}
       footer={
         <div className="cl-g-sheet-foot">
-          <GButton onClick={() => void c.setStatus(w.id, 'failed')} disabled={Boolean(local) || w.status === 'failed'} disabledReason={local ?? 'Already failed'}>Mark failed</GButton>
-          <GButton onClick={() => void c.setStatus(w.id, 'done')} disabled={Boolean(local) || w.status === 'done'} disabledReason={local ?? 'Already done'}>Mark done</GButton>
+          <GButton onClick={() => void c.setStatus(w.id, 'failed')} disabled={Boolean(local) || w.status === 'failed'} disabledReason={local ?? t('Already failed')}>{t('Mark failed')}</GButton>
+          <GButton onClick={() => void c.setStatus(w.id, 'done')} disabled={Boolean(local) || w.status === 'done'} disabledReason={local ?? t('Already done')}>{t('Mark done')}</GButton>
           <GButton variant="ink" onClick={onLaunch} disabled={Boolean(blocked)} disabledReason={blocked ?? undefined}>
-            {w.status === 'failed' ? 'Retry in Superset' : 'Start draft in Superset'}
+            {w.status === 'failed' ? t('Retry in Superset') : t('Start draft in Superset')}
           </GButton>
         </div>
       }
@@ -420,15 +419,15 @@ function WorkDrawer({ view, w, c, error, onClose, onLaunch, setup }: { view: Cli
         <p className="cl-g-brief-full">{w.brief}</p>
         <GKeyValue
           items={[
-            { label: 'Requested', value: new Date(w.createdAt).toLocaleString() },
-            ...(w.finishedAt ? [{ label: w.status === 'failed' ? 'Failed' : 'Finished', value: new Date(w.finishedAt).toLocaleString() }] : []),
-            ...(w.supersetWorkspace ? [{ label: 'Superset workspace', value: <span data-copy="">{w.supersetWorkspace}</span> }] : []),
+            { label: t('Requested'), value: new Date(w.createdAt).toLocaleString(localeTag()) },
+            ...(w.finishedAt ? [{ label: w.status === 'failed' ? t('Failed') : t('Finished'), value: new Date(w.finishedAt).toLocaleString(localeTag()) }] : []),
+            ...(w.supersetWorkspace ? [{ label: t('Superset workspace'), value: <span data-copy="">{w.supersetWorkspace}</span> }] : []),
           ]}
         />
         {w.detail && (w.status === 'failed' ? <GErrorLine align="left">{w.detail}</GErrorLine> : <p className="cl-g-cap">{w.detail}</p>)}
         {error && <GErrorLine align="left">{error}</GErrorLine>}
         {view.supersetState !== 'connected' && view.mode === 'live' && (
-          <GEmpty inline kind="unconfigured" title="Superset not configured" body="Launching needs it." setupHref={setup.superset} setupHint={view.supersetDetail} />
+          <GEmpty inline kind="unconfigured" title={t('Superset not configured')} body={t('Launching needs it.')} setupHref={setup.superset} setupHint={view.supersetDetail} />
         )}
       </div>
     </GDrawer>
@@ -441,7 +440,7 @@ function ClientDrawer({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
   const [project, setProject] = useState(r.supersetProject ?? '');
   const [confirmOff, setConfirmOff] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const local = writeBlockedReason(view) ?? (view.sample ? 'Sample data: nothing is saved' : null);
+  const local = writeBlockedReason(view) ?? (view.sample ? t('Sample data: nothing is saved') : null);
   const dirty = retainer !== r.retainer || slack !== (r.slackChannel ?? '') || project !== (r.supersetProject ?? '');
 
   const save = async () => {
@@ -464,29 +463,29 @@ function ClientDrawer({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
       width={440}
       footer={
         <div className="cl-g-sheet-foot">
-          <GButton variant="danger" onClick={() => setConfirmOff(true)} disabled={Boolean(local)} disabledReason={local ?? undefined}>Unconfirm</GButton>
-          <GButton variant="ink" onClick={() => void save()} busy={c.busy === `edit:${r.clientId}`} disabled={Boolean(local) || !dirty} disabledReason={local ?? 'No changes'}>Save</GButton>
+          <GButton variant="danger" onClick={() => setConfirmOff(true)} disabled={Boolean(local)} disabledReason={local ?? undefined}>{t('Unconfirm')}</GButton>
+          <GButton variant="ink" onClick={() => void save()} busy={c.busy === `edit:${r.clientId}`} disabled={Boolean(local) || !dirty} disabledReason={local ?? t('No changes')}>{t('Save')}</GButton>
         </div>
       }
     >
       <div className="cl-g-form">
         <GKeyValue
           items={[
-            { label: 'Source', value: r.source === 'attio' ? 'Attio deal' : 'Added by hand' },
-            { label: 'Confirmed', value: new Date(r.confirmedAt).toLocaleDateString() },
-            { label: 'Requests', value: r.openRequests ? `${r.openRequests} open` : 'None open' },
+            { label: t('Source'), value: r.source === 'attio' ? t('Attio deal') : t('Added by hand') },
+            { label: t('Confirmed'), value: new Date(r.confirmedAt).toLocaleDateString(localeTag()) },
+            { label: t('Requests'), value: r.openRequests ? t('{n} open', { n: r.openRequests }) : t('None open') },
           ]}
         />
-        <GButton size="sm" onClick={() => { c.selectClient(r.clientId); onClose(); }}>Show this client&apos;s requests</GButton>
-        <GToggle checked={retainer} onCheckedChange={setRetainer} disabled={Boolean(local)} disabledReason={local ?? undefined}>On retainer</GToggle>
-        <GField label="Slack channel" htmlFor="cl-g-slack" hint={r.slackHref ? undefined : 'A channel id (C0123…) makes it a link.'}>
-          <GInput id="cl-g-slack" value={slack} onChange={(e) => setSlack(e.target.value)} placeholder="client-name or C0123ABCD" disabled={Boolean(local)} />
+        <GButton size="sm" onClick={() => { c.selectClient(r.clientId); onClose(); }}>{t("Show this client's requests")}</GButton>
+        <GToggle checked={retainer} onCheckedChange={setRetainer} disabled={Boolean(local)} disabledReason={local ?? undefined}>{t('On retainer')}</GToggle>
+        <GField label={t('Slack channel')} htmlFor="cl-g-slack" hint={r.slackHref ? undefined : t('A channel id (C0123…) makes it a link.')}>
+          <GInput id="cl-g-slack" value={slack} onChange={(e) => setSlack(e.target.value)} placeholder={t('client-name or C0123ABCD')} disabled={Boolean(local)} />
         </GField>
         {r.slackHref && (
-          <GButton size="sm" href={r.slackHref} external>Open Slack channel</GButton>
+          <GButton size="sm" href={r.slackHref} external>{t('Open Slack channel')}</GButton>
         )}
-        <GField label="Superset project" htmlFor="cl-g-project" hint="Drafts for this client start in this project. Empty uses SUPERSET_PROJECT_ID.">
-          <GInput id="cl-g-project" value={project} onChange={(e) => setProject(e.target.value)} placeholder="Project id" disabled={Boolean(local)} />
+        <GField label={t('Superset project')} htmlFor="cl-g-project" hint={t('Drafts for this client start in this project. Empty uses SUPERSET_PROJECT_ID.')}>
+          <GInput id="cl-g-project" value={project} onChange={(e) => setProject(e.target.value)} placeholder={t('Project id')} disabled={Boolean(local)} />
         </GField>
         {error && <GErrorLine align="left">{error}</GErrorLine>}
       </div>
@@ -494,12 +493,12 @@ function ClientDrawer({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
         open={confirmOff}
         onClose={() => setConfirmOff(false)}
         tone="danger"
-        title={`Unconfirm ${r.name}?`}
-        confirmLabel="Unconfirm"
+        title={t('Unconfirm {name}?', { name: r.name })}
+        confirmLabel={t('Unconfirm')}
         onConfirm={() => void unconfirm()}
         busy={c.busy === `unconfirm:${r.clientId}`}
       >
-        <p className="cl-g-dialog-copy">They leave the roster. Their requests stay on record.</p>
+        <p className="cl-g-dialog-copy">{t('They leave the roster. Their requests stay on record.')}</p>
       </GDialog>
     </GDrawer>
   );

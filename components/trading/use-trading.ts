@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/Toast';
 import { checkLimit, type ActivityFilter, type TradingModel } from '@/lib/trading-model';
 import { LIMIT_LABELS } from '@/lib/trading-view';
 import type { TradeActivity } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 
 function setParam(key: string, value: string | null) {
@@ -79,22 +80,22 @@ export function useTrading(model: TradingModel, pushPath: string) {
   const patch = useCallback(async (body: Record<string, unknown>) => {
     const res = await fetch('/api/trading/limits', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const json = (await res.json().catch(() => ({}))) as { error?: string; clamped?: string[] };
-    if (!res.ok) throw new Error(json.error ?? `Save failed (${res.status})`);
+    if (!res.ok) throw new Error(json.error ?? t('Save failed ({status})', { status: res.status }));
     return json;
   }, []);
 
   const saveReason = model.readOnly
     ? model.readOnlyReason!
     : invalid
-      ? 'Fix the highlighted fields first'
+      ? t('Fix the highlighted fields first')
       : !dirty
-        ? 'Nothing changed'
+        ? t('Nothing changed')
         : undefined;
 
   const save = useCallback(async () => {
     if (model.readOnly) return;
     if (invalid) {
-      setSaveError('Fix the highlighted fields first');
+      setSaveError(t('Fix the highlighted fields first'));
       return;
     }
     setSaving(true);
@@ -103,10 +104,10 @@ export function useTrading(model: TradingModel, pushPath: string) {
       const body = Object.fromEntries(model.limits.fields.map((f) => [f.key, checks[f.key].value]));
       const res = await patch(body);
       const held = (res.clamped ?? []).map((k) => LIMIT_LABELS[k as keyof typeof LIMIT_LABELS]?.label ?? k);
-      toast({ text: held.length ? `Limits saved. Held inside range: ${held.join(', ')}.` : 'Limits saved.', tone: 'ok' });
+      toast({ text: held.length ? t('Limits saved. Held inside range: {fields}.', { fields: held.join(', ') }) : t('Limits saved.'), tone: 'ok' });
       router.refresh();
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Save failed');
+      setSaveError(e instanceof Error ? e.message : t('Save failed'));
     } finally {
       setSaving(false);
     }
@@ -116,7 +117,7 @@ export function useTrading(model: TradingModel, pushPath: string) {
   const autopilot = model.limits.saved?.autopilot ?? false;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
-  const autopilotReason = model.readOnly ? model.readOnlyReason! : !model.limits.saved ? 'Save limits first: autopilot runs inside them' : undefined;
+  const autopilotReason = model.readOnly ? model.readOnlyReason! : !model.limits.saved ? t('Save limits first: autopilot runs inside them') : undefined;
 
   const setAutopilot = useCallback(
     async (next: boolean, confirmed = false) => {
@@ -129,10 +130,10 @@ export function useTrading(model: TradingModel, pushPath: string) {
       try {
         await patch(next ? { autopilot: true, confirm: true } : { autopilot: false });
         setConfirmOpen(false);
-        toast({ text: next ? 'Autopilot on. The Markets agent may place orders inside these limits.' : 'Autopilot off. Runs are dry runs again.', tone: 'ok' });
+        toast({ text: next ? t('Autopilot on. The Markets agent may place orders inside these limits.') : t('Autopilot off. Runs are dry runs again.'), tone: 'ok' });
         router.refresh();
       } catch (e) {
-        toast({ text: e instanceof Error ? e.message : 'Could not change autopilot', tone: 'err' });
+        toast({ text: e instanceof Error ? e.message : t('Could not change autopilot'), tone: 'err' });
       } finally {
         setSwitching(false);
       }
@@ -152,9 +153,9 @@ export function useTrading(model: TradingModel, pushPath: string) {
   const copyPushUrl = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(pushUrl);
-      toast({ text: 'Push URL copied', tone: 'ok' });
+      toast({ text: t('Push URL copied'), tone: 'ok' });
     } catch {
-      toast({ text: 'Could not reach the clipboard. Select the URL and copy it.', tone: 'err' });
+      toast({ text: t('Could not reach the clipboard. Select the URL and copy it.'), tone: 'err' });
     }
   }, [pushUrl, toast]);
 

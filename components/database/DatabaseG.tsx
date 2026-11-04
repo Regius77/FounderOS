@@ -7,6 +7,7 @@ import {
   type GColumn, type TreemapBlock, type TreemapKind,
 } from '@/components/g';
 import type { DbNode } from '@/lib/database/scan';
+import { localeTag, t } from '@/lib/i18n';
 import { KINDS, dominant, fmtBytes, kindOf, pct, useBrainFiles, type Kind, type Tree } from './DatabaseExplorer';
 
 /**
@@ -28,7 +29,7 @@ const G_KINDS: TreemapKind[] = KINDS.map((k) => ({ id: k.id, label: k.label, col
 export function DatabaseHeaderStats({ total, files, root }: { total: number; files: number; root: string }) {
   return (
     <>
-      {fmtBytes(total)} · {files.toLocaleString()} files ·{' '}
+      {fmtBytes(total)} · {t('{n} files', { n: files.toLocaleString(localeTag()) })} ·{' '}
       <span className="kg-mono-inline" data-mono-ok="">
         {root}
       </span>
@@ -45,7 +46,7 @@ export function DatabaseG({ initial }: { initial: Tree }) {
     () =>
       blocks.map((b, i) => {
         if (!b.node) {
-          return { id: `rest-${i}`, label: `${b.restCount} smaller items`, value: b.w * b.h, kind: 'other', sub: fmtBytes(b.restSize ?? 0), rest: true };
+          return { id: `rest-${i}`, label: t('{n} smaller items', { n: b.restCount ?? 0 }), value: b.w * b.h, kind: 'other', sub: fmtBytes(b.restSize ?? 0), rest: true };
         }
         const m = mix.get(b.node.path)!;
         return {
@@ -71,7 +72,7 @@ export function DatabaseG({ initial }: { initial: Tree }) {
   const columns: GColumn<DbNode>[] = [
     {
       key: 'name',
-      label: atRoot ? 'Folder' : 'Item',
+      label: atRoot ? t('Folder') : t('Item'),
       sortValue: (r) => r.name.toLowerCase(),
       render: (r) => (
         <span className="kg-cell-name" title={r.path}>
@@ -83,20 +84,20 @@ export function DatabaseG({ initial }: { initial: Tree }) {
         </span>
       ),
     },
-    { key: 'size', label: 'Size', numeric: true, sortValue: (r) => r.size, render: (r) => fmtBytes(r.size) },
+    { key: 'size', label: t('Size'), numeric: true, sortValue: (r) => r.size, render: (r) => fmtBytes(r.size) },
     // At the root "% here" equals "% brain", so only one shows (F05.23).
-    ...(atRoot ? [] : [{ key: 'here', label: '% here', numeric: true, sortValue: (r: DbNode) => r.size, render: (r: DbNode) => pct(r.size, viewSize) }]),
-    { key: 'brain', label: '% brain', numeric: true, sortValue: (r) => r.size, render: (r) => pct(r.size, total) },
+    ...(atRoot ? [] : [{ key: 'here', label: t('% here'), numeric: true, sortValue: (r: DbNode) => r.size, render: (r: DbNode) => pct(r.size, viewSize) }]),
+    { key: 'brain', label: t('% brain'), numeric: true, sortValue: (r) => r.size, render: (r) => pct(r.size, total) },
   ];
 
   return (
     <div className="kg-section">
       <div className="kg-db-tools">
         <div className="kg-db-search">
-          <GSearch value={query} onValueChange={setQuery} size="md" placeholder="Find a file or folder" aria-label="Find a file or folder" />
+          <GSearch value={query} onValueChange={setQuery} size="md" placeholder={t('Find a file or folder')} aria-label={t('Find a file or folder')} />
           {matches.length > 0 && (
             <GCardRaised p={16} className="kg-db-results">
-              <GList label="Matches">
+              <GList label={t('Matches')}>
                 {matches.map((m) => (
                   <GRow key={m.path} title={`${m.path}${m.dir ? '/' : ''}`} trailing={fmtBytes(m.size)} onClick={() => jump(m)} hint={m.path} />
                 ))}
@@ -105,14 +106,14 @@ export function DatabaseG({ initial }: { initial: Tree }) {
           )}
         </div>
         <GButton variant="sm" onClick={rescan} busy={busy}>
-          <RefreshCw size={13} strokeWidth={1.8} aria-hidden="true" /> Rescan
+          <RefreshCw size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Rescan')}
         </GButton>
       </div>
-      {data.truncated && <GErrorLine align="left">Large folder: the map stops at 60,000 entries.</GErrorLine>}
+      {data.truncated && <GErrorLine align="left">{t('Large folder: the map stops at 60,000 entries.')}</GErrorLine>}
 
-      <GCard as="section" p={20} className="kg-db" aria-label="Brain block map">
+      <GCard as="section" p={20} className="kg-db" aria-label={t('Brain block map')}>
         <div className="kg-db-nav">
-          <nav aria-label="Folder path" className="kg-crumbs">
+          <nav aria-label={t('Folder path')} className="kg-crumbs">
             <GButton variant="sm" size="compact" onClick={() => go('')} aria-current={atRoot ? 'page' : undefined}>
               {data.tree.name}/
             </GButton>
@@ -140,29 +141,29 @@ export function DatabaseG({ initial }: { initial: Tree }) {
                   }}
                   aria-current={i === stack.length - 1 ? 'page' : undefined}
                 >
-                  Smaller items
+                  {t('Smaller items')}
                 </GButton>
               </span>
             ))}
           </nav>
           {!atRoot && (
-            <GButton variant="sm" size="compact" onClick={up} title="Up one level (Esc)">
-              <CornerLeftUp size={13} strokeWidth={1.8} aria-hidden="true" /> Up
+            <GButton variant="sm" size="compact" onClick={up} title={t('Up one level (Esc)')}>
+              <CornerLeftUp size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Up')}
             </GButton>
           )}
         </div>
         <p className="kg-cap">
-          {fmtBytes(viewSize)} here{atRoot ? '' : ` · ${pct(viewSize, total)} of the brain`} · {viewItems.length} item{viewItems.length === 1 ? '' : 's'} ·{' '}
-          {viewItems.reduce((a, c) => a + c.files, 0).toLocaleString()} files
+          {fmtBytes(viewSize)} {t('here')}{atRoot ? '' : ` · ${t('{pct} of the brain', { pct: pct(viewSize, total) })}`} · {viewItems.length === 1 ? t('{n} item', { n: viewItems.length }) : t('{n} items', { n: viewItems.length })} ·{' '}
+          {t('{n} files', { n: viewItems.reduce((a, c) => a + c.files, 0).toLocaleString(localeTag()) })}
         </p>
 
-        <div className="kg-chips kg-chips-scroll" role="group" aria-label="Filter by file type">
+        <div className="kg-chips kg-chips-scroll" role="group" aria-label={t('Filter by file type')}>
           {chips.map((k) => (
             <GChip
               key={k.id}
               pressed={pinned === k.id}
               onPressedChange={() => setPinned((h) => (h === k.id ? null : k.id))}
-              title={pinned === k.id ? `Showing only items with ${k.label.toLowerCase()} · click to clear` : `Show only items with ${k.label.toLowerCase()}`}
+              title={pinned === k.id ? t('Showing only items with {kind} · click to clear', { kind: k.label.toLowerCase() }) : t('Show only items with {kind}', { kind: k.label.toLowerCase() })}
             >
               <i className="kg-swatch" style={{ background: `var(--g-${KIND_SLOT[k.id]})` }} aria-hidden="true" />
               {k.label} <span className="kg-chip-sub">{fmtBytes(viewMix[k.id])}</span>
@@ -179,20 +180,20 @@ export function DatabaseG({ initial }: { initial: Tree }) {
                 dimKinds={hl ? [hl] : null}
                 onOpen={onBlock}
                 height={MAP_H}
-                label={`Block map of ${focus.name || 'the brain'}`}
-                empty={<GEmpty inline title="This folder is empty" />}
+                label={t('Block map of {name}', { name: focus.name || t('the brain') })}
+                empty={<GEmpty inline title={t('This folder is empty')} />}
               />
             )}
           </div>
           <div className="kg-db-table">
-            <GSectionHeader size={22} title={stack.length ? 'Smaller items' : focusPath ? `${focus.name}/` : 'Top-level breakdown'} />
+            <GSectionHeader size={22} title={stack.length ? t('Smaller items') : focusPath ? `${focus.name}/` : t('Top-level breakdown')} />
             {pinned && (
               <div className="kg-filter-line">
                 <span className="kg-cap">
-                  Showing {listItems.length} of {viewItems.length} with {KINDS.find((x) => x.id === pinned)!.label.toLowerCase()}
+                  {t('Showing {n} of {total} with {kind}', { n: listItems.length, total: viewItems.length, kind: KINDS.find((x) => x.id === pinned)!.label.toLowerCase() })}
                 </span>
                 <GButton variant="sm" size="compact" onClick={() => setPinned(null)}>
-                  Clear
+                  {t('Clear')}
                 </GButton>
               </div>
             )}
@@ -201,44 +202,44 @@ export function DatabaseG({ initial }: { initial: Tree }) {
                 columns={columns}
                 rows={listItems}
                 rowKey={(r) => r.path}
-                caption="Items in this view, by size"
+                caption={t('Items in this view, by size')}
                 onRowClick={open}
-                rowLabel={(r) => (r.dir ? `Open folder ${r.name}` : `Read ${r.name}`)}
-                empty={viewItems.length ? 'Nothing here of that type.' : 'Nothing in this folder.'}
+                rowLabel={(r) => (r.dir ? t('Open folder {name}', { name: r.name }) : t('Read {name}', { name: r.name }))}
+                empty={viewItems.length ? t('Nothing here of that type.') : t('Nothing in this folder.')}
               />
             </div>
           </div>
         </div>
       </GCard>
 
-      <GDrawer open={Boolean(selected)} onClose={() => setSelected(null)} title={selected?.name ?? 'File'} width={520}>
+      <GDrawer open={Boolean(selected)} onClose={() => setSelected(null)} title={selected?.name ?? t('File')} width={520}>
         {selected && (
           <div className="kg-preview">
             <p className="kg-mono" data-mono-ok="">
               {selected.path}
             </p>
             <p className="kg-cap">
-              {KINDS.find((k) => k.id === kindOf(selected.path, selected.name))!.label} · {fmtBytes(selected.size)} · {pct(selected.size, total)} · modified{' '}
-              {new Date(selected.mtime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+              {KINDS.find((k) => k.id === kindOf(selected.path, selected.name))!.label} · {fmtBytes(selected.size)} · {pct(selected.size, total)} ·{' '}
+              {t('modified {date}', { date: new Date(selected.mtime).toLocaleDateString(localeTag(), { day: 'numeric', month: 'short', year: 'numeric' }) })}
             </p>
             {!preview ? (
-              <GProgress text="Reading…" />
+              <GProgress text={t('Reading…')} />
             ) : !preview.ok ? (
-              <GEmpty kind="error" inline title="Could not read the file" body={preview.error} />
+              <GEmpty kind="error" inline title={t('Could not read the file')} body={preview.error} />
             ) : preview.kind === 'private' ? (
               <p className="kg-body">
-                <Lock size={13} strokeWidth={1.8} aria-hidden="true" /> Private file: the contents stay on disk and are never shown here.
+                <Lock size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Private file: the contents stay on disk and are never shown here.')}
               </p>
             ) : preview.kind === 'binary' ? (
               <p className="kg-body">
-                Not a text file, so there is no preview. Open it from {data.root}/{preview.path}.
+                {t('Not a text file, so there is no preview. Open it from {path}.', { path: `${data.root}/${preview.path}` })}
               </p>
             ) : preview.kind === 'text' ? (
               <>
                 <pre className="kg-pre" data-mono-ok="">
                   {preview.text}
                 </pre>
-                {preview.truncated && <p className="kg-cap">First 24 KB shown.</p>}
+                {preview.truncated && <p className="kg-cap">{t('First 24 KB shown.')}</p>}
               </>
             ) : null}
           </div>

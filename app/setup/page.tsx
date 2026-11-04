@@ -200,7 +200,7 @@ export default async function SetupPage() {
                             href={step.href}
                             className="inline-flex items-center gap-1 text-[12.5px] text-os-dim transition-colors hover:text-os-text"
                           >
-                            {t('open')} <ExternalLink size={11} strokeWidth={1.8} />
+                            {t('Open').toLowerCase()} <ExternalLink size={11} strokeWidth={1.8} />
                           </Link>
                         )}
                       </span>

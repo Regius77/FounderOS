@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { GBar, GButton, GCard, GEmpty, GHeroCard, GPage, GSectionHeader, GSegmented, GTag } from '@/components/g';
 import { openWizard } from '@/lib/wizard-dock';
 import type { Phase, RoadmapItem, RoadmapStatus } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * /roadmap under the GladOS style (glados-ui SPEC S04 §4.8, X5). Same tables;
@@ -17,10 +18,10 @@ import type { Phase, RoadmapItem, RoadmapStatus } from '@/lib/schemas';
  * (F-R6, AC04.33).
  */
 const STATUS: Record<RoadmapStatus, { label: string; tone: 'accent' | 'warn' | 'outline' | 'ok' }> = {
-  now: { label: 'Now', tone: 'accent' },
-  next: { label: 'Next', tone: 'warn' },
-  later: { label: 'Later', tone: 'outline' },
-  done: { label: 'Done', tone: 'ok' },
+  now: { label: t('Now'), tone: 'accent' },
+  next: { label: t('Next'), tone: 'warn' },
+  later: { label: t('Later'), tone: 'outline' },
+  done: { label: t('Done'), tone: 'ok' },
 };
 
 export type RoadmapQuarter = { quarter: string; items: RoadmapItem[] };
@@ -47,7 +48,7 @@ function Item({ item, department }: { item: RoadmapItem; department: string | nu
           {department && <span className="wg-cap">{department}</span>}
           {long && (
             <GButton size="compact" onClick={() => setMore((m) => !m)} aria-expanded={more}>
-              {more ? 'Less' : 'More'}
+              {more ? t('Less') : t('More')}
             </GButton>
           )}
         </div>
@@ -69,11 +70,11 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
   if (phases.length === 0 && all.length === 0) {
     return (
       <GPage className="wg-page">
-        <GSectionHeader size="page" title="Roadmap" caption="Build plan" />
+        <GSectionHeader size="page" title="Roadmap" caption={t('Build plan')} />
         <GEmpty
-          title="No roadmap yet"
-          body="Phases and quarter items live in the roadmap tables; the Wizard can draft them."
-          action={{ label: 'Ask the Wizard', onClick: () => openWizard({ text: 'Draft a roadmap: phases and quarter items for ', source: 'roadmap-empty' }) }}
+          title={t('No roadmap yet')}
+          body={t('Phases and quarter items live in the roadmap tables; the Wizard can draft them.')}
+          action={{ label: t('Ask the Wizard'), onClick: () => openWizard({ text: 'Draft a roadmap: phases and quarter items for ', source: 'roadmap-empty' }) }}
         />
       </GPage>
     );
@@ -84,16 +85,16 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
       <GSectionHeader
         size="page"
         title="Roadmap"
-        caption={`Build plan · ${done}/${all.length} shipped`}
+        caption={`${t('Build plan')} · ${t('{done}/{total} shipped', { done, total: all.length })}`}
         action={
           all.length > 0 ? (
             <GSegmented
-              label="Show"
+              label={t('Show')}
               value={openOnly ? 'open' : 'all'}
               onChange={(v) => router.replace(v === 'open' ? `${pathname}?show=open` : pathname, { scroll: false })}
               options={[
-                { value: 'all', label: 'All' },
-                { value: 'open', label: 'Open' },
+                { value: 'all', label: t('All') },
+                { value: 'open', label: t('Open') },
               ]}
             />
           ) : undefined
@@ -102,21 +103,21 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
 
       {sorted.length > 0 && (
         <section className="wg-rm-sec">
-          <GSectionHeader size={22} title={`Phases · ${sorted.length}`} />
+          <GSectionHeader size={22} title={`${t('Phases')} · ${sorted.length}`} />
           <div className="wg-rm-phases">
             {sorted.map((p) => {
-              const label = `Phase ${String(p.number).padStart(2, '0')}`;
+              const label = t('Phase {n}', { n: String(p.number).padStart(2, '0') });
               if (current?.id === p.id) {
                 return (
                   <GHeroCard
                     key={p.id}
                     variant="a"
                     size="sm"
-                    caption={`${label} · current`}
+                    caption={`${label} · ${t('current')}`}
                     value={String(p.number).padStart(2, '0')}
-                    label={`Current phase: ${label}, ${p.title}`}
+                    label={t('Current phase: {label}, {title}', { label, title: p.title })}
                     status={p.title}
-                    title="The phase whose ordinal matches the first quarter with open work."
+                    title={t('The phase whose ordinal matches the first quarter with open work.')}
                     className="wg-rm-hero"
                   />
                 );
@@ -139,7 +140,7 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
 
       {shown.length > 0 && (
         <section className="wg-rm-sec">
-          <GSectionHeader size={22} title="Quarter by quarter" />
+          <GSectionHeader size={22} title={t('Quarter by quarter')} />
           <div className="wg-rm-quarters">
             {shown.map(({ quarter, items, visible }) => {
               const d = items.filter((i) => i.status === 'done').length;
@@ -148,12 +149,12 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
                   <div className="wg-rm-q-head">
                     <span className="wg-rm-q-name">{quarter.replace('-', ' ')}</span>
                     <span className="wg-cap">
-                      {d}/{items.length} done
+                      {t('{done}/{total} done', { done: d, total: items.length })}
                     </span>
                   </div>
-                  <GBar label={`${quarter}: ${d} of ${items.length} items done`} value={d} max={Math.max(1, items.length)} />
+                  <GBar label={t('{quarter}: {done} of {total} items done', { quarter, done: d, total: items.length })} value={d} max={Math.max(1, items.length)} />
                   {visible.length === 0 ? (
-                    <p className="wg-cap">Everything here is done.</p>
+                    <p className="wg-cap">{t('Everything here is done.')}</p>
                   ) : (
                     visible.map((i) => <Item key={i.id} item={i} department={i.departmentId ? departments[i.departmentId] ?? null : null} />)
                   )}

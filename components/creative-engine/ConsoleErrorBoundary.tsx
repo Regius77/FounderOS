@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { Component, Fragment, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { OBtn } from '@/components/creative-engine/skin';
@@ -34,12 +35,12 @@ export class ConsoleErrorBoundary extends Component<{ onClose: () => void; onRes
         <div className="ae-o-panel w-full max-w-[460px] p-6">
           <div id="ae-console-error-title" className="flex items-center gap-2 text-[16px] font-medium">
             <AlertTriangle className="h-4 w-4" strokeWidth={2} style={{ color: 'var(--o-red-text)' }} />
-            The console hit an error
+            {t('The console hit an error')}
           </div>
-          <p className="mt-3 break-words text-[13px] text-[var(--o-muted)]">The console hit an error: {error.message || 'unknown error'}</p>
+          <p className="mt-3 break-words text-[13px] text-[var(--o-muted)]">{t('The console hit an error: {error}', { error: error.message || t('unknown error') })}</p>
           <div className="mt-5 flex justify-end gap-3">
-            <OBtn kind="pill" cls="ae-o-pill"  onClick={this.reset}>Reset controls</OBtn>
-            <OBtn kind="primary" cls="ae-o-generate"  onClick={this.props.onClose}><i /> Close</OBtn>
+            <OBtn kind="pill" cls="ae-o-pill"  onClick={this.reset}>{t('Reset controls')}</OBtn>
+            <OBtn kind="primary" cls="ae-o-generate"  onClick={this.props.onClose}><i /> {t('Close')}</OBtn>
           </div>
         </div>
       </div>

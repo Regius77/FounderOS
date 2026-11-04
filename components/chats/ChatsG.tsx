@@ -7,6 +7,7 @@ import { AgentFace } from '@/components/agents/AgentFace';
 import { relativeTime } from '@/lib/wizard/helpers';
 import type { ChatsView } from '@/lib/chats-view';
 import { useChats, WIZARD, type ChatsState } from './useChats';
+import { t } from '@/lib/i18n';
 
 /**
  * /chats, GladOS tree (founderos-ui pages/chats.md §6): one GCard shell with
@@ -25,13 +26,13 @@ export function ChatsG({ view, initialView }: { view: ChatsView; initialView: 'r
     <GPage className="ch-g-page">
       <GSectionHeader
         size="page"
-        title="Chats"
-        caption="Every conversation with your agents"
+        title={t('Chats')}
+        caption={t('Every conversation with your agents')}
         action={
           <div className="ch-g-head-actions">
-            {view.sample && <GSampleBadge fixture={view.mode === 'filming' ? 'Filming threads' : 'Sample threads (?sample=1)'} />}
+            {view.sample && <GSampleBadge fixture={view.mode === 'filming' ? t('Filming threads') : t('Sample threads (?sample=1)')} />}
             <GButton variant="ink" onClick={startNew} aria-expanded={c.picking}>
-              <Plus size={14} strokeWidth={1.75} aria-hidden /> New chat
+              <Plus size={14} strokeWidth={1.75} aria-hidden /> {t('New chat')}
             </GButton>
           </div>
         }
@@ -63,62 +64,62 @@ function Rail({ c }: { c: ChatsState }) {
   return (
     <GWell className="ch-g-rail">
       <div className="ch-g-rail-head">
-        <h2 className="ch-g-rail-title">{c.picking ? 'New chat' : 'Conversations'}</h2>
+        <h2 className="ch-g-rail-title">{c.picking ? t('New chat') : t('Conversations')}</h2>
         {c.picking ? (
-          <GButton size="sm" onClick={() => c.setPicking(false)} title="Back to conversations (Esc)">
-            Back
+          <GButton size="sm" onClick={() => c.setPicking(false)} title={t('Back to conversations (Esc)')}>
+            {t('Back')}
           </GButton>
         ) : (
-          <GButton variant="icon" size="compact" aria-label="Collapse the conversation list" onClick={c.toggleRail} className="ch-g-wide-only">
+          <GButton variant="icon" size="compact" aria-label={t('Collapse the conversation list')} onClick={c.toggleRail} className="ch-g-wide-only">
             <PanelLeftClose size={15} strokeWidth={1.6} aria-hidden />
           </GButton>
         )}
       </div>
-      <GSearch size="md" value={c.search} onValueChange={c.setSearch} placeholder={c.picking ? 'Search agents' : 'Search threads'} aria-label={c.picking ? 'Search agents' : 'Search threads'} />
+      <GSearch size="md" value={c.search} onValueChange={c.setSearch} placeholder={c.picking ? t('Search agents') : t('Search threads')} aria-label={c.picking ? t('Search agents') : t('Search threads')} />
       <div className="ch-g-rail-list">
         {c.picking ? (
           c.roster.length > 0 ? (
-            <GList label="Agents without a thread">
+            <GList label={t('Agents without a thread')}>
               {c.roster.map((r) => (
-                <GRow key={r.id} leading={<Face id={r.id} src={r.avatar} name={r.name} size={28} />} title={r.name} meta={r.description || 'Agent'} onClick={() => c.select(r.id)} />
+                <GRow key={r.id} leading={<Face id={r.id} src={r.avatar} name={r.name} size={28} />} title={r.name} meta={r.description || t('Agent')} onClick={() => c.select(r.id)} />
               ))}
             </GList>
           ) : c.rosterTotal === 0 && c.view.agentCount === 0 ? (
             <div className="ch-g-rail-empty">
-              <GEmpty inline title="No agents yet" body="Agents you set up appear here to chat with." />
+              <GEmpty inline title={t('No agents yet')} body={t('Agents you set up appear here to chat with.')} />
               <GButton size="sm" href="/agents">
-                Open Agents
+                {t('Open Agents')}
               </GButton>
             </div>
           ) : (
-            <p className="wg-cap ch-g-rail-note">{c.rosterTotal === 0 ? 'Every agent already has a thread.' : 'No agent matches that search.'}</p>
+            <p className="wg-cap ch-g-rail-note">{c.rosterTotal === 0 ? t('Every agent already has a thread.') : t('No agent matches that search.')}</p>
           )
         ) : (
           <>
-            <GList label="Conversations">
-              {c.threads.map((t) => (
+            <GList label={t('Conversations')}>
+              {c.threads.map((th) => (
                 <GRow
-                  key={t.agentId}
-                  selected={t.agentId === c.selected}
-                  leading={<Face id={t.agentId} src={t.avatar} name={t.name} size={32} />}
+                  key={th.agentId}
+                  selected={th.agentId === c.selected}
+                  leading={<Face id={th.agentId} src={th.avatar} name={th.name} size={32} />}
                   title={
                     <span className="ch-g-row-title">
-                      <span className="ch-g-row-name">{t.name}</span>
-                      {t.pinned && (
+                      <span className="ch-g-row-name">{th.name}</span>
+                      {th.pinned && (
                         <GTag size="xs" tone="outline">
-                          Pinned
+                          {t('Pinned')}
                         </GTag>
                       )}
                     </span>
                   }
-                  meta={t.lastMessage ?? (t.pinned ? t.role : 'No messages yet')}
-                  trailing={t.lastAt ? <span className="ch-g-when">{relativeTime(t.lastAt, c.now)}</span> : undefined}
-                  onClick={() => c.select(t.agentId)}
+                  meta={th.lastMessage ?? (th.pinned ? th.role : t('No messages yet'))}
+                  trailing={th.lastAt ? <span className="ch-g-when">{relativeTime(th.lastAt, c.now)}</span> : undefined}
+                  onClick={() => c.select(th.agentId)}
                 />
               ))}
             </GList>
-            {empty && <p className="wg-cap ch-g-rail-note">No direct chats yet. Start one with New chat.</p>}
-            {!empty && c.threads.length === 0 && <p className="wg-cap ch-g-rail-note">No threads match that search.</p>}
+            {empty && <p className="wg-cap ch-g-rail-note">{t('No direct chats yet. Start one with New chat.')}</p>}
+            {!empty && c.threads.length === 0 && <p className="wg-cap ch-g-rail-note">{t('No threads match that search.')}</p>}
           </>
         )}
       </div>
@@ -129,14 +130,14 @@ function Rail({ c }: { c: ChatsState }) {
 function RailStrip({ c }: { c: ChatsState }) {
   return (
     <GWell className="ch-g-strip">
-      <GButton variant="icon" size="compact" aria-label="Show the conversation list" onClick={c.toggleRail}>
+      <GButton variant="icon" size="compact" aria-label={t('Show the conversation list')} onClick={c.toggleRail}>
         <PanelLeftOpen size={15} strokeWidth={1.6} aria-hidden />
       </GButton>
-      <ul className="ch-g-strip-list" aria-label="Conversations">
-        {c.threads.map((t) => (
-          <li key={t.agentId}>
-            <GButton variant="icon" aria-label={`Open ${t.name}`} title={t.name} aria-pressed={t.agentId === c.selected} onClick={() => c.select(t.agentId)} className="ch-g-strip-btn">
-              <Face id={t.agentId} src={t.avatar} name={t.name} size={28} />
+      <ul className="ch-g-strip-list" aria-label={t('Conversations')}>
+        {c.threads.map((th) => (
+          <li key={th.agentId}>
+            <GButton variant="icon" aria-label={t('Open {name}', { name: th.name })} title={th.name} aria-pressed={th.agentId === c.selected} onClick={() => c.select(th.agentId)} className="ch-g-strip-btn">
+              <Face id={th.agentId} src={th.avatar} name={th.name} size={28} />
             </GButton>
           </li>
         ))}
@@ -156,40 +157,40 @@ function Thread({ c }: { c: ChatsState }) {
   const nothing = c.status === 'ready' && c.messages.length === 0 && c.pending.length === 0 && c.routed.length === 0;
 
   return (
-    <section className="ch-g-thread" aria-label={`Conversation with ${h.name}`}>
+    <section className="ch-g-thread" aria-label={t('Conversation with {name}', { name: h.name })}>
       <header className="ch-g-thread-head">
-        <GButton variant="icon" size="compact" aria-label="Back to conversations" onClick={c.back} className="ch-g-narrow-only">
+        <GButton variant="icon" size="compact" aria-label={t('Back to conversations')} onClick={c.back} className="ch-g-narrow-only">
           <ArrowLeft size={16} strokeWidth={1.6} aria-hidden />
         </GButton>
         <Face id={h.agentId} src={h.avatar} name={h.name} size={40} />
         <div className="ch-g-thread-id">
           <p className="ch-g-thread-name">
             <span>{h.name}</span>
-            {!h.wizard && <GTag size="xs">Direct line</GTag>}
+            {!h.wizard && <GTag size="xs">{t('Direct line')}</GTag>}
           </p>
-          <p className="wg-cap ch-g-thread-role">{h.wizard ? (h.projectName ? `Latest project: ${h.projectName}` : 'Your conductor') : h.role || 'Agent'}</p>
+          <p className="wg-cap ch-g-thread-role">{h.wizard ? (h.projectName ? t('Latest project: {name}', { name: h.projectName }) : t('Your conductor')) : h.role || t('Agent')}</p>
         </div>
         <GButton size="sm" href={h.wizard ? '/wizard' : `/agents?agent=${encodeURIComponent(h.agentId)}`}>
-          {h.wizard ? 'Open Wizard' : 'Open agent'}
+          {h.wizard ? t('Open Wizard') : t('Open agent')}
         </GButton>
       </header>
       <p className="wg-cap ch-g-note">
-        {h.wizard ? 'The Wizard hands your message to the agent best placed to answer. The reply also lands in that agent’s thread.' : `Direct line: ${h.name} can read your data here, not change it.`}
+        {h.wizard ? t('The Wizard hands your message to the agent best placed to answer. The reply also lands in that agent’s thread.') : t('Direct line: {name} can read your data here, not change it.', { name: h.name })}
       </p>
 
       <div ref={scroller} className="ch-g-msgs" aria-live="polite">
         {c.status === 'loading' && c.messages.length === 0 && (
-          <div className="ch-g-skel" aria-label="Loading the thread">
+          <div className="ch-g-skel" aria-label={t('Loading the thread')}>
             <GSkeleton width="46%" height={44} shape="well" />
             <GSkeleton width="62%" height={18} />
             <GSkeleton width="38%" height={18} />
           </div>
         )}
-        {c.status === 'error' && <GErrorLine onRetry={c.reload}>{c.error ?? 'Could not load the thread.'}</GErrorLine>}
+        {c.status === 'error' && <GErrorLine onRetry={c.reload}>{c.error ?? t('Could not load the thread.')}</GErrorLine>}
         {nothing && (
           <GEmpty
-            title={h.wizard ? 'No Wizard conversation yet' : `No messages with ${h.name} yet`}
-            body={h.wizard ? 'Your latest Wizard project shows here. Ask below and the Wizard routes it.' : 'Ask what it can see. It reads its connectors to answer.'}
+            title={h.wizard ? t('No Wizard conversation yet') : t('No messages with {name} yet', { name: h.name })}
+            body={h.wizard ? t('Your latest Wizard project shows here. Ask below and the Wizard routes it.') : t('Ask what it can see. It reads its connectors to answer.')}
           />
         )}
         {c.messages.length > 0 && (
@@ -197,7 +198,7 @@ function Thread({ c }: { c: ChatsState }) {
             {c.messages.map((m) =>
               m.role === 'tool' ? (
                 <li key={m.id} className="ch-g-tool">
-                  <Wrench size={12} strokeWidth={1.6} aria-hidden /> Read {m.tools.join(', ') || 'a tool'}
+                  <Wrench size={12} strokeWidth={1.6} aria-hidden /> {t('Read {tools}', { tools: m.tools.join(', ') || t('a tool') })}
                 </li>
               ) : m.role === 'user' ? (
                 <li key={m.id} className="ch-g-msg" data-role="user">
@@ -232,9 +233,9 @@ function Thread({ c }: { c: ChatsState }) {
                   <div className="ch-g-agent-text">
                     <p>{r.reply}</p>
                     <span className="ch-g-routed">
-                      <span className="ch-g-when">Answered by {r.routedName}</span>
+                      <span className="ch-g-when">{t('Answered by {name}', { name: r.routedName })}</span>
                       <GButton size="sm" onClick={() => c.select(r.routedTo)}>
-                        Open thread
+                        {t('Open thread')}
                       </GButton>
                     </span>
                   </div>
@@ -247,13 +248,13 @@ function Thread({ c }: { c: ChatsState }) {
                   <GCardRaised p={16} className="ch-g-bubble">
                     <p>{p.text}</p>
                   </GCardRaised>
-                  {p.state === 'sending' && <span className="ch-g-when">Sending</span>}
+                  {p.state === 'sending' && <span className="ch-g-when">{t('Sending')}</span>}
                 </div>
                 {p.state === 'sending' ? (
-                  <GProgress text="Thinking" className="ch-g-thinking" />
+                  <GProgress text={t('Thinking')} className="ch-g-thinking" />
                 ) : (
                   <GErrorLine align="left" onRetry={() => c.retry(p.key)}>
-                    Not sent. {p.error}
+                    {t('Not sent.')} {p.error}
                   </GErrorLine>
                 )}
               </li>
@@ -266,15 +267,15 @@ function Thread({ c }: { c: ChatsState }) {
         {composer.reason === 'not_configured' && (
           <div className="ch-g-compose-note">
             <GTag tone="outline" size="xs">
-              Not configured
+              {t('Not configured')}
             </GTag>
-            <span className="wg-cap">Agent chat needs a model key.</span>
-            <GButton size="sm" href={c.view.model.setupHref} title="Add the AI Gateway key the agent chat uses">
-              Set up
+            <span className="wg-cap">{t('Agent chat needs a model key.')}</span>
+            <GButton size="sm" href={c.view.model.setupHref} title={t('Add the AI Gateway key the agent chat uses')}>
+              {t('Set up')}
             </GButton>
           </div>
         )}
-        {composer.reason === 'sample' && <p className="wg-cap ch-g-compose-note">Sample threads. Sending is off in this preview.</p>}
+        {composer.reason === 'sample' && <p className="wg-cap ch-g-compose-note">{t('Sample threads. Sending is off in this preview.')}</p>}
         <GAsk
           value={c.draft}
           onValueChange={c.setDraft}
@@ -282,11 +283,11 @@ function Thread({ c }: { c: ChatsState }) {
           busy={c.busy}
           minChars={1}
           disabled={!composer.enabled}
-          disabledReason={composer.reason === 'sample' ? 'Sending is off in a preview' : 'Agent chat needs a model key'}
-          label={`Message ${h.name}`}
-          placeholder={`Message ${h.name}…`}
+          disabledReason={composer.reason === 'sample' ? t('Sending is off in a preview') : t('Agent chat needs a model key')}
+          label={t('Message {name}', { name: h.name })}
+          placeholder={t('Message {name}…', { name: h.name })}
         />
-        {composer.enabled && <p className="ch-g-hint">Enter sends</p>}
+        {composer.enabled && <p className="ch-g-hint">{t('Enter sends')}</p>}
       </div>
     </section>
   );

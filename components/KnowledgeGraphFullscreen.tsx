@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
 import type { ToolWiki } from '@/lib/agent-wiki';
 import { ToolDetailCard, type DeptLite } from '@/components/KnowledgeDetail';
 import { useGc } from '@/components/system-g/style-context';
+import { t } from '@/lib/i18n';
 
 export function KnowledgeGraphFullscreen({
   deptList, currentTeamId, currentDept,
@@ -91,10 +92,10 @@ export function KnowledgeGraphFullscreen({
                 className="max-w-[150px] truncate text-[13.5px] font-medium leading-tight transition-colors duration-300"
                 style={currentDept ? { color: currentDept.color } : undefined}
               >
-                {currentDept?.name ?? 'Pick a pillar'}
+                {currentDept?.name ?? t('Pick a pillar')}
               </span>
               <span className="text-[11px] text-os-dim">
-                {idx >= 0 ? `${idx + 1} / ${deptList.length}` : `${deptList.length} pillars`}
+                {idx >= 0 ? `${idx + 1} / ${deptList.length}` : t('{n} pillars', { n: deptList.length })}
               </span>
             </div>
             <div className="flex items-center gap-0.5 border-l border-os-border pl-2">
@@ -136,7 +137,7 @@ export function KnowledgeGraphFullscreen({
           onClick={onClose}
           className={gc('g-btn g-btn-sm absolute right-5 top-5 z-20', 'absolute right-5 top-5 z-20 flex items-center gap-2.5 rounded-sm-t border border-os-border-strong bg-os-surface2 px-2.5 py-1 text-[12.5px] text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text')}
         >
-          <Minimize2 className="h-3.5 w-3.5" /> Exit
+          <Minimize2 className="h-3.5 w-3.5" /> {t('Exit')}
         </button>
 
         {/* side paddles: slim, hugging the canvas edges at mid-height — you
@@ -146,8 +147,8 @@ export function KnowledgeGraphFullscreen({
           <>
             <button
               onClick={() => step(-1)}
-              aria-label="Previous department"
-              title="Previous pillar (←)"
+              aria-label={t('Previous department')}
+              title={t('Previous pillar (←)')}
               className={gc('g-btn g-btn-icon kg-paddle', 'absolute left-2 top-1/2 z-20 flex h-32 w-12 -translate-y-1/2 items-center justify-center rounded-sm-t border border-os-border bg-os-bg/70 text-os-muted backdrop-blur transition-colors hover:border-os-border-strong hover:text-os-text')}
               data-side="left"
             >
@@ -155,8 +156,8 @@ export function KnowledgeGraphFullscreen({
             </button>
             <button
               onClick={() => step(1)}
-              aria-label="Next department"
-              title="Next pillar (→)"
+              aria-label={t('Next department')}
+              title={t('Next pillar (→)')}
               className={gc('g-btn g-btn-icon kg-paddle', 'absolute right-2 top-1/2 z-20 flex h-32 w-12 -translate-y-1/2 items-center justify-center rounded-sm-t border border-os-border bg-os-bg/70 text-os-muted backdrop-blur transition-colors hover:border-os-border-strong hover:text-os-text')}
               data-side="right"
             >
@@ -173,12 +174,12 @@ export function KnowledgeGraphFullscreen({
           {/* the trail: node → pillar (this) → home. Same affordance inline. */}
           <button
             onClick={onBack}
-            aria-label={`Back to the ${currentDept?.name ?? 'graph'} pillar`}
+            aria-label={t('Back to the {name} pillar', { name: currentDept?.name ?? t('graph') })}
             className={gc('g-btn g-btn-sm kg-panel-back', 'flex shrink-0 items-center gap-2.5 border-b border-os-border px-3 py-3 text-left text-[12px] text-os-dim transition-colors hover:text-os-text')}
           >
             <ArrowLeft className="h-3 w-3 shrink-0" />
             <span className="truncate">
-              Back · <span style={currentDept ? { color: currentDept.color } : undefined}>{currentDept?.name ?? 'graph'}</span>
+              {t('Back')} · <span style={currentDept ? { color: currentDept.color } : undefined}>{currentDept?.name ?? t('graph')}</span>
             </span>
           </button>
           {toolWiki ? (

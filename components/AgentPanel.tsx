@@ -15,17 +15,25 @@ import type { Agent, AgentRun, Department, Skill } from '@/lib/schemas';
 import { AgentAvatar } from '@/components/AgentAvatar';
 import { Badge, Dot } from '@/components/terminal';
 import { buildLogicRules, buildStepTree, connectedChips, resolveWorksWith } from '@/app/agents/panel-data';
+import { t } from '@/lib/i18n';
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.round(diffMs / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('just now');
+  if (mins < 60) return t('{n}m ago', { n: mins });
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('{n}h ago', { n: hours });
   const days = Math.round(hours / 24);
-  return `${days}d ago`;
+  return t('{n}d ago', { n: days });
 }
+
+const STATUS_LABEL: Record<Agent['status'], string> = {
+  active: t('active'),
+  idle: t('idle'),
+  training: t('training'),
+  planned: t('planned'),
+};
 
 export function AgentPanel({
   agent,
@@ -81,11 +89,11 @@ export function AgentPanel({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${agent.name} profile`}
+        aria-label={t('{name} profile', { name: agent.name })}
       >
         <button
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('Close')}
           className="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full border border-[rgb(var(--mist-rgb) / 0.14)] bg-black/30 text-os-dim transition-colors hover:text-os-text"
         >
           <X className="h-4 w-4" />
@@ -99,7 +107,7 @@ export function AgentPanel({
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="text-[20px] font-medium leading-tight">{agent.name}</h2>
                 <Dot state={agent.status} pulse={agent.status === 'active'} />
-                <span className="text-[12.5px] text-os-dim">{agent.status}</span>
+                <span className="text-[12.5px] text-os-dim">{STATUS_LABEL[agent.status] ?? agent.status}</span>
               </div>
               <div className="mt-1 text-[13px] text-os-muted">{agent.role}</div>
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
@@ -107,16 +115,16 @@ export function AgentPanel({
                 {department && <Badge>{department.name}</Badge>}
               </div>
               <div className="mt-2 text-[12px] text-os-dim">
-                {parentEntry ? `under ${parentEntry.agent.name}` : `instance ${agent.instance}`}
+                {parentEntry ? t('under {name}', { name: parentEntry.agent.name }) : t('instance {instance}', { instance: agent.instance })}
               </div>
             </div>
           </div>
 
           {/* What it does */}
           <section className="mt-7">
-            <span className="glass-label">What it does</span>
+            <span className="glass-label">{t('What it does')}</span>
             <div className="mt-3.5 flex flex-col">
-              {steps.length === 0 && <div className="text-[13px] text-os-dim">Nothing derivable yet.</div>}
+              {steps.length === 0 && <div className="text-[13px] text-os-dim">{t('Nothing derivable yet.')}</div>}
               {steps.map((step, i) => (
                 <div key={step.id} className="flex gap-3">
                   <div className="flex flex-col items-center">
@@ -133,9 +141,9 @@ export function AgentPanel({
 
           {/* Connected to */}
           <section className="mt-7">
-            <span className="glass-label">Connected to</span>
+            <span className="glass-label">{t('Connected to')}</span>
             <div className="mt-3.5 flex flex-wrap gap-1.5">
-              {chips.length === 0 && <span className="text-[12.5px] text-os-dim">Nothing wired yet.</span>}
+              {chips.length === 0 && <span className="text-[12.5px] text-os-dim">{t('Nothing wired yet.')}</span>}
               {chips.map((c) => (
                 <span key={c} className="glass-chip px-3 py-1 font-mono text-[11.5px] text-os-muted">
                   {c}
@@ -147,7 +155,7 @@ export function AgentPanel({
           {/* Works with */}
           {worksWith.length > 0 && (
             <section className="mt-7">
-              <span className="glass-label">Works with</span>
+              <span className="glass-label">{t('Works with')}</span>
               <div className="mt-3.5 flex flex-wrap gap-2">
                 {worksWith.map((w) => (
                   <button
@@ -157,7 +165,7 @@ export function AgentPanel({
                   >
                     <AgentAvatar src={avatars[w.agent.id] ?? null} name={w.agent.name} size={20} />
                     <span className="font-medium text-os-text">{w.agent.name}</span>
-                    <span className="text-os-dim">{w.relation === 'parent' ? 'parent' : 'reports in'}</span>
+                    <span className="text-os-dim">{w.relation === 'parent' ? t('parent') : t('reports in')}</span>
                   </button>
                 ))}
               </div>
@@ -166,7 +174,7 @@ export function AgentPanel({
 
           {/* Logic */}
           <section className="mt-7">
-            <span className="glass-label">Logic</span>
+            <span className="glass-label">{t('Logic')}</span>
             <ul className="mt-3.5 flex flex-col gap-2">
               {rules.map((rule, i) => (
                 <li key={i} className="flex gap-2.5 text-[13px] leading-relaxed text-os-muted">
@@ -179,10 +187,10 @@ export function AgentPanel({
 
           {/* Run feed */}
           <section className="mt-7">
-            <span className="glass-label">Run feed</span>
+            <span className="glass-label">{t('Run feed')}</span>
             <div className="mt-3.5 flex flex-col gap-2">
               {runs.length === 0 && (
-                <div className="text-[12.5px] text-os-dim">No runs recorded yet.</div>
+                <div className="text-[12.5px] text-os-dim">{t('No runs recorded yet.')}</div>
               )}
               {runs.map((run) => (
                 <div key={run.id} className="flex items-center gap-3 text-[12.5px]">

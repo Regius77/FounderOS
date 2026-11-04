@@ -4,6 +4,7 @@
  */
 import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fill } from '@/lib/lab/view/format';
+import { t } from '@/lib/i18n';
 
 export type PeriodView = {
   unit: 'w' | 'm';
@@ -24,8 +25,8 @@ export type PeriodView = {
   unitHrefs: { w: string; m: string };
 };
 
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS_SHORT = t('Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec').split(',');
+const MONTHS_LONG = t('January,February,March,April,May,June,July,August,September,October,November,December').split(',');
 
 function weekStart(now: Date): Date {
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());

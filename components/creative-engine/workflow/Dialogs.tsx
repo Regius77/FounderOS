@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useId, type ReactNode } from 'react';
 import { OBtn, OLink } from '@/components/creative-engine/skin';
 import { createPortal } from 'react-dom';
@@ -14,7 +15,7 @@ import { useDialog } from '@/components/ui/use-dialog';
  * trap a fixed overlay.
  */
 
-export function ConfirmDialog({ title, body, cancelLabel = 'Cancel', confirmLabel, danger = false, container, onConfirm, onCancel }: {
+export function ConfirmDialog({ title, body, cancelLabel = t('Cancel'), confirmLabel, danger = false, container, onConfirm, onCancel }: {
   title: string;
   body: ReactNode;
   cancelLabel?: string;
@@ -52,8 +53,8 @@ export function Lightbox({ asset, container, onClose }: { asset: LightboxAsset; 
       <div {...dlg.props} className="ae-o-panel" onClick={(e) => e.stopPropagation()}>
         <div className="hd">
           <span id={titleId}>{asset.label}</span>
-          <OLink cls="ae-o-pill" href={asset.path} external>Open file</OLink>
-          <OBtn kind="icon-sm" cls="ae-o-icon sm"  data-dialog-close aria-label="Close the preview" title="Close (Esc)" onClick={onClose}><X className="h-4 w-4" strokeWidth={2} /></OBtn>
+          <OLink cls="ae-o-pill" href={asset.path} external>{t('Open file')}</OLink>
+          <OBtn kind="icon-sm" cls="ae-o-icon sm"  data-dialog-close aria-label={t('Close the preview')} title={t('Close (Esc)')} onClick={onClose}><X className="h-4 w-4" strokeWidth={2} /></OBtn>
         </div>
         {asset.kind === 'video' ? <video src={asset.path} controls autoPlay muted playsInline /> : <img src={asset.path} alt={asset.label} />}
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { createContext, forwardRef, useContext, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { GButton, GChip, GCheck, GInput, GMenu, GPill, GSelect, GTabs, GTextarea } from '@/components/g';
 import { cx } from '@/components/g/cx';
@@ -248,7 +249,7 @@ export function Check({ checked, onCheckedChange, label, disabled, disabledReaso
 export function TitleTabs<T extends string>({ tabs, value, onChange, label, panelId }: { tabs: readonly { value: T; label: string }[]; value: T; onChange: (v: T) => void; label: string; panelId: string }) {
   const g = useG();
   if (!g) return <ClassicTitleTabs tabs={tabs} value={value} onChange={onChange} label={label} panelId={panelId} />;
-  return <GTabs tabs={tabs.map((t) => ({ value: t.value, label: t.label, controls: panelId }))} value={value} onChange={(v) => onChange(v as T)} label={label} />;
+  return <GTabs tabs={tabs.map((tab) => ({ value: tab.value, label: tab.label, controls: panelId }))} value={value} onChange={(v) => onChange(v as T)} label={label} />;
 }
 
 export type MenuItem = ClassicMenuItem;
@@ -280,7 +281,7 @@ export function PopAnchor({ children, className }: { children: ReactNode; classN
  * The one Set up affordance (CLAUDE.md honest-or-absent): the shared SetupLink
  * under Classic, a small kit button to the same destination under GladOS.
  */
-export function SetupLink({ href, hint, label = 'Set up', className }: { href?: string; hint?: string; label?: string; className?: string }) {
+export function SetupLink({ href, hint, label = t('Set up'), className }: { href?: string; hint?: string; label?: string; className?: string }) {
   const g = useG();
   if (!g) return <ClassicSetupLink href={href} hint={hint} label={label} className={className} />;
   return (

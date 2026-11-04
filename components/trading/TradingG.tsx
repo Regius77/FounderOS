@@ -16,11 +16,12 @@ import {
 } from '@/lib/trading-model';
 import type { TradeActivity, TradingOrder, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
+import { localeTag, t } from '@/lib/i18n';
 
 export type TradingTreeProps = { model: TradingModel; pushPath: string; setup: { robinhood: string; phantom: string } };
 
 const statusTone: Record<TradeActivity['status'], GTagTone> = { filled: 'ok', pending: 'neutral', cancelled: 'outline', rejected: 'err' };
-const statusLabel: Record<TradeActivity['status'], string> = { filled: 'Filled', pending: 'Pending', cancelled: 'Cancelled', rejected: 'Rejected' };
+const statusLabel: Record<TradeActivity['status'], string> = { filled: t('Filled'), pending: t('Pending'), cancelled: t('Cancelled'), rejected: t('Rejected') };
 const verdictTone = (v: string): GTagTone => (/buy|enter|long|take/i.test(v) ? 'ok' : /sell|exit|trim/i.test(v) ? 'warn' : /watch|hold/i.test(v) ? 'neutral' : 'outline');
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -47,13 +48,13 @@ export function TradingG({ model, pushPath, setup }: TradingTreeProps) {
           {m.feedPill.text}
         </GTag>
       ) : (
-        <SourceTag label="Robinhood feed" href={setup.robinhood} hint="Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN" />
+        <SourceTag label={t('Robinhood feed')} href={setup.robinhood} hint={t('Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN')} />
       )}
-      {m.wallet === 'unconfigured' && <SourceTag label="Phantom wallet" href={setup.phantom} hint="Set PHANTOM_WALLET_ADDRESS (a public address, not a key)" />}
+      {m.wallet === 'unconfigured' && <SourceTag label={t('Phantom wallet')} href={setup.phantom} hint={t('Set PHANTOM_WALLET_ADDRESS (a public address, not a key)')} />}
       {!m.unconfigured && (
-        <GButton onClick={ui.refresh} busy={ui.refreshing} title="Reload from the store; the wallet read is cached 60 s">
+        <GButton onClick={ui.refresh} busy={ui.refreshing} title={t('Reload from the store; the wallet read is cached 60 s')}>
           <RefreshCw size={14} strokeWidth={1.75} aria-hidden />
-          Refresh
+          {t('Refresh')}
         </GButton>
       )}
     </div>
@@ -61,7 +62,7 @@ export function TradingG({ model, pushPath, setup }: TradingTreeProps) {
 
   return (
     <GPage className="trd-g">
-      <GSectionHeader size="page" title="Trading" caption={m.subtitle ?? m.copy.subtitleEmpty} action={headerAction} />
+      <GSectionHeader size="page" title={t('Trading')} caption={m.subtitle ?? m.copy.subtitleEmpty} action={headerAction} />
 
       {m.unconfigured ? (
         <ConnectCard ui={ui} setupHref={setup.robinhood} />
@@ -85,22 +86,22 @@ export function TradingG({ model, pushPath, setup }: TradingTreeProps) {
             <Limits m={m} ui={ui} />
           </div>
 
-          <p className="trd-g-foot">Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.</p>
+          <p className="trd-g-foot">{t('Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.')}</p>
         </>
       )}
 
       <TradeSheet trade={ui.openTrade} onClose={() => ui.setOpenTrade(null)} />
-      <GSheet open={ui.positionsOpen} onClose={() => ui.setPositionsOpen(false)} title="Positions" caption={`${p.positions.length} open · ${usd(m.investedUsd)} invested`} width={760}>
+      <GSheet open={ui.positionsOpen} onClose={() => ui.setPositionsOpen(false)} title={t('Positions')} caption={t('{n} open · {amount} invested', { n: p.positions.length, amount: usd(m.investedUsd) })} width={760}>
         <PositionsTable rows={p.positions} />
       </GSheet>
-      <GSheet open={ui.notesOpen} onClose={() => ui.setNotesOpen(false)} title="Agent reasoning" caption={p.analysis ? `${p.analysis.agent} · ${stamp(p.analysis.at)}` : undefined} width={640}>
+      <GSheet open={ui.notesOpen} onClose={() => ui.setNotesOpen(false)} title={t('Agent reasoning')} caption={p.analysis ? `${p.analysis.agent} · ${stamp(p.analysis.at)}` : undefined} width={640}>
         <p className="trd-g-notes-full">{p.analysis?.notes}</p>
       </GSheet>
       <GDialog
         open={ui.autopilot.confirmOpen}
         onClose={() => ui.autopilot.setConfirmOpen(false)}
-        title="Turn on autopilot?"
-        confirmLabel="Turn on"
+        title={t('Turn on autopilot?')}
+        confirmLabel={t('Turn on')}
         busy={ui.autopilot.switching}
         onConfirm={() => ui.autopilot.setAutopilot(true, true)}
       >
@@ -113,9 +114,9 @@ export function TradingG({ model, pushPath, setup }: TradingTreeProps) {
 function SourceTag({ label, href, hint }: { label: string; href: string; hint: string }) {
   return (
     <span className="trd-g-source" title={hint}>
-      <GTag tone="outline">{label} · Not configured</GTag>
+      <GTag tone="outline">{label} · {t('Not configured')}</GTag>
       <GButton variant="sm" href={href} title={hint}>
-        Set up
+        {t('Set up')}
       </GButton>
     </span>
   );
@@ -123,11 +124,11 @@ function SourceTag({ label, href, hint }: { label: string; href: string; hint: s
 
 function ConnectCard({ ui, setupHref }: { ui: TradingUi; setupHref: string }) {
   return (
-    <GCard p={24} className="trd-g-connect" aria-label="Connect the Markets agent feed">
+    <GCard p={24} className="trd-g-connect" aria-label={t('Connect the Markets agent feed')}>
       <GEmpty
         kind="unconfigured"
-        title="Connect the Markets agent feed. Its first push fills this page."
-        body="The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here."
+        title={t('Connect the Markets agent feed. Its first push fills this page.')}
+        body={t('The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here.')}
         setupHref={setupHref}
         setupHint="TRADING_PUSH_TOKEN"
       />
@@ -135,9 +136,9 @@ function ConnectCard({ ui, setupHref }: { ui: TradingUi; setupHref: string }) {
         <code className="trd-g-push-url" data-copy="">
           {ui.pushUrl}
         </code>
-        <GButton variant="sm" onClick={ui.copyPushUrl} aria-label="Copy push URL">
+        <GButton variant="sm" onClick={ui.copyPushUrl} aria-label={t('Copy push URL')}>
           <Copy size={13} strokeWidth={1.75} aria-hidden />
-          Copy
+          {t('Copy')}
         </GButton>
       </GWell>
     </GCard>
@@ -147,23 +148,23 @@ function ConnectCard({ ui, setupHref }: { ui: TradingUi; setupHref: string }) {
 function Hero({ m }: { m: TradingModel }) {
   const status =
     m.dayPnlUsd === null ? (
-      m.wallet === 'ok' ? 'Wallet only' : undefined
+      m.wallet === 'ok' ? t('Wallet only') : undefined
     ) : (
       <>
-        {signedUsd(m.dayPnlUsd, false)} today
-        {m.investedFrac !== null && <> · {Math.round(m.investedFrac * 100)}% invested</>}
+        {t('{amount} today', { amount: signedUsd(m.dayPnlUsd, false) })}
+        {m.investedFrac !== null && <> · {t('{pct}% invested', { pct: Math.round(m.investedFrac * 100) })}</>}
       </>
     );
   return (
     <GHeroCard
       variant="a"
       className="trd-g-hero"
-      caption="Total value"
+      caption={t('Total value')}
       value={m.totalUsd === null ? null : usd(m.totalUsd)}
-      label={m.totalUsd === null ? 'Total value unknown' : `Total value ${usd(m.totalUsd)}`}
-      title="Brokerage accounts from the newest push, plus the Phantom wallet when priced"
+      label={m.totalUsd === null ? t('Total value unknown') : t('Total value {amount}', { amount: usd(m.totalUsd) })}
+      title={t('Brokerage accounts from the newest push, plus the Phantom wallet when priced')}
       status={status}
-      strip={<GSparkline values={m.totalHistory} label={`Total value · ${m.totalHistory.length} captures · Markets agent feed`} onHero />}
+      strip={<GSparkline values={m.totalHistory} label={t('Total value · {n} captures · Markets agent feed', { n: m.totalHistory.length })} onHero />}
     />
   );
 }
@@ -174,19 +175,19 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const pts = s?.points ?? [];
   const agent = p.view.agent;
   const caption = agent.hasActed
-    ? `${agent.tradeCount} ${agent.tradeCount === 1 ? 'trade' : 'trades'} · last ${agent.lastTrade ? ago(agent.lastTrade.at, m.now) : ''}`
-    : 'The agent has not traded yet';
+    ? `${agent.tradeCount === 1 ? t('{n} trade', { n: agent.tradeCount }) : t('{n} trades', { n: agent.tradeCount })} · ${t('last {ago}', { ago: agent.lastTrade ? ago(agent.lastTrade.at, m.now) : '' })}`
+    : t('The agent has not traded yet');
   return (
     <GCard p={24} className="trd-g-sleeve" aria-labelledby="trd-g-sleeve">
       <GSectionHeader
         id="trd-g-sleeve"
         size={22}
-        title="Agent sleeve"
+        title={t('Agent sleeve')}
         caption={caption}
         action={
           m.series.length > 1 ? (
             <GSegmented
-              label="Account shown in the chart"
+              label={t('Account shown in the chart')}
               value={ui.acct ?? ''}
               onChange={ui.setAcct}
               options={m.series.map((x) => ({ value: x.accountId, label: x.label }))}
@@ -198,26 +199,26 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
         <GAreaChart
           labels={pts.map((x) => stamp(x.at))}
           axisLabels={pts.map((x) => day(x.at))}
-          series={[{ id: s?.accountId ?? 'none', label: s?.label ?? 'Account', values: pts.map((x) => x.valueUsd), color: 'series-1' }]}
+          series={[{ id: s?.accountId ?? 'none', label: s?.label ?? t('Account'), values: pts.map((x) => x.valueUsd), color: 'series-1' }]}
           formatValue={usdCompact}
           zeroBase={false}
           height={180}
           tip={(i) => ({ title: stamp(pts[i].at), lines: [`${s?.label}: ${usd(pts[i].valueUsd, true)}`] })}
-          label={`${s?.label ?? 'Account'} value per capture, ${pts.length} captures, Markets agent feed`}
-          emptyText="No captures for this account yet."
+          label={t('{account} value per capture, {n} captures, Markets agent feed', { account: s?.label ?? t('Account'), n: pts.length })}
+          emptyText={t('No captures for this account yet.')}
         />
       </div>
       {m.hasAgentic ? (
         <div className="trd-g-stats">
-          <GStat value={usd(agent.deployedUsd, true)} label="Deployed" source="Market value of the agentic sleeve's positions" />
-          <GStat value={agent.idleCashUsd === null ? null : usd(agent.idleCashUsd, true)} label="Idle cash" source="Cash in the agentic sleeve, newest push" />
+          <GStat value={usd(agent.deployedUsd, true)} label={t('Deployed')} source={t("Market value of the agentic sleeve's positions")} />
+          <GStat value={agent.idleCashUsd === null ? null : usd(agent.idleCashUsd, true)} label={t('Idle cash')} source={t('Cash in the agentic sleeve, newest push')} />
           <div className="trd-g-stat-tone" data-tone={toneOf(agent.unrealizedPnlUsd)}>
-            <GStat value={signedUsd(agent.unrealizedPnlUsd)} label="Unrealized" source="Unrealized P&L across the agentic sleeve's positions" />
+            <GStat value={signedUsd(agent.unrealizedPnlUsd)} label={t('Unrealized')} source={t("Unrealized P&L across the agentic sleeve's positions")} />
           </div>
-          <GStat value={`${agent.tradeCount} filled`} label="Agent trades" source="Filled orders the agent placed in the sleeve" />
+          <GStat value={t('{n} filled', { n: agent.tradeCount })} label={t('Agent trades')} source={t('Filled orders the agent placed in the sleeve')} />
         </div>
       ) : (
-        <GEmpty inline title="No agentic account in the feed." body="The agent's stats appear once a push carries the account with id agentic." />
+        <GEmpty inline title={t('No agentic account in the feed.')} body={t("The agent's stats appear once a push carries the account with id agentic.")} />
       )}
     </GCard>
   );
@@ -233,7 +234,7 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
       label: a.label,
       value: a.valueUsd ?? 0,
       display: usd(a.valueUsd ?? 0),
-      title: `${a.label} · ${a.note} · ${Math.round(a.frac * 100)}% of the total`,
+      title: `${a.label} · ${a.note} · ${t('{pct}% of the total', { pct: Math.round(a.frac * 100) })}`,
       tone: a.agentMayTrade ? undefined : ('soft' as const),
     }));
   const cash = brokerage.reduce((s, a) => s + (a.cashUsd ?? 0), 0);
@@ -241,25 +242,25 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
   const totalPnl = m.payload.accounts.reduce((s, a) => s + a.totalPnlUsd, 0);
   return (
     <GCard p={24} className="trd-g-accounts" aria-labelledby="trd-g-accounts">
-      <GSectionHeader id="trd-g-accounts" size={22} title="Accounts" caption={`${m.accounts.length} ${m.accounts.length === 1 ? 'source' : 'sources'}`} />
-      {rows.length > 0 && <GDriverBars rows={rows} labelWidth={84} label="Value per account" />}
-      <GList divided label="Account notes">
+      <GSectionHeader id="trd-g-accounts" size={22} title={t('Accounts')} caption={m.accounts.length === 1 ? t('{n} source', { n: m.accounts.length }) : t('{n} sources', { n: m.accounts.length })} />
+      {rows.length > 0 && <GDriverBars rows={rows} labelWidth={84} label={t('Value per account')} />}
+      <GList divided label={t('Account notes')}>
         {m.accounts.map((a) => (
           <GRow
             key={a.id}
             title={a.label}
             meta={a.note}
             hint={a.error}
-            trailing={a.kind === 'wallet' && a.valueUsd === null ? <GTag tone="warn" title={a.error}>Not reachable</GTag> : <GDelta cur={a.valueUsd} prev={a.dayPnlUsd === null || a.valueUsd === null ? null : a.valueUsd - a.dayPnlUsd} money window="today" />}
+            trailing={a.kind === 'wallet' && a.valueUsd === null ? <GTag tone="warn" title={a.error}>{t('Not reachable')}</GTag> : <GDelta cur={a.valueUsd} prev={a.dayPnlUsd === null || a.valueUsd === null ? null : a.valueUsd - a.dayPnlUsd} money window={t('today')} />}
           />
         ))}
         {!wallet && (
           <GRow
             title="Phantom"
-            meta="Solana wallet, read from a public address"
+            meta={t('Solana wallet, read from a public address')}
             trailing={
-              <GButton variant="sm" href={setupPhantom} title="Set PHANTOM_WALLET_ADDRESS">
-                Set up
+              <GButton variant="sm" href={setupPhantom} title={t('Set PHANTOM_WALLET_ADDRESS')}>
+                {t('Set up')}
               </GButton>
             }
           />
@@ -269,9 +270,9 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
         <GKeyValue
           className="trd-g-kv"
           items={[
-            { label: 'Cash', value: usd(cash, true) },
-            { label: 'Buying power', value: usd(bp, true) },
-            { label: 'Total P&L', value: <Pnl n={totalPnl} /> },
+            { label: t('Cash'), value: usd(cash, true) },
+            { label: t('Buying power'), value: usd(bp, true) },
+            { label: t('Total P&L'), value: <Pnl n={totalPnl} /> },
           ]}
         />
       )}
@@ -281,13 +282,13 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
 
 function PositionsTable({ rows }: { rows: TradingPosition[] }) {
   const cols: GColumn<TradingPosition>[] = [
-    { key: 'symbol', label: 'Symbol', render: (r) => <span className="trd-g-sym">{r.symbol}</span>, sortValue: (r) => r.symbol },
-    { key: 'acct', label: 'Account', render: (r) => (r.accountId === 'agentic' ? 'Agentic' : cap(r.accountId)), sortValue: (r) => r.accountId },
-    { key: 'qty', label: 'Qty', align: 'right', numeric: true, render: (r) => qty(r.quantity), sortValue: (r) => r.quantity },
-    { key: 'value', label: 'Value', align: 'right', numeric: true, render: (r) => usd(r.marketValueUsd, true), sortValue: (r) => r.marketValueUsd },
+    { key: 'symbol', label: t('Symbol'), render: (r) => <span className="trd-g-sym">{r.symbol}</span>, sortValue: (r) => r.symbol },
+    { key: 'acct', label: t('Account'), render: (r) => (r.accountId === 'agentic' ? t('Agentic') : cap(r.accountId)), sortValue: (r) => r.accountId },
+    { key: 'qty', label: t('Qty'), align: 'right', numeric: true, render: (r) => qty(r.quantity), sortValue: (r) => r.quantity },
+    { key: 'value', label: t('Value'), align: 'right', numeric: true, render: (r) => usd(r.marketValueUsd, true), sortValue: (r) => r.marketValueUsd },
     { key: 'pnl', label: 'P&L', align: 'right', numeric: true, render: (r) => <Pnl n={r.unrealizedPnlUsd} />, sortValue: (r) => r.unrealizedPnlUsd },
   ];
-  return <GTable columns={cols} rows={rows} rowKey={(r) => `${r.accountId}:${r.symbol}`} caption="Open positions, largest first" sticky={false} empty="No open positions." />;
+  return <GTable columns={cols} rows={rows} rowKey={(r) => `${r.accountId}:${r.symbol}`} caption={t('Open positions, largest first')} sticky={false} empty={t('No open positions.')} />;
 }
 
 function Positions({ m, ui }: { m: TradingModel; ui: TradingUi }) {
@@ -300,39 +301,39 @@ function Positions({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       <GSectionHeader
         id="trd-g-positions"
         size={22}
-        title="Positions"
-        caption={pos.length ? `${pos.length} open · ${usd(m.investedUsd)} invested` : 'Nothing held'}
+        title={t('Positions')}
+        caption={pos.length ? t('{n} open · {amount} invested', { n: pos.length, amount: usd(m.investedUsd) }) : t('Nothing held')}
         action={
           pos.length > top.length ? (
             <GButton variant="sm" onClick={() => ui.setPositionsOpen(true)}>
-              See all {pos.length}
+              {t('See all {n}', { n: pos.length })}
             </GButton>
           ) : undefined
         }
       />
       {pos.length === 0 ? (
-        <GEmpty inline title="No open positions." body="Holdings appear with the next push that carries them." />
+        <GEmpty inline title={t('No open positions.')} body={t('Holdings appear with the next push that carries them.')} />
       ) : (
         <>
           <div className="trd-g-buckets">
             <GBarChart
               variant="series"
-              bars={sizes.map((b) => ({ id: b.label, label: b.label, value: b.count, tip: { title: b.label, lines: [`${b.count} ${b.count === 1 ? 'position' : 'positions'}`] } }))}
+              bars={sizes.map((b) => ({ id: b.label, label: b.label, value: b.count, tip: { title: b.label, lines: [b.count === 1 ? t('{n} position', { n: b.count }) : t('{n} positions', { n: b.count })] } }))}
               highlight={biggest.count > 0 ? biggest.label : null}
               height={64}
               formatValue={(v) => String(v)}
-              label="Positions by size: under $50, $50 to $250, $250 to $1k, over $1k"
+              label={t('Positions by size: under $50, $50 to $250, $250 to $1k, over $1k')}
             />
           </div>
           <div className="trd-g-pos-table">
             <PositionsTable rows={top} />
           </div>
-          <GList divided className="trd-g-pos-list" label="Largest positions">
+          <GList divided className="trd-g-pos-list" label={t('Largest positions')}>
             {top.map((r) => (
               <GRow
                 key={`${r.accountId}:${r.symbol}`}
                 title={r.symbol}
-                meta={`${qty(r.quantity)} @ ${usd(r.avgCostUsd, true)} · ${r.accountId === 'agentic' ? 'Agentic' : cap(r.accountId)}`}
+                meta={`${qty(r.quantity)} @ ${usd(r.avgCostUsd, true)} · ${r.accountId === 'agentic' ? t('Agentic') : cap(r.accountId)}`}
                 trailing={
                   <span className="trd-g-stack">
                     <span>{usd(r.marketValueUsd, true)}</span>
@@ -355,11 +356,11 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       <GSectionHeader
         id="trd-g-reasoning"
         size={22}
-        title="Agent reasoning"
-        caption={a ? `Examined ${a.examined} · ${a.signals} ${a.signals === 1 ? 'signal' : 'signals'} · ${ago(a.at, m.now)}` : 'No run recorded'}
+        title={t('Agent reasoning')}
+        caption={a ? `${t('Examined {n}', { n: a.examined })} · ${a.signals === 1 ? t('{n} signal', { n: a.signals }) : t('{n} signals', { n: a.signals })} · ${ago(a.at, m.now)}` : t('No run recorded')}
       />
       {!a ? (
-        <GEmpty inline title="No analysis pushed yet." body="The agent writes here every run, whether or not it trades." />
+        <GEmpty inline title={t('No analysis pushed yet.')} body={t('The agent writes here every run, whether or not it trades.')} />
       ) : (
         <>
           {a.notes && (
@@ -367,25 +368,25 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
               <p>{a.notes}</p>
               {a.notes.length > 140 && (
                 <GButton variant="sm" onClick={() => ui.setNotesOpen(true)}>
-                  More
+                  {t('More')}
                 </GButton>
               )}
             </div>
           )}
           {a.rows.length > 0 ? (
-            <GList divided label="Names the agent examined">
+            <GList divided label={t('Names the agent examined')}>
               {a.rows.slice(0, 6).map((r) => (
                 <GRow
                   key={r.ticker}
                   title={<span className="trd-g-sym">{r.ticker}</span>}
                   meta={r.reason}
-                  hint={r.score === null ? 'Not scored' : `Score ${r.score.toFixed(2)}`}
+                  hint={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}
                   trailing={<GTag tone={verdictTone(r.verdict)}>{cap(r.verdict)}</GTag>}
                 />
               ))}
             </GList>
           ) : (
-            <GEmpty inline title="The run listed no names." />
+            <GEmpty inline title={t('The run listed no names.')} />
           )}
         </>
       )}
@@ -397,47 +398,47 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const c = m.payload.view.activityCounts;
   const rows = logRows(m, ui.log);
   const opts: { value: ActivityFilter; label: string }[] = [
-    { value: 'all', label: `All ${c.all}` },
-    { value: 'agent', label: `Agent ${c.agent}` },
-    { value: 'you', label: `You ${c.you}` },
-    { value: 'rejected', label: `Rejected ${c.rejected}` },
+    { value: 'all', label: `${t('All')} ${c.all}` },
+    { value: 'agent', label: `${t('Agent')} ${c.agent}` },
+    { value: 'you', label: `${t('You')} ${c.you}` },
+    { value: 'rejected', label: `${t('Rejected')} ${c.rejected}` },
   ];
   return (
     <GCard p={24} className="trd-g-log" aria-labelledby="trd-g-log">
       <GSectionHeader
         id="trd-g-log"
         size={22}
-        title="Trade log"
-        caption={c.all ? `${rows.length} of ${c.all}` : undefined}
-        action={c.all ? <GSegmented label="Filter the trade log" value={ui.log} onChange={ui.setLog} options={opts} className="trd-g-logseg" /> : undefined}
+        title={t('Trade log')}
+        caption={c.all ? t('{done} of {total}', { done: rows.length, total: c.all }) : undefined}
+        action={c.all ? <GSegmented label={t('Filter the trade log')} value={ui.log} onChange={ui.setLog} options={opts} className="trd-g-logseg" /> : undefined}
       />
       {c.all === 0 ? (
-        <GEmpty inline title="No trades yet." body="Every order the agent or you place in a fed account lands here with its rationale." />
+        <GEmpty inline title={t('No trades yet.')} body={t('Every order the agent or you place in a fed account lands here with its rationale.')} />
       ) : rows.length === 0 ? (
-        <GEmpty inline title="Nothing matches this filter." />
+        <GEmpty inline title={t('Nothing matches this filter.')} />
       ) : (
-        <GList divided label="Trades, newest first">
-          {rows.map((t) => (
+        <GList divided label={t('Trades, newest first')}>
+          {rows.map((trade) => (
             <GRow
-              key={t.id}
-              onClick={() => ui.setOpenTrade(t)}
-              leading={<GTag tone={t.action === 'buy' ? 'ok' : 'warn'}>{t.action === 'buy' ? 'Buy' : 'Sell'}</GTag>}
+              key={trade.id}
+              onClick={() => ui.setOpenTrade(trade)}
+              leading={<GTag tone={trade.action === 'buy' ? 'ok' : 'warn'}>{trade.action === 'buy' ? t('Buy') : t('Sell')}</GTag>}
               title={
                 <span className="trd-g-trade-title">
                   <span className="trd-g-sym">
-                    <span className="trd-g-act" data-side={t.action}>{t.action === 'buy' ? 'Buy ' : 'Sell '}</span>
-                    {tradeLine(t)}
+                    <span className="trd-g-act" data-side={trade.action}>{`${trade.action === 'buy' ? t('Buy') : t('Sell')} `}</span>
+                    {tradeLine(trade)}
                   </span>
-                  <GTag tone={statusTone[t.status]} size="xs">
-                    {statusLabel[t.status]}
+                  <GTag tone={statusTone[trade.status]} size="xs">
+                    {statusLabel[trade.status]}
                   </GTag>
                 </span>
               }
-              meta={t.rationale || 'No rationale given'}
+              meta={trade.rationale || t('No rationale given')}
               trailing={
                 <span className="trd-g-stack trd-g-who">
-                  <span>{whoOf(t)}</span>
-                  <span className="trd-g-muted">{ago(t.at, m.now)}</span>
+                  <span>{whoOf(trade)}</span>
+                  <span className="trd-g-muted">{ago(trade.at, m.now)}</span>
                 </span>
               }
             />
@@ -448,22 +449,22 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   );
 }
 
-function TradeSheet({ trade: t, onClose }: { trade: TradeActivity | null; onClose: () => void }) {
+function TradeSheet({ trade: tr, onClose }: { trade: TradeActivity | null; onClose: () => void }) {
   return (
-    <GSheet open={t !== null} onClose={onClose} title={t ? `${t.action === 'buy' ? 'Buy' : 'Sell'} ${t.symbol}` : ''} caption={t ? stamp(t.at) : undefined} width={560}>
-      {t && (
+    <GSheet open={tr !== null} onClose={onClose} title={tr ? `${tr.action === 'buy' ? t('Buy') : t('Sell')} ${tr.symbol}` : ''} caption={tr ? stamp(tr.at) : undefined} width={560}>
+      {tr && (
         <div className="trd-g-sheet">
           <GKeyValue
             items={[
-              { label: 'Order', value: tradeLine(t) },
-              { label: 'Notional', value: usd(t.quantity * t.priceUsd, true) },
-              { label: 'Status', value: <GTag tone={statusTone[t.status]}>{statusLabel[t.status]}</GTag> },
-              { label: 'Who', value: whoOf(t) },
-              { label: 'Account', value: t.accountId === 'agentic' ? 'Agentic sleeve' : cap(t.accountId) },
+              { label: t('Order'), value: tradeLine(tr) },
+              { label: t('Notional'), value: usd(tr.quantity * tr.priceUsd, true) },
+              { label: t('Status'), value: <GTag tone={statusTone[tr.status]}>{statusLabel[tr.status]}</GTag> },
+              { label: t('Who'), value: whoOf(tr) },
+              { label: t('Account'), value: tr.accountId === 'agentic' ? t('Agentic sleeve') : cap(tr.accountId) },
             ]}
           />
           <GWell>
-            <p className="trd-g-rationale">{t.rationale || 'No rationale given.'}</p>
+            <p className="trd-g-rationale">{tr.rationale || t('No rationale given.')}</p>
           </GWell>
         </div>
       )}
@@ -474,21 +475,21 @@ function TradeSheet({ trade: t, onClose }: { trade: TradeActivity | null; onClos
 function OpenOrders({ orders, now }: { orders: TradingOrder[]; now: number }) {
   return (
     <GCard p={24} className="trd-g-orders" aria-labelledby="trd-g-orders">
-      <GSectionHeader id="trd-g-orders" size={22} title="Open orders" caption={orders.length ? `${orders.length} working` : 'Nothing working'} />
+      <GSectionHeader id="trd-g-orders" size={22} title={t('Open orders')} caption={orders.length ? t('{n} working', { n: orders.length }) : t('Nothing working')} />
       {orders.length === 0 ? (
-        <GEmpty inline title="No live orders at the broker." />
+        <GEmpty inline title={t('No live orders at the broker.')} />
       ) : (
-        <GList divided label="Working orders">
+        <GList divided label={t('Working orders')}>
           {orders.map((o) => (
             <GRow
               key={o.id}
-              leading={<GTag tone={o.side === 'buy' ? 'ok' : 'warn'}>{o.side === 'buy' ? 'Buy' : 'Sell'}</GTag>}
+              leading={<GTag tone={o.side === 'buy' ? 'ok' : 'warn'}>{o.side === 'buy' ? t('Buy') : t('Sell')}</GTag>}
               title={
                 <span className="trd-g-sym">
                   {o.symbol} {o.dollarAmountUsd !== null ? usd(o.dollarAmountUsd, true) : `${qty(o.quantity)}${o.limitPriceUsd !== null ? ` @ ${usd(o.limitPriceUsd, true)}` : ''}`}
                 </span>
               }
-              meta={`${cap(o.type)} · ${o.filledQuantity ? `${qty(o.filledQuantity)} filled · ` : ''}${o.placedAgent || 'Unknown'} · ${ago(o.createdAt, now)}`}
+              meta={`${cap(o.type)} · ${o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}${o.placedAgent || t('Unknown')} · ${ago(o.createdAt, now)}`}
               trailing={<GTag>{cap(o.state)}</GTag>}
             />
           ))}
@@ -502,7 +503,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const L = ui.limits;
   return (
     <GCard p={24} className="trd-g-limits" aria-labelledby="trd-g-limits">
-      <GSectionHeader id="trd-g-limits" size={22} title="Agent limits" caption={m.limits.savedLabel} />
+      <GSectionHeader id="trd-g-limits" size={22} title={t('Agent limits')} caption={m.limits.savedLabel} />
       <form
         className="trd-g-limits-form"
         noValidate
@@ -518,10 +519,10 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
                 id={`trd-g-${f.key}`}
                 inputMode="decimal"
                 value={L.values[f.key] ?? ''}
-                placeholder="Not set"
+                placeholder={t('Not set')}
                 invalid={Boolean(L.fieldError(f.key))}
                 disabled={m.readOnly}
-                title={m.readOnly ? (m.readOnlyReason ?? undefined) : `${f.min.toLocaleString('en-US')} to ${f.max.toLocaleString('en-US')}`}
+                title={m.readOnly ? (m.readOnlyReason ?? undefined) : t('{from} to {to}', { from: f.min.toLocaleString(localeTag()), to: f.max.toLocaleString(localeTag()) })}
                 onChange={(e) => L.setValue(f.key, e.target.value)}
                 onBlur={() => L.blur(f.key)}
               />
@@ -534,14 +535,14 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
             onCheckedChange={(next) => void ui.autopilot.setAutopilot(next)}
             disabled={Boolean(ui.autopilot.reason) || ui.autopilot.switching}
             disabledReason={ui.autopilot.reason}
-            aria-label="Autopilot"
+            aria-label={t('Autopilot')}
           >
-            Autopilot
+            {t('Autopilot')}
           </GToggle>
           <p className="trd-g-muted">
             {ui.autopilot.on
-              ? 'On: the Markets agent may place real orders inside these limits.'
-              : 'Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.'}
+              ? t('On: the Markets agent may place real orders inside these limits.')
+              : t('Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.')}
           </p>
         </div>
         {L.saveError && (
@@ -549,7 +550,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
         )}
         <div className="trd-g-save">
           <GButton variant="ink" type="submit" busy={L.saving} disabled={Boolean(L.saveReason)} disabledReason={L.saveReason}>
-            Save
+            {t('Save')}
           </GButton>
         </div>
       </form>

@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, BrainCircuit, Upload } from 'lucide-react';
 import type { Venture } from '@/lib/ventures';
+import { t } from '@/lib/i18n';
 
 const FOLDERS = ['inbox', 'ideas', 'people', 'companies', 'meetings', 'projects', 'writing'];
 
@@ -107,12 +108,12 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
         body: JSON.stringify({ text, title: title || undefined, folder, tags }),
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error?.toString() ?? 'save failed');
+      if (!res.ok) throw new Error(body.error?.toString() ?? t('save failed'));
       setStatus({ kind: 'saved', detail: body.relPath, embedded: body.embedded, slug: body.slug });
       setText('');
       setTitle('');
     } catch (err) {
-      setStatus({ kind: 'error', detail: err instanceof Error ? err.message : 'save failed' });
+      setStatus({ kind: 'error', detail: err instanceof Error ? err.message : t('save failed') });
     }
   };
 
@@ -122,7 +123,7 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
     const texty = files.filter((f) => TEXTY.test(f.name) || f.type.startsWith('text/'));
     const skipped = files.length - texty.length;
     if (texty.length === 0) {
-      setStatus({ kind: 'error', detail: 'only text documents for now (.md .txt .csv .json …)' });
+      setStatus({ kind: 'error', detail: t('only text documents for now (.md .txt .csv .json …)') });
       return;
     }
     setStatus({ kind: 'saving' });
@@ -130,7 +131,7 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
     let embedded = 0;
     try {
       for (const f of texty) {
-        if (f.size > MAX_DOC_BYTES) throw new Error(`${f.name} is over 1MB`);
+        if (f.size > MAX_DOC_BYTES) throw new Error(t('{name} is over 1MB', { name: f.name }));
         const content = await f.text();
         if (!content.trim()) continue;
         const res = await fetch('/api/brain/dump', {
@@ -139,17 +140,17 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
           body: JSON.stringify({ text: content, title: f.name.replace(/\.[^.]+$/, ''), folder, tags }),
         });
         const body = await res.json();
-        if (!res.ok) throw new Error(body.error?.toString() ?? `saving ${f.name} failed`);
+        if (!res.ok) throw new Error(body.error?.toString() ?? t('saving {name} failed', { name: f.name }));
         saved += 1;
         if (body.embedded) embedded += 1;
       }
       setStatus({
         kind: 'saved',
-        detail: `${saved} doc${saved === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped (not text)` : ''}`,
+        detail: `${saved === 1 ? t('{n} doc', { n: saved }) : t('{n} docs', { n: saved })}${skipped ? ` · ${t('{n} skipped (not text)', { n: skipped })}` : ''}`,
         embedded: embedded === saved,
       });
     } catch (err) {
-      setStatus({ kind: 'error', detail: err instanceof Error ? err.message : 'ingest failed' });
+      setStatus({ kind: 'error', detail: err instanceof Error ? err.message : t('ingest failed') });
     }
   };
 
@@ -169,12 +170,12 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
   if (compact && g) {
     const statusText =
       status.kind === 'saving'
-        ? 'Saving…'
+        ? t('Saving…')
         : status.kind === 'saved'
-          ? `${status.embedded ? 'Embedded' : 'Saved'} · ${status.slug ?? status.detail}`
+          ? `${status.embedded ? t('Embedded') : t('Saved')} · ${status.slug ?? status.detail}`
           : status.kind === 'error'
-            ? (status.detail ?? 'Save failed')
-            : 'Type, talk, drop or upload. Cmd Enter saves.';
+            ? (status.detail ?? t('Save failed'))
+            : t('Type, talk, drop or upload. Cmd Enter saves.');
     return (
       <div {...dropProps} className="kg-dump" data-drag={dragOver || undefined}>
         <textarea
@@ -184,8 +185,8 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save();
           }}
           rows={2}
-          aria-label="Dump into the brain"
-          placeholder={dragOver ? 'Drop it: one note per document' : 'Dump into the brain, or drop documents'}
+          aria-label={t('Dump into the brain')}
+          placeholder={dragOver ? t('Drop it: one note per document') : t('Dump into the brain, or drop documents')}
           className="g-input kg-dump-text"
           data-g="GTextarea"
         />
@@ -208,15 +209,15 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
             {statusText}
           </span>
           {supported && (
-            <button type="button" className="g-btn" data-variant="icon" data-size="sm" aria-pressed={listening} onClick={listening ? stopListening : startListening} aria-label={listening ? 'Stop dictation' : 'Start dictation'} title={listening ? 'Stop dictation' : 'Start dictation'}>
+            <button type="button" className="g-btn" data-variant="icon" data-size="sm" aria-pressed={listening} onClick={listening ? stopListening : startListening} aria-label={listening ? t('Stop dictation') : t('Start dictation')} title={listening ? t('Stop dictation') : t('Start dictation')}>
               {listening ? <MicOff size={13} strokeWidth={1.8} aria-hidden="true" /> : <Mic size={13} strokeWidth={1.8} aria-hidden="true" />}
             </button>
           )}
-          <button type="button" className="g-btn" data-size="sm" onClick={() => fileRef.current?.click()} title="Choose documents to upload">
-            <Upload size={12} strokeWidth={1.8} aria-hidden="true" /> Upload
+          <button type="button" className="g-btn" data-size="sm" onClick={() => fileRef.current?.click()} title={t('Choose documents to upload')}>
+            <Upload size={12} strokeWidth={1.8} aria-hidden="true" /> {t('Upload')}
           </button>
-          <button type="button" className="g-btn" data-variant="ink" data-size="sm" onClick={save} disabled={!text.trim() || status.kind === 'saving'} title={!text.trim() ? 'Type something first' : undefined}>
-            Save
+          <button type="button" className="g-btn" data-variant="ink" data-size="sm" onClick={save} disabled={!text.trim() || status.kind === 'saving'} title={!text.trim() ? t('Type something first') : undefined}>
+            {t('Save')}
           </button>
         </div>
       </div>
@@ -243,13 +244,13 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save();
             }}
             rows={2}
-            placeholder={dragOver ? 'drop it — one note per document' : 'dump into the brain… or drop documents'}
+            placeholder={dragOver ? t('drop it — one note per document') : t('dump into the brain… or drop documents')}
             className="w-full resize-none border-0 bg-transparent px-1.5 py-1 pr-9 text-[13px] leading-relaxed text-os-text placeholder:text-os-dim focus:outline-none"
           />
           {supported && (
             <button
               onClick={listening ? stopListening : startListening}
-              title={listening ? 'Stop dictation' : 'Start dictation'}
+              title={listening ? t('Stop dictation') : t('Start dictation')}
               className={`absolute right-0 top-0 flex h-6 w-6 items-center justify-center rounded-sm-t border transition-colors ${
                 listening
                   ? 'animate-pulse border-os-err bg-os-err text-white'
@@ -277,27 +278,27 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
         <div className="mt-1.5 flex items-center gap-2.5 border-t border-os-border px-1.5 pt-1.5">
           <span className="min-w-0 flex-1 truncate text-[11.5px] text-os-dim">
             {status.kind === 'saving'
-              ? 'Saving…'
+              ? t('Saving…')
               : status.kind === 'saved'
-                ? `✓ ${status.embedded ? 'Embedded' : 'Saved'} · ${status.slug ?? status.detail}`
+                ? `✓ ${status.embedded ? t('Embedded') : t('Saved')} · ${status.slug ?? status.detail}`
                 : status.kind === 'error'
                   ? `✗ ${status.detail}`
-                  : 'Text · voice · drag or upload'}
+                  : t('Text · voice · drag or upload')}
           </span>
           <button
             onClick={() => fileRef.current?.click()}
-            title="Choose documents to upload"
+            title={t('Choose documents to upload')}
             className="flex shrink-0 items-center gap-1 rounded-sm-t border border-os-border-strong bg-os-surface2 px-2 py-0.5 text-[11.5px] text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text"
           >
             <Upload className="h-3 w-3" strokeWidth={1.7} />
-            Upload
+            {t('Upload')}
           </button>
           <button
             onClick={save}
             disabled={!text.trim() || status.kind === 'saving'}
             className="shrink-0 rounded-sm-t bg-os-accent px-2.5 py-0.5 text-[11.5px] font-medium text-os-ink transition-colors hover:bg-os-accent2 disabled:opacity-30"
           >
-            Save
+            {t('Save')}
           </button>
         </div>
       </div>
@@ -311,9 +312,9 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
     >
       <div className="flex items-center gap-3">
         <BrainCircuit className="h-4 w-4 text-os-muted" strokeWidth={1.6} />
-        <h3 className="text-sm font-medium">Brain dump</h3>
+        <h3 className="text-sm font-medium">{t('Brain dump')}</h3>
         <span className="text-[12.5px] text-os-dim">
-          speak, type, or drop documents → saved to the brain-store & embedded into Optimal Engine
+          {t('speak, type, or drop documents → saved to the brain-store & embedded into Optimal Engine')}
         </span>
       </div>
 
@@ -322,7 +323,7 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (optional — derived from first words)"
+            placeholder={t('Title (optional — derived from first words)')}
             className="flex-1 rounded-sm-t border border-os-border bg-os-surface2 px-3 py-3 text-xs text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
           />
           <select
@@ -341,13 +342,13 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={4}
-            placeholder={supported ? 'Dump it here, or hit the mic and just talk…' : 'Type your dump (voice needs Chrome/Safari)…'}
+            placeholder={supported ? t('Dump it here, or hit the mic and just talk…') : t('Type your dump (voice needs Chrome/Safari)…')}
             className="w-full resize-y rounded-sm-t border border-os-border bg-os-surface2 px-3 py-3 pr-12 text-sm leading-relaxed text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
           />
           {supported && (
             <button
               onClick={listening ? stopListening : startListening}
-              title={listening ? 'Stop dictation' : 'Start dictation'}
+              title={listening ? t('Stop dictation') : t('Start dictation')}
               className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-sm-t border transition-colors ${
                 listening
                   ? 'animate-pulse border-os-err bg-os-err text-white'
@@ -360,13 +361,13 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[11.5px] text-os-dim">Tag venture</span>
+          <span className="text-[11.5px] text-os-dim">{t('Tag venture')}</span>
           {ventures.map((v) => {
             const on = tags.includes(v.brainTag);
             return (
               <button
                 key={v.id}
-                onClick={() => setTags((prev) => (on ? prev.filter((t) => t !== v.brainTag) : [...prev, v.brainTag]))}
+                onClick={() => setTags((prev) => (on ? prev.filter((tag) => tag !== v.brainTag) : [...prev, v.brainTag]))}
                 className={`flex items-center gap-1 rounded-[6px] border px-2 py-0.5 text-[11.5px] transition-colors ${
                   on ? 'text-os-ink' : 'border-os-border-strong bg-os-surface2 text-os-muted hover:bg-os-surface3 hover:text-os-text'
                 }`}
@@ -382,7 +383,7 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
             disabled={!text.trim() || status.kind === 'saving'}
             className="ml-auto rounded-sm-t bg-os-accent px-4 py-2.5 text-xs font-medium text-os-ink transition-colors hover:bg-os-accent2 disabled:opacity-30"
           >
-            {status.kind === 'saving' ? 'Saving…' : 'Save to brain'}
+            {status.kind === 'saving' ? t('Saving…') : t('Save to brain')}
           </button>
         </div>
 
@@ -390,8 +391,8 @@ export function BrainDump({ compact = false, g = false }: { compact?: boolean; g
           <p className="flex items-center gap-2.5 text-[12.5px] text-os-muted">
             <span className="dot ok" />
             {status.embedded
-              ? `Saved & embedded → ${status.slug ?? status.detail} — retrievable by agents now`
-              : `Saved → brain-store/${status.detail} — embed pending (Optimal Engine unreachable, will sync later)`}
+              ? t('Saved & embedded → {slug} — retrievable by agents now', { slug: status.slug ?? status.detail ?? '' })
+              : t('Saved → brain-store/{detail} — embed pending (Optimal Engine unreachable, will sync later)', { detail: status.detail ?? '' })}
           </p>
         )}
         {status.kind === 'error' && (

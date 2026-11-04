@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { entryKey, type DigestEntry } from '@/lib/comms-digest';
 import type { DigestPanelData, RecordingsData } from '@/lib/comms-extras';
 import { useToast } from '@/components/ui/Toast';
+import { t, localeTag } from '@/lib/i18n';
 
 /** Fired when the digest is marked read, so the sidebar's unread dot clears at once. */
 export const DIGEST_READ_EVENT = 'glados:digest-read';
@@ -47,13 +48,13 @@ export function useDigestReads(data: DigestPanelData) {
       const ok = await post('POST', key);
       if (!ok) {
         setCleared((c) => c.filter((k) => k !== key));
-        toast({ text: 'Could not clear that entry. Try again.', tone: 'err' });
+        toast({ text: t('Could not clear that entry. Try again.'), tone: 'err' });
         return;
       }
       toast({
-        text: data.sample ? `Cleared ${e.sender} (sample, not saved)` : `Cleared ${e.sender}`,
+        text: data.sample ? t('Cleared {name} (sample, not saved)', { name: e.sender }) : t('Cleared {name}', { name: e.sender }),
         action: {
-          label: 'Undo',
+          label: t('Undo'),
           onClick: async () => {
             setCleared((c) => c.filter((k) => k !== key));
             await post('DELETE', key);
@@ -102,8 +103,8 @@ export function useRecordings(initial: RecordingsData, active: boolean) {
 }
 
 /** "07:12" in the viewer's clock. */
-export const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+export const hhmm = (iso: string) => new Date(iso).toLocaleTimeString(localeTag(), { hour: 'numeric', minute: '2-digit' });
 /** "Mon 12 Oct" */
-export const dayLabel = (iso: string) => new Date(iso).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+export const dayLabel = (iso: string) => new Date(iso).toLocaleDateString(localeTag(), { weekday: 'short', day: 'numeric', month: 'short' });
 /** Slack ts ("1712345678.000100") to ISO. */
 export const slackIso = (ts: string) => new Date(Number(ts) * 1000).toISOString();

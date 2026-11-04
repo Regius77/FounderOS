@@ -2,6 +2,7 @@
  * The only place a Content Lab number becomes text (01 5.5, SPEC.md C7). Pure; safe in the browser.
  * Ratios always print one decimal; negatives use U+2212; no output ever holds U+2013 or U+2014.
  */
+import { t } from '@/lib/i18n';
 
 export const MINUS = '−';
 
@@ -16,7 +17,7 @@ export function fmtRatio(x: number): string {
 
 /** 1.6x to 3.1x */
 export function fmtRange(lo: number, hi: number): string {
-  return `${fmtRatio(lo)} to ${fmtRatio(hi)}`;
+  return t('{from} to {to}', { from: fmtRatio(lo), to: fmtRatio(hi) });
 }
 
 /** 0, 999, 1.2k, 12k, 1.4M */
@@ -38,8 +39,8 @@ export function fmtAge(hours: number): string {
   if (h < 1) return '<1h';
   if (h < 48) return `${Math.floor(h)}h`;
   const d = h / 24;
-  if (d < 21) return `${Math.floor(d)}d`;
-  return `${Math.floor(d / 7)}w`;
+  if (d < 21) return t('{n}d', { n: Math.floor(d) });
+  return t('{n}w', { n: Math.floor(d / 7) });
 }
 
 /** $0.42, $8.20, $30.00 */
@@ -76,7 +77,7 @@ export function fmtClock(iso: string, tz?: string): string {
   return `${hh.padStart(2, '0')}:${get('minute').padStart(2, '0')}`;
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = t('Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec').split(',');
 
 /** 21 Sep (local zone). */
 export function fmtDayMonth(iso: string, tz?: string): string {

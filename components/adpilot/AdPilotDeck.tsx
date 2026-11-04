@@ -1,6 +1,6 @@
 'use client';
 
-import { t } from '@/lib/i18n';
+import { localeTag, t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
@@ -43,7 +43,7 @@ const Globe = dynamic(() => import('@/components/adpilot/Globe').then((m) => m.G
   loading: () => <div className="h-[560px] w-full" />,
 });
 
-const nf = new Intl.NumberFormat('en-US');
+const nf = new Intl.NumberFormat(localeTag());
 const money = (v: number) => `$${nf.format(Math.round(v))}`;
 const money2 = (v: number | null) => (v === null ? '—' : `$${v.toFixed(2)}`);
 const times = (v: number | null) => (v === null ? '—' : `${v.toFixed(2)}x`);

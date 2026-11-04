@@ -11,6 +11,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2, Clock } from 'lucide-react';
 import { describeCron } from '@/lib/cron';
 import type { AgentCron, AgentTask } from '@/lib/schemas';
 import { FailoverClassic } from '@/components/agents-fo/AgentsFoClassic';
+import { t } from '@/lib/i18n';
 
 // Click cycles the status. `blocked` is set deliberately (it means "waiting on
 // you"), so the cycle leaves it rather than stepping through it.
@@ -26,6 +27,13 @@ const STATUS_STYLE: Record<AgentTask['status'], string> = {
   doing: 'bg-os-text text-os-bg',
   blocked: 'border border-[var(--warn)] text-[var(--warn)]',
   done: 'border border-os-border text-os-dim line-through',
+};
+
+const STATUS_LABEL: Record<AgentTask['status'], string> = {
+  open: t('open'),
+  doing: t('doing'),
+  blocked: t('blocked'),
+  done: t('done'),
 };
 
 export function AgentWorkPanel({
@@ -57,7 +65,7 @@ export function AgentWorkPanel({
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(typeof json.error === 'string' ? json.error : 'request failed');
+      setError(typeof json.error === 'string' ? json.error : t('request failed'));
       return null;
     }
     return json;
@@ -75,12 +83,12 @@ export function AgentWorkPanel({
   const cycleTask = async (task: AgentTask) => {
     const status = STATUS_NEXT[task.status];
     if (await api('PATCH', { kind: 'task', id: task.id, status })) {
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)));
+      setTasks((prev) => prev.map((item) => (item.id === task.id ? { ...item, status } : item)));
     }
   };
 
   const removeTask = async (id: string) => {
-    if (await api('DELETE', { kind: 'task', id })) setTasks((prev) => prev.filter((t) => t.id !== id));
+    if (await api('DELETE', { kind: 'task', id })) setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
   const addCron = async () => {
@@ -103,7 +111,7 @@ export function AgentWorkPanel({
     if (await api('DELETE', { kind: 'cron', id })) setCrons((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const openCount = tasks.filter((t) => t.status !== 'done').length;
+  const openCount = tasks.filter((task) => task.status !== 'done').length;
   const cronCount = crons.filter((c) => c.enabled).length;
 
   return (
@@ -113,7 +121,7 @@ export function AgentWorkPanel({
         className="flex w-full items-center gap-2.5 text-[12.5px] text-os-dim transition-colors hover:text-os-text"
       >
         {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        Manage · {openCount} open {openCount === 1 ? 'task' : 'tasks'} · {cronCount} {cronCount === 1 ? 'cron' : 'crons'}
+        {t('Manage')} · {openCount === 1 ? t('{n} open task', { n: openCount }) : t('{n} open tasks', { n: openCount })} · {cronCount === 1 ? t('{n} cron', { n: cronCount }) : t('{n} crons', { n: cronCount })}
       </button>
 
       {open && (
@@ -123,13 +131,13 @@ export function AgentWorkPanel({
 
           {/* tasks */}
           <div>
-            <div className="mb-1 text-[12px] text-os-muted">Tasks</div>
+            <div className="mb-1 text-[12px] text-os-muted">{t('Tasks')}</div>
             <div className="flex gap-2.5">
               <input
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                placeholder="New task…"
+                placeholder={t('New task…')}
                 className="min-w-0 flex-1 rounded-sm-t border border-os-border bg-os-surface2 px-2 py-1 text-[12.5px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
               />
               <button onClick={addTask} className="rounded-sm-t border border-os-border-strong bg-os-surface2 px-1.5 text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text">
@@ -141,10 +149,10 @@ export function AgentWorkPanel({
                 <li key={task.id} className="flex items-center gap-2.5 text-[12.5px]">
                   <button
                     onClick={() => cycleTask(task)}
-                    title="Click to advance: open → doing → done"
+                    title={t('Click to advance: open → doing → done')}
                     className={`shrink-0 rounded-[6px] px-1.5 py-0.5 text-[11px] ${STATUS_STYLE[task.status]}`}
                   >
-                    {task.status}
+                    {STATUS_LABEL[task.status]}
                   </button>
                   <span className={`min-w-0 truncate ${task.status === 'done' ? 'text-os-dim line-through' : 'text-os-muted'}`}>
                     {task.title}
@@ -154,14 +162,14 @@ export function AgentWorkPanel({
                   </button>
                 </li>
               ))}
-              {tasks.length === 0 && <li className="text-[11.5px] text-os-dim">no tasks yet</li>}
+              {tasks.length === 0 && <li className="text-[11.5px] text-os-dim">{t('no tasks yet')}</li>}
             </ul>
           </div>
 
           {/* crons */}
           <div>
             <div className="mb-1 flex items-center gap-1.5 text-[12px] text-os-muted">
-              <Clock className="h-3 w-3" /> Cron jobs
+              <Clock className="h-3 w-3" /> {t('Cron jobs')}
             </div>
             <div className="flex gap-2.5">
               <input
@@ -174,7 +182,7 @@ export function AgentWorkPanel({
                 value={cronDesc}
                 onChange={(e) => setCronDesc(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addCron()}
-                placeholder="What it should do…"
+                placeholder={t('What it should do…')}
                 className="min-w-0 flex-1 rounded-sm-t border border-os-border bg-os-surface2 px-2 py-1 text-[12.5px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
               />
               <button onClick={addCron} className="rounded-sm-t border border-os-border-strong bg-os-surface2 px-1.5 text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text">
@@ -186,12 +194,12 @@ export function AgentWorkPanel({
                 <li key={cron.id} className="flex items-center gap-2.5 text-[12.5px]">
                   <button
                     onClick={() => toggleCron(cron)}
-                    title={cron.enabled ? 'Disable' : 'Enable'}
+                    title={cron.enabled ? t('Disable') : t('Enable')}
                     className={`shrink-0 rounded-[6px] px-1.5 py-0.5 text-[11px] ${
                       cron.enabled ? 'bg-os-text text-os-bg' : 'border border-os-border text-os-dim'
                     }`}
                   >
-                    {cron.enabled ? 'on' : 'off'}
+                    {cron.enabled ? t('on') : t('off')}
                   </button>
                   <code className="shrink-0 text-[11.5px] text-os-dim">{cron.schedule}</code>
                   <span className="min-w-0 truncate text-os-muted" title={cron.description}>
@@ -202,10 +210,10 @@ export function AgentWorkPanel({
                   </button>
                 </li>
               ))}
-              {crons.length === 0 && <li className="text-[11.5px] text-os-dim">no cron jobs yet</li>}
+              {crons.length === 0 && <li className="text-[11.5px] text-os-dim">{t('no cron jobs yet')}</li>}
             </ul>
             <p className="mt-1.5 text-[11.5px] leading-relaxed text-os-dim">
-              Schedules are stored and versioned here; the runner process ships with the dedicated host deploy.
+              {t('Schedules are stored and versioned here; the runner process ships with the dedicated host deploy.')}
             </p>
           </div>
         </div>

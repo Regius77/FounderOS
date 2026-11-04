@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { X } from 'lucide-react';
 import { GButton } from '@/components/g/Controls';
 import { useUiStyle } from '@/lib/use-ui-style';
+import { t } from '@/lib/i18n';
 
 /**
  * Shared toasts (SPEC X2). One provider is mounted in app/layout.tsx; any
@@ -219,7 +220,7 @@ export function ToastPill({ item: t, onDismiss }: { item: ToastItem; onDismiss: 
             {t.action.label}
           </button>
         ))}
-      <button type="button" className="ui-toast-close" aria-label="Dismiss notification" onClick={() => onDismiss(t.id)}>
+      <button type="button" className="ui-toast-close" aria-label={t('Dismiss notification')} onClick={() => onDismiss(t.id)}>
         <X size={14} strokeWidth={1.75} aria-hidden />
       </button>
     </div>

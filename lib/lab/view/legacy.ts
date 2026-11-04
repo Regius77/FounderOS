@@ -46,6 +46,7 @@ import { angleStats, clusterAngleRows } from '@/lib/lab/trends';
 import { sectionBudgets } from '@/lib/lab/gate';
 import { spendMeter, type SpendMeter } from '@/lib/lab/spend';
 import type { LabDryReason } from '@/lib/lab/dry';
+import { t } from '@/lib/i18n';
 
 /**
  * THE VIEW CONTRACT (docs/projects/content-lab/CONTRACT.md). Every Content Lab surface,
@@ -483,7 +484,7 @@ export const beatToken = (t: LabBeatType): string => `--lab-beat-${t}`;
 /** A beat's display label ("CTA" stays an acronym; the rest are sentence case). */
 export const beatLabel = (t: LabBeatType): string => (t === 'cta' ? 'CTA' : humanize(t));
 export const PLATFORM_LABEL: Record<string, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X', hn: 'Hacker News', reddit: 'Reddit', producthunt: 'Product Hunt', google_trends: 'Google Trends', changelog: 'Changelogs', keyword_search: 'Keyword search' };
-export const QUADRANT_LABEL: Record<LabQuadrant, string> = { ideal: 'Ideal', loyal: 'Loyal', clickbait: 'Clickbait', dud: 'Dud' };
+export const QUADRANT_LABEL: Record<LabQuadrant, string> = { ideal: t('Ideal'), loyal: t('Loyal'), clickbait: t('Clickbait'), dud: t('Dud') };
 export const familyLabel = (f: string) => (FORMAT_LABEL as Record<string, string>)[f] ?? humanize(f);
 const pct1 = (x: number) => `${(Math.round(x * 1000) / 10).toFixed(1)}%`;
 const money = (x: number | null) => (x === null ? null : `$${x.toFixed(2)}`);

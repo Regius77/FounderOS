@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useMemo, useState } from 'react';
 import { Copy, Download } from 'lucide-react';
 import type { Campaign } from '@/lib/creative-engine/schemas';
@@ -19,7 +20,7 @@ export function Briefings({ campaign, initialBriefId, readOnly = false, onStatus
   const [copied, setCopied] = useState(false);
   const g = useG();
   const html = useMemo(() => (brief ? renderMarkdown(brief.markdown) : ''), [brief]);
-  if (!brief) return <Empty line1="No briefs yet." line2="Approve a script in the Ad scripter and choose Make a brief. Each brief carries its proof table." action={onScripter ? { label: 'Open the Ad scripter', onClick: onScripter } : undefined} />;
+  if (!brief) return <Empty line1={t('No briefs yet.')} line2={t('Approve a script in the Ad scripter and choose Make a brief. Each brief carries its proof table.')} action={onScripter ? { label: t('Open the Ad scripter'), onClick: onScripter } : undefined} />;
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(brief.markdown); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* blocked */ }
@@ -38,9 +39,9 @@ export function Briefings({ campaign, initialBriefId, readOnly = false, onStatus
       <div className="flex flex-wrap items-center gap-1.5">
         {briefs.map((b) => (<Chip key={b.id} active={brief.id === b.id} onClick={() => setActiveId(b.id)}>{b.title.split(' — ')[0].slice(0, 34)}</Chip>))}
         <span className="ml-auto flex flex-wrap items-center gap-1.5">
-          {onStatus && <BriefStatusControl status={brief.status} disabled={readOnly} disabledReason="Sample data: actions are off" onChange={(st) => onStatus(brief.id, st)} />}
-          <Btn size="sm" onClick={copy}><Copy className="h-3.5 w-3.5" strokeWidth={1.8} /> {copied ? 'Copied' : 'Copy markdown'}</Btn>
-          <Btn size="sm" onClick={download}><Download className="h-3.5 w-3.5" strokeWidth={1.8} /> Download</Btn>
+          {onStatus && <BriefStatusControl status={brief.status} disabled={readOnly} disabledReason={t('Sample data: actions are off')} onChange={(st) => onStatus(brief.id, st)} />}
+          <Btn size="sm" onClick={copy}><Copy className="h-3.5 w-3.5" strokeWidth={1.8} /> {copied ? t('Copied') : t('Copy markdown')}</Btn>
+          <Btn size="sm" onClick={download}><Download className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('Download')}</Btn>
         </span>
       </div>
       <div className="mt-4 grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -49,21 +50,21 @@ export function Briefings({ campaign, initialBriefId, readOnly = false, onStatus
             // A readout card, not a hero: the page behind the sheet already holds its two (C22), and the
             // only glow in the kit is a GHeroCard's.
             <GCardRaised p={20}>
-              <div className="text-[12.5px] text-[var(--g-muted)]">Median longevity of the proof set</div>
-              <div className="mt-3"><GBigNumber value={brief.proof.medianDays ?? null} unit="days live" /></div>
-              <div className="mt-4"><GRuler value={brief.proof.medianDays} max={90} ticks={30} label={brief.proof.medianDays === null ? 'No proof ads' : `Median ${brief.proof.medianDays} days live on a 0 to 90 day scale`} /></div>
+              <div className="text-[12.5px] text-[var(--g-muted)]">{t('Median longevity of the proof set')}</div>
+              <div className="mt-3"><GBigNumber value={brief.proof.medianDays ?? null} unit={t('days live')} /></div>
+              <div className="mt-4"><GRuler value={brief.proof.medianDays} max={90} ticks={30} label={brief.proof.medianDays === null ? t('No proof ads') : t('Median {value} days live on a 0 to {max} day scale', { value: brief.proof.medianDays, max: 90 })} /></div>
             </GCardRaised>
           ) : (
             <div className="ae-hero ae-hero-green p-5">
-              <div className="text-[12.5px] text-[var(--p-on-hero-dim)]">Median longevity of the proof set</div>
-              <div className="mt-3 text-[40px] font-light leading-none">{brief.proof.medianDays ?? '—'}<span className="ml-2 text-[13px] text-[var(--p-on-hero-dim)]">days live</span></div>
+              <div className="text-[12.5px] text-[var(--p-on-hero-dim)]">{t('Median longevity of the proof set')}</div>
+              <div className="mt-3 text-[40px] font-light leading-none">{brief.proof.medianDays ?? '—'}<span className="ml-2 text-[13px] text-[var(--p-on-hero-dim)]">{t('days live')}</span></div>
               <div className="mt-4 ae-ruler">{Array.from({ length: 30 }, (_, i) => { const m = brief.proof.medianDays === null ? -1 : Math.round(Math.min(1, brief.proof.medianDays / 90) * 29); return <i key={i} className={i === m ? 'mark' : i % 5 === 0 ? 'tall' : ''} style={{ height: i === m ? 22 : i % 5 === 0 ? 14 : 8 }} />; })}</div>
             </div>
           )}
-          <div className="ae-card-2 p-4"><div className="ae-cap mb-2">Driver fingerprint</div><Drivers drivers={brief.proof.drivers} top={3} /></div>
+          <div className="ae-card-2 p-4"><div className="ae-cap mb-2">{t('Driver fingerprint')}</div><Drivers drivers={brief.proof.drivers} top={3} /></div>
           {brief.proof.ads.map((a) => (
             <div key={a.id} className="ae-card-2 p-4">
-              <div className="flex items-baseline justify-between gap-2"><span className="text-[13.5px]">{a.brand}</span><span className="ae-faint tabular-nums">{a.daysRunning} days · {a.live ? 'live' : 'paused'}{a.duplicates != null ? ` · ${a.duplicates} copies` : ''}</span></div>
+              <div className="flex items-baseline justify-between gap-2"><span className="text-[13.5px]">{a.brand}</span><span className="ae-faint tabular-nums">{t('{n} days', { n: a.daysRunning })} · {a.live ? t('live') : t('paused')}{a.duplicates != null ? t(' · {n} copies', { n: a.duplicates }) : ''}</span></div>
               {a.hook && <div className="ae-cap mt-1">“{a.hook}”</div>}
             </div>
           ))}

@@ -7,13 +7,14 @@ import { activeHref, groupOf, NAV_ITEMS } from '@/lib/nav';
 import { isLegacyWorkspace } from '@/lib/l-ready';
 import { useUiStyle } from '@/lib/use-ui-style';
 import type { UiStyle } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 /** The slab eyebrow for a route: `// <GROUP> · <PRODUCT>`, from the nav (single source) and BRAND. */
 export function legacyEyebrow(pathname: string): string {
   const href = activeHref(pathname);
   const group = href ? groupOf(href) : undefined;
   const item = href ? NAV_ITEMS.find((i) => i.href === href) : undefined;
-  const head = group?.title ?? item?.label ?? 'Operator';
+  const head = group?.title ?? item?.label ?? t('Operator');
   return `// ${head} · ${BRAND.name}`.toUpperCase();
 }
 

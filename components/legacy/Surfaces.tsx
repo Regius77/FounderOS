@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { CountUp } from './CountUp';
 import { cx, insightTicks, isKnown, type CountKind } from './format';
+import { t } from '@/lib/i18n';
 
 /**
  * Bennett Legacy surfaces (FounderOS kit Slab, SlabTitle, SlabCard,
@@ -114,14 +115,14 @@ export function InsightCard({
             {badge}
           </span>
           <div className="l-insight-value">
-            {display != null ? display : isKnown(value) ? <CountUp value={value} kind={kind} /> : <span data-unknown>unknown</span>}
+            {display != null ? display : isKnown(value) ? <CountUp value={value} kind={kind} /> : <span data-unknown>{t('unknown')}</span>}
           </div>
         </div>
         <div className="l-insight-headline">{headline}</div>
         {body && <div className="l-insight-body">{body}</div>}
         <div className="l-insight-ticks" aria-hidden>
-          {Array.from({ length: 8 }, (_, t) => (
-            <span key={t} data-tick={t < lit ? 'on' : 'off'} />
+          {Array.from({ length: 8 }, (_, tick) => (
+            <span key={tick} data-tick={tick < lit ? 'on' : 'off'} />
           ))}
         </div>
       </div>

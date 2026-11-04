@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { forwardRef, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -262,10 +263,10 @@ export function ClassicSheet({ title, onClose, backLabel, children }: { title: s
       <div {...dlg.props} className="ae-paper ae-sheet ae-card my-6 w-full max-w-[1200px] p-7 outline-none" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
           <h2 id={titleId} className="ae-section !text-[30px]">{title}</h2>
-          <button type="button" onClick={onClose} className="ae-btn" data-dialog-close title={backLabel ? `${backLabel} (Esc)` : 'Close (Esc)'}>{backLabel ? <><ChevronLeft className="h-4 w-4" strokeWidth={1.8} /> {backLabel}</> : <><X className="h-4 w-4" strokeWidth={1.8} /> Close</>}</button>
+          <button type="button" onClick={onClose} className="ae-btn" data-dialog-close title={backLabel ? `${backLabel} (Esc)` : t('Close (Esc)')}>{backLabel ? <><ChevronLeft className="h-4 w-4" strokeWidth={1.8} /> {backLabel}</> : <><X className="h-4 w-4" strokeWidth={1.8} /> {t('Close')}</>}</button>
         </div>
         <div className="mt-5 min-h-[60vh]">{children}</div>
-        <div className="ae-faint mt-5 flex justify-end"><span className="flex items-center gap-1">Esc closes <ChevronRight className="h-3 w-3" /></span></div>
+        <div className="ae-faint mt-5 flex justify-end"><span className="flex items-center gap-1">{t('Esc closes')} <ChevronRight className="h-3 w-3" /></span></div>
       </div>
     </div>
   );
@@ -287,7 +288,7 @@ export function ClassicDrawer({ title, onClose, children, width = 'max-w-[520px]
             {back && <button type="button" onClick={back.onClick} className="ae-btn ae-btn-sm" title={back.label}><ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.8} /> {back.label}</button>}
             <h2 id={titleId} className="ae-title min-w-0 truncate text-[24px]">{title}</h2>
           </span>
-          <button type="button" onClick={onClose} aria-label="Close" title="Close (Esc)" data-dialog-close className="ae-btn ae-btn-sm"><X className="h-4 w-4" strokeWidth={1.8} /></button>
+          <button type="button" onClick={onClose} aria-label={t('Close')} title={t('Close (Esc)')} data-dialog-close className="ae-btn ae-btn-sm"><X className="h-4 w-4" strokeWidth={1.8} /></button>
         </div>
         {children}
       </div>
@@ -306,8 +307,8 @@ export function ClassicConfirmDelete({ title, body, error, busy, onCancel, onCon
         <p className="mt-3 text-[13px] leading-snug text-[var(--p-muted)]">{body}</p>
         {error && <p role="alert" className="mt-3 text-[12.5px] text-[var(--p-red)]">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" data-dialog-close onClick={onCancel} disabled={busy} className="ae-btn">Cancel</button>
-          <button type="button" onClick={onConfirm} disabled={busy} className="ae-btn ae-btn-danger">{busy ? 'Deleting' : 'Delete'}</button>
+          <button type="button" data-dialog-close onClick={onCancel} disabled={busy} className="ae-btn">{t('Cancel')}</button>
+          <button type="button" onClick={onConfirm} disabled={busy} className="ae-btn ae-btn-danger">{busy ? t('Deleting') : t('Delete')}</button>
         </div>
       </div>
     </div>

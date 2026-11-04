@@ -33,18 +33,19 @@ import type { UsagePayload } from '@/lib/usage-payload';
 import { USAGE_TITLE, fmtTokens, type PlanCardView, type UsageReadyView } from '@/lib/usage-view';
 import { setupHrefFor } from '@/lib/integrations-catalog';
 import { pushUrl, useUsage } from './use-usage';
+import { t } from '@/lib/i18n';
 
-const EYEBROW = 'Token burn · one plan per provider';
-const META = 'Claude · ChatGPT / Codex · Ollama · local file parsing only · no paid calls · refreshes every 10s';
+const EYEBROW = t('Token burn · one plan per provider');
+const META = t('Claude · ChatGPT / Codex · Ollama · local file parsing only · no paid calls · refreshes every 10s');
 
 const share = (n: number, max: number) => (max > 0 ? n / max : 0);
-const toneOf = (t: 'ok' | 'warn' | 'err' | 'neutral'): Tone | undefined => (t === 'neutral' ? undefined : t);
+const toneOf = (tone: 'ok' | 'warn' | 'err' | 'neutral'): Tone | undefined => (tone === 'neutral' ? undefined : tone);
 
 function CopyPushUrl({ path }: { path: string }) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
   return (
     <Pressable
-      title={`POST readings here with Authorization: Bearer <USAGE_PUSH_TOKEN> (${path})`}
+      title={t('POST readings here with Authorization: Bearer <USAGE_PUSH_TOKEN> ({path})', { path })}
       onClick={async () => {
         try {
           if (!navigator.clipboard) throw new Error('no clipboard');
@@ -57,7 +58,7 @@ function CopyPushUrl({ path }: { path: string }) {
       }}
     >
       <Copy size={12} strokeWidth={1.7} aria-hidden />
-      {state === 'copied' ? 'Copied' : state === 'failed' ? 'Copy failed' : 'Copy push URL'}
+      {state === 'copied' ? t('Copied') : state === 'failed' ? t('Copy failed') : t('Copy push URL')}
     </Pressable>
   );
 }
@@ -82,19 +83,19 @@ function PlanCard({ p, i, onOpen }: { p: PlanCardView; i: number; onOpen: () => 
       sub={p.meta}
       i={i}
       action={
-        <Pressable onClick={onOpen} title={`${p.label}: open the plan detail`}>
-          Detail
+        <Pressable onClick={onOpen} title={t('{label}: open the plan detail', { label: p.label })}>
+          {t('Detail')}
         </Pressable>
       }
     >
       <div className="l-card-body">
-        {p.reported ? <BigStat display={p.total} size={30} unit="tokens" /> : <div className="l-us-unreported">{p.total}</div>}
+        {p.reported ? <BigStat display={p.total} size={30} unit={t('tokens')} /> : <div className="l-us-unreported">{p.total}</div>}
         {p.status && (
           <div className="l-chip-row mt-3">
             <Chip tone={toneOf(p.status.tone)}>{p.status.text}</Chip>
           </div>
         )}
-        <div className="mt-4">{p.spark ? <Spark values={p.spark} label={`${p.label} burn per day`} /> : <span data-l="Spark" className="l-us-spark is-none" aria-hidden />}</div>
+        <div className="mt-4">{p.spark ? <Spark values={p.spark} label={t('{label} burn per day', { label: p.label })} /> : <span data-l="Spark" className="l-us-spark is-none" aria-hidden />}</div>
       </div>
     </SlabCard>
   );
@@ -108,17 +109,17 @@ function PlanDialog({ p, v, onClose }: { p: PlanCardView; v: UsageReadyView; onC
   const lanes: Meter[] = (d.lanes ?? []).map((l) => ({ label: l.label, frac: share(l.burn, laneMax), display: l.display }));
   const windows: Meter[] = d.windows.map((w) => ({ label: `${w.label}${w.resets ? ` · ${w.resets}` : ''}`, frac: w.used / 100, display: `${Math.round(w.used)}%` }));
   return (
-    <LDialog title={p.label} sub={`${p.reported ? `${p.total} tokens` : p.total} · ${v.rangeLabel}`} onClose={onClose} width={760} footer={<CopyPushUrl path={v.push.path} />}>
+    <LDialog title={p.label} sub={`${p.reported ? t('{n} tokens', { n: p.total }) : p.total} · ${v.rangeLabel}`} onClose={onClose} width={760} footer={<CopyPushUrl path={v.push.path} />}>
       <div className="grid gap-6 md:grid-cols-2">
         <div className="min-w-0">
-          <h3 className="l-form-label">Per day</h3>
-          {d.days ? <MeterStack meters={days} dense baseDelay={0} /> : <p className="l-body-text">Not reported. No machine reported this plan in the window.</p>}
+          <h3 className="l-form-label">{t('Per day')}</h3>
+          {d.days ? <MeterStack meters={days} dense baseDelay={0} /> : <p className="l-body-text">{t('Not reported. No machine reported this plan in the window.')}</p>}
         </div>
         <div className="min-w-0">
-          <h3 className="l-form-label">Lanes</h3>
+          <h3 className="l-form-label">{t('Lanes')}</h3>
           {d.lanes && <MeterStack meters={lanes} dense baseDelay={0} />}
           <p className="l-caption">{d.lanesNote}</p>
-          <h3 className="l-form-label mt-5">Machines</h3>
+          <h3 className="l-form-label mt-5">{t('Machines')}</h3>
           {d.machines.length ? (
             <ul className="l-rows l-rows-ruled">
               {d.machines.map((m) => (
@@ -129,16 +130,16 @@ function PlanDialog({ p, v, onClose }: { p: PlanCardView; v: UsageReadyView; onC
                       {m.sourceLabel} · {m.age}
                     </span>
                   </span>
-                  {m.stale && <Chip tone="warn">stale</Chip>}
+                  {m.stale && <Chip tone="warn">{t('stale')}</Chip>}
                   <span className="l-num">{m.burn}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="l-body-text">No machine has reported this plan. Another machine can push to {v.push.path}.</p>
+            <p className="l-body-text">{t('No machine has reported this plan. Another machine can push to {path}.', { path: v.push.path })}</p>
           )}
-          <h3 className="l-form-label mt-5">Windows</h3>
-          {windows.length ? <MeterStack meters={windows} dense baseDelay={0} /> : <p className="l-body-text">No provider reported an official window for this plan.</p>}
+          <h3 className="l-form-label mt-5">{t('Windows')}</h3>
+          {windows.length ? <MeterStack meters={windows} dense baseDelay={0} /> : <p className="l-body-text">{t('No provider reported an official window for this plan.')}</p>}
         </div>
       </div>
     </LDialog>
@@ -158,57 +159,57 @@ function Ready({ v }: { v: UsageReadyView }) {
   return (
     <div className="l-stack">
       <div className="l-row l-row-hero">
-        <SlabCard title="Token Burn" sub={v.burnChart.caption} i={1}>
+        <SlabCard title={t('Token Burn')} sub={v.burnChart.caption} i={1}>
           <div className="l-card-body pb-2">
-            <BigStat display={v.hero.value} unit={`tokens burned, ${v.rangeLabel}`} size={30} />
+            <BigStat display={v.hero.value} unit={t('tokens burned, {range}', { range: v.rangeLabel })} size={30} />
           </div>
-          {v.empty ? <LEmpty>No burn in this window.</LEmpty> : <StepLine series={series} format={fmtTokens} unit=" tokens" height={170} />}
+          {v.empty ? <LEmpty>{t('No burn in this window.')}</LEmpty> : <StepLine series={series} format={fmtTokens} unit={t(' tokens')} height={170} />}
           <p className="l-card-foot">{v.hero.status}</p>
         </SlabCard>
-        <SlabCard title="Burn Volume" sub={v.rangeLabel} i={2} className="flex flex-col">
+        <SlabCard title={t('Burn Volume')} sub={v.rangeLabel} i={2} className="flex flex-col">
           <div className="l-card-body flex flex-1 flex-col">
-            <BigStat display={v.hero.value} unit="tokens" chips={[{ tone: v.ollama.up ? 'ok' : 'err', text: v.ollama.up ? 'Ollama up' : 'Ollama down' }]} caption={v.hero.label} />
+            <BigStat display={v.hero.value} unit={t('tokens')} chips={[{ tone: v.ollama.up ? 'ok' : 'err', text: v.ollama.up ? t('Ollama up') : t('Ollama down') }]} caption={v.hero.label} />
             <MeterStack meters={lanes} empty={v.lanes.note} foot={lanes.length ? v.lanes.note : undefined} />
           </div>
         </SlabCard>
       </div>
 
       <div className="l-row l-row-three">
-        <SlabCard title="Burn by Model" sub={v.models.caption} i={3}>
+        <SlabCard title={t('Burn by Model')} sub={v.models.caption} i={3}>
           <div className="l-card-body">
             {models.length ? (
               <>
-                <BigStat display={v.models.rows[0].display} size={30} caption={`${v.models.rows[0].label} leads`} />
+                <BigStat display={v.models.rows[0].display} size={30} caption={t('{label} leads', { label: v.models.rows[0].label })} />
                 <MeterStack meters={models} dense />
               </>
             ) : (
               <>
-                <BigStat display="-" size={30} caption="No model burn in this window." />
+                <BigStat display="-" size={30} caption={t('No model burn in this window.')} />
               </>
             )}
           </div>
         </SlabCard>
-        <SlabCard title="Plan Limits" sub="official gauges only" i={4}>
+        <SlabCard title={t('Plan Limits')} sub={t('official gauges only')} i={4}>
           <div className="l-card-body">
             {gauges.length ? (
               <MeterStack meters={gauges} dense />
             ) : (
-              <p className="l-body-text l-us-note">{v.limits.note} Burn is measured from transcripts, not against a guessed limit.</p>
+              <p className="l-body-text l-us-note">{v.limits.note} {t('Burn is measured from transcripts, not against a guessed limit.')}</p>
             )}
           </div>
         </SlabCard>
         {top ? (
           <InsightCard
-            badge={`Top burner · ${v.rangeLabel}`}
+            badge={`${t('Top burner')} · ${v.rangeLabel}`}
             icon={<Flame size={13} strokeWidth={1.7} aria-hidden />}
             display={top.share}
-            headline={`${top.machine} on ${top.planLabel}`}
-            body={`${top.value} tokens, ${top.caption}.`}
+            headline={t('{machine} on {plan}', { machine: top.machine, plan: top.planLabel })}
+            body={t('{n} tokens, {caption}.', { n: top.value, caption: top.caption })}
             frac={Number.parseFloat(top.share) / 100}
             i={5}
           />
         ) : (
-          <InsightCard badge={`Top burner · ${v.rangeLabel}`} icon={<Flame size={13} strokeWidth={1.7} aria-hidden />} display="0%" headline="No burn in this window." frac={0} i={5} />
+          <InsightCard badge={`${t('Top burner')} · ${v.rangeLabel}`} icon={<Flame size={13} strokeWidth={1.7} aria-hidden />} display="0%" headline={t('No burn in this window.')} frac={0} i={5} />
         )}
       </div>
 
@@ -218,7 +219,7 @@ function Ready({ v }: { v: UsageReadyView }) {
         ))}
       </div>
       <p className="l-foot-note">
-        {v.footnote} Read {v.readAgo}.
+        {v.footnote} {t('Read {ago}.', { ago: v.readAgo })}
       </p>
       {plan && <PlanDialog p={plan} v={v} onClose={() => setOpen(null)} />}
     </div>
@@ -232,22 +233,22 @@ export function UsageLegacy({ initial, initialNow, sample }: { initial: UsagePay
   const right = (
     <>
       {showSample && (
-        <span title={view.kind === 'off' ? 'Filming mode: Usage is off' : 'Sample data: lib/fo-sample.ts sampleUsageReadings'}>
+        <span title={view.kind === 'off' ? t('Filming mode: Usage is off') : t('Sample data: lib/fo-sample.ts sampleUsageReadings')}>
           <LSampleChip />
         </span>
       )}
       {view.kind === 'ready' && (
-        <div className="l-chip-row" role="radiogroup" aria-label="Range">
+        <div className="l-chip-row" role="radiogroup" aria-label={t('Range')}>
           {([7, 30] as const).map((r) => (
             <ToggleChip key={r} role="radio" aria-checked={range === r} on={range === r} onClick={() => setRange(r)}>
-              {r} d
+              {t('{n} d', { n: r })}
             </ToggleChip>
           ))}
         </div>
       )}
       {view.kind !== 'off' && (
         <Pressable tone="pill" onClick={() => setRaw(true)}>
-          Raw reading
+          {t('Raw reading')}
         </Pressable>
       )}
     </>
@@ -257,7 +258,7 @@ export function UsageLegacy({ initial, initialNow, sample }: { initial: UsagePay
       <SlabTitle eyebrow={EYEBROW} title={USAGE_TITLE} meta={META} right={right} />
       {error && view.kind !== 'off' && (
         <div className="l-card mb-5">
-          <LError message={`Refresh failed (${error}).`} lastGood={lastGoodAgo ? <span className="l-body-text">Showing the reading from {lastGoodAgo}.</span> : undefined} onRetry={retry} />
+          <LError message={t('Refresh failed ({error}).', { error })} lastGood={lastGoodAgo ? <span className="l-body-text">{t('Showing the reading from {ago}.', { ago: lastGoodAgo })}</span> : undefined} onRetry={retry} />
         </div>
       )}
       {view.kind === 'off' ? (
@@ -266,14 +267,14 @@ export function UsageLegacy({ initial, initialNow, sample }: { initial: UsagePay
         </SlabCard>
       ) : view.kind === 'unconfigured' ? (
         <div className="l-row l-row-hero">
-          <SlabCard title="Token Burn" sub="nothing read yet" i={1}>
-            <LUnconfigured what="A usage source" href={setupHrefFor('usage')} hint={view.setupHint} />
+          <SlabCard title={t('Token Burn')} sub={t('nothing read yet')} i={1}>
+            <LUnconfigured what={t('A usage source')} href={setupHrefFor('usage')} hint={view.setupHint} />
             <div className="l-card-body pt-0">
               <p className="l-lead">{view.title}</p>
               <p className="l-caption">{view.body}</p>
             </div>
           </SlabCard>
-          <SlabCard title="Sources checked" sub="read locally" i={2}>
+          <SlabCard title={t('Sources checked')} sub={t('read locally')} i={2}>
             <div className="l-card-body">
               <dl className="l-kv">
                 {view.checks.map((c) => (
@@ -291,7 +292,7 @@ export function UsageLegacy({ initial, initialNow, sample }: { initial: UsagePay
                   </dd>
                 </div>
                 <div>
-                  <dt>Push URL</dt>
+                  <dt>{t('Push URL')}</dt>
                   <dd>{view.push.path}</dd>
                 </div>
               </dl>
@@ -305,7 +306,7 @@ export function UsageLegacy({ initial, initialNow, sample }: { initial: UsagePay
         <Ready v={view} />
       )}
       {raw && (
-        <LDialog title="Raw reading" sub="The /api/usage payload this page renders" onClose={() => setRaw(false)} width={760}>
+        <LDialog title={t('Raw reading')} sub={t('The /api/usage payload this page renders')} onClose={() => setRaw(false)} width={760}>
           <pre data-l="Raw" className="l-raw">
             {JSON.stringify(data, null, 2)}
           </pre>

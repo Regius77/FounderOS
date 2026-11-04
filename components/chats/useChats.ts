@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentMessage } from '@/lib/schemas';
 import type { ChatMsg, ChatRailRow, ChatRosterRow, ChatThreadView, ChatsView } from '@/lib/chats-view';
+import { t } from '@/lib/i18n';
 
 /**
  * The /chats state, shared by every tree (GladOS, Classic, and Bennett Legacy
@@ -55,8 +56,8 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
       /* storage blocked: the rail stays open */
     }
     setNow(Date.now());
-    const t = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(t);
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const toggleRail = useCallback(() => {
@@ -77,7 +78,7 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
       setLoaded((l) => ({ ...l, [id]: { status: 'loading', thread: l[id]?.thread ?? null, messages: l[id]?.messages ?? [] } }));
       try {
         const res = await fetch(`/api/chats/${encodeURIComponent(id)}${sampleQ}`);
-        if (!res.ok) throw new Error(res.status === 404 ? 'This agent is no longer in the roster.' : `Could not load the thread (${res.status}).`);
+        if (!res.ok) throw new Error(res.status === 404 ? t('This agent is no longer in the roster.') : t('Could not load the thread ({status}).', { status: res.status }));
         const body = (await res.json()) as {
           agent: { id: string; name: string; description: string; avatar: string | null; source: 'agent' | 'wizard'; projectName: string | null };
           messages: ChatMsg[];
@@ -150,11 +151,11 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
           body: JSON.stringify({ message: line.text }),
         });
         const body = (await res.json().catch(() => ({}))) as { error?: string; reply?: string; routedTo?: string; messages?: AgentMessage[] };
-        if (!res.ok) throw new Error(body.error ?? `Send failed (${res.status})`);
+        if (!res.ok) throw new Error(body.error ?? t('Send failed ({status})', { status: res.status }));
         setPending((p) => ({ ...p, [agentId]: (p[agentId] ?? []).filter((x) => x.key !== line.key) }));
         if (agentId === WIZARD && body.routedTo) {
           const target = body.routedTo;
-          const known = threads.find((t) => t.agentId === target) ?? roster.find((r) => r.id === target);
+          const known = threads.find((th) => th.agentId === target) ?? roster.find((r) => r.id === target);
           const turn = { key: line.key, text: line.text, reply: body.reply ?? '', routedTo: target, routedName: known?.name ?? target, routedAvatar: known?.avatar ?? null, at: new Date().toISOString() };
           setRouted((r) => [...r, turn]);
           if (body.messages) {
@@ -168,7 +169,7 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
         void refreshRail();
       } catch (err) {
         // a network failure (the server never answered) reads as such, not as the browser's raw TypeError
-        const error = err instanceof TypeError ? 'The server did not answer.' : err instanceof Error ? err.message : String(err);
+        const error = err instanceof TypeError ? t('The server did not answer.') : err instanceof Error ? err.message : String(err);
         setPending((p) => ({ ...p, [agentId]: (p[agentId] ?? []).map((x) => (x.key === line.key ? { ...x, state: 'failed', error } : x)) }));
       }
     },
@@ -177,9 +178,9 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
 
   const send = useCallback(
     (text: string) => {
-      const t = text.trim();
-      if (!t || !view.composer.enabled) return; // C-1: no key or a preview, no request
-      const line: PendingLine = { key: nextKey(), text: t, state: 'sending' };
+      const trimmed = text.trim();
+      if (!trimmed || !view.composer.enabled) return; // C-1: no key or a preview, no request
+      const line: PendingLine = { key: nextKey(), text: trimmed, state: 'sending' };
       setPending((p) => ({ ...p, [selected]: [...(p[selected] ?? []), line] }));
       setDraft('');
       void post(selected, line);
@@ -202,16 +203,16 @@ export function useChats(view: ChatsView, opts: { initialView?: 'rail' | 'thread
   const visibleThreads = useMemo(() => {
     // an agent picked from New chat shows in the rail until it has a thread of its own
     const rows = [...threads];
-    if (!rows.some((t) => t.agentId === selected)) {
+    if (!rows.some((th) => th.agentId === selected)) {
       const r = roster.find((x) => x.id === selected);
       if (r) rows.splice(1, 0, { agentId: r.id, name: r.name, role: r.description ?? '', pinned: false, lastMessage: null, lastAt: null, lastRole: null, messageCount: 0, avatar: r.avatar });
     }
-    return q ? rows.filter((t) => `${t.name} ${t.lastMessage ?? ''}`.toLowerCase().includes(q)) : rows;
+    return q ? rows.filter((th) => `${th.name} ${th.lastMessage ?? ''}`.toLowerCase().includes(q)) : rows;
   }, [threads, roster, selected, q]);
   const visibleRoster = useMemo(() => (q ? roster.filter((r) => `${r.name} ${r.description ?? ''}`.toLowerCase().includes(q)) : roster), [roster, q]);
 
   const current = loaded[selected];
-  const rowFor = threads.find((t) => t.agentId === selected) ?? null;
+  const rowFor = threads.find((th) => th.agentId === selected) ?? null;
   const rosterFor = roster.find((r) => r.id === selected) ?? null;
   const header = {
     agentId: selected,
