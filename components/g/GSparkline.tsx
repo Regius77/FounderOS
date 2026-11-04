@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import { extent, seriesPaths, spreadX } from '@/lib/chart-geometry';
 import { colorVar, type VizColor } from './viz-shared';
 
@@ -25,7 +26,7 @@ export function GSparkline({ values, label, color = 'series-1', height = 28, wid
   const real = values.filter((v): v is number => v !== null && Number.isFinite(v));
   const pad = 3;
   if (real.length < 2) {
-    const text = `${label} · no data`;
+    const text = t('{label} · no data', { label });
     return (
       <svg data-g="GSparkline" role="img" aria-label={text} className={`g-spark ${className}`} viewBox={`0 0 ${width} ${H}`} preserveAspectRatio="none" style={{ height: H }}>
         <title>{text}</title>

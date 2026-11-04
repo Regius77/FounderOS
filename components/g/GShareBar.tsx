@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import { colorVar, slotColor, type VizColor } from './viz-shared';
 
 export type GShareSegment = { id: string; label: string; value: number; title?: string; color?: VizColor };
@@ -22,7 +23,7 @@ const HERO_STEPS = [1, 0.7, 0.45, 0.25];
 export function GShareBar({ segments, label, onHero = false, className = '' }: GShareBarProps) {
   const vis = segments.filter((s) => Number.isFinite(s.value) && s.value > 0);
   const total = vis.reduce((a, s) => a + s.value, 0);
-  const summary = total > 0 ? `${label}: ${vis.map((s) => `${s.label} ${Math.round((s.value / total) * 100)}%`).join(', ')}` : `${label} · no data`;
+  const summary = total > 0 ? `${label}: ${vis.map((s) => `${s.label} ${Math.round((s.value / total) * 100)}%`).join(', ')}` : t('{label} · no data', { label });
   return (
     <div data-g="GShareBar" role="img" aria-label={summary} className={`g-share ${className}`} data-on-hero={onHero || undefined} title={total > 0 ? undefined : summary}>
       {vis.map((s, i) => {

@@ -9,6 +9,7 @@ import { digitViewsFor } from '@/lib/nav';
 import { GEmpty, GList, GRow, GSearch, GTag } from '@/components/g';
 import type { UiStyle } from '@/lib/appearance';
 import { useUiStyle } from '@/lib/use-ui-style';
+import { t } from '@/lib/i18n';
 
 function isTyping(): boolean {
   const el = document.activeElement;
@@ -94,7 +95,7 @@ export function CommandPalette({ commands, ui = 'classic', off = [] }: { command
           className="g-palette"
           role="dialog"
           aria-modal="true"
-          aria-label="Command palette"
+          aria-label={t('Command palette')}
           onClick={(e) => e.stopPropagation()}
         >
           <GSearch
@@ -105,12 +106,12 @@ export function CommandPalette({ commands, ui = 'classic', off = [] }: { command
               setIndex(0);
             }}
             onKeyDown={onListKey}
-            placeholder="Jump anywhere: views, agents, tools"
-            aria-label="Search views, agents and tools"
+            placeholder={t('Jump anywhere: views, agents, tools')}
+            aria-label={t('Search views, agents and tools')}
             autoComplete="off"
           />
           {hits.length === 0 ? (
-            <GEmpty inline title="No matches" body="Try a view, an agent or a tool by name." className="g-palette-empty" />
+            <GEmpty inline title={t('No matches')} body={t('Try a view, an agent or a tool by name.')} className="g-palette-empty" />
           ) : (
             <div
               className="g-palette-list"
@@ -121,7 +122,7 @@ export function CommandPalette({ commands, ui = 'classic', off = [] }: { command
                 if (i >= 0 && i !== index) setIndex(i);
               }}
             >
-              <GList label="Results">
+              <GList label={t('Results')}>
                 {hits.map((command, i) => (
                   <GRow
                     key={command.id}
@@ -166,12 +167,12 @@ export function CommandPalette({ commands, ui = 'classic', off = [] }: { command
               go(hits[index]);
             }
           }}
-          placeholder="Jump anywhere — views, agents, tools…"
+          placeholder={t('Jump anywhere — views, agents, tools…')}
           className="w-full border-b border-os-border bg-transparent px-[18px] py-4 font-mono text-sm text-os-text outline-none placeholder:text-os-dim"
         />
         <ul className="max-h-80 overflow-y-auto p-1.5">
           {hits.length === 0 && (
-            <li className="px-4 py-6 text-center font-mono text-xs text-os-dim">No matches</li>
+            <li className="px-4 py-6 text-center font-mono text-xs text-os-dim">{t('No matches')}</li>
           )}
           {hits.map((command, i) => (
             <li key={command.id}>

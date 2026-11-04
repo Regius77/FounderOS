@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import {
   cloneElement,
   isValidElement,
@@ -51,7 +52,7 @@ function Layer({ children }: { children: ReactNode }) {
   return target ? createPortal(children, target) : null;
 }
 
-function CloseButton({ onClose, label = 'Close' }: { onClose: () => void; label?: string }) {
+function CloseButton({ onClose, label = t('Close') }: { onClose: () => void; label?: string }) {
   return (
     <GButton variant="icon" aria-label={label} data-dialog-close="" onClick={onClose}>
       <X size={16} strokeWidth={1.75} aria-hidden />
@@ -140,7 +141,7 @@ export function GDrawer(props: GDrawerProps) {
   );
 }
 
-function DrawerPanel({ onClose, title, children, footer, onBack, backLabel = 'Back', width = 480, modal = true, initialFocus, className }: GDrawerProps) {
+function DrawerPanel({ onClose, title, children, footer, onBack, backLabel = t('Back'), width = 480, modal = true, initialFocus, className }: GDrawerProps) {
   const titleId = useId();
   const dlg = useDialog({ open: modal, onClose, labelledBy: titleId, initialFocus });
   const onCloseRef = useRef(onClose);
@@ -223,7 +224,7 @@ export function GDialog(props: GDialogProps) {
   );
 }
 
-function DialogPanel({ onClose, title, children, confirmLabel, onConfirm, cancelLabel = 'Cancel', tone = 'default', busy = false, confirmDisabledReason }: GDialogProps) {
+function DialogPanel({ onClose, title, children, confirmLabel, onConfirm, cancelLabel = t('Cancel'), tone = 'default', busy = false, confirmDisabledReason }: GDialogProps) {
   const titleId = useId();
   const dlg = useDialog({ open: true, onClose: busy ? () => {} : onClose, labelledBy: titleId });
   return (

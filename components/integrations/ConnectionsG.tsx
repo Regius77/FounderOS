@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { GButton, GCard, GSectionHeader, GTag } from '@/components/g';
 import { BrandLogo } from '@/lib/brand-logos';
 import { connectKeysFor, type CatalogEntry } from '@/lib/integrations-catalog';
+import { t } from '@/lib/i18n';
 import { ConnectFlowG } from './ConnectFlowG';
 
 /**
@@ -35,13 +36,13 @@ export function ConnectionCardG({ entry, guidance }: { entry: CatalogEntry; guid
               <li key={c.id} title={c.detail}>
                 <span>{c.label}</span>
                 <GTag size="xs" tone={c.state === 'connected' ? 'ok' : c.state === 'error' ? 'err' : 'outline'} dot={c.state !== 'not_configured'}>
-                  {c.state === 'connected' ? 'Live' : c.state === 'error' ? 'Error' : 'Not set up'}
+                  {c.state === 'connected' ? t('Live') : c.state === 'error' ? t('Error') : t('Not set up')}
                 </GTag>
               </li>
             ))}
           </ul>
           <GButton variant="sm" href={entry.configHref ?? '/integrations'}>
-            Configure
+            {t('Configure')}
           </GButton>
         </div>
       ) : (

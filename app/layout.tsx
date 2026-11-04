@@ -3,7 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { BRAND } from '@/lib/brand';
-import { locale } from '@/lib/i18n';
+import { locale, t } from '@/lib/i18n';
 import { Topbar } from '@/components/Topbar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { ConductorPanel } from '@/components/ConductorPanel';
@@ -49,24 +49,24 @@ const fontJetBrainsMono = localFont({
 
 export const metadata: Metadata = {
   title: BRAND.title,
-  description: 'Personal operating system and AI agent command center',
+  description: t('Personal operating system and AI agent command center'),
 };
 
 function buildCommands(off: string[]): Command[] {
   const db = getDb();
-  const tools: Command[] = db.tools.all().map((t) => ({
-    id: `tool-${t.id}`,
-    label: t.name,
-    keywords: `${t.category} ${t.description}`,
+  const tools: Command[] = db.tools.all().map((tool) => ({
+    id: `tool-${tool.id}`,
+    label: tool.name,
+    keywords: `${tool.category} ${tool.description}`,
     href: '/integrations',
-    hint: 'tool',
+    hint: t('tool'),
   }));
   const agents: Command[] = db.agents.all().map((a) => ({
     id: `agent-${a.id}`,
     label: a.name,
     keywords: `${a.role} ${a.description}`,
     href: '/agents',
-    hint: 'agent',
+    hint: t('agent'),
   }));
   // Views come from the nav (lib/nav.ts, SPEC S12 FR-3) so ⌘K cannot drift from the sidebar.
   return [...viewCommands().filter((c) => !c.href || !off.includes(c.href)), ...ACTION_COMMANDS, ...EXTERNAL_COMMANDS, ...agents, ...tools];

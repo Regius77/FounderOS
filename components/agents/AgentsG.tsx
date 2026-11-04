@@ -10,6 +10,7 @@ import type { DeptFilter } from '@/lib/agent-dept';
 import { AgentCard } from './AgentCard';
 import { AgentSheetHost } from './AgentSheet';
 import { openAgentSheet } from './agent-param';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * /agents under the GladOS style (glados-ui SPEC S04 §4.1, X5). Same data as
@@ -71,25 +72,25 @@ export function AgentsG({ dir, stats, review, now, dept: deptProp = null }: { di
   const okPct = stats.runs7d > 0 ? Math.round((stats.ok7d / stats.runs7d) * 100) : null;
   const runsStatus =
     stats.runs7d > 0
-      ? `runs · 7 days · ${okPct}% ok`
+      ? t('runs · 7 days · {pct}% ok', { pct: okPct ?? 0 })
       : stats.lastRunAge
-        ? `runs · 7 days · last run ${stats.lastRunAge}`
-        : 'no runs recorded';
+        ? t('runs · 7 days · last run {age}', { age: stats.lastRunAge })
+        : t('no runs recorded');
 
   return (
     <GPage className="wg-page">
       <GSectionHeader
         size="page"
-        title="Agents"
-        caption={`${total} agents · ${stats.lifetime.toLocaleString()} runs all time`}
+        title={t('Agents')}
+        caption={t('{n} agents · {runs} runs all time', { n: total, runs: stats.lifetime.toLocaleString(localeTag()) })}
         action={
           <div className="wg-head-actions">
             <GAsk
               className="wg-head-ask"
               value={ask}
               onValueChange={setAsk}
-              label="Ask the Wizard"
-              placeholder="Ask the Wizard"
+              label={t('Ask the Wizard')}
+              placeholder={t('Ask the Wizard')}
               onSubmit={(text) => {
                 openWizard({ text, source: 'agents-ask' });
                 setAsk('');
@@ -97,7 +98,7 @@ export function AgentsG({ dir, stats, review, now, dept: deptProp = null }: { di
             />
             {dir.setupIds.length > 0 && (
               <GButton onClick={() => setFilter(filter === 'setup' ? 'all' : 'setup')} aria-pressed={filter === 'setup'}>
-                Set up {dir.setupIds.length}
+                {t('Set up {n}', { n: dir.setupIds.length })}
               </GButton>
             )}
           </div>
@@ -107,13 +108,13 @@ export function AgentsG({ dir, stats, review, now, dept: deptProp = null }: { di
       {review && (
         <GTabs
           className="wg-cf-tabs"
-          label="Agents view"
+          label={t('Agents view')}
           param="tab"
           value={tab}
           onChange={(v) => setTab(v === 'review' ? 'review' : 'agents')}
           tabs={[
-            { value: 'agents', label: 'Agents', controls: 'wg-af-panel' },
-            { value: 'review', label: review.pending.length > 0 ? `Review ${review.pending.length}` : 'Review', controls: 'wg-af-panel' },
+            { value: 'agents', label: t('Agents'), controls: 'wg-af-panel' },
+            { value: 'review', label: review.pending.length > 0 ? t('Review {n}', { n: review.pending.length }) : t('Review'), controls: 'wg-af-panel' },
           ]}
         />
       )}
@@ -124,54 +125,54 @@ export function AgentsG({ dir, stats, review, now, dept: deptProp = null }: { di
         </div>
       ) : total === 0 ? (
         <GEmpty
-          title="No agents yet"
-          body="Describe the agent you want in a Wizard session and it gets designed with you."
-          action={{ label: 'Ask the Wizard to design one', onClick: () => openWizard({ text: 'Design a new agent that ', source: 'agents-empty' }) }}
+          title={t('No agents yet')}
+          body={t('Describe the agent you want in a Wizard session and it gets designed with you.')}
+          action={{ label: t('Ask the Wizard to design one'), onClick: () => openWizard({ text: 'Design a new agent that ', source: 'agents-empty' }) }}
         />
       ) : (
         <>
           <div className="wg-hero-row">
             <GHeroCard
               variant="a"
-              caption="Fleet"
+              caption={t('Fleet')}
               value={`${activeCount}/${total}`}
-              label={`${activeCount} of ${total} agents active`}
-              status="active agents"
-              title="Agents with status active, of every agent in the roster. Click to show only active agents."
+              label={t('{a} of {b} agents active', { a: activeCount, b: total })}
+              status={t('active agents')}
+              title={t('Agents with status active, of every agent in the roster. Click to show only active agents.')}
               onClick={() => setFilter('active')}
             />
             <GHeroCard
               variant="b"
-              caption="Runs"
+              caption={t('Runs')}
               value={stats.runs7d}
-              label={`${stats.runs7d} runs in the last 7 days`}
+              label={t('{n} runs in the last 7 days', { n: stats.runs7d })}
               status={runsStatus}
-              title="Agent runs started in the last 7 days (agent_runs). Opens run outcomes on Tasks."
+              title={t('Agent runs started in the last 7 days (agent_runs). Opens run outcomes on Tasks.')}
               href="/tasks?range=7d#outcomes"
-              strip={<GSparkline values={stats.daily30} label="Runs per day · last 30 days" onHero />}
+              strip={<GSparkline values={stats.daily30} label={t('Runs per day · last 30 days')} onHero />}
             />
           </div>
 
           <GSegmented<Filter>
             className="wg-fit"
-            label="Show agents"
+            label={t('Show agents')}
             value={filter}
             onChange={setFilter}
             options={[
-              { value: 'all', label: `All ${total}` },
-              { value: 'active', label: `Active ${activeCount}` },
-              { value: 'setup', label: `Needs setup ${dir.setupIds.length}`, disabled: dir.setupIds.length === 0, title: dir.setupIds.length === 0 ? 'Every agent with a setup guide is wired' : undefined },
+              { value: 'all', label: t('All {n}', { n: total }) },
+              { value: 'active', label: t('Active {n}', { n: activeCount }) },
+              { value: 'setup', label: t('Needs setup {n}', { n: dir.setupIds.length }), disabled: dir.setupIds.length === 0, title: dir.setupIds.length === 0 ? t('Every agent with a setup guide is wired') : undefined },
             ]}
           />
 
           {dept && (
             <div className="wg-fit" data-dept-filter={dept.department?.id ?? ''}>
-              <GChip pressed onPressedChange={clearDept} title="Show every department">
-                {dept.department ? dept.department.name : `No department “${dept.param}”`} · {shown.length}
+              <GChip pressed onPressedChange={clearDept} title={t('Show every department')}>
+                {dept.department ? dept.department.name : t('No department “{param}”', { param: dept.param })} · {shown.length}
               </GChip>
             </div>
           )}
-          {shown.length === 0 && <GEmpty inline title={dept && !dept.department ? `No department matches “${dept.param}”` : 'No agents match this filter'} />}
+          {shown.length === 0 && <GEmpty inline title={dept && !dept.department ? t('No department matches “{param}”', { param: dept.param }) : t('No agents match this filter')} />}
           {dir.departments.map((dept) => {
             const list = shown.filter((a) => a.departmentId === dept.id);
             if (list.length === 0) return null;

@@ -12,6 +12,7 @@ import type { BreakoutChartView, CreatorNetworkView } from '@/lib/lab/view/hero-
 import { openSheetHref } from './useSheetRoute';
 import { THEME_ATTRS, pill, project, readInk, reducedMotion, useCanvas, type Ink } from './graph3d';
 import { useKitMark } from './kitMark';
+import { t } from '@/lib/i18n';
 
 /* ── creator network ─────────────────────────────────────────────────── */
 
@@ -122,9 +123,9 @@ export function CreatorNetworkGraph({ view }: { view: CreatorNetworkView }) {
     let raf = 0;
     let last = performance.now();
     const still = reducedMotion();
-    const tick = (t: number) => {
-      const dt = Math.min(64, t - last);
-      last = t;
+    const tick = (ts: number) => {
+      const dt = Math.min(64, ts - last);
+      last = ts;
       const paused = !!card?.hasAttribute('data-lab-paused') || st.current.drag !== null || st.current.hover >= 0 || st.current.focus >= 0;
       if (!still && !paused) st.current.yaw += dt * 0.00011;
       draw();
@@ -270,13 +271,13 @@ export function BreakoutChartGraph({ view }: { view: BreakoutChartView }) {
     // Axes and guides.
     g.font = `500 11px ${ink.font}`;
     g.textBaseline = 'middle';
-    for (const t of [0.1, 0.3, 1, 3, 10, 30]) {
-      if (t < view.yDomain[0] || t > view.yDomain[1]) continue;
-      const y = sy(t);
-      const key = t === 1 || t === view.threshold;
+    for (const tk of [0.1, 0.3, 1, 3, 10, 30]) {
+      if (tk < view.yDomain[0] || tk > view.yDomain[1]) continue;
+      const y = sy(tk);
+      const key = tk === 1 || tk === view.threshold;
       g.globalAlpha = key ? 0.45 : 0.14;
       g.lineWidth = 1;
-      g.setLineDash(t === view.threshold ? [4, 4] : []);
+      g.setLineDash(tk === view.threshold ? [4, 4] : []);
       g.beginPath();
       g.moveTo(M.l, y);
       g.lineTo(w - M.r, y);
@@ -284,15 +285,15 @@ export function BreakoutChartGraph({ view }: { view: BreakoutChartView }) {
       g.setLineDash([]);
       g.globalAlpha = key ? 0.85 : 0.55;
       g.textAlign = 'right';
-      g.fillText(`${t}x`, M.l - 6, y);
+      g.fillText(`${tk}x`, M.l - 6, y);
     }
     g.textAlign = 'center';
     g.textBaseline = 'alphabetic';
     g.globalAlpha = 0.7;
-    g.fillText(`${view.windowDays}d ago`, Math.max(M.l + 22, sx(view.windowDays) + 22), h - 6);
-    g.fillText('7d', sx(7), h - 6);
+    g.fillText(t('{n}d ago', { n: view.windowDays }), Math.max(M.l + 22, sx(view.windowDays) + 22), h - 6);
+    g.fillText(t('{n}d', { n: 7 }), sx(7), h - 6);
     g.textAlign = 'right';
-    g.fillText('now', w - M.r, h - 6);
+    g.fillText(t('now'), w - M.r, h - 6);
     // Points: the field first, breakouts on top, this week's glowing.
     const active = st.current.hover >= 0 ? st.current.hover : st.current.focus;
     for (let pass = 0; pass < 3; pass++) {

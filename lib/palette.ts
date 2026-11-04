@@ -1,4 +1,5 @@
 import { NAV_EXTRA, NAV_ITEMS, groupOf } from '@/lib/nav';
+import { t } from '@/lib/i18n';
 
 /** Window events a palette command can fire instead of navigating. */
 export type CommandAction = 'sidebar:toggle';
@@ -26,7 +27,7 @@ export function filterCommands(commands: Command[], query: string): Command[] {
   for (const command of commands) {
     const label = command.label.toLowerCase();
     const haystack = `${label} ${command.keywords.toLowerCase()}`;
-    if (!terms.every((t) => haystack.includes(t))) continue;
+    if (!terms.every((term) => haystack.includes(term))) continue;
     let score = 0;
     for (const term of terms) {
       if (label.startsWith(term)) score += 3;
@@ -50,7 +51,7 @@ export function viewCommands(): Command[] {
       label: item.label,
       keywords: group ? `${item.keywords} ${group.toLowerCase()}` : item.keywords,
       href: item.href,
-      hint: 'view',
+      hint: t('view'),
     };
   });
 }
@@ -58,15 +59,15 @@ export function viewCommands(): Command[] {
 /** External surfaces, opened in a new tab: the only hand-written commands
  *  (app/layout.tsx appends agents and tools from the DB). */
 export const EXTERNAL_COMMANDS: Command[] = [
-  { id: 'ext-attio', label: 'Attio CRM', keywords: 'deals pipeline crm', href: 'https://app.attio.com', hint: 'web' },
-  { id: 'ext-fathom', label: 'Fathom Calls', keywords: 'meetings recordings notes', href: 'https://fathom.video', hint: 'web' },
+  { id: 'ext-attio', label: 'Attio CRM', keywords: 'deals pipeline crm', href: 'https://app.attio.com', hint: t('web') },
+  { id: 'ext-fathom', label: t('Fathom Calls'), keywords: 'meetings recordings notes', href: 'https://fathom.video', hint: t('web') },
 ];
 
 /** Shell actions: no destination, a window event the shell listens for. */
 export const ACTION_COMMANDS: Command[] = [
   {
     id: 'ui-sidebar',
-    label: 'Toggle sidebar',
+    label: t('Toggle sidebar'),
     keywords: 'collapse expand minimize minimise rail nav navigation sidebar',
     hint: '⌘\\',
     action: 'sidebar:toggle',

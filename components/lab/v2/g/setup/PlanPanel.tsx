@@ -18,24 +18,25 @@ import { LabSetupLink } from '../bits';
 /** 09.8's one rates label, "Assumed rates / Partly from your data / From your data", one part per state. */
 const RATES = LAB_COPY.plan.ratesLabel.split(' / ');
 import { LAB_UI, fill, fmtLabDay } from '@/lib/lab/view/ui-copy';
+import { t } from '@/lib/i18n';
 
 const PLATFORM: Record<string, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X' };
-const LINE: Record<string, string> = { 'apify.sync': 'Daily sync', 'apify.snapshots': 'Fixed-age reads', 'apify.x': 'X reads', 'apify.radar_x': 'Radar, X', 'apify.radar_tiktok': 'Radar, TikTok', 'apify.radar_producthunt': 'Radar, Product Hunt', 'apify.verify': 'Actor checks' };
+const LINE: Record<string, string> = { 'apify.sync': t('Daily sync'), 'apify.snapshots': t('Fixed-age reads'), 'apify.x': t('X reads'), 'apify.radar_x': t('Radar, X'), 'apify.radar_tiktok': t('Radar, TikTok'), 'apify.radar_producthunt': t('Radar, Product Hunt'), 'apify.verify': t('Actor checks') };
 const GATE: Record<string, string> = {
-  breakouts_week: 'Breakouts to study',
-  baseline_24h: 'Their normal',
-  forecast_fit_24h: '24-hour forecast',
-  profile_family: 'Playbook, first format',
-  profile_strong: 'Playbook, strong',
-  profile_moderate: 'Playbook, moderate',
-  radar_crowd: 'Radar crowd rule',
-  niche_baseline: 'Niche normal',
+  breakouts_week: t('Breakouts to study'),
+  baseline_24h: t('Their normal'),
+  forecast_fit_24h: t('24-hour forecast'),
+  profile_family: t('Playbook, first format'),
+  profile_strong: t('Playbook, strong'),
+  profile_moderate: t('Playbook, moderate'),
+  radar_crowd: t('Radar crowd rule'),
+  niche_baseline: t('Niche normal'),
 };
 
 const usd = (x: number) => fmtUsd(x).slice(1);
 function when(days: number): string {
-  if (days < 14) return `${Math.max(1, Math.round(days))} days`;
-  return `${Math.round(days / 7)} weeks`;
+  if (days < 14) return t('{n} days', { n: Math.max(1, Math.round(days)) });
+  return t('{n} weeks', { n: Math.round(days / 7) });
 }
 
 export function PlanPanel({ planner, gates, record, sample }: { planner: PlanInputs; gates: GateEta[]; record: ForecastRecord | null; sample: boolean }) {
@@ -43,14 +44,14 @@ export function PlanPanel({ planner, gates, record, sample }: { planner: PlanInp
   const est = useMemo(() => estimatePlan(planner, sel), [planner, sel]);
   const label = priceLabel(planner, { sample });
   const assumed = !sample && planner.tier.source === 'assumed';
-  const total = sel.tracked.reduce((a, t) => a + t.count, 0) + sel.owned.reduce((a, t) => a + t.count, 0);
+  const total = sel.tracked.reduce((a, tr) => a + tr.count, 0) + sel.owned.reduce((a, tr) => a + tr.count, 0);
   const step = (platform: LabPlatform, d: number) =>
     setSel((s) => {
-      const has = s.tracked.find((t) => t.platform === platform);
-      const tracked = has ? s.tracked.map((t) => (t.platform === platform ? { ...t, count: Math.max(0, t.count + d) } : t)) : [...s.tracked, { platform, count: Math.max(0, d) }];
+      const has = s.tracked.find((tr) => tr.platform === platform);
+      const tracked = has ? s.tracked.map((tr) => (tr.platform === platform ? { ...tr, count: Math.max(0, tr.count + d) } : tr)) : [...s.tracked, { platform, count: Math.max(0, d) }];
       return { ...s, tracked };
     });
-  const platforms = (['instagram', 'tiktok', 'youtube', 'linkedin', 'twitter'] as LabPlatform[]).filter((p) => sel.tracked.some((t) => t.platform === p) || sel.owned.some((t) => t.platform === p));
+  const platforms = (['instagram', 'tiktok', 'youtube', 'linkedin', 'twitter'] as LabPlatform[]).filter((p) => sel.tracked.some((tr) => tr.platform === p) || sel.owned.some((tr) => tr.platform === p));
   const lines = est.perLine.filter((l) => l.line.startsWith('apify.') && l.usd.point > 0);
   const rates = planner.rates;
   const sources = new Set(Object.values(rates).flatMap((r) => (r && typeof r === 'object' && 'source' in r ? [(r as { source: string }).source] : [])));
@@ -102,7 +103,7 @@ export function PlanPanel({ planner, gates, record, sample }: { planner: PlanInp
             <div className="lab2g-plan-steppers" aria-label={LAB_UI.whatIf}>
               <span className="lab2-stat-label" data-lab-ink="">{LAB_UI.whatIf}</span>
               {platforms.map((p) => {
-                const c = sel.tracked.find((t) => t.platform === p)?.count ?? 0;
+                const c = sel.tracked.find((tr) => tr.platform === p)?.count ?? 0;
                 return (
                   <span key={p} className="lab2g-stepper">
                     <span className="lab2g-text" data-lab-ink="">{PLATFORM[p]}</span>
@@ -145,7 +146,7 @@ export function PlanPanel({ planner, gates, record, sample }: { planner: PlanInp
                     : g.state === 'blocked'
                       ? g.blockedReason ?? ''
                       : g.days
-                        ? `${LAB_UI.about} ${when(g.days.med)} (${when(g.days.lo)} to ${when(g.days.hi)})`
+                        ? `${LAB_UI.about} ${when(g.days.med)} (${t('{from} to {to}', { from: when(g.days.lo), to: when(g.days.hi) })})`
                         : ''}
                 </dd>
               </div>

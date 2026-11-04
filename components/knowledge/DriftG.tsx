@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2, Copy, FileEdit, Mail } from 'lucide-react';
 import { GButton, GCard, GChip, GDiff, GEmpty, GList, GRow, GSectionHeader, GTag, useToast } from '@/components/g';
 import type { DriftInsight } from '@/lib/drift';
+import { t } from '@/lib/i18n';
 import { DRAFT_FOOTER, PROPOSED_FIX, humanizeSource } from './DriftRail';
 
 /**
@@ -19,14 +20,14 @@ function CopyDraft({ text, label }: { text: string; label: string }) {
     try {
       if (!navigator.clipboard) throw new Error('no clipboard');
       await navigator.clipboard.writeText(text);
-      toast({ text: 'Draft copied', tone: 'ok' });
+      toast({ text: t('Draft copied'), tone: 'ok' });
     } catch {
-      toast({ text: 'Copy failed: select the text and copy it by hand', tone: 'err' });
+      toast({ text: t('Copy failed: select the text and copy it by hand'), tone: 'err' });
     }
   };
   return (
     <GButton variant="sm" onClick={onCopy} aria-label={label} title={label}>
-      <Copy size={13} strokeWidth={1.8} aria-hidden="true" /> Copy
+      <Copy size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Copy')}
     </GButton>
   );
 }
@@ -48,9 +49,9 @@ function OpenInsight({ insight }: { insight: DriftInsight }) {
     <GCard as="article" p={24} className="kg-drift" aria-label={insight.claim}>
       <p className="kg-claim">{insight.claim}</p>
 
-      <div className="kg-chips" role="group" aria-label="Occurrences">
+      <div className="kg-chips" role="group" aria-label={t('Occurrences')}>
         {insight.occurrences.map((occ, i) => (
-          <GChip key={`${occ.source}-${i}`} pressed={openOcc.has(i)} onPressedChange={() => toggleOcc(i)} title={`${occ.source}: show the excerpt`}>
+          <GChip key={`${occ.source}-${i}`} pressed={openOcc.has(i)} onPressedChange={() => toggleOcc(i)} title={t('{source}: show the excerpt', { source: occ.source })}>
             {humanizeSource(occ.source)} · {occ.date}
           </GChip>
         ))}
@@ -69,9 +70,9 @@ function OpenInsight({ insight }: { insight: DriftInsight }) {
         ) : null,
       )}
 
-      <div className="kg-quote" aria-label="Canon">
+      <div className="kg-quote" aria-label={t('Canon')}>
         <div className="kg-quote-head">
-          <span>Canon</span>
+          <span>{t('Canon')}</span>
           <span className="kg-mono" data-mono-ok="">
             {insight.canon.file}
           </span>
@@ -80,16 +81,16 @@ function OpenInsight({ insight }: { insight: DriftInsight }) {
       </div>
 
       <div className="kg-drift-foot">
-        <GTag tone={insight.confidence === 'high' ? 'accent' : 'neutral'}>{insight.confidence === 'high' ? 'High confidence' : 'Medium confidence'}</GTag>
-        <span className="kg-cap">detected {insight.detectedAt}</span>
+        <GTag tone={insight.confidence === 'high' ? 'accent' : 'neutral'}>{insight.confidence === 'high' ? t('High confidence') : t('Medium confidence')}</GTag>
+        <span className="kg-cap">{t('detected {date}', { date: insight.detectedAt })}</span>
         <span className="kg-spacer" />
         {fix && (
           <>
             <GButton variant="sm" onClick={() => setShowDiff((v) => !v)} aria-expanded={showDiff}>
-              <FileEdit size={13} strokeWidth={1.8} aria-hidden="true" /> Update canon
+              <FileEdit size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Update canon')}
             </GButton>
             <GButton variant="sm" onClick={() => setShowDraft((v) => !v)} aria-expanded={showDraft}>
-              <Mail size={13} strokeWidth={1.8} aria-hidden="true" /> Draft correction
+              <Mail size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Draft correction')}
             </GButton>
           </>
         )}
@@ -98,21 +99,21 @@ function OpenInsight({ insight }: { insight: DriftInsight }) {
       {showDiff && fix && (
         <div className="kg-stack-sm">
           <GDiff removed={[fix.removed]} added={[fix.added]} file={insight.canon.file} />
-          <p className="kg-cap">Not written. Copy the new passage into {insight.canon.file}.</p>
+          <p className="kg-cap">{t('Not written. Copy the new passage into {file}.', { file: insight.canon.file })}</p>
         </div>
       )}
 
       {showDraft && fix && (
         <div className="kg-quote">
           <div className="kg-quote-head">
-            <span>To: {fix.to}</span>
+            <span>{t('To:')} {fix.to}</span>
           </div>
           <p>{fix.message}</p>
           <div className="kg-draft-foot">
             <p className="kg-cap">
               {DRAFT_FOOTER} <Link href="/inbox">Comms</Link>.
             </p>
-            <CopyDraft text={fix.message} label={`Copy the draft to the ${fix.to}`} />
+            <CopyDraft text={fix.message} label={t('Copy the draft to the {to}', { to: fix.to })} />
           </div>
         </div>
       )}
@@ -127,17 +128,17 @@ function ResolvedRow({ insight }: { insight: DriftInsight }) {
       <GRow
         leading={<CheckCircle2 size={16} strokeWidth={1.7} aria-hidden="true" />}
         title={insight.claim}
-        meta={`${insight.canon.file} · detected ${insight.detectedAt}`}
-        trailing={<GTag tone="ok">Resolved</GTag>}
+        meta={`${insight.canon.file} · ${t('detected {date}', { date: insight.detectedAt })}`}
+        trailing={<GTag tone="ok">{t('Resolved')}</GTag>}
         onClick={() => setOpen((v) => !v)}
         selected={open}
-        hint={open ? 'Hide details' : 'Show details'}
+        hint={open ? t('Hide details') : t('Show details')}
       />
       {open && (
         <li className="kg-resolved-body">
           <div className="kg-quote">
             <div className="kg-quote-head">
-              <span>Canon</span>
+              <span>{t('Canon')}</span>
               <span className="kg-mono" data-mono-ok="">
                 {insight.canon.file}
               </span>
@@ -156,10 +157,10 @@ export function DriftG({ insights }: { insights: DriftInsight[] }) {
       <GCard p={24}>
         <GEmpty
           kind="unconfigured"
-          title="Drift detection is not running yet"
-          body="It compares claims in incoming calls and threads against the knowledge canon and surfaces contradictions here."
+          title={t('Drift detection is not running yet')}
+          body={t('It compares claims in incoming calls and threads against the knowledge canon and surfaces contradictions here.')}
           setupHref="/setup"
-          setupHint="The extraction pipeline is not configured"
+          setupHint={t('The extraction pipeline is not configured')}
         />
       </GCard>
     );
@@ -176,14 +177,14 @@ export function DriftG({ insights }: { insights: DriftInsight[] }) {
         </div>
       ) : (
         <GCard p={24}>
-          <GEmpty title="No open drift" body="Every contradiction found so far has been resolved." />
+          <GEmpty title={t('No open drift')} body={t('Every contradiction found so far has been resolved.')} />
         </GCard>
       )}
       {resolved.length > 0 && (
         <section className="kg-section" aria-labelledby="drift-resolved">
-          <GSectionHeader size={22} id="drift-resolved" title="Resolved" caption={`${resolved.length} closed`} />
+          <GSectionHeader size={22} id="drift-resolved" title={t('Resolved')} caption={t('{n} closed', { n: resolved.length })} />
           <GCard p={16}>
-            <GList divided label="Resolved drift">
+            <GList divided label={t('Resolved drift')}>
               {resolved.map((i) => (
                 <ResolvedRow key={i.id} insight={i} />
               ))}

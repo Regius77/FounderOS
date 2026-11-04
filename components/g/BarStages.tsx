@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { stageBarGeometry, stackSegments } from '@/lib/chart-geometry';
 import { formatCompact, formatFull, formatUsdCompact } from '@/lib/format-number';
@@ -69,7 +70,7 @@ const MIN_H = 6;
  */
 export function BarStages({
   columns, measure, flow = true, selected = null, onSelect, onSegmentSelect, selectedSegment = null, conversionRow = false, hideValues = false, plotHeight,
-  countNoun = ['item', 'items'], tipHint, label, className = '', kit = 'GBarChart', ...stateProps
+  countNoun = [t('item'), t('items')], tipHint, label, className = '', kit = 'GBarChart', ...stateProps
 }: BarStagesProps) {
   const [ref, W] = useWidth<HTMLDivElement>(860);
   const [hover, setHover] = useState<string | null>(null);
@@ -125,7 +126,7 @@ export function BarStages({
       <span className="g-stage-head">
         <span className="g-stage-label">{c.label}</span>
         {stacked ? (
-          <span className="g-stage-split" data-mask={hideValues || undefined} title={`${full(c.won ?? 0)} won · ${full(c.lost ?? 0)} lost`}>
+          <span className="g-stage-split" data-mask={hideValues || undefined} title={t('{won} won · {lost} lost', { won: full(c.won ?? 0), lost: full(c.lost ?? 0) })}>
             <span data-tone="ok">{compact(c.won ?? 0)} won</span> · <span data-tone="err">{compact(c.lost ?? 0)} lost</span>
           </span>
         ) : (
@@ -146,11 +147,11 @@ export function BarStages({
   const tip = hc ? (() => {
     const v = heightOf(hc);
     const share = total > 0 ? Math.round((Math.max(0, v) / total) * 100) : 0;
-    const t = hc.tip;
-    const lines: ReactNode[] = t?.lines ?? (hc.won !== undefined || hc.lost !== undefined
-      ? [`${full(hc.won ?? 0)} won`, `${full(hc.lost ?? 0)} lost`]
-      : [`${full(v)}${hc.count !== undefined ? ` across ${hc.count} ${hc.count === 1 ? countNoun[0] : countNoun[1]}` : ''}`, `${share}% of the total`]);
-    return { title: t?.title ?? hc.label, lines, hint: t?.hint ?? (interactive ? tipHint : undefined) };
+    const tipOf = hc.tip;
+    const lines: ReactNode[] = tipOf?.lines ?? (hc.won !== undefined || hc.lost !== undefined
+      ? [t('{n} won', { n: full(hc.won ?? 0) }), t('{n} lost', { n: full(hc.lost ?? 0) })]
+      : [`${full(v)}${hc.count !== undefined ? t(' across {n} {noun}', { n: hc.count, noun: hc.count === 1 ? countNoun[0] : countNoun[1] }) : ''}`, t('{n}% of the total', { n: share })]);
+    return { title: tipOf?.title ?? hc.label, lines, hint: tipOf?.hint ?? (interactive ? tipHint : undefined) };
   })() : null;
 
   return (
@@ -179,7 +180,7 @@ export function BarStages({
           const segs = stacked && !g.zero ? stackSegments(c.won ?? 0, c.lost ?? 0, g.h) : [];
           const v = heightOf(c);
           const sub = c.sub ?? (c.count !== undefined ? `${c.count} ${c.count === 1 ? countNoun[0] : countNoun[1]}` : undefined);
-          const aria = `${c.label}: ${stacked ? `${full(c.won ?? 0)} won, ${full(c.lost ?? 0)} lost` : full(v)}${sub ? `, ${sub}` : ''}${conversionRow && conv[i] !== null ? `, ${Math.round((conv[i] as number) * 100)}% from previous` : ''}`;
+          const aria = `${c.label}: ${stacked ? t('{won} won, {lost} lost', { won: full(c.won ?? 0), lost: full(c.lost ?? 0) }) : full(v)}${sub ? `, ${sub}` : ''}${conversionRow && conv[i] !== null ? t(', {n}% from previous', { n: Math.round((conv[i] as number) * 100) }) : ''}`;
           const inner = (
             <>
               {!wrapHeads && headOf(c, i)}

@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 export type GRulerProps = {
   /** the value and its scale in words: "Median 34 days of 90" (also the `title`) */
   label: string;
@@ -20,7 +21,7 @@ export function GRuler({ label, value, max, ticks = 36, tone, onHero = false, cl
   const n = Math.max(30, Math.min(40, Math.round(ticks)));
   const pct = value === null || !Number.isFinite(value) || max <= 0 ? null : Math.max(0, Math.min(1, value / max));
   const mark = pct === null ? -1 : Math.round(pct * (n - 1));
-  const text = pct === null ? `${label} · no data` : label;
+  const text = pct === null ? t('{label} · no data', { label }) : label;
   return (
     <div data-g="GRuler" role="img" aria-label={text} title={text} className={`g-ruler ${className}`} data-tone={tone} data-on-hero={onHero || undefined}>
       {Array.from({ length: n }, (_, i) => (

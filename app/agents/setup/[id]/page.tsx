@@ -12,6 +12,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { SetupG } from '@/components/agents/SetupG';
+import { agentStatusLabel, agentTierLabel } from '@/founderos/lib/labels';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,9 +42,9 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <PageHeader eyebrow="Agent setup" title={agent.name} />
+      <PageHeader eyebrow={t('Agent setup')} title={agent.name} />
       <Link href="/agents" className="mb-6 inline-flex items-center gap-2 text-[12.5px] text-os-dim transition-colors hover:text-os-text">
-        <ArrowLeft size={13} strokeWidth={1.8} /> back to the roster
+        <ArrowLeft size={13} strokeWidth={1.8} /> {t('back to the roster')}
       </Link>
 
       <div className="mb-8 flex items-center gap-5 rounded-lg-t border border-os-border bg-os-surface px-6 py-5">
@@ -50,8 +52,8 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-[16px] font-medium">{agent.name}</span>
-            <Badge tone={agent.status === 'active' ? 'ok' : 'warn'}>{agent.status}</Badge>
-            <Badge>{agent.tier}</Badge>
+            <Badge tone={agent.status === 'active' ? 'ok' : 'warn'}>{agentStatusLabel(agent.status)}</Badge>
+            <Badge>{agentTierLabel(agent.tier)}</Badge>
           </div>
           <div className="mt-1 text-[12.5px] text-os-dim">{agent.role} · <span className="font-mono text-[12px]">{agent.model}</span></div>
           <p className="mt-2 text-[12.5px] leading-relaxed text-os-muted">{spec?.blurb ?? agent.description}</p>
@@ -60,14 +62,14 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
 
       {!spec && (
         <div className="rounded-lg-t border border-dashed border-os-border px-6 py-8 text-center text-[13px] text-os-dim">
-          No setup guide written for this agent yet — describe what it should do in a session and the guide gets built with it.
+          {t('No setup guide written for this agent yet — describe what it should do in a session and the guide gets built with it.')}
         </div>
       )}
 
       {spec && (
         <div className="max-w-[760px] space-y-4">
           <Label rule count={spec.steps.length}>
-            Setup steps
+            {t('Setup steps')}
           </Label>
           {spec.steps.map((step, i) => {
             const key = step.kind === 'env' ? keys.get(step.envVar) : undefined;
@@ -85,8 +87,8 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
                     <UserRound size={14} strokeWidth={1.7} className="text-os-dim" />
                   )}
                   <span className="text-[13.5px] font-medium">{step.label}</span>
-                  {step.kind === 'build' && <Badge tone="warn">build owed</Badge>}
-                  {step.kind === 'external' && <Badge>yours to do</Badge>}
+                  {step.kind === 'build' && <Badge tone="warn">{t('build owed')}</Badge>}
+                  {step.kind === 'external' && <Badge>{t('yours to do')}</Badge>}
                 </div>
                 {step.kind === 'env' && (
                   <div className="mt-3 pl-10">
@@ -99,7 +101,7 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
                     {step.detail}{' '}
                     {'href' in step && step.href && (
                       <a href={step.href} target="_blank" rel="noreferrer" className="text-os-dim transition-colors hover:text-os-text">
-                        open →
+                        {t('open →')}
                       </a>
                     )}
                   </p>
@@ -108,7 +110,7 @@ export default function AgentSetupPage({ params }: { params: { id: string } }) {
             );
           })}
           <p className="pt-1 text-[12.5px] text-os-dim">
-            Keys land in .env.local on this host and take effect immediately. The agent flips to active once its wiring is proven, not when boxes are ticked.
+            {t('Keys land in .env.local on this host and take effect immediately. The agent flips to active once its wiring is proven, not when boxes are ticked.')}
           </p>
         </div>
       )}

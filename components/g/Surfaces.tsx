@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import type { MouseEventHandler, ReactNode } from 'react';
 import Link from 'next/link';
 import { cx } from './cx';
@@ -139,10 +140,10 @@ export function GHeroCard(props: GHeroCardProps) {
           <GDotNumber value={unconfigured ? null : (value ?? null)} size="auto" tone="on-hero" label={label} />
         </span>
       )}
-      {(status != null || unconfigured) && <span className="g-hero-status">{unconfigured ? (status ?? 'Not configured') : status}</span>}
+      {(status != null || unconfigured) && <span className="g-hero-status">{unconfigured ? (status ?? t('Not configured')) : status}</span>}
       {unconfigured && (
         <GButton variant="sm" href={setupHref} title={setupHint} className="g-btn-onhero">
-          Set up
+          {t('Set up')}
         </GButton>
       )}
       {strip != null && !unconfigured && <span className="g-hero-strip">{strip}</span>}

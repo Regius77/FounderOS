@@ -18,7 +18,9 @@ import { AgentPanel } from '@/components/AgentPanel';
 import { Badge, Dot, SectionHead } from '@/components/terminal';
 import { failoverModelOptions } from '@/lib/agent-review';
 import type { DeptFilter } from '@/lib/agent-dept';
+import { agentStatusLabel, agentTierLabel } from '@/founderos/lib/labels';
 import type { Agent, AgentCron, AgentMessage, AgentRun, AgentTask, Department, Skill } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 function stop(e: MouseEvent | KeyboardEvent) {
   e.stopPropagation();
@@ -52,7 +54,7 @@ function AgentRosterCard({
       style={{ borderColor: active ? 'color-mix(in oklab, var(--accent) 35%, var(--border))' : 'var(--border)' }}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${agent.name} profile`}
+      aria-label={t('Open {name} profile', { name: agent.name })}
       onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -68,7 +70,7 @@ function AgentRosterCard({
           onKeyDown={stop}
           className="absolute -right-2 -top-2 z-10 rounded-[6px] bg-[var(--agent-badge)] px-3 py-1.5 text-[11.5px] font-medium text-white transition-transform hover:-translate-y-[1px]"
         >
-          Set up
+          {t('Set up')}
         </Link>
       )}
       <div className="flex items-start justify-between gap-4">
@@ -80,7 +82,7 @@ function AgentRosterCard({
           </div>
           <div className="mt-1 truncate text-[12px] text-os-dim">{agent.role}</div>
         </div>
-        <Badge>{agent.tier}</Badge>
+        <Badge>{agentTierLabel(agent.tier)}</Badge>
       </div>
 
       <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-os-muted [text-wrap:pretty]">{agent.description}</p>
@@ -103,15 +105,15 @@ function AgentRosterCard({
 
       <div className="mt-auto pt-4">
         <div className="mb-4 flex items-center justify-between gap-4 text-[12px] text-os-dim">
-          <span className="truncate">{parent ? `under ${parent.name}` : `instance ${agent.instance}`}</span>
-          <span className="shrink-0">{agent.status}</span>
+          <span className="truncate">{parent ? t('under {name}', { name: parent.name }) : t('instance {name}', { name: agent.instance })}</span>
+          <span className="shrink-0">{agentStatusLabel(agent.status)}</span>
         </div>
         {lastRun && (
           <div className="flex items-center gap-2.5 text-[12px] leading-snug text-os-dim">
             <Dot state={lastRun.ok ? 'ok' : 'fail'} />
-            <span className="shrink-0 text-os-muted">{lastRun.ok ? 'ok' : 'failed'}</span>
+            <span className="shrink-0 text-os-muted">{lastRun.ok ? t('ok') : t('failed')}</span>
             <span className="truncate" title={lastRun.summary}>
-              last check: {lastRun.summary.slice(0, 56)}
+              {t('last check:')} {lastRun.summary.slice(0, 56)}
             </span>
           </div>
         )}
@@ -174,13 +176,13 @@ export function AgentRoster({
             .filter(([, list]) => list.length > 0)
             .map(([label, list]) => (
               <div key={label} className="mb-7 last:mb-0">
-                <div className="mb-5 text-center text-[12.5px] text-os-muted">{label}</div>
+                <div className="mb-5 text-center text-[12.5px] text-os-muted">{label === 'Active' ? t('Active') : t('Inactive')}</div>
                 <div className="flex flex-wrap justify-center gap-x-10 gap-y-7">
                   {list.map((a) => (
                     <button
                       key={a.id}
                       onClick={() => setSelectedId(a.id)}
-                      aria-label={`Open ${a.name} profile`}
+                      aria-label={t('Open {name} profile', { name: a.name })}
                       className="hoverable flex w-[128px] cursor-pointer flex-col items-center rounded-[12px] p-2 text-center"
                     >
                       <AgentAvatar src={avatars[a.id] ?? null} name={a.name} size={76} />
@@ -196,10 +198,10 @@ export function AgentRoster({
       {dept && (
         <div data-dept-filter={dept.department?.id ?? ''} className="mb-5 flex items-center gap-3 text-[13px] text-os-muted">
           <span>
-            {dept.department ? `Showing ${dept.department.name} only` : `No department matches “${dept.param}”`}
+            {dept.department ? t('Showing {name} only', { name: dept.department.name }) : t('No department matches “{param}”', { param: dept.param })}
           </span>
           <Link href="/agents" className="text-[var(--accent)] hover:underline">
-            Show every department
+            {t('Show every department')}
           </Link>
         </div>
       )}
@@ -209,7 +211,7 @@ export function AgentRoster({
           if (deptAgents.length === 0) return null;
           return (
             <section key={dept.id}>
-              <SectionHead label={dept.name} count={`${deptAgents.length} agents`} />
+              <SectionHead label={dept.name} count={t('{n} agents', { n: deptAgents.length })} />
               <div className="-mt-1 mb-4 text-[13px] text-os-dim">{dept.tagline}</div>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ultra:grid-cols-5">
                 {deptAgents.map((agent) => (

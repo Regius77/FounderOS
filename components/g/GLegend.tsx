@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useRef, type MouseEvent } from 'react';
 import { formatFull } from '@/lib/format-number';
 import { colorVar, type VizColor } from './viz-shared';
@@ -42,7 +43,7 @@ export function GLegend({ items, onToggle, onIsolate, layout = 'inline', label, 
             type="button"
             className="g-legend-item"
             aria-pressed={it.on}
-            title={`${it.on ? 'Hide' : 'Show'} ${it.label}${onIsolate ? '. Alt-click or hold to show only this.' : ''}`}
+            title={`${it.on ? t('Hide {label}', { label: it.label }) : t('Show {label}', { label: it.label })}${onIsolate ? t('. Alt-click or hold to show only this.') : ''}`}
             onClick={(e) => onClick(e, it.id)}
             onPointerDown={onIsolate ? () => {
               cancel();

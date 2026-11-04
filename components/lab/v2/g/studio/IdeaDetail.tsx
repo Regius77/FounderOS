@@ -16,8 +16,11 @@ import { Chip } from '../bits';
 import { PostCard } from '../PostCard';
 import { StrandBar } from '../Strand';
 import { LAB_UI } from '@/lib/lab/view/ui-copy';
+import { t } from '@/lib/i18n';
 
 const DISMISS = ['Not my angle', 'Already covered', 'Window closed', 'Other'];
+/** Display labels; the English reason is what gets stored. */
+const DISMISS_LABEL: Record<string, string> = { 'Not my angle': t('Not my angle'), 'Already covered': t('Already covered'), 'Window closed': t('Window closed'), Other: t('Other') };
 
 export function IdeaBody({ ui }: { ui: IdeaSheetUi }) {
   const d = ui.data;
@@ -176,7 +179,7 @@ export function IdeaActions({ ui }: { ui: IdeaSheetUi }) {
         }}
       >
         <GField label={LAB_UI.outsideReason} htmlFor="lab2g-dismiss">
-          <GSelect id="lab2g-dismiss" value={reason} onChange={(e) => setReason(e.target.value)} options={DISMISS.map((x) => ({ value: x, label: x }))} />
+          <GSelect id="lab2g-dismiss" value={reason} onChange={(e) => setReason(e.target.value)} options={DISMISS.map((x) => ({ value: x, label: DISMISS_LABEL[x] ?? x }))} />
         </GField>
         {reason === 'Other' && <GInput aria-label={LAB_UI.outsideReason} value={other} onChange={(e) => setOther(e.target.value)} />}
       </GDialog>

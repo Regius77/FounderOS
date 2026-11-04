@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useMemo, useState, type KeyboardEvent, type MouseEvent, type MouseEventHandler, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
@@ -175,7 +176,7 @@ export function GTable<T>({ columns, rows, rowKey, caption, showCaption = false,
         {sorted.length === 0 ? (
           <tr>
             <td colSpan={columns.length} className="g-table-empty">
-              {empty ?? 'Nothing to show'}
+              {empty ?? t('Nothing to show')}
             </td>
           </tr>
         ) : (

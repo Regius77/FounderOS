@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useId, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { areaPaths, clamp, extent, labelIndices, nearestIndex, peakIndex, seriesPaths, spreadX } from '@/lib/chart-geometry';
 import { stepCursor } from '@/lib/chart-sync';
@@ -58,7 +59,7 @@ const AXIS_H = 22;
  */
 export function XYChart({ kind, ...p }: XYChartProps & { kind: Kind }) {
   const {
-    labels, axisLabels, series, variant = 'linear', height = 160, syncId, formatValue = (v) => v.toLocaleString('en-US'),
+    labels, axisLabels, series, variant = 'linear', height = 160, syncId, formatValue = (v) => v.toLocaleString(localeTag()),
     tip, peakLabel, yAxis, zeroBase = true, onSelect, label, className = '', ...stateProps
   } = p;
   const [ref, W] = useWidth<HTMLDivElement>(600);
@@ -129,8 +130,8 @@ export function XYChart({ kind, ...p }: XYChartProps & { kind: Kind }) {
     title: labels[ci],
     lines: series.map((s) => {
       const v = s.values[ci];
-      const val = v === null || !Number.isFinite(v) ? 'no data' : formatValue(v);
-      return single ? `${val}${s.carried?.[ci] ? ' · carried forward' : ''}` : `${s.label} ${val}${s.carried?.[ci] ? ' (carried)' : ''}`;
+      const val = v === null || !Number.isFinite(v) ? t('no data') : formatValue(v);
+      return single ? `${val}${s.carried?.[ci] ? t(' · carried forward') : ''}` : `${s.label} ${val}${s.carried?.[ci] ? t(' (carried)') : ''}`;
     }),
   };
   const tipY = ci === null ? 0 : Math.min(...series.map((s) => { const v = s.values[ci]; return v === null || !Number.isFinite(v) ? plotB : yOf(v); }));
@@ -144,7 +145,7 @@ export function XYChart({ kind, ...p }: XYChartProps & { kind: Kind }) {
       className={`g-xy ${className}`}
       role="group"
       aria-roledescription="chart"
-      aria-label={`${label}. Arrow keys move through ${n} points${onSelect ? ', Enter opens one' : ''}.`}
+      aria-label={`${t('{label}. Arrow keys move through {n} points', { label, n })}${onSelect ? t(', Enter opens one') : ''}.`}
       tabIndex={0}
       style={{ height: totalH }}
       onPointerMove={onMove}

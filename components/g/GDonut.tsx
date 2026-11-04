@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useState, type ReactNode } from 'react';
 import { arcPath, donutArcs } from '@/lib/chart-geometry';
 import { colorVar, slotColor, VizStateBody, type VizColor, type VizStateProps } from './viz-shared';
@@ -37,7 +38,7 @@ export type GDonutProps = VizStateProps & {
  * nothing a ring can add, so it renders a stat (value and label) instead.
  */
 export function GDonut({
-  slices, size = 190, stroke = 16, formatValue = (v) => v.toLocaleString('en-US'), centreLabel, centre, legend = true, onSelect, dimmed = [],
+  slices, size = 190, stroke = 16, formatValue = (v) => v.toLocaleString(localeTag()), centreLabel, centre, legend = true, onSelect, dimmed = [],
   hideValues = false, label, className = '', ...stateProps
 }: GDonutProps) {
   const [hover, setHover] = useState<string | null>(null);
@@ -107,7 +108,7 @@ export function GDonut({
         </div>
       </div>
       {legend && (
-        <ul className="g-donut-legend" aria-label={`${label} legend`}>
+        <ul className="g-donut-legend" aria-label={t('{label} legend', { label })}>
           {slices.map((s, i) => {
             const inner = (
               <>

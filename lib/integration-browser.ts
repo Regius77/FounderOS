@@ -9,11 +9,31 @@
  * live, else `not connected`.
  */
 
+import { t } from '@/lib/i18n';
+
 export const BROWSE_STATES = [
-  { id: 'connected', label: 'Connected' },
-  { id: 'key-saved', label: 'Key saved' },
-  { id: 'not-connected', label: 'Not connected' },
+  { id: 'connected', label: t('Connected') },
+  { id: 'key-saved', label: t('Key saved') },
+  { id: 'not-connected', label: t('Not connected') },
 ] as const;
+
+/** Display name of a catalogue category (the raw name stays the filter key). */
+const CATEGORY_LABELS: Record<string, string> = {
+  Communication: t('Communication'),
+  Productivity: t('Productivity'),
+  'CRM & Sales': t('CRM & Sales'),
+  Developer: t('Developer'),
+  Scheduling: t('Scheduling'),
+  Finance: t('Finance'),
+  Marketing: t('Marketing'),
+  Storage: t('Storage'),
+  Knowledge: t('Knowledge'),
+  'AI & Automation': t('AI & Automation'),
+  Creative: t('Creative'),
+};
+export function categoryLabel(category: string): string {
+  return CATEGORY_LABELS[category] ?? category;
+}
 export type BrowseState = (typeof BROWSE_STATES)[number]['id'];
 
 export type BrowseItem = {
@@ -65,6 +85,6 @@ export function countBy<T extends BrowseItem>(items: readonly T[], key: 'categor
 
 /** The result line under the filters. */
 export function resultCaption(n: number, total: number): string {
-  if (n === 0) return 'No tools match. Clear the filters to see all of them.';
-  return n === total ? `All ${total} tools` : `${n} of ${total} tools`;
+  if (n === 0) return t('No tools match. Clear the filters to see all of them.');
+  return n === total ? t('All {total} tools', { total }) : t('{n} of {total} tools', { n, total });
 }

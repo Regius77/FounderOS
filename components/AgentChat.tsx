@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MessageSquare, Send, Wrench } from 'lucide-react';
 import type { AgentMessage } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * Per-agent chat panel. Talk to one agent in an LLM-backed conversation that
@@ -35,7 +36,7 @@ export function AgentChat({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
-      if (!res.ok) throw new Error(`chat failed (${res.status})`);
+      if (!res.ok) throw new Error(t('chat failed ({status})', { status: res.status }));
       const body = (await res.json()) as { reply: string; messages: AgentMessage[] };
       setMessages(body.messages);
       setInput('');
@@ -53,10 +54,10 @@ export function AgentChat({
         className="flex w-full items-center justify-between text-left text-[12.5px] text-os-dim transition-colors hover:text-os-muted"
       >
         <span className="flex items-center gap-2.5">
-          <MessageSquare className="h-3 w-3" /> Chat
+          <MessageSquare className="h-3 w-3" /> {t('Chat')}
         </span>
         <span>
-          {messages.length > 0 ? `${messages.length} msg ` : ''}
+          {messages.length > 0 ? t('{n} msg ', { n: messages.length }) : ''}
           {open ? '▾' : '▸'}
         </span>
       </button>
@@ -66,7 +67,7 @@ export function AgentChat({
           <div className="max-h-56 space-y-2.5 overflow-y-auto pr-1">
             {messages.length === 0 && (
               <p className="text-[12.5px] leading-relaxed text-os-dim">
-                Ask {agentName} anything — it reads its live connectors to answer.
+                {t('Ask {name} anything — it reads its live connectors to answer.', { name: agentName })}
               </p>
             )}
             {messages.map((m) => {
@@ -98,7 +99,7 @@ export function AgentChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
-              placeholder={`Message ${agentName}…`}
+              placeholder={t('Message {name}…', { name: agentName })}
               disabled={sending}
               className="min-w-0 flex-1 rounded-sm-t border border-os-border bg-os-surface2 px-2.5 py-2.5 text-[12.5px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
             />
@@ -106,7 +107,7 @@ export function AgentChat({
               onClick={send}
               disabled={sending || !input.trim()}
               className="flex shrink-0 items-center rounded-sm-t border border-os-border-strong bg-os-surface2 px-2.5 py-2.5 text-os-text transition-colors hover:bg-os-surface3 disabled:opacity-40"
-              aria-label="Send"
+              aria-label={t('Send')}
             >
               {sending ? <span className="text-[11.5px]">…</span> : <Send className="h-3 w-3" />}
             </button>

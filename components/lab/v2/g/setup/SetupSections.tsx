@@ -17,15 +17,16 @@ import type { SourceRow } from '@/lib/lab/view/shared';
 import { PlanPanel } from './PlanPanel';
 import { LabSetupLink } from '../bits';
 import { LAB_UI, fill, fmtLabDay } from '@/lib/lab/view/ui-copy';
+import { t } from '@/lib/i18n';
 
 const KEY_STATE: Record<LabKeyRow['state'], string> = {
-  not_configured: 'Not configured',
-  needs_connect: 'Not connected',
-  checking: 'Checking',
-  connected: 'Connected',
-  expiring: 'Expiring',
-  error: 'Error',
-  dry: 'Dry: not checked',
+  not_configured: t('Not configured'),
+  needs_connect: t('Not connected'),
+  checking: t('Checking'),
+  connected: t('Connected'),
+  expiring: t('Expiring'),
+  error: t('Error'),
+  dry: t('Dry: not checked'),
 };
 const HEALTH_ID: Record<string, string> = { apify: 'apify.auth', openai: 'openai.auth', youtube: 'youtube.token', instagram: 'instagram.token', producthunt: 'producthunt.auth', github: 'github.auth' };
 const PLATFORM: Record<string, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X', x: 'X' };

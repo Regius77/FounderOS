@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useState } from 'react';
 import { polar, radarPoints } from '@/lib/chart-geometry';
 import { GEmpty } from './States';
@@ -39,7 +40,7 @@ export function GRadar({ axes, layers, max = 100, activeLayer = null, onLayer, s
   const c = size / 2;
   const n = axes.length;
   const focus = hover ?? activeLayer;
-  const summary = layers.length === 0 ? `${label} · no data` : `${label}: ${layers.map((l) => `${l.label} ${axes.map((a, k) => `${a.label} ${l.values[k] === null || l.values[k] === undefined ? 'no data' : formatValue(l.values[k] as number)}`).join(', ')}`).join('; ')}`;
+  const summary = layers.length === 0 ? t('{label} · no data', { label }) : `${label}: ${layers.map((l) => `${l.label} ${axes.map((a, k) => `${a.label} ${l.values[k] === null || l.values[k] === undefined ? t('no data') : formatValue(l.values[k] as number)}`).join(', ')}`).join('; ')}`;
   return (
     <div data-g="GRadar" className={`g-radar ${className}`}>
       <svg width={size} height={size} role="img" aria-label={summary}>
@@ -73,9 +74,9 @@ export function GRadar({ axes, layers, max = 100, activeLayer = null, onLayer, s
         })}
       </svg>
       {layers.length === 0 ? (
-        <GEmpty inline title={stateProps.emptyText ?? 'No layers to show.'} />
+        <GEmpty inline title={stateProps.emptyText ?? t('No layers to show.')} />
       ) : layers.length > 1 && (
-        <ul className="g-legend" data-layout="inline" aria-label={`${label} layers`}>
+        <ul className="g-legend" data-layout="inline" aria-label={t('{label} layers', { label })}>
           {layers.map((l, i) => (
             <li key={l.id}>
               {onLayer ? (

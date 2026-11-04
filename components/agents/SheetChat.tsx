@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Wrench } from 'lucide-react';
 import { GAsk } from '@/components/g';
 import type { AgentMessage } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * The AgentSheet's Chat section (glados-ui SPEC S04 F-A6.2): the same real
@@ -27,7 +28,7 @@ export function SheetChat({ agentId, agentName, initialMessages }: { agentId: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
-      if (!res.ok) throw new Error(`Chat failed (${res.status})`);
+      if (!res.ok) throw new Error(t('Chat failed ({status})', { status: res.status }));
       const body = (await res.json()) as { reply: string; messages: AgentMessage[] };
       setMessages(body.messages);
       setInput('');
@@ -41,14 +42,14 @@ export function SheetChat({ agentId, agentName, initialMessages }: { agentId: st
   return (
     <div className="wg-chat">
       {messages.length === 0 ? (
-        <p className="wg-cap">Ask {agentName} anything. It reads its live connectors to answer.</p>
+        <p className="wg-cap">{t('Ask {name} anything. It reads its live connectors to answer.', { name: agentName })}</p>
       ) : (
-        <ol className="wg-chat-log" aria-label={`Conversation with ${agentName}`}>
+        <ol className="wg-chat-log" aria-label={t('Conversation with {name}', { name: agentName })}>
           {messages.map((m) =>
             m.role === 'tool' ? (
               <li key={m.id} className="wg-chat-tool">
                 <Wrench size={12} strokeWidth={1.6} aria-hidden />
-                {m.toolCalls.map((c) => c.name).join(', ') || 'tool'}
+                {m.toolCalls.map((c) => c.name).join(', ') || t('tool')}
               </li>
             ) : (
               <li key={m.id} className="wg-chat-msg" data-role={m.role === 'user' ? 'user' : 'agent'}>
@@ -65,8 +66,8 @@ export function SheetChat({ agentId, agentName, initialMessages }: { agentId: st
         busy={sending}
         error={error}
         minChars={1}
-        label={`Message ${agentName}`}
-        placeholder={`Message ${agentName}`}
+        label={t('Message {name}', { name: agentName })}
+        placeholder={t('Message {name}', { name: agentName })}
       />
     </div>
   );

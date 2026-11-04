@@ -7,6 +7,7 @@ import { KnowledgeAbout } from '@/components/knowledge/KnowledgeAbout';
 import { GPage, GSectionHeader } from '@/components/g';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,8 +42,8 @@ export default function KnowledgePage() {
       <GPage className="kg-page kg-viz">
         <GSectionHeader
           size="page"
-          title="Knowledge visualizer"
-          caption="Every record the OS holds, how each one connects, and which parts the rest depends on."
+          title={t('Knowledge visualizer')}
+          caption={t('Every record the OS holds, how each one connects, and which parts the rest depends on.')}
           action={<KnowledgeAbout />}
         />
         <KnowledgeG index={index} analysis={flat} />
@@ -52,10 +53,9 @@ export default function KnowledgePage() {
 
   return (
     <div className="kv-page">
-      <PageHeader eyebrow="Knowledge layer" title="Knowledge visualizer" />
+      <PageHeader eyebrow={t('Knowledge layer')} title={t('Knowledge visualizer')} />
       <p className="-mt-3 mb-3 max-w-[96ch] text-[12px] leading-relaxed text-os-muted">
-        Every record the OS holds, how each one connects, and which parts of it the rest depends on. Each connection
-        carries the evidence that produced it, so a relationship can be checked rather than believed.
+        {t('Every record the OS holds, how each one connects, and which parts of it the rest depends on. Each connection carries the evidence that produced it, so a relationship can be checked rather than believed.')}
       </p>
       <KnowledgeVisualizer
         index={index}

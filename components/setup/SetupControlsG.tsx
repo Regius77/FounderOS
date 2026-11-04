@@ -6,6 +6,7 @@ import { useManualCheck } from '@/components/SetupManualCheck';
 import { useKeySave } from '@/components/SetupKeyInput';
 import { useFilmingToggle } from '@/components/SetupFilming';
 import { usePasswordForm } from '@/components/SetupSecurity';
+import { t } from '@/lib/i18n';
 
 /**
  * The /setup controls under the GladOS style (SPEC S05 F05.93, F05.94, §3.2):
@@ -15,8 +16,8 @@ import { usePasswordForm } from '@/components/SetupSecurity';
 export function ManualCheckG({ id, marked, title }: { id: string; marked: boolean; title: string }) {
   const { busy, toggle } = useManualCheck(id, marked);
   return (
-    <GButton variant="sm" onClick={toggle} busy={busy} aria-label={marked ? `Undo done: ${title}` : `Mark done: ${title}`}>
-      {marked ? 'Undo done' : 'Mark done'}
+    <GButton variant="sm" onClick={toggle} busy={busy} aria-label={marked ? t('Undo done: {title}', { title }) : t('Mark done: {title}', { title })}>
+      {marked ? t('Undo done') : t('Mark done')}
     </GButton>
   );
 }
@@ -28,10 +29,11 @@ export function KeyInputG({ envVar, present, masked }: { envVar: string; present
       {state === 'saved' ? (
         <>
           <GTag tone="ok" dot>
-            Set{masked ? ` · ${masked}` : ''}
+            {t('Set')}
+            {masked ? ` · ${masked}` : ''}
           </GTag>
           <GButton variant="sm" onClick={() => setState('idle')}>
-            Replace
+            {t('Replace')}
           </GButton>
         </>
       ) : (
@@ -42,11 +44,11 @@ export function KeyInputG({ envVar, present, masked }: { envVar: string; present
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder={envVar}
-            aria-label={`Value for ${envVar}`}
+            aria-label={t('Value for {env}', { env: envVar })}
             className="kg-keyinput-field"
           />
-          <GButton variant="ink" size="sm" onClick={save} busy={state === 'saving'} disabled={!value.trim()} disabledReason="Paste a value first">
-            Save
+          <GButton variant="ink" size="sm" onClick={save} busy={state === 'saving'} disabled={!value.trim()} disabledReason={t('Paste a value first')}>
+            {t('Save')}
           </GButton>
         </>
       )}
@@ -61,26 +63,26 @@ export function FilmingG({ filming, pinned, dataDir }: { filming: boolean; pinne
     <div className="kg-setting">
       <div className="kg-setting-head">
         <Clapperboard size={16} strokeWidth={1.7} aria-hidden="true" />
-        <span className="kg-setting-title">Filming mode</span>
+        <span className="kg-setting-title">{t('Filming mode')}</span>
         <GTag tone={filming ? 'warn' : 'neutral'} dot>
-          {filming ? 'On' : 'Off'}
+          {filming ? t('On') : t('Off')}
         </GTag>
       </div>
       <p className="kg-body">
         {filming
-          ? 'Reading the sample dataset. Nothing on screen is real, and nothing written here reaches your live stores.'
-          : 'Reading your real data. Turn this on before you record anything.'}
+          ? t('Reading the sample dataset. Nothing on screen is real, and nothing written here reaches your live stores.')
+          : t('Reading your real data. Turn this on before you record anything.')}
       </p>
-      <p className="kg-mono" data-mono-ok="" data-setup-datadir="" title="The directory every store reads">
+      <p className="kg-mono" data-mono-ok="" data-setup-datadir="" title={t('The directory every store reads')}>
         {dataDir}
       </p>
       {error ? <p className="kg-err-line">{error}</p> : null}
       <div className="kg-setting-actions">
-        <GButton variant="sm" onClick={toggle} busy={busy} disabled={pinned} disabledReason="Pinned by GLADOS_DATA_DIR on this host">
+        <GButton variant="sm" onClick={toggle} busy={busy} disabled={pinned} disabledReason={t('Pinned by GLADOS_DATA_DIR on this host')}>
           {pinned ? <Lock size={12} strokeWidth={1.8} aria-hidden="true" /> : null}
-          {filming ? 'Switch to real data' : 'Switch to sample data'}
+          {filming ? t('Switch to real data') : t('Switch to sample data')}
         </GButton>
-        {pinned && <span className="kg-cap">Pinned by GLADOS_DATA_DIR on this host</span>}
+        {pinned && <span className="kg-cap">{t('Pinned by GLADOS_DATA_DIR on this host')}</span>}
       </div>
     </div>
   );
@@ -93,15 +95,15 @@ export function SecurityG({ configured }: { configured: boolean }) {
     <div id="security" className="kg-setting scroll-mt-24">
       <div className="kg-setting-head">
         {configured ? <ShieldCheck size={16} strokeWidth={1.7} aria-hidden="true" /> : <ShieldOff size={16} strokeWidth={1.7} aria-hidden="true" />}
-        <span className="kg-setting-title">Operator password</span>
+        <span className="kg-setting-title">{t('Operator password')}</span>
         <GTag tone={configured ? 'ok' : 'warn'} dot>
-          {configured ? 'Password set' : 'Not configured'}
+          {configured ? t('Password set') : t('Not configured')}
         </GTag>
       </div>
       <p className="kg-body">
         {configured
-          ? 'Every page and API route asks for this password. It is stored as a scrypt hash in .env.local on this host and is never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line from .env.local, restart, and set a new one here.'
-          : 'No password yet, so the console answers only on this machine: the server refuses to listen on any other address until one exists. Set a password to sign in from other devices on your network.'}
+          ? t('Every page and API route asks for this password. It is stored as a scrypt hash in .env.local on this host and is never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line from .env.local, restart, and set a new one here.')
+          : t('No password yet, so the console answers only on this machine: the server refuses to listen on any other address until one exists. Set a password to sign in from other devices on your network.')}
       </p>
       {notice && (
         <GTag tone="ok" dot>
@@ -113,18 +115,18 @@ export function SecurityG({ configured }: { configured: boolean }) {
           {configured ? (
             <>
               <GButton variant="sm" onClick={() => open('change')}>
-                <KeyRound size={12} strokeWidth={1.8} aria-hidden="true" /> Change
+                <KeyRound size={12} strokeWidth={1.8} aria-hidden="true" /> {t('Change')}
               </GButton>
               <GButton variant="sm" onClick={() => open('rotate')}>
-                <LogOut size={12} strokeWidth={1.8} aria-hidden="true" /> Sign out others
+                <LogOut size={12} strokeWidth={1.8} aria-hidden="true" /> {t('Sign out others')}
               </GButton>
               <GButton variant="sm" onClick={() => open('remove')}>
-                <Trash2 size={12} strokeWidth={1.8} aria-hidden="true" /> Remove
+                <Trash2 size={12} strokeWidth={1.8} aria-hidden="true" /> {t('Remove')}
               </GButton>
             </>
           ) : (
             <GButton variant="ink" size="sm" onClick={() => open('set')}>
-              Set password
+              {t('Set password')}
             </GButton>
           )}
         </div>
@@ -133,22 +135,22 @@ export function SecurityG({ configured }: { configured: boolean }) {
         <form onSubmit={submit} className="kg-form">
           <div className="kg-setting-title">{spec.title}</div>
           {spec.needsCurrent && (
-            <GInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="Current password" aria-label="Current password" autoComplete="current-password" autoFocus />
+            <GInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder={t('Current password')} aria-label={t('Current password')} autoComplete="current-password" autoFocus />
           )}
           {spec.needsNew && (
             <>
-              <GInput type="password" value={next} onChange={(e) => setNext(e.target.value)} placeholder="New password (8+ characters)" aria-label="New password" autoComplete="new-password" autoFocus={!spec.needsCurrent} />
-              <GInput type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat new password" aria-label="Repeat new password" autoComplete="new-password" />
+              <GInput type="password" value={next} onChange={(e) => setNext(e.target.value)} placeholder={t('New password (8+ characters)')} aria-label={t('New password')} autoComplete="new-password" autoFocus={!spec.needsCurrent} />
+              <GInput type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={t('Repeat new password')} aria-label={t('Repeat new password')} autoComplete="new-password" />
             </>
           )}
-          {mode === 'remove' && <p className="kg-cap">Removing it signs this device out and puts the OS back to loopback-only until a new password is set.</p>}
+          {mode === 'remove' && <p className="kg-cap">{t('Removing it signs this device out and puts the OS back to loopback-only until a new password is set.')}</p>}
           {error && <p className="kg-err-line">{error}</p>}
           <div className="kg-setting-actions">
-            <GButton type="submit" variant={mode === 'remove' ? 'danger' : 'ink'} size="sm" busy={busy} disabled={submitOff} disabledReason="Fill in every field first">
+            <GButton type="submit" variant={mode === 'remove' ? 'danger' : 'ink'} size="sm" busy={busy} disabled={submitOff} disabledReason={t('Fill in every field first')}>
               {spec.button}
             </GButton>
             <GButton variant="sm" onClick={close}>
-              Cancel
+              {t('Cancel')}
             </GButton>
           </div>
         </form>

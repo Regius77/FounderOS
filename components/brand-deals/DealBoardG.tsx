@@ -67,7 +67,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
         const [won, lost] = c.segments ?? [];
         return {
           id: c.key,
-          label: c.label,
+          label: t(c.label),
           value: c.usd,
           count: c.count,
           won: won?.usd ?? 0,
@@ -77,7 +77,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
         };
       }
       const share = c.key !== 'all' && open > 0 ? t('{pct}% of open value', { pct: Math.round((c.usd / open) * 100) }) : t('every tracked deal thread');
-      return { id: c.key, label: c.label, value: c.usd, count: c.count, tip: { lines: [t('{usd} across {deals}', { usd: usd(c.usd), deals: dealsN(c.count) }), share] } };
+      return { id: c.key, label: t(c.label), value: c.usd, count: c.count, tip: { lines: [t('{usd} across {deals}', { usd: usd(c.usd), deals: dealsN(c.count) }), share] } };
     });
   }, [snap, volume.openUsd]);
   const allZero = columns.every((c) => !(c.value > 0));
@@ -112,7 +112,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
     const j = dir === 'wider' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1);
     setRange(order[j]);
   };
-  const agoLabel = r.spanMs ? r.ago : t('{n} d ago', { n: Math.round(span / 86_400_000) });
+  const agoLabel = r.spanMs ? t(r.ago) : t('{n} d ago', { n: Math.round(span / 86_400_000) });
 
   /* Chains (FR-B5): depth columns filter the list. */
   const depthCols = useMemo(() => {
@@ -236,7 +236,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
           <GSectionHeader id="bd-g-sends" size={22} title={t('Send activity')} />
           <div className="bd-g-stat">
             <GDotNumber value={String(sendsInRange)} size={4} label={t('{n} sends in range', { n: sendsInRange })} />
-            <span className="bd-g-stat-cap">{sendsInRange === 1 ? t('send') : t('sends')} · {r.long}</span>
+            <span className="bd-g-stat-cap">{sendsInRange === 1 ? t('send') : t('sends')} · {t(r.long)}</span>
           </div>
           <GTimelineStrip
             readOnly
@@ -253,7 +253,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
                 label={t('Range')}
                 value={effRange}
                 onChange={setRange}
-                options={order.map((k) => ({ value: k, label: SEND_RANGES[k].label, title: SEND_RANGES[k].long }))}
+                options={order.map((k) => ({ value: k, label: t(SEND_RANGES[k].label), title: t(SEND_RANGES[k].long) }))}
               />
             }
             label={t('Brand deal sends, announcements and skips over time')}

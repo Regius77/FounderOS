@@ -6,6 +6,7 @@ import { GButton, GCard, GEmpty, GErrorLine, GHeroCard, GInput, GPage, GRuler, G
 import { openWizard } from '@/lib/wizard-dock';
 import type { SetupStep } from '@/lib/agent-setup';
 import { AgentFace } from './AgentFace';
+import { t } from '@/lib/i18n';
 
 /**
  * /agents/setup/[id] under the GladOS style (glados-ui SPEC S04 §4.2). One
@@ -38,7 +39,7 @@ function KeyField({ envVar, present, masked, onSaved }: { envVar: string; presen
         onSaved();
       } else {
         setState('error');
-        setError((await r.json().catch(() => ({}))).error?.toString?.() ?? 'Save failed');
+        setError((await r.json().catch(() => ({}))).error?.toString?.() ?? t('Save failed'));
       }
     } catch (e) {
       setState('error');
@@ -49,10 +50,10 @@ function KeyField({ envVar, present, masked, onSaved }: { envVar: string; presen
     return (
       <div className="wg-key">
         <GTag tone="ok" dot>
-          Saved{masked ? ` · ${masked}` : ''}
+          {t('Saved')}{masked ? ` · ${masked}` : ''}
         </GTag>
         <GButton variant="sm" onClick={() => setState('idle')}>
-          Replace
+          {t('Replace')}
         </GButton>
       </div>
     );
@@ -66,8 +67,8 @@ function KeyField({ envVar, present, masked, onSaved }: { envVar: string; presen
       }}
     >
       <GInput type="password" value={value} onChange={(e) => setValue(e.target.value)} placeholder={envVar} aria-label={envVar} autoComplete="off" className="wg-key-in" />
-      <GButton type="submit" variant="ink" busy={state === 'saving'} disabled={!value.trim()} disabledReason="Paste the key first">
-        Save
+      <GButton type="submit" variant="ink" busy={state === 'saving'} disabled={!value.trim()} disabledReason={t('Paste the key first')}>
+        {t('Save')}
       </GButton>
       {error && <GErrorLine align="left">{error}</GErrorLine>}
     </form>
@@ -85,35 +86,35 @@ export function SetupG({ view }: { view: SetupView }) {
     <GPage className="wg-page">
       <div>
         <GButton variant="sm" href="/agents">
-          <ChevronLeft size={14} strokeWidth={1.75} aria-hidden /> Agents
+          <ChevronLeft size={14} strokeWidth={1.75} aria-hidden /> {t('Agents')}
         </GButton>
       </div>
       <div className="wg-setup-head">
         <AgentFace src={view.avatar} name={view.agent.name} size={56} />
-        <GSectionHeader size="page" title={`${view.agent.name} · Setup`} caption={view.blurb} />
+        <GSectionHeader size="page" title={t('{name} · Setup', { name: view.agent.name })} caption={view.blurb} />
       </div>
 
       {!steps ? (
         <GEmpty
-          title="No setup guide yet"
-          body="Describe what it should do in a Wizard session and the guide gets built with it."
-          action={{ label: 'Ask the Wizard', onClick: () => openWizard({ text: `Write a setup guide for the ${view.agent.name} agent`, source: 'agent-setup' }) }}
+          title={t('No setup guide yet')}
+          body={t('Describe what it should do in a Wizard session and the guide gets built with it.')}
+          action={{ label: t('Ask the Wizard'), onClick: () => openWizard({ text: `Write a setup guide for the ${view.agent.name} agent`, source: 'agent-setup' }) }}
         />
       ) : (
         <div className="wg-setup">
           <GHeroCard
             variant="a"
             size="sm"
-            caption="Setup progress"
+            caption={t('Setup progress')}
             value={envSteps.length > 0 ? `${done}/${envSteps.length}` : null}
-            label={`${done} of ${envSteps.length} verifiable steps done`}
+            label={t('{done} of {n} verifiable steps done', { done, n: envSteps.length })}
             status={
               envSteps.length > 0
-                ? `${done} of ${envSteps.length} verifiable steps done${next ? ` · next: ${next.label}` : ''}`
-                : 'No step here can be checked from this host'
+                ? `${t('{done} of {n} verifiable steps done', { done, n: envSteps.length })}${next ? t(' · next: {label}', { label: next.label }) : ''}`
+                : t('No step here can be checked from this host')
             }
-            title="Only key steps can be verified on this host (the key is present). External and build steps are never counted as done."
-            strip={envSteps.length > 0 ? <GRuler label={`${done} of ${envSteps.length} verifiable steps done`} value={done} max={envSteps.length} onHero /> : undefined}
+            title={t('Only key steps can be verified on this host (the key is present). External and build steps are never counted as done.')}
+            strip={envSteps.length > 0 ? <GRuler label={t('{done} of {n} verifiable steps done', { done, n: envSteps.length })} value={done} max={envSteps.length} onHero /> : undefined}
           />
           <div className="wg-setup-steps">
             <ol className="wg-step-list">
@@ -131,15 +132,15 @@ export function SetupG({ view }: { view: SetupView }) {
                         {step.kind === 'env' ? (
                           present ? (
                             <GTag tone="ok" dot>
-                              Saved
+                              {t('Saved')}
                             </GTag>
                           ) : (
-                            <GTag tone="accent">Key needed</GTag>
+                            <GTag tone="accent">{t('Key needed')}</GTag>
                           )
                         ) : step.kind === 'build' ? (
-                          <GTag tone="warn">Build owed</GTag>
+                          <GTag tone="warn">{t('Build owed')}</GTag>
                         ) : (
-                          <GTag tone="outline">Yours to do</GTag>
+                          <GTag tone="outline">{t('Yours to do')}</GTag>
                         )}
                       </div>
                       {step.kind === 'env' ? (
@@ -157,7 +158,7 @@ export function SetupG({ view }: { view: SetupView }) {
                           <p className="wg-step-detail">{step.detail}</p>
                           {'href' in step && step.href && (
                             <GButton variant="sm" href={step.href} external>
-                              Open
+                              {t('Open')}
                             </GButton>
                           )}
                         </div>
@@ -167,7 +168,7 @@ export function SetupG({ view }: { view: SetupView }) {
                 );
               })}
             </ol>
-            <p className="wg-cap">Keys land in .env.local on this host and take effect immediately. The agent turns active once its wiring is proven, not when boxes are ticked.</p>
+            <p className="wg-cap">{t('Keys land in .env.local on this host and take effect immediately. The agent turns active once its wiring is proven, not when boxes are ticked.')}</p>
           </div>
         </div>
       )}

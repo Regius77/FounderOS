@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useEffect, useRef, useState, type CSSProperties, type MouseEventHandler, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react';
@@ -77,7 +78,7 @@ export type GDotNumberProps = {
 export function GDotNumber({ value, size = 5, max = DOT_MAX, tone = 'ink', label, title, className }: GDotNumberProps) {
   const raw = toText(value);
   const text = dotText(raw);
-  const aria = label ?? (value == null || raw === '—' ? 'Not applicable' : raw);
+  const aria = label ?? (value == null || raw === '—' ? t('Not applicable') : raw);
   const ref = useRef<HTMLSpanElement>(null);
   const [fit, setFit] = useState<{ size: number | null } | null>(null);
   const auto = size === 'auto';
@@ -209,15 +210,15 @@ export function GStat({ value, label, source, href, onClick, badge = false, stat
   const text = toText(state === 'unconfigured' ? null : value);
   const dots = prefersDots(text);
   const isZero = value === 0 || value === '0';
-  const title = state === 'unconfigured' ? `${source} · not configured${missing ? `: ${missing}` : ''}` : state === 'error' ? `${source} · could not load` : source;
+  const title = state === 'unconfigured' ? `${t('{source} · not configured', { source })}${missing ? `: ${missing}` : ''}` : state === 'error' ? t('{source} · could not load', { source }) : source;
   const body = (
     <>
       <span className="g-stat-num" data-dim={state === 'loading' ? 'loading' : isZero ? 'zero' : undefined}>
-        {dots ? <GDotNumber value={text} size={4} label={state === 'loading' ? 'Loading' : state === 'unconfigured' ? 'Not configured' : undefined} /> : <span className="g-stat-text">{text}</span>}
+        {dots ? <GDotNumber value={text} size={4} label={state === 'loading' ? t('Loading') : state === 'unconfigured' ? t('Not configured') : undefined} /> : <span className="g-stat-text">{text}</span>}
       </span>
       <span className="g-stat-label">{badge ? <GBadge>{label}</GBadge> : <GTag>{label}</GTag>}</span>
       {extra != null && <span className="g-stat-extra">{extra}</span>}
-      {state === 'error' && <span className="g-stat-err" aria-label="Could not load" />}
+      {state === 'error' && <span className="g-stat-err" aria-label={t('Could not load')} />}
     </>
   );
   const shared = { 'data-g': 'GStat', 'data-state': state, title, className: cx('g-stat', className) } as const;

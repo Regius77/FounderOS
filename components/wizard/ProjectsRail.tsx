@@ -5,6 +5,7 @@ import type { Agent } from '@/lib/schemas';
 import type { WizardProject } from '@/lib/wizard/store';
 import { departmentIcon, projectOwners, projectProgress, projectSubline } from '@/lib/wizard/ui';
 import { ProgressRing } from './ProgressRing';
+import { t } from '@/lib/i18n';
 
 export function ProjectsRail({
   projects,
@@ -24,8 +25,8 @@ export function ProjectsRail({
   onNew: () => void;
 }) {
   const agentById = new Map(agents.map((a) => [a.id, a]));
-  const owners = agents.filter((a) => projects.some((p) => p.tasks.some((t) => t.ownerId === a.id)));
-  const visible = ownerFilter ? projects.filter((p) => p.tasks.some((t) => t.ownerId === ownerFilter)) : projects;
+  const owners = agents.filter((a) => projects.some((p) => p.tasks.some((task) => task.ownerId === a.id)));
+  const visible = ownerFilter ? projects.filter((p) => p.tasks.some((task) => task.ownerId === ownerFilter)) : projects;
   const active = visible.filter((p) => p.status === 'active');
   const done = visible.filter((p) => p.status === 'done');
 
@@ -71,11 +72,11 @@ export function ProjectsRail({
       <div className="flex items-center gap-2 border-b border-os-hairline px-4 py-3">
         <button type="button" onClick={onNew} className="wz-new flex-1">
           <Plus className="h-4 w-4" strokeWidth={2.2} />
-          New project
+          {t('New project')}
         </button>
         <label className="wz-select">
-          <select value={ownerFilter ?? ''} onChange={(e) => onOwnerFilter(e.target.value || null)} aria-label="Filter by owner">
-            <option value="">All owners</option>
+          <select value={ownerFilter ?? ''} onChange={(e) => onOwnerFilter(e.target.value || null)} aria-label={t('Filter by owner')}>
+            <option value="">{t('All owners')}</option>
             {owners.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -87,13 +88,13 @@ export function ProjectsRail({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
-        <Group icon={<LoaderCircle className="h-4 w-4" strokeWidth={2} />} label="Active" count={active.length}>
-          {active.length === 0 && <p className="px-1 py-2 text-[12px] text-os-dim">Nothing in flight. Start a project below or with the composer.</p>}
+        <Group icon={<LoaderCircle className="h-4 w-4" strokeWidth={2} />} label={t('Active')} count={active.length}>
+          {active.length === 0 && <p className="px-1 py-2 text-[12px] text-os-dim">{t('Nothing in flight. Start a project below or with the composer.')}</p>}
           {active.map((p) => (
             <Card key={p.id} p={p} />
           ))}
         </Group>
-        <Group icon={<CircleCheck className="h-4 w-4" strokeWidth={2} />} label="Done" count={done.length}>
+        <Group icon={<CircleCheck className="h-4 w-4" strokeWidth={2} />} label={t('Done')} count={done.length}>
           {done.map((p) => (
             <Card key={p.id} p={p} />
           ))}

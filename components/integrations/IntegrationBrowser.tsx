@@ -3,7 +3,8 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Search, X } from 'lucide-react';
 import { GButton, GChip, GEmpty, GSearch } from '@/components/g';
-import { BROWSE_STATES, EMPTY_FILTER, countBy, filterBrowse, isFiltering, resultCaption, type BrowseFilter, type BrowseItem, type BrowseState } from '@/lib/integration-browser';
+import { t } from '@/lib/i18n';
+import { BROWSE_STATES, EMPTY_FILTER, categoryLabel, countBy, filterBrowse, isFiltering, resultCaption, type BrowseFilter, type BrowseItem, type BrowseState } from '@/lib/integration-browser';
 
 /**
  * Search and filter the Connections catalogue (founderos-ui F11). The server
@@ -45,18 +46,18 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
     return (
       <div className="kg-browse" data-integration-browser="">
         <div className="kg-browse-bar">
-          <GSearch value={f.q} onValueChange={setQ} size="md" placeholder="Search tools" aria-label="Search tools by name, use or category" />
-          <div className="kg-browse-chips" role="group" aria-label="Filter by state">
+          <GSearch value={f.q} onValueChange={setQ} size="md" placeholder={t('Search tools')} aria-label={t('Search tools by name, use or category')} />
+          <div className="kg-browse-chips" role="group" aria-label={t('Filter by state')}>
             {BROWSE_STATES.map((s) => (
               <GChip key={s.id} size="compact" pressed={f.states.includes(s.id)} onPressedChange={() => flipState(s.id)} count={stateCounts[s.id] ?? 0}>
                 {s.label}
               </GChip>
             ))}
           </div>
-          <div className="kg-browse-chips" role="group" aria-label="Filter by category">
+          <div className="kg-browse-chips" role="group" aria-label={t('Filter by category')}>
             {categories.map((c) => (
               <GChip key={c} size="compact" pressed={f.categories.includes(c)} onPressedChange={() => flipCat(c)} count={catCounts[c] ?? 0}>
-                {c}
+                {categoryLabel(c)}
               </GChip>
             ))}
           </div>
@@ -66,7 +67,7 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
                 {caption}
               </span>
               <GButton variant="sm" onClick={clear}>
-                Clear filters
+                {t('Clear filters')}
               </GButton>
             </div>
           )}
@@ -74,7 +75,7 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
         {!filtering ? (
           children
         ) : results.length === 0 ? (
-          <GEmpty title="No tools match" body="Try another word, or clear the filters to see every tool." action={{ label: 'Clear filters', onClick: clear }} />
+          <GEmpty title={t('No tools match')} body={t('Try another word, or clear the filters to see every tool.')} action={{ label: t('Clear filters'), onClick: clear }} />
         ) : (
           <div className={gridClassName}>{results.map((r) => r.card)}</div>
         )}
@@ -101,12 +102,12 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
                 setQ('');
               }
             }}
-            placeholder="Search tools"
-            aria-label="Search tools by name, use or category"
+            placeholder={t('Search tools')}
+            aria-label={t('Search tools by name, use or category')}
             className="min-w-0 flex-1 bg-transparent text-[13px] text-os-text outline-none placeholder:text-os-dim"
           />
         </label>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by state">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('Filter by state')}>
           {BROWSE_STATES.map((s) => (
             <button key={s.id} type="button" aria-pressed={f.states.includes(s.id)} onClick={() => flipState(s.id)} className={chip(f.states.includes(s.id))}>
               {s.label}
@@ -114,10 +115,10 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('Filter by category')}>
           {categories.map((c) => (
             <button key={c} type="button" aria-pressed={f.categories.includes(c)} onClick={() => flipCat(c)} className={chip(f.categories.includes(c))}>
-              {c}
+              {categoryLabel(c)}
               <span className="font-mono text-[10.5px] text-os-dim">{catCounts[c] ?? 0}</span>
             </button>
           ))}
@@ -126,7 +127,7 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
           <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-os-muted">
             <span aria-live="polite">{caption}</span>
             <button type="button" onClick={clear} className="inline-flex items-center gap-1 rounded-sm-t border border-os-border px-2 py-1 text-os-muted hover:bg-os-surface2 hover:text-os-text">
-              <X className="h-3 w-3" strokeWidth={1.8} aria-hidden="true" /> Clear filters
+              <X className="h-3 w-3" strokeWidth={1.8} aria-hidden="true" /> {t('Clear filters')}
             </button>
           </div>
         )}
@@ -134,7 +135,7 @@ export function IntegrationBrowser({ ui, items, categories, children, gridClassN
       {!filtering ? (
         children
       ) : results.length === 0 ? (
-        <div className="rounded-lg-t border border-os-border bg-os-surface px-5 py-4 text-[13px] text-os-muted">No tools match. Try another word, or clear the filters.</div>
+        <div className="rounded-lg-t border border-os-border bg-os-surface px-5 py-4 text-[13px] text-os-muted">{t('No tools match. Try another word, or clear the filters.')}</div>
       ) : (
         <div className={gridClassName}>{results.map((r) => r.card)}</div>
       )}

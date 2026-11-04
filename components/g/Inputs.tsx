@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import {
   forwardRef,
   useCallback,
@@ -271,9 +272,9 @@ export function GAsk({ value, onValueChange, mode = 'ask', onSubmit, busy = fals
               type="submit"
               variant="icon"
               busy={busy}
-              aria-label={busy ? 'Working' : 'Send'}
+              aria-label={busy ? t('Working') : t('Send')}
               disabled={!canSend}
-              title={!canSend && !busy ? (disabled ? disabledReason : `Type at least ${minChars} characters`) : undefined}
+              title={!canSend && !busy ? (disabled ? disabledReason : t('Type at least {n} characters', { n: minChars })) : undefined}
             >
               <ArrowUp size={16} strokeWidth={1.75} aria-hidden />
             </GButton>

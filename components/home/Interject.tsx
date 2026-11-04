@@ -6,6 +6,7 @@ import { GAsk } from '@/components/g';
 import { useToast } from '@/components/ui/Toast';
 import { INTERJECT_UNDO_MS } from '@/lib/interject';
 import { taskHref } from '@/lib/home-today';
+import { t } from '@/lib/i18n';
 
 /**
  * Home's interject composer (founderos-ui pages/feature-additions.md F2).
@@ -15,8 +16,8 @@ import { taskHref } from '@/lib/home-today';
  * with Undo for INTERJECT_UNDO_MS; an error shows inline under the field.
  */
 
-export const INTERJECT_PLACEHOLDER = 'Tell an agent, add a task or note…';
-export const INTERJECT_HINT = 'Free text adds a task · "tell <agent> …" hands it to an agent · "note …" saves a note';
+export const INTERJECT_PLACEHOLDER = t('Tell an agent, add a task or note…');
+export const INTERJECT_HINT = t('Free text adds a task · "tell <agent> …" hands it to an agent · "note …" saves a note');
 
 type Created = { kind: 'task' | 'relay' | 'note'; id: string; href: string; agentId?: string; undo?: boolean };
 
@@ -30,9 +31,9 @@ function useInterject() {
     try {
       const res = await fetch('/api/interject', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      toast(res.ok ? { text: 'Removed', tone: 'ok' } : { text: body.error ?? 'Could not undo', tone: 'err' });
+      toast(res.ok ? { text: t('Removed'), tone: 'ok' } : { text: body.error ?? t('Could not undo'), tone: 'err' });
     } catch {
-      toast({ text: 'Could not undo: the server did not answer', tone: 'err' });
+      toast({ text: t('Could not undo: the server did not answer'), tone: 'err' });
     }
   };
 
@@ -45,25 +46,25 @@ function useInterject() {
       const res = await fetch('/api/interject', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: trimmed }) });
       const body = (await res.json().catch(() => ({}))) as Partial<Created> & { error?: string };
       if (!res.ok || !body.kind || !body.id) {
-        setError(body.error ? `Not added: ${body.error}` : `Not added (error ${res.status})`);
+        setError(body.error ? t('Not added: {error}', { error: body.error }) : t('Not added (error {status})', { status: res.status }));
         return;
       }
       setValue('');
       const id = body.id;
       if (body.kind === 'note') {
-        toast({ text: 'Saved as a note', tone: 'ok' });
+        toast({ text: t('Saved as a note'), tone: 'ok' });
       } else {
         toast({
-          text: body.kind === 'relay' ? `Added as a task for ${body.agentId}` : 'Added as a task',
+          text: body.kind === 'relay' ? t('Added as a task for {agent}', { agent: body.agentId ?? '' }) : t('Added as a task'),
           tone: 'ok',
           ms: INTERJECT_UNDO_MS,
-          action: { label: 'Undo', onClick: () => void undo(id) },
+          action: { label: t('Undo'), onClick: () => void undo(id) },
           // the same deep link as Home's Needs you rows (lib/home-today.ts taskHref)
-          link: { label: 'Open', href: body.href ?? taskHref(id) },
+          link: { label: t('Open'), href: body.href ?? taskHref(id) },
         });
       }
     } catch {
-      setError('Not added: the server did not answer');
+      setError(t('Not added: the server did not answer'));
     } finally {
       setBusy(false);
     }
@@ -83,7 +84,7 @@ export function InterjectG() {
   return (
     <div className="hg-interject" data-interject="">
       <GAsk
-        label="Interject: add a task, hand work to an agent or save a note"
+        label={t('Interject: add a task, hand work to an agent or save a note')}
         placeholder={INTERJECT_PLACEHOLDER}
         value={c.value}
         onValueChange={c.change}
@@ -129,11 +130,11 @@ export function InterjectClassic() {
             }
           }}
           placeholder={INTERJECT_PLACEHOLDER}
-          aria-label="Interject: add a task, hand work to an agent or save a note"
+          aria-label={t('Interject: add a task, hand work to an agent or save a note')}
           aria-invalid={c.error ? true : undefined}
           aria-describedby={c.error ? 'h6-interject-err' : 'h6-interject-hint'}
         />
-        <button type="submit" className="h6-interject-send" disabled={!canSend} aria-label={c.busy ? 'Working' : 'Send'} title={canSend ? 'Send' : 'Type at least 2 characters'}>
+        <button type="submit" className="h6-interject-send" disabled={!canSend} aria-label={c.busy ? t('Working') : t('Send')} title={canSend ? t('Send') : t('Type at least 2 characters')}>
           <ArrowUp className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
         </button>
       </div>

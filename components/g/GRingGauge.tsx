@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 import { arcPath, polar } from '@/lib/chart-geometry';
 
@@ -36,7 +37,7 @@ export function GRingGauge({ value, max, reference, label, scaleCaption, format 
   const refDeg = reference !== undefined && max > 0 ? Math.max(0, Math.min(1, reference / max)) * 360 : null;
   const a = refDeg === null ? null : polar(c, c, r - sw / 2 - 2, refDeg);
   const b = refDeg === null ? null : polar(c, c, r + sw / 2 + 1, refDeg);
-  const text = v === null ? `${label} · no data` : `${label}: ${format(v)}${reference !== undefined ? `, reference ${format(reference)}` : ''}`;
+  const text = v === null ? t('{label} · no data', { label }) : `${label}: ${format(v)}${reference !== undefined ? t(', reference {value}', { value: format(reference) }) : ''}`;
   return (
     <div data-g="GRingGauge" role="img" aria-label={text} title={text} className={`g-ringgauge ${className}`} data-below={below || undefined} style={{ width: size, height: size }}>
       <svg width={size} height={size} aria-hidden="true">

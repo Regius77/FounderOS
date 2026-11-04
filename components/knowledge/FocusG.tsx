@@ -6,6 +6,7 @@ import { GButton, GKeyValue, GWell } from '@/components/g';
 import type { EdgeKind, KIEdge, KIEntity } from '@/lib/knowledge-index';
 import type { NodeMetrics } from '@/lib/knowledge-metrics';
 import { EDGE_HINT, EDGE_LABEL, KIND_LABEL, interpret } from '@/lib/knowledge-views';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * A record's panel under the GladOS style (S05 F05.33): what it is, what its
@@ -47,49 +48,49 @@ export function FocusG({ entity, metrics, edges, entities, sortedPr, medianDegre
   const effective = openKind === undefined ? biggest : openKind;
 
   const stats = [
-    { label: 'Connections', value: String(m.degree), title: 'Total edges touching this record' },
-    { label: 'Written', value: String(m.authoredDegree), title: 'Edges a person actually wrote, excluding inferred similarity' },
-    { label: 'Authority', value: (m.pagerank * 1000).toFixed(1), title: 'PageRank ×1000: how much of the graph flows through here' },
-    { label: 'Brokerage', value: String(Math.round(m.betweenness)), title: 'Shortest paths between other records that pass through this one' },
-    ...(entity.days !== null ? [{ label: 'Last edited', value: `${entity.days}d ago`, title: 'Days since the file was last modified' }] : []),
-    ...(entity.words > 0 ? [{ label: 'Words', value: entity.words.toLocaleString('en-US'), title: 'Body length of the record' }] : []),
+    { key: 'Connections', label: t('Connections'), value: String(m.degree), title: t('Total edges touching this record') },
+    { key: 'Written', label: t('Written'), value: String(m.authoredDegree), title: t('Edges a person actually wrote, excluding inferred similarity') },
+    { key: 'Authority', label: t('Authority'), value: (m.pagerank * 1000).toFixed(1), title: t('PageRank ×1000: how much of the graph flows through here') },
+    { key: 'Brokerage', label: t('Brokerage'), value: String(Math.round(m.betweenness)), title: t('Shortest paths between other records that pass through this one') },
+    ...(entity.days !== null ? [{ key: 'Last edited', label: t('Last edited'), value: t('{n}d ago', { n: entity.days }), title: t('Days since the file was last modified') }] : []),
+    ...(entity.words > 0 ? [{ key: 'Words', label: t('Words'), value: entity.words.toLocaleString(localeTag()), title: t('Body length of the record') }] : []),
   ];
 
   return (
     <div className="kg-focus">
       <p className="kg-cap kg-focus-kind">
-        <i className="kg-swatch" style={{ background: color }} aria-hidden="true" /> {KIND_LABEL[entity.kind] ?? entity.kind} · {entity.cluster}
+        <i className="kg-swatch" style={{ background: color }} aria-hidden="true" /> {KIND_LABEL[entity.kind] ? t(KIND_LABEL[entity.kind]) : entity.kind} · {entity.cluster}
       </p>
       {entity.summary && <p className="kg-body">{entity.summary}</p>}
       <GWell className="kg-focus-read">
         <p>{interpret(entity, m, { sortedPr, medianDegree })}</p>
       </GWell>
-      <GKeyValue items={stats.map((s) => ({ key: s.label, label: s.label, value: s.value, title: s.title }))} />
+      <GKeyValue items={stats.map((s) => ({ key: s.key, label: s.label, value: s.value, title: s.title }))} />
       {entity.terms.length > 0 && (
         <div className="kg-stack-sm">
-          <span className="kg-cap">What it is about (most distinctive terms)</span>
+          <span className="kg-cap">{t('What it is about (most distinctive terms)')}</span>
           <p className="kg-body">{entity.terms.join(' · ')}</p>
         </div>
       )}
       {entity.source && (
         <div className="kg-stack-sm">
-          <span className="kg-cap">Source</span>
+          <span className="kg-cap">{t('Source')}</span>
           <p className="kg-mono" data-mono-ok="">
             {entity.source}
           </p>
         </div>
       )}
       <div className="kg-stack-sm">
-        <span className="kg-cap">{total} connections, grouped by how we know</span>
+        <span className="kg-cap">{t('{total} connections, grouped by how we know', { total })}</span>
         {ORDER.map((k) => {
           const list = connections.get(k);
           if (!list?.length) return null;
           const open = effective === k;
           return (
             <div key={k} className="kg-conn-group">
-              <GButton variant="sm" className="kg-group-toggle" aria-expanded={open} onClick={() => setOpenKind(open ? null : k)} title={EDGE_HINT[k]}>
+              <GButton variant="sm" className="kg-group-toggle" aria-expanded={open} onClick={() => setOpenKind(open ? null : k)} title={t(EDGE_HINT[k])}>
                 <i className="kg-edge-swatch" style={{ background: edgeColor(k) }} aria-hidden="true" />
-                <span className="kg-cat-label">{EDGE_LABEL[k]}</span>
+                <span className="kg-cat-label">{t(EDGE_LABEL[k])}</span>
                 <span className="kg-chip-sub">{list.length}</span>
                 <ChevronDown size={13} strokeWidth={1.8} aria-hidden="true" className="kg-chev" data-open={open || undefined} />
               </GButton>
@@ -106,7 +107,7 @@ export function FocusG({ entity, metrics, edges, entities, sortedPr, medianDegre
                       </GButton>
                     </li>
                   ))}
-                  {list.length > LIST_CAP && <li className="kg-cap">+{list.length - LIST_CAP} more</li>}
+                  {list.length > LIST_CAP && <li className="kg-cap">{t('+{n} more', { n: list.length - LIST_CAP })}</li>}
                 </ul>
               )}
             </div>

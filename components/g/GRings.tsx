@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 export type GRingsStatus = 'ok' | 'warn' | 'err' | 'off';
 
 export type GRingsProps = {
@@ -24,7 +25,7 @@ const STATUS_WORD: Record<GRingsStatus, string> = { ok: 'ok', warn: 'needs atten
  */
 export function GRings({ value, status, label, size = 86, onHero = false, className = '' }: GRingsProps) {
   const lit = Math.max(0, Math.min(3, Math.floor(Number.isFinite(value) ? value : 0)));
-  const text = `${label} (${STATUS_WORD[status]})`;
+  const text = `${label} (${t(STATUS_WORD[status])})`;
   return (
     <div data-g="GRings" role="img" aria-label={text} title={text} className={`g-rings ${className}`} data-status={status} data-on-hero={onHero || undefined} style={{ width: size, height: size }}>
       {[100, 74, 49].map((s, i) => (

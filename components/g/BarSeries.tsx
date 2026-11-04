@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useId, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { clamp, extent, labelIndices, signedBars } from '@/lib/chart-geometry';
 import { stepCursor } from '@/lib/chart-sync';
@@ -44,7 +45,7 @@ const AXIS_H = 20;
  * values hang below a centre baseline. No y axis, no gridlines; month labels
  * every other one past 6 buckets plus the hovered one.
  */
-export function BarSeries({ bars, tone = 'accent', highlight = 'latest', height = 104, syncId, formatValue = (v) => v.toLocaleString('en-US'), onSelect, label, className = '', ...stateProps }: BarSeriesProps) {
+export function BarSeries({ bars, tone = 'accent', highlight = 'latest', height = 104, syncId, formatValue = (v) => v.toLocaleString(localeTag()), onSelect, label, className = '', ...stateProps }: BarSeriesProps) {
   const [ref, W] = useWidth<HTMLDivElement>(600);
   const selfId = useId();
   const [cursor, setCursor] = useCursor(syncId, selfId);
@@ -72,10 +73,10 @@ export function BarSeries({ bars, tone = 'accent', highlight = 'latest', height 
 
   const handlers = cursorHandlers(n, cursor, setCursor, (x) => clamp(Math.floor(x / colW), 0, n - 1), onSelect ? (i) => onSelect(bars[i].id) : undefined);
   const ci = cursor !== null && cursor < n ? cursor : null;
-  const tip = ci === null ? null : bars[ci].tip ?? { title: bars[ci].label, lines: [bars[ci].value === null ? 'no data' : formatValue(bars[ci].value as number)] };
+  const tip = ci === null ? null : bars[ci].tip ?? { title: bars[ci].label, lines: [bars[ci].value === null ? t('no data') : formatValue(bars[ci].value as number)] };
 
   return (
-    <div ref={ref} data-g="GBarChart" data-variant="series" className={`g-bars ${className}`} role="group" aria-roledescription="chart" aria-label={`${label}. Arrow keys move through ${n} bars.`} tabIndex={0} style={{ height: height + AXIS_H }} data-clickable={onSelect ? '' : undefined} {...handlers}>
+    <div ref={ref} data-g="GBarChart" data-variant="series" className={`g-bars ${className}`} role="group" aria-roledescription="chart" aria-label={t('{label}. Arrow keys move through {n} bars.', { label, n })} tabIndex={0} style={{ height: height + AXIS_H }} data-clickable={onSelect ? '' : undefined} {...handlers}>
       <svg width={W} height={height + AXIS_H} aria-hidden="true">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
@@ -94,7 +95,7 @@ export function BarSeries({ bars, tone = 'accent', highlight = 'latest', height 
         ))}
       </svg>
       {tip && ci !== null && <GChartTooltip x={colW * (ci + 0.5)} y={geo[ci].y + 2} containerWidth={W} title={tip.title} lines={tip.lines} hint={tip.hint} />}
-      <span className="sr-only" aria-live="polite">{ci === null ? '' : `${bars[ci].label}, ${bars[ci].value === null ? 'no data' : formatValue(bars[ci].value as number)}`}</span>
+      <span className="sr-only" aria-live="polite">{ci === null ? '' : `${bars[ci].label}, ${bars[ci].value === null ? t('no data') : formatValue(bars[ci].value as number)}`}</span>
     </div>
   );
 }
@@ -104,7 +105,7 @@ export function BarSeries({ bars, tone = 'accent', highlight = 'latest', height 
  * key, in the keys' series colours, 2px apart. The cursor bucket stays at
  * full opacity and the others drop to 45% (S00 §5.3).
  */
-export function BarGrouped({ groups, keys, height = 140, syncId, formatValue = (v) => v.toLocaleString('en-US'), onSelect, label, className = '', ...stateProps }: BarGroupedProps) {
+export function BarGrouped({ groups, keys, height = 140, syncId, formatValue = (v) => v.toLocaleString(localeTag()), onSelect, label, className = '', ...stateProps }: BarGroupedProps) {
   const [ref, W] = useWidth<HTMLDivElement>(600);
   const selfId = useId();
   const [cursor, setCursor] = useCursor(syncId, selfId);
@@ -125,12 +126,12 @@ export function BarGrouped({ groups, keys, height = 140, syncId, formatValue = (
   const ci = cursor !== null && cursor < n ? cursor : null;
   const tip = ci === null ? null : groups[ci].tip ?? {
     title: groups[ci].label,
-    lines: keys.map((key, j) => { const v = groups[ci].values[j]; return `${key.label} ${v === null || v === undefined ? 'no data' : formatValue(v)}`; }),
+    lines: keys.map((key, j) => { const v = groups[ci].values[j]; return `${key.label} ${v === null || v === undefined ? t('no data') : formatValue(v)}`; }),
   };
   const yOf = (v: number) => height - (hi > 0 ? (Math.max(0, v) / hi) * (height - 4) : 0);
 
   return (
-    <div ref={ref} data-g="GBarChart" data-variant="grouped" className={`g-bars ${className}`} role="group" aria-roledescription="chart" aria-label={`${label}. Arrow keys move through ${n} groups.`} tabIndex={0} style={{ height: height + AXIS_H }} data-clickable={onSelect ? '' : undefined} {...handlers}>
+    <div ref={ref} data-g="GBarChart" data-variant="grouped" className={`g-bars ${className}`} role="group" aria-roledescription="chart" aria-label={t('{label}. Arrow keys move through {n} groups.', { label, n })} tabIndex={0} style={{ height: height + AXIS_H }} data-clickable={onSelect ? '' : undefined} {...handlers}>
       <svg width={W} height={height + AXIS_H} aria-hidden="true">
         <line x1={0} x2={W} y1={height} y2={height} className="g-xy-base" />
         {groups.map((g, i) => (

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GButton, GDialog, GField, GInput, GSheet, GTag } from '@/components/g';
 import { useConnectFlow } from '@/components/ConnectFlow';
+import { t } from '@/lib/i18n';
 
 /**
  * A connection's footer under the GladOS style (SPEC S05 F05.72): the state
@@ -35,32 +36,32 @@ export function ConnectFlowG({
     <div className="kg-connect">
       {connected ? (
         <GTag tone="ok" dot>
-          Connected
+          {t('Connected')}
         </GTag>
       ) : keySaved ? (
-        <GTag tone="warn" dot title="A key is stored; the connector has not reported connected">
-          Key saved
+        <GTag tone="warn" dot title={t('A key is stored; the connector has not reported connected')}>
+          {t('Key saved')}
         </GTag>
       ) : (
-        <GTag tone="outline">Not connected</GTag>
+        <GTag tone="outline">{t('Not connected')}</GTag>
       )}
       {connected || keySaved ? (
         keySaved ? (
           <GButton variant="sm" busy={busy} onClick={() => setConfirm(true)}>
-            Disconnect
+            {t('Disconnect')}
           </GButton>
         ) : (
-          <span className="kg-cap" title="Credentials managed outside the console (canonical machine files)">
-            Managed
+          <span className="kg-cap" title={t('Credentials managed outside the console (canonical machine files)')}>
+            {t('Managed')}
           </span>
         )
       ) : keys.length > 0 ? (
         <GButton variant="sm" onClick={() => setOpen(true)}>
-          Connect
+          {t('Connect')}
         </GButton>
       ) : (
-        <span className="kg-cap" title={guidance ?? 'Connects through local setup, not a pasted key'}>
-          Local setup
+        <span className="kg-cap" title={guidance ?? t('Connects through local setup, not a pasted key')}>
+          {t('Local setup')}
         </span>
       )}
 
@@ -70,8 +71,8 @@ export function ConnectFlowG({
           setOpen(false);
           setError(null);
         }}
-        title={`Connect ${name}`}
-        caption="Keys are written to .env.local on this host only, never to git."
+        title={t('Connect {name}', { name })}
+        caption={t('Keys are written to .env.local on this host only, never to git.')}
         width={480}
         footer={
           <>
@@ -81,10 +82,10 @@ export function ConnectFlowG({
                 setError(null);
               }}
             >
-              Cancel
+              {t('Cancel')}
             </GButton>
-            <GButton variant="ink" busy={busy} disabled={missing} disabledReason="Fill in every key first" onClick={() => void save()}>
-              Save and connect
+            <GButton variant="ink" busy={busy} disabled={missing} disabledReason={t('Fill in every key first')} onClick={() => void save()}>
+              {t('Save and connect')}
             </GButton>
           </>
         }
@@ -108,8 +109,8 @@ export function ConnectFlowG({
       <GDialog
         open={confirm}
         onClose={() => setConfirm(false)}
-        title={`Disconnect ${name}?`}
-        confirmLabel="Disconnect"
+        title={t('Disconnect {name}?', { name })}
+        confirmLabel={t('Disconnect')}
         tone="danger"
         busy={busy}
         onConfirm={() => {
@@ -117,7 +118,7 @@ export function ConnectFlowG({
           void disconnect();
         }}
       >
-        <p className="kg-body">The stored keys for {name} are removed from .env.local on this host.</p>
+        <p className="kg-body">{t('The stored keys for {name} are removed from .env.local on this host.', { name })}</p>
       </GDialog>
     </div>
   );

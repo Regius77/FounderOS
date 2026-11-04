@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 export const DOT_CLOUD_CAP = 192;
 
 export type GDotCloudProps = {
@@ -21,7 +22,7 @@ export function GDotCloud({ total, lit, label, onHero = false, className = '' }:
   const n = Math.max(0, Math.min(DOT_CLOUD_CAP, Math.floor(total)));
   if (n === 0) return null;
   const on = Math.max(0, Math.min(n, Math.floor(lit)));
-  const text = total > DOT_CLOUD_CAP ? `${label} (first ${DOT_CLOUD_CAP} shown)` : label;
+  const text = total > DOT_CLOUD_CAP ? t('{label} (first {n} shown)', { label, n: DOT_CLOUD_CAP }) : label;
   return (
     <div data-g="GDotCloud" role="img" aria-label={text} title={text} className={`g-dotcloud ${className}`} data-on-hero={onHero || undefined}>
       {Array.from({ length: n }, (_, i) => <span key={i} data-on={i < on || undefined} />)}

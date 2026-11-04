@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, ClipboardList, User, UserRound, Wrench, type LucideIcon } from 'lucide-react';
 import type { DirectoryGroup } from '@/lib/knowledge-graph';
 import { useGc } from '@/components/system-g/style-context';
+import { t } from '@/lib/i18n';
 
 /**
  * The everything-index of the knowledge graph: every AI agent, human, SOP and
@@ -47,13 +48,13 @@ export function GraphDirectory({
       <button
         type="button"
         onClick={onToggleCollapse}
-        title="Show directory"
-        aria-label="Show directory"
+        title={t('Show directory')}
+        aria-label={t('Show directory')}
         className={gc(`g-btn kg-dir-rail ${className}`, `group flex w-9 shrink-0 flex-col items-center gap-4 rounded-sm-t border border-os-border-strong bg-os-bg/95 py-3 backdrop-blur transition-colors hover:border-os-dim ${className}`)}
       >
         <ChevronLeft className="h-4 w-4 text-os-dim transition-colors group-hover:text-os-text" strokeWidth={1.6} />
         <span className="text-[12px] text-os-dim [writing-mode:vertical-rl] group-hover:text-os-muted">
-          Directory
+          {t('Directory')}
         </span>
       </button>
     );
@@ -63,13 +64,13 @@ export function GraphDirectory({
       className={gc(`kg-dir flex flex-col overflow-hidden ${className}`, `flex flex-col overflow-hidden rounded-sm-t border border-os-border-strong bg-os-bg/95 backdrop-blur ${className}`)}
     >
       <div className="flex items-center justify-between border-b border-os-border px-3 py-3">
-        <span className="text-[12.5px] font-medium text-os-muted">Directory</span>
+        <span className="text-[12.5px] font-medium text-os-muted">{t('Directory')}</span>
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
-            title="Hide directory"
-            aria-label="Hide directory"
+            title={t('Hide directory')}
+            aria-label={t('Hide directory')}
             className={gc('g-btn g-btn-icon g-btn-sm', '-mr-1 rounded-sm-t p-0.5 text-os-dim transition-colors hover:text-os-text')}
           >
             <ChevronRight className="h-4 w-4" />
@@ -99,7 +100,7 @@ export function GraphDirectory({
                   onMouseEnter={() => onHover?.(g.kind, r.id)}
                   onMouseLeave={() => onHover?.(g.kind, null)}
                   className={gc('g-btn kg-dir-row', 'group relative flex w-full items-baseline gap-3 rounded-sm-t py-2.5 pl-3 pr-2 text-left transition-colors hover:bg-os-surface2')}
-                  title={`Show ${r.label} on the graph`}
+                  title={t('Show {label} on the graph', { label: r.label })}
                 >
                   {/* colored left accent in the group's color makes the hovered
                       row unmistakable at a glance */}

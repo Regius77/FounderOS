@@ -16,6 +16,7 @@ import type { KIEdge, KIEntity, EdgeKind } from '@/lib/knowledge-index';
 import type { NodeMetrics } from '@/lib/knowledge-metrics';
 import { EDGE_COLOR, egoNetwork, radialLayout, type ColorDimension, type Placed } from '@/lib/knowledge-views';
 import { useSvgCamera } from '@/components/useSvgCamera';
+import { t } from '@/lib/i18n';
 
 const VB = 1240;
 
@@ -197,7 +198,7 @@ export function KnowledgeCanvas({
               <g key={r}>
                 <ellipse cx="0" cy="0" rx={r} ry={r * 0.72} fill="none" stroke="rgb(var(--kc-tint-rgb) / 0.13)" strokeDasharray="2 5" />
                 <text x={r + 8} y="-4" fontSize="9.5" fill="var(--text-3)" className="font-mono">
-                  {i + 1} hop{i ? 's' : ''}
+                  {i ? t('{n} hops', { n: i + 1 }) : t('{n} hop', { n: i + 1 })}
                 </text>
               </g>
             ))}
@@ -205,15 +206,15 @@ export function KnowledgeCanvas({
           {/* cluster ribbons — overview only */}
           <g>
             {ribbons.map((r) => {
-              const t = r.n / maxRibbon;
+              const frac = r.n / maxRibbon;
               return (
                 <path
                   key={r.key}
                   d={`M ${r.x1} ${r.y1} Q 0 0, ${r.x2} ${r.y2}`}
                   fill="none"
                   stroke="var(--kc-accent)"
-                  strokeOpacity={0.08 + Math.sqrt(t) * 0.3}
-                  strokeWidth={0.5 + Math.sqrt(t) * 5}
+                  strokeOpacity={0.08 + Math.sqrt(frac) * 0.3}
+                  strokeWidth={0.5 + Math.sqrt(frac) * 5}
                   strokeLinecap="round"
                 />
               );
@@ -295,8 +296,9 @@ export function KnowledgeCanvas({
           share a corner with the full-screen toggle. */}
       {!focusId && (
         <div className="pointer-events-none absolute right-4 top-3 max-w-[230px] text-right font-mono text-[9.5px] leading-relaxed text-os-dim">
-          {view.ego ? 'double-click to return to the whole graph' : 'click any node to open its network'}
-          {fullscreen ? ' · pinch zoom · scroll pan · esc to exit' : ' · scroll to keep reading the page'}
+          {view.ego ? t('double-click to return to the whole graph') : t('click any node to open its network')}
+          {' · '}
+          {fullscreen ? t('pinch zoom · scroll pan · esc to exit') : t('scroll to keep reading the page')}
         </div>
       )}
 

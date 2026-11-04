@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 export type TickRunState = 'ok' | 'failed' | 'missing';
 
 export type GTickStripProps = {
@@ -25,7 +26,7 @@ export type GTickStripProps = {
 export function GTickStrip({ label, values, kind = 'values', states, titles, marked, onHero = false, className = '' }: GTickStripProps) {
   const n = kind === 'runs' ? states?.length ?? 0 : values?.length ?? 0;
   if (n === 0) {
-    const text = `${label} · no data`;
+    const text = t('{label} · no data', { label });
     return (
       <div data-g="GTickStrip" role="img" aria-label={text} title={text} className={`g-ticks ${className}`} data-empty="" data-on-hero={onHero || undefined}>
         {Array.from({ length: 24 }, (_, i) => <i key={i} style={{ height: 4 }} />)}

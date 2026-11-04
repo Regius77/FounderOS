@@ -14,18 +14,19 @@ import {
   CONDUCTOR_TOGGLE_EVENT,
   type ConductorStateDetail,
 } from '@/lib/conductor-launcher';
+import { t } from '@/lib/i18n';
 
 const SEGMENT_LABELS: Record<string, string> = {
-  '': 'home',
-  social: 'social',
-  comms: 'comms',
-  agents: 'agents',
-  org: 'org-chart',
+  '': t('home'),
+  social: t('social'),
+  comms: t('comms'),
+  agents: t('agents'),
+  org: t('org-chart'),
   brain: 'optimal-engine',
-  integrations: 'connections',
-  roadmap: 'roadmap',
-  analytics: 'analytics',
-  database: 'brain-files',
+  integrations: t('connections'),
+  roadmap: t('roadmap'),
+  analytics: t('analytics'),
+  database: t('brain-files'),
 };
 
 export function openPalette() {
@@ -68,14 +69,14 @@ export function Topbar({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           <span className="g-crumb-here">{here}</span>
         </div>
         <div className="g-topbar-actions">
-          <GButton variant="icon" onClick={openPalette} title="Command palette (⌘K)" aria-label="Open the command palette">
+          <GButton variant="icon" onClick={openPalette} title={t('Command palette (⌘K)')} aria-label={t('Open the command palette')}>
             <Search size={16} strokeWidth={1.6} aria-hidden />
           </GButton>
           <GButton
             variant="icon"
             onClick={toggleDock}
-            title={dockOpen ? 'Close the Wizard' : 'Ask the Wizard about this screen'}
-            aria-label={dockOpen ? 'Close the Wizard' : 'Open the Wizard'}
+            title={dockOpen ? t('Close the Wizard') : t('Ask the Wizard about this screen')}
+            aria-label={dockOpen ? t('Close the Wizard') : t('Open the Wizard')}
             aria-expanded={dockOpen}
           >
             <WizardIcon size={16} strokeWidth={1.6} aria-hidden />
@@ -100,7 +101,7 @@ export function Topbar({ ui = 'classic' }: { ui?: UiStyle } = {}) {
       <div className="ml-auto flex items-center gap-2.5">
         <button
           onClick={openPalette}
-          title="Command palette (⌘K)"
+          title={t('Command palette (⌘K)')}
           className="grid h-[30px] w-[30px] place-items-center rounded-sm-t border border-os-border-strong bg-os-surface2 text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text"
         >
           <Search className="h-3.5 w-3.5" strokeWidth={1.7} />
@@ -110,8 +111,8 @@ export function Topbar({ ui = 'classic' }: { ui?: UiStyle } = {}) {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent(CONDUCTOR_TOGGLE_EVENT))}
-          title={dockOpen ? 'Close the Wizard' : 'Ask the Wizard about this screen'}
-          aria-label={dockOpen ? 'Close the Wizard' : 'Open the Wizard'}
+          title={dockOpen ? t('Close the Wizard') : t('Ask the Wizard about this screen')}
+          aria-label={dockOpen ? t('Close the Wizard') : t('Open the Wizard')}
           aria-expanded={dockOpen}
           className="grid h-[30px] w-[30px] place-items-center rounded-sm-t border border-os-border-strong bg-os-surface2 text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text aria-expanded:text-os-text"
         >

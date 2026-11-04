@@ -5,6 +5,7 @@
  * that isn't actually there.
  */
 import type { Agent, AgentRun, Skill } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 export type StepSource = 'description' | 'run' | 'skill';
 
@@ -59,11 +60,11 @@ export function buildStepTree(
   }
 
   if (ownedSkills.length === 1) {
-    steps.push({ id: 'skill-0', label: `Draws on its "${ownedSkills[0].name}" skill`, source: 'skill' });
+    steps.push({ id: 'skill-0', label: t('Draws on its "{name}" skill', { name: ownedSkills[0].name }), source: 'skill' });
   } else if (ownedSkills.length > 1) {
     steps.push({
       id: 'skill-0',
-      label: `Draws on ${ownedSkills.length} owned skills: ${ownedSkills.map((s) => s.name).join(', ')}`,
+      label: t('Draws on {n} owned skills: {names}', { n: ownedSkills.length, names: ownedSkills.map((s) => s.name).join(', ') }),
       source: 'skill',
     });
   }
@@ -135,24 +136,26 @@ export function buildLogicRules(
   const children = worksWith.filter((w) => w.relation === 'child');
 
   if (parent) {
-    rules.push(`Reports to ${parent.agent.name} — its output rolls up into that agent's directive.`);
+    rules.push(t("Reports to {name} — its output rolls up into that agent's directive.", { name: parent.agent.name }));
   }
   if (children.length > 0) {
     rules.push(
-      `Coordinates ${children.length} sub-agent${children.length === 1 ? '' : 's'}: ${children
-        .map((c) => c.agent.name)
-        .join(', ')}.`,
+      t(children.length === 1 ? 'Coordinates {n} sub-agent: {names}.' : 'Coordinates {n} sub-agents: {names}.', {
+        n: children.length,
+        names: children.map((c) => c.agent.name).join(', '),
+      }),
     );
   }
   if (ownedSkills.length > 0) {
     rules.push(
-      `Backed by ${ownedSkills.length} owned skill${ownedSkills.length === 1 ? '' : 's'}: ${ownedSkills
-        .map((s) => s.name)
-        .join(', ')}.`,
+      t(ownedSkills.length === 1 ? 'Backed by {n} owned skill: {names}.' : 'Backed by {n} owned skills: {names}.', {
+        n: ownedSkills.length,
+        names: ownedSkills.map((s) => s.name).join(', '),
+      }),
     );
   }
   if (latestRun) {
-    rules.push(`Last recorded run reported ${latestRun.ok ? 'success' : 'failure'}: "${latestRun.summary}".`);
+    rules.push(latestRun.ok ? t('Last recorded run reported success: "{summary}".', { summary: latestRun.summary }) : t('Last recorded run reported failure: "{summary}".', { summary: latestRun.summary }));
   }
 
   if (rules.length === 0) return [agent.description];

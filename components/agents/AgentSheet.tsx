@@ -11,6 +11,8 @@ import { SheetWork } from './SheetWork';
 import { useAgentParam } from './agent-param';
 import { FailoverG } from '@/components/agents-fo/AgentsFoG';
 import { failoverModelOptions } from '@/lib/agent-review';
+import { agentStatusLabel, agentTierLabel } from '@/founderos/lib/labels';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * AgentSheet (glados-ui SPEC S04 F-A6, F0.3): the one agent profile, a
@@ -50,37 +52,37 @@ export function AgentSheet({ dir, agentId, onClose, onSwitch, onBack }: { dir: A
           <p className="wg-sheet-role">{agent.role}</p>
           <div className="wg-tags">
             <GTag tone={active ? 'ok' : 'neutral'} dot>
-              {agent.status}
+              {agentStatusLabel(agent.status)}
             </GTag>
-            <GTag>{agent.tier}</GTag>
+            <GTag>{agentTierLabel(agent.tier)}</GTag>
             {view.department && <GTag>{view.department.name}</GTag>}
           </div>
           <p className="wg-cap">
-            Instance {agent.instance} · {agent.model}
+            {t('Instance {name}', { name: agent.instance })} · {agent.model}
           </p>
         </div>
         {setup && (
           <GButton variant="sm" href={`/agents/setup/${agent.id}`}>
-            Set up
+            {t('Set up')}
           </GButton>
         )}
       </div>
       {agent.description && <p className="wg-sheet-desc">{agent.description}</p>}
 
       <section className="wg-sheet-sec" aria-labelledby="wg-sec-chat">
-        <GSectionHeader size={22} title={<span id="wg-sec-chat">Chat</span>} />
+        <GSectionHeader size={22} title={<span id="wg-sec-chat">{t('Chat')}</span>} />
         <SheetChat key={`chat-${agent.id}`} agentId={agent.id} agentName={agent.name} initialMessages={dir.messagesByAgent[agent.id] ?? []} />
       </section>
 
       <section className="wg-sheet-sec" aria-labelledby="wg-sec-work">
-        <GSectionHeader size={22} title={<span id="wg-sec-work">Work</span>} />
+        <GSectionHeader size={22} title={<span id="wg-sec-work">{t('Work')}</span>} />
         <SheetWork key={`work-${agent.id}`} agentId={agent.id} initialTasks={dir.tasksByAgent[agent.id] ?? []} initialCrons={dir.cronsByAgent[agent.id] ?? []} />
       </section>
 
       <section className="wg-sheet-sec">
-        <GSectionHeader size={22} title="What it does" />
+        <GSectionHeader size={22} title={t('What it does')} />
         {view.steps.length === 0 ? (
-          <p className="wg-cap">Nothing derivable yet.</p>
+          <p className="wg-cap">{t('Nothing derivable yet.')}</p>
         ) : (
           <ol className="wg-steps">
             {view.steps.map((s) => (
@@ -91,9 +93,9 @@ export function AgentSheet({ dir, agentId, onClose, onSwitch, onBack }: { dir: A
       </section>
 
       <section className="wg-sheet-sec">
-        <GSectionHeader size={22} title="Connected to" />
+        <GSectionHeader size={22} title={t('Connected to')} />
         {view.chips.length === 0 ? (
-          <p className="wg-cap">Nothing wired yet.</p>
+          <p className="wg-cap">{t('Nothing wired yet.')}</p>
         ) : (
           <div className="wg-tags">
             {view.chips.map((c) => (
@@ -105,14 +107,14 @@ export function AgentSheet({ dir, agentId, onClose, onSwitch, onBack }: { dir: A
 
       {view.worksWith.length > 0 && (
         <section className="wg-sheet-sec">
-          <GSectionHeader size={22} title="Works with" />
+          <GSectionHeader size={22} title={t('Works with')} />
           <GList>
             {view.worksWith.map((w) => (
               <GRow
                 key={w.agent.id}
                 leading={<AgentFace src={dir.avatars[w.agent.id]} name={w.agent.name} size={28} />}
                 title={w.agent.name}
-                meta={w.relation === 'parent' ? 'Parent' : 'Reports in'}
+                meta={w.relation === 'parent' ? t('Parent') : t('Reports in')}
                 onClick={() => onSwitch(w.agent.id)}
               />
             ))}
@@ -121,19 +123,19 @@ export function AgentSheet({ dir, agentId, onClose, onSwitch, onBack }: { dir: A
       )}
 
       <section className="wg-sheet-sec" aria-labelledby="wg-sec-failover">
-        <GSectionHeader size={22} title={<span id="wg-sec-failover">Failover</span>} caption="Move this agent onto another model; the change shows in the run feed" />
+        <GSectionHeader size={22} title={<span id="wg-sec-failover">{t('Failover')}</span>} caption={t('Move this agent onto another model; the change shows in the run feed')} />
         <FailoverG key={`fo-${agent.id}`} agentId={agent.id} agentName={agent.name} model={agent.model} options={failoverModelOptions(dir.agents, agent.model, dir.defaultModel)} />
       </section>
 
       <section className="wg-sheet-sec">
-        <GSectionHeader size={22} title="Run feed" caption={view.runs.length > 0 ? `Latest ${view.runs.length}` : undefined} />
+        <GSectionHeader size={22} title={t('Run feed')} caption={view.runs.length > 0 ? t('Latest {n}', { n: view.runs.length }) : undefined} />
         {view.runs.length === 0 ? (
-          <p className="wg-cap">No runs recorded yet.</p>
+          <p className="wg-cap">{t('No runs recorded yet.')}</p>
         ) : (
           <ul className="wg-feed">
             {view.runs.map((r) => (
-              <li key={r.id} title={`${r.ok ? 'Succeeded' : 'Failed'} · ${new Date(r.startedAt).toLocaleString()}`}>
-                <span className="wg-dot" data-tone={r.ok ? 'ok' : 'err'} aria-label={r.ok ? 'Succeeded' : 'Failed'} />
+              <li key={r.id} title={`${r.ok ? t('Succeeded') : t('Failed')} · ${new Date(r.startedAt).toLocaleString(localeTag())}`}>
+                <span className="wg-dot" data-tone={r.ok ? 'ok' : 'err'} aria-label={r.ok ? t('Succeeded') : t('Failed')} />
                 <span className="wg-feed-when">{relativeTime(r.startedAt)}</span>
                 <span className="wg-feed-text">{r.summary}</span>
               </li>

@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronDown, CircleDashed, ExternalLink, UserRound } from
 import { GButton, GCard, GHeroCard, GRuler, GSectionHeader, GTag } from '@/components/g';
 import { KeyInputG, ManualCheckG } from './SetupControlsG';
 import type { SystemPhase, SystemSetup, SystemStep } from '@/lib/system-setup';
+import { t } from '@/lib/i18n';
 
 /**
  * /setup under the GladOS style (SPEC S05 F05.90 to F05.95). Same data and
@@ -36,16 +37,22 @@ export function BringUpHero({ totals, firstOpen }: { totals: SystemSetup['totals
   return (
     <GHeroCard
       variant="a"
-      caption="Bring-up"
+      caption={t('Bring-up')}
       value={`${pct}%`}
-      label={`Bring-up ${pct} percent: ${done} of ${totals.total} steps done`}
-      title="Steps verified by a live probe or marked done by you, out of every bring-up step (lib/system-setup)"
+      label={t('Bring-up {pct} percent: {done} of {total} steps done', { pct, done, total: totals.total })}
+      title={t('Steps verified by a live probe or marked done by you, out of every bring-up step (lib/system-setup)')}
       status={
         allDone
-          ? `All ${totals.total} steps done`
-          : `${done} of ${totals.total} done · ${totals.verified} verified · ${totals.marked} marked · ${totals.open} open`
+          ? t('All {total} steps done', { total: totals.total })
+          : t('{done} of {total} done · {verified} verified · {marked} marked · {open} open', {
+              done,
+              total: totals.total,
+              verified: totals.verified,
+              marked: totals.marked,
+              open: totals.open,
+            })
       }
-      strip={<GRuler value={done} max={Math.max(1, totals.total)} onHero label={`${done} of ${totals.total} steps`} />}
+      strip={<GRuler value={done} max={Math.max(1, totals.total)} onHero label={t('{done} of {total} steps', { done, total: totals.total })} />}
       onClick={allDone ? undefined : jump}
       size="sm"
       className="kg-setup-hero"
@@ -54,8 +61,8 @@ export function BringUpHero({ totals, firstOpen }: { totals: SystemSetup['totals
 }
 
 function StepIcon({ status }: { status: SystemStep['status'] }) {
-  if (status === 'open') return <CircleDashed size={16} strokeWidth={1.7} className="kg-step-icon" data-status="open" aria-label="Open" />;
-  return <CheckCircle2 size={16} strokeWidth={1.7} className="kg-step-icon" data-status={status} aria-label={status === 'verified' ? 'Verified' : 'Marked done'} />;
+  if (status === 'open') return <CircleDashed size={16} strokeWidth={1.7} className="kg-step-icon" data-status="open" aria-label={t('Open')} />;
+  return <CheckCircle2 size={16} strokeWidth={1.7} className="kg-step-icon" data-status={status} aria-label={status === 'verified' ? t('Verified') : t('Marked done')} />;
 }
 
 function StepRow({ step, keys }: { step: SystemStep; keys: Record<string, KeyState> }) {
@@ -68,18 +75,18 @@ function StepRow({ step, keys }: { step: SystemStep; keys: Record<string, KeySta
           <span className="kg-step-title">{step.title}</span>
           {step.auto ? (
             <GTag size="xs" tone={step.status === 'verified' ? 'ok' : 'neutral'}>
-              {step.status === 'verified' ? 'Auto-verified' : 'Auto-checks'}
+              {step.status === 'verified' ? t('Auto-verified') : t('Auto-checks')}
             </GTag>
           ) : (
             <GTag size="xs" tone="outline">
-              <UserRound size={10} strokeWidth={1.8} aria-hidden="true" /> Yours to confirm
+              <UserRound size={10} strokeWidth={1.8} aria-hidden="true" /> {t('Yours to confirm')}
             </GTag>
           )}
           <span className="kg-step-actions">
             {!step.auto && <ManualCheckG id={step.id} marked={step.status === 'marked'} title={step.title} />}
             {step.href && (
-              <GButton variant="sm" href={step.href} aria-label={`Open ${step.title}`}>
-                Open <ExternalLink size={11} strokeWidth={1.8} aria-hidden="true" />
+              <GButton variant="sm" href={step.href} aria-label={t('Open {title}', { title: step.title })}>
+                {t('Open')} <ExternalLink size={11} strokeWidth={1.8} aria-hidden="true" />
               </GButton>
             )}
           </span>
@@ -130,10 +137,10 @@ export function PhaseCard({ phase, keys }: { phase: SystemPhase; keys: Record<st
       <GSectionHeader
         size={22}
         id={`setup-phase-${phase.n}`}
-        title={`Phase ${phase.n} · ${phase.title}`}
+        title={t('Phase {n} · {title}', { n: phase.n, title: phase.title })}
         caption={phase.blurb}
         action={
-          <GTag tone={open.length === 0 ? 'ok' : 'neutral'} title={`${done.length} of ${phase.steps.length} steps done`}>
+          <GTag tone={open.length === 0 ? 'ok' : 'neutral'} title={t('{done} of {total} steps done', { done: done.length, total: phase.steps.length })}>
             {done.length}/{phase.steps.length}
           </GTag>
         }
@@ -149,7 +156,7 @@ export function PhaseCard({ phase, keys }: { phase: SystemPhase; keys: Record<st
         <div className="kg-done">
           <GButton variant="sm" aria-expanded={expanded} aria-controls={panelId} onClick={toggle} className="kg-done-toggle">
             <ChevronDown size={13} strokeWidth={1.8} aria-hidden="true" className="kg-chev" data-open={expanded || undefined} />
-            {done.length} done
+            {t('{n} done', { n: done.length })}
           </GButton>
           {expanded && (
             <ul className="kg-steps" id={panelId}>

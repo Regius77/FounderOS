@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import type { Department } from '@/lib/schemas';
 import type { DesignedAgent } from '@/lib/wizard/designed';
+import { t } from '@/lib/i18n';
 
 /** Centered modal. Files an agent spec as "designed" — nothing claims a runtime. */
 export function CreateAgentModal({
@@ -44,7 +45,7 @@ export function CreateAgentModal({
         body: JSON.stringify({ name, departmentId, purpose, tools }),
       });
       const body = await res.json();
-      if (!res.ok || !body.ok) throw new Error(body.error ?? `filing failed (${res.status})`);
+      if (!res.ok || !body.ok) throw new Error(body.error ?? t('filing failed ({status})', { status: res.status }));
       onCreated(body.agent as DesignedAgent);
       setName('');
       setPurpose('');
@@ -61,22 +62,22 @@ export function CreateAgentModal({
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center p-6">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
+      <button type="button" aria-label={t('Close')} onClick={onClose} className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
       <div role="dialog" aria-modal="true" className="c-pop relative w-[440px] max-w-full p-6">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-[16px] text-os-text">Create an agent</span>
-          <button type="button" aria-label="Close" onClick={onClose} className="wz-icon-btn">
+          <span className="text-[16px] text-os-text">{t('Create an agent')}</span>
+          <button type="button" aria-label={t('Close')} onClick={onClose} className="wz-icon-btn">
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mb-5 text-[12px] text-os-dim">Files a spec under designed agents. It appears ghosted in the crew and on the Blueprint until it is wired.</p>
+        <p className="mb-5 text-[12px] text-os-dim">{t('Files a spec under designed agents. It appears ghosted in the crew and on the Blueprint until it is wired.')}</p>
 
         <label className="mb-3 block text-[12px] text-os-muted">
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Invoice reconciler" className={field} />
+          {t('Name')}
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('e.g. Invoice reconciler')} className={field} />
         </label>
         <label className="mb-3 block text-[12px] text-os-muted">
-          Department
+          {t('Department')}
           <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className={field}>
             {departments.map((d) => (
               <option key={d.id} value={d.id}>
@@ -86,12 +87,12 @@ export function CreateAgentModal({
           </select>
         </label>
         <label className="mb-3 block text-[12px] text-os-muted">
-          Purpose
-          <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="What would it actually do?" rows={4} className={`${field} resize-none`} />
+          {t('Purpose')}
+          <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder={t('What would it actually do?')} rows={4} className={`${field} resize-none`} />
         </label>
         <label className="mb-4 block text-[12px] text-os-muted">
-          Tools
-          <input value={tools} onChange={(e) => setTools(e.target.value)} placeholder="comma separated, e.g. gmail, attio" className={field} />
+          {t('Tools')}
+          <input value={tools} onChange={(e) => setTools(e.target.value)} placeholder={t('comma separated, e.g. gmail, attio')} className={field} />
         </label>
 
         {error && (
@@ -102,10 +103,10 @@ export function CreateAgentModal({
 
         <div className="flex gap-2.5">
           <button type="button" onClick={onClose} className="c-btn">
-            Cancel
+            {t('Cancel')}
           </button>
           <button type="button" onClick={submit} disabled={submitting || !name.trim() || !purpose.trim()} className="c-btn c-btn-primary flex-1">
-            {submitting ? 'Filing' : 'File as designed'}
+            {submitting ? t('Filing') : t('File as designed')}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { layoutBrainNodes, polar, type BrainCluster } from '@/lib/brain-viz';
+import { t } from '@/lib/i18n';
 
 /**
  * The Optimal Engine knowledge core — three data rings around a health gauge.
@@ -42,7 +43,7 @@ export function BrainViz({
   }
 
   return (
-    <svg viewBox="0 0 520 520" role="img" aria-label="Optimal Engine knowledge core">
+    <svg viewBox="0 0 520 520" role="img" aria-label={t('Optimal Engine knowledge core')}>
       <defs>
         <radialGradient id="coreGrad">
           <stop offset="0%" stopColor="var(--brain-1)" stopOpacity="0.22" />
@@ -149,7 +150,7 @@ export function BrainViz({
           {health ?? '—'}
         </text>
         <text x="260" y="272" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="9" fill="var(--text-3)">
-          Health / 100
+          {t('Health / 100')}
         </text>
         {version && (
           <text x="260" y="288" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="7.5" letterSpacing="0.5" fill="var(--brain-2)">
@@ -162,14 +163,14 @@ export function BrainViz({
       {!compact && (
         <g fontFamily="var(--font-sans)" fontSize="9.5">
           <text x="260" y="146" textAnchor="middle" fill="var(--brain-1)">
-            Brain-store · {totalPages} pages
+            {t('Brain-store · {n} pages', { n: totalPages })}
           </text>
           <text x="260" y="96" textAnchor="middle" fill="var(--brain-2)">
             ZeroEntropy · embeddings
           </text>
           <text x="260" y="44" textAnchor="middle" fill="var(--text-3)">
-            Supabase · {supabasePages != null ? `${supabasePages} pages` : 'counts unavailable'}
-            {supabaseState ? ` · ${supabaseState.toLowerCase()}` : ''}
+            Supabase · {supabasePages != null ? t('{n} pages', { n: supabasePages }) : t('counts unavailable')}
+            {supabaseState ? ` · ${t(supabaseState.toLowerCase())}` : ''}
           </text>
         </g>
       )}

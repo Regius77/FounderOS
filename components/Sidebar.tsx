@@ -57,6 +57,7 @@ import { GButton } from '@/components/g';
 import type { UiStyle } from '@/lib/appearance';
 import { useUiStyle } from '@/lib/use-ui-style';
 import { LegacySideFoot, LegacySideHead } from '@/components/legacy/Shell';
+import { t } from '@/lib/i18n';
 
 /** The product name and mark for this deployment (lib/brand.ts, read on the server). */
 export type BrandMark = { name: string; mark: string };
@@ -315,10 +316,10 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
     const label = el.querySelector<HTMLElement>('.os-nav-label');
     const truncated = !!label && label.scrollWidth > label.clientWidth + 1;
     if (!rail && !truncated) return;
-    const t = navTooltip(href, rail ? 'rail' : 'full', offRef.current);
-    if (!t) return;
+    const navTip = navTooltip(href, rail ? 'rail' : 'full', offRef.current);
+    if (!navTip) return;
     const r = el.getBoundingClientRect();
-    setTip({ ...t, top: Math.round(r.top + r.height / 2) });
+    setTip({ ...navTip, top: Math.round(r.top + r.height / 2) });
   }, []);
   useEffect(() => hideTip(), [pathname, hideTip]);
   useEffect(() => {
@@ -367,14 +368,14 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
   }, [shown, updateFades]);
 
   const rail = sidebarMode(shown) === 'rail';
-  const toggleLabel = rail ? 'Expand sidebar' : 'Collapse sidebar';
-  const toggleTitle = tooNarrow ? 'The window is too narrow for a labelled sidebar' : `${toggleLabel} (⌘\\)`;
+  const toggleLabel = rail ? t('Expand sidebar') : t('Collapse sidebar');
+  const toggleTitle = tooNarrow ? t('The window is too narrow for a labelled sidebar') : `${toggleLabel} (⌘\\)`;
 
   return (
     <>
       <aside
         id="os-sidebar"
-        aria-label="Primary"
+        aria-label={t('Primary')}
         // layout only (no topbar before the init script runs); never the width
         data-canvas={workspace ? '1' : undefined}
         data-g={g ? 'GSidebar' : undefined}
@@ -398,7 +399,7 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
             </Link>
           </div>
         )}
-        <nav ref={navRef} className="os-nav" aria-label="Views">
+        <nav ref={navRef} className="os-nav" aria-label={t('Views')}>
           <div ref={listRef} className="os-nav-list">
             {visibleGroups(off).map((group) => (
               <div key={group.id} role="group" aria-label={group.label} className="os-nav-group">
@@ -450,7 +451,7 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
                     >
                       <Icon aria-hidden className="os-nav-icon h-4 w-4 shrink-0" strokeWidth={1.5} />
                       <span className="os-nav-label min-w-0 truncate">{label}</span>
-                      {href === '/inbox' && digestUnread && <span className="os-nav-unread" data-unread-dot role="img" aria-label="Unread morning digest" />}
+                      {href === '/inbox' && digestUnread && <span className="os-nav-unread" data-unread-dot role="img" aria-label={t('Unread morning digest')} />}
                     </Link>
                   );
                 })}
@@ -498,12 +499,12 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
-          aria-label="Resize sidebar"
+          aria-label={t('Resize sidebar')}
           aria-controls="os-sidebar"
           aria-valuemin={SIDEBAR_RAIL_W}
           aria-valuemax={SIDEBAR_MAX_W}
           aria-valuenow={shown}
-          aria-valuetext={rail ? `Icon rail, ${shown} pixels` : `${shown} pixels`}
+          aria-valuetext={rail ? t('Icon rail, {n} pixels', { n: shown }) : t('{n} pixels', { n: shown })}
           aria-disabled={tooNarrow || undefined}
           className="os-side-handle"
           onPointerDown={onHandleDown}

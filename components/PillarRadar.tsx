@@ -7,6 +7,7 @@ import {
   type PillarAxis,
   type PillarLayerKey,
 } from '@/lib/pillar-radar';
+import { t } from '@/lib/i18n';
 
 /**
  * The pillar spider chart (GladOS-style): one axis per department over a
@@ -24,10 +25,10 @@ const LABEL_R = R + 44;
 
 type Layer = { key: PillarLayerKey; label: string; color: string; dash?: string; fill?: boolean };
 const LAYERS: Layer[] = [
-  { key: 'score', label: 'Overall health', color: 'var(--text)', fill: true },
-  { key: 'roster', label: 'Roster active', color: 'var(--funnel-s0)' },
-  { key: 'freshness', label: 'Run recency', color: 'var(--funnel-s1)', dash: '6 4' },
-  { key: 'sop', label: 'SOP coverage', color: 'var(--funnel-s2)', dash: '2 4' },
+  { key: 'score', label: t('Overall health'), color: 'var(--text)', fill: true },
+  { key: 'roster', label: t('Roster active'), color: 'var(--funnel-s0)' },
+  { key: 'freshness', label: t('Run recency'), color: 'var(--funnel-s1)', dash: '6 4' },
+  { key: 'sop', label: t('SOP coverage'), color: 'var(--funnel-s2)', dash: '2 4' },
 ];
 
 export function PillarRadar({
@@ -154,16 +155,16 @@ export function PillarRadar({
       <div className="flex items-baseline justify-center gap-3 pb-4 pt-2">
         {activeLayer ? (
           <span className="text-[12.5px]" style={{ color: activeLayer.color === 'var(--text)' ? 'var(--text)' : activeLayer.color }}>
-            {activeLayer.label} · per pillar, 0 to 100
+            {activeLayer.label} · {t('per pillar, 0 to 100')}
           </span>
         ) : (
           <>
             <span className="text-2xl font-normal tabular-nums">{health ?? '—'}</span>
-            <span className="text-[12.5px] text-os-dim">/ 100 health</span>
+            <span className="text-[12.5px] text-os-dim">{t('/ 100 health')}</span>
             {warnings > 0 && (
               <span className="flex items-baseline gap-2 text-[12.5px] text-os-muted">
                 <span className="dot warn self-center" />
-                {warnings} warning{warnings === 1 ? '' : 's'}
+                {warnings === 1 ? t('{n} warning', { n: warnings }) : t('{n} warnings', { n: warnings })}
               </span>
             )}
           </>

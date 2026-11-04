@@ -14,14 +14,15 @@ import { ScheduleEditor } from '../setup/ScheduleEditor';
 import { ChecklistSection, KeysSection, SourcesSection, SpendSection } from '../setup/SetupSections';
 import { SheetShell, SheetTabs, type SheetCtx } from './SheetShell';
 import { LAB_UI } from '@/lib/lab/view/ui-copy';
+import { t } from '@/lib/i18n';
 
 const OAUTH: Record<string, { text: string; tone: 'ok' | 'info' | 'err' }> = {
-  'youtube.ok': { text: 'YouTube connected', tone: 'ok' },
-  'instagram.ok': { text: 'Instagram connected', tone: 'ok' },
-  'youtube.denied': { text: 'Sign-in was cancelled. Nothing changed.', tone: 'info' },
-  'instagram.denied': { text: 'Sign-in was cancelled. Nothing changed.', tone: 'info' },
-  'youtube.error': { text: 'Sign-in did not finish. Nothing was saved.', tone: 'err' },
-  'instagram.error': { text: 'Sign-in did not finish. Nothing was saved.', tone: 'err' },
+  'youtube.ok': { text: t('YouTube connected'), tone: 'ok' },
+  'instagram.ok': { text: t('Instagram connected'), tone: 'ok' },
+  'youtube.denied': { text: t('Sign-in was cancelled. Nothing changed.'), tone: 'info' },
+  'instagram.denied': { text: t('Sign-in was cancelled. Nothing changed.'), tone: 'info' },
+  'youtube.error': { text: t('Sign-in did not finish. Nothing was saved.'), tone: 'err' },
+  'instagram.error': { text: t('Sign-in did not finish. Nothing was saved.'), tone: 'err' },
 };
 
 export function SetupSheet({ ctx, view, section }: { ctx: SheetCtx; view: SetupSheetView | null | undefined; section: string }) {
@@ -35,8 +36,8 @@ export function SetupSheet({ ctx, view, section }: { ctx: SheetCtx; view: SetupS
     const u = new URL(window.location.href);
     const o = u.searchParams.get('oauth');
     if (!o) return;
-    const t = OAUTH[o];
-    if (t) toast(t);
+    const note = OAUTH[o];
+    if (note) toast(note);
     u.searchParams.delete('oauth');
     window.history.replaceState(null, '', u.pathname + u.search);
   }, [toast]);

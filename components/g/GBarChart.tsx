@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 import { BarGrouped, BarSeries, type BarGroupedProps, type BarSeriesProps } from './BarSeries';
 import { BarStages, type BarStagesProps } from './BarStages';
@@ -57,12 +58,12 @@ function BarHorizontal({ rows, max, color = 'accent', selected = null, onSelect,
       {rows.map((r) => {
         const pct = m > 0 ? Math.max(0, Math.min(1, r.value / m)) : 0;
         const on = selected === null || selected === r.id;
-        const title = r.title ?? `${r.label}: ${typeof r.display === 'string' ? r.display : r.value.toLocaleString('en-US')}`;
+        const title = r.title ?? `${r.label}: ${typeof r.display === 'string' ? r.display : r.value.toLocaleString(localeTag())}`;
         const inner = (
           <>
             <span className="g-hbar-label">{r.label}</span>
             <span className="g-hbar-track"><i style={{ width: `${pct * 100}%`, background: on ? colorVar(color) : 'var(--g-track-soft)' }} /></span>
-            <span className="g-hbar-value">{r.display ?? r.value.toLocaleString('en-US')}</span>
+            <span className="g-hbar-value">{r.display ?? r.value.toLocaleString(localeTag())}</span>
           </>
         );
         return (

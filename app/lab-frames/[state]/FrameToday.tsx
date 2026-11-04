@@ -12,6 +12,7 @@ import {
   RoundButton, SearchPill, Segmented, Sheet, Tile, TileRow,
 } from '@/components/lab/v2/shared';
 import type { FrameState, FrameToday } from '@/lib/lab/view/frames';
+import { t } from '@/lib/i18n';
 
 /** Remembers the data-lab-shared id of the element the viewer last clicked, so a sheet knows its origin. */
 function useLastOrigin() {
@@ -31,21 +32,21 @@ function Header({ data }: { data: FrameToday }) {
   return (
     <header className="lab2-head">
       <span className="lab2-back" data-lab-ink="">Content Lab</span>
-      <nav className="lab2-tabs" aria-label="Content Lab pages">
-        {data.tabs.map((t) =>
-          t.active ? (
-            <Link key={t.id} href={t.href} className="lab2-tab" aria-current="page" data-lab-ink="">
-              <h1 style={{ font: 'inherit' }}>{t.label}</h1>
+      <nav className="lab2-tabs" aria-label={t('Content Lab pages')}>
+        {data.tabs.map((tab) =>
+          tab.active ? (
+            <Link key={tab.id} href={tab.href} className="lab2-tab" aria-current="page" data-lab-ink="">
+              <h1 style={{ font: 'inherit' }}>{tab.label}</h1>
             </Link>
           ) : (
-            <Link key={t.id} href={t.href} className="lab2-tab" data-lab-ink="">{t.label}</Link>
+            <Link key={tab.id} href={tab.href} className="lab2-tab" data-lab-ink="">{tab.label}</Link>
           ),
         )}
       </nav>
       <div className="lab2-head-tools">
-        {!data.notConfigured && <span className="lab2-chip lab2-hide-phone" data-sample-badge="" data-lab-ink="">Sample data</span>}
-        <SearchPill placeholder="Ask the Lab" />
-        <RoundButton label="Setup" icon="menu" href={data.notConfigured ? '?setup=keys' : '?setup=checklist'} sharedId="setup-menu" />
+        {!data.notConfigured && <span className="lab2-chip lab2-hide-phone" data-sample-badge="" data-lab-ink="">{t('Sample data')}</span>}
+        <SearchPill placeholder={t('Ask the Lab')} />
+        <RoundButton label={t('Setup')} icon="menu" href={data.notConfigured ? '?setup=keys' : '?setup=checklist'} sharedId="setup-menu" />
       </div>
     </header>
   );
@@ -59,7 +60,7 @@ function Actions({ data }: { data: FrameToday }) {
           <ActionPill {...a} />
         </span>
       ))}
-      <PlusButton label="Create" items={data.createMenu} />
+      <PlusButton label={t('Create')} items={data.createMenu} />
     </div>
   );
 }
@@ -72,20 +73,20 @@ function PostSheetBody({ data }: { data: FrameToday }) {
       <div className="lab2-stats">
         <span className="lab2-stat">
           <span className="lab2-stat-num" data-lab-ink="">{s.readText.replace(/x$/, '')}<sup>x</sup></span>
-          <span className="lab2-stat-label" data-lab-ink="">at 24h, {s.nText}</span>
+          <span className="lab2-stat-label" data-lab-ink="">{t('at 24h, {n}', { n: s.nText })}</span>
         </span>
         <span className="lab2-stat">
-          <span className="lab2-stat-label" data-lab-ink="">Range</span>
+          <span className="lab2-stat-label" data-lab-ink="">{t('Range')}</span>
           <span className="lab2-card-text" data-lab-ink="">{s.rangeText}</span>
         </span>
       </div>
       {s.viz?.kind === 'band' && <BandViz ageH={s.viz.ageH} points={s.viz.points} band={s.viz.band} w={500} h={120} />}
       <div className="lab2-postsheet-reads">
-        <span className="lab2-card-cap" data-lab-ink="">Read at</span>
+        <span className="lab2-card-cap" data-lab-ink="">{t('Read at')}</span>
         {s.reads.map((r) => <span key={r} className="lab2-chip" data-lab-ink="">{r}</span>)}
       </div>
       <div className="lab2-stat">
-        <span className="lab2-stat-label" data-lab-ink="">Why it may have worked</span>
+        <span className="lab2-stat-label" data-lab-ink="">{t('Why it may have worked')}</span>
         <p className="lab2-card-text" data-lab-ink="">{s.why}</p>
       </div>
     </div>
@@ -117,13 +118,13 @@ export function FrameTodayView({ state, data }: { state: Exclude<FrameState, 'co
                 <Actions data={data} />
                 <div className="lab2-today-heroes">
                   <Glass tone="strong" radius="narrative" priority={2} className="lab2-empty" data-lab-empty="">
-                    <h2 className="lab2-empty-title" data-lab-ink="">Content Lab needs an Apify key</h2>
+                    <h2 className="lab2-empty-title" data-lab-ink="">{t('Content Lab needs an Apify key')}</h2>
                     <p className="lab2-empty-text" data-lab-ink="">
-                      It reads public posts from your accounts and the creators you track through Apify. Paste a key in Setup to start.
+                      {t('It reads public posts from your accounts and the creators you track through Apify. Paste a key in Setup to start.')}
                     </p>
                     <span className="lab2-empty-actions">
-                      <SetupLink href="?setup=keys" label="Set up" className="lab2-setup" />
-                      <Link href="?sample=1" className="lab2-textlink" data-lab-ink="">Preview with sample data</Link>
+                      <SetupLink href="?setup=keys" label={t('Set up')} className="lab2-setup" />
+                      <Link href="?sample=1" className="lab2-textlink" data-lab-ink="">{t('Preview with sample data')}</Link>
                     </span>
                   </Glass>
                 </div>
@@ -134,7 +135,7 @@ export function FrameTodayView({ state, data }: { state: Exclude<FrameState, 'co
               <div className="lab2-today-top">
                 <Actions data={data} />
                 <div className="lab2-today-heroes">
-                  <HeroPair pages={[{ id: 'all', label: 'All platforms', heroes: data.heroes }]} />
+                  <HeroPair pages={[{ id: 'all', label: t('All platforms'), heroes: data.heroes }]} />
                 </div>
                 <div className="lab2-today-cards">
                   <NarrativeCard {...data.brief} paused={open} />
@@ -144,39 +145,39 @@ export function FrameTodayView({ state, data }: { state: Exclude<FrameState, 'co
 
               <div className="lab2-today-bar">
                 <Segmented
-                  label="Today view"
+                  label={t('Today view')}
                   options={data.segmented}
                   value={seg}
                   onChange={setSeg}
                   controls="lab2-today-lower"
                 />
-                <PeriodScrubber periods={data.periods} value={period} onChange={setPeriod} label="Period for the sections below" />
+                <PeriodScrubber periods={data.periods} value={period} onChange={setPeriod} label={t('Period for the sections below')} />
               </div>
 
               <div id="lab2-today-lower" role="tabpanel">
                 {seg === 'ask' ? (
                   <Glass tone="strong" radius="narrative" priority={2} className="lab2-empty" style={{ marginTop: 36 }}>
-                    <h2 className="lab2-empty-title" data-lab-ink="">Ask the Lab</h2>
-                    <p className="lab2-empty-text" data-lab-ink="">Ask a question about your niche. The answer cards are drawn by the Studio lanes.</p>
+                    <h2 className="lab2-empty-title" data-lab-ink="">{t('Ask the Lab')}</h2>
+                    <p className="lab2-empty-text" data-lab-ink="">{t('Ask a question about your niche. The answer cards are drawn by the Studio lanes.')}</p>
                   </Glass>
                 ) : (
                   <>
                     <div className="lab2-today-rows">
-                      <TileRow id="your-posts" title="Your posts" description="Judged at their age, against your normal" seeAllHref="/lab/breakouts?mine=1&window=30">
-                        {data.yourPosts.map((t) => <Tile key={t.id} {...t} />)}
+                      <TileRow id="your-posts" title={t('Your posts')} description={t('Judged at their age, against your normal')} seeAllHref="/lab/breakouts?mine=1&window=30">
+                        {data.yourPosts.map((tile) => <Tile key={tile.id} {...tile} />)}
                       </TileRow>
-                      <TileRow id="launch-radar" title="Launch radar" description="Events with an open window" seeAllHref="/lab/radar">
-                        {data.launchRadar.map((t) => <Tile key={t.id} {...t} />)}
+                      <TileRow id="launch-radar" title={t('Launch radar')} description={t('Events with an open window')} seeAllHref="/lab/radar">
+                        {data.launchRadar.map((tile) => <Tile key={tile.id} {...tile} />)}
                       </TileRow>
                     </div>
 
                     <section className="lab2-today-section" aria-labelledby="next-title">
                       <header className="lab2-row-head">
                         <span className="lab2-row-text">
-                          <h2 id="next-title" className="lab2-row-title" data-lab-ink="">Next to make</h2>
-                          <span className="lab2-row-desc" data-lab-ink="">Open ideas, launches with an open window first</span>
+                          <h2 id="next-title" className="lab2-row-title" data-lab-ink="">{t('Next to make')}</h2>
+                          <span className="lab2-row-desc" data-lab-ink="">{t('Open ideas, launches with an open window first')}</span>
                         </span>
-                        <Link href="/lab/studio" className="lab2-pill lab2-seeall" data-lab-ink="">All ideas</Link>
+                        <Link href="/lab/studio" className="lab2-pill lab2-seeall" data-lab-ink="">{t('All ideas')}</Link>
                       </header>
                       <div className="lab2-list">
                         {data.nextToMake.map((r) => (
@@ -193,8 +194,8 @@ export function FrameTodayView({ state, data }: { state: Exclude<FrameState, 'co
                     <div className="lab2-today-foot">
                       <Glass as="section" tone="strong" radius="tile" priority={3} className="lab2-card" aria-labelledby="pipe-title">
                         <header className="lab2-card-head">
-                          <h2 id="pipe-title" className="lab2-card-title" data-lab-ink="">Pipeline</h2>
-                          <Link href="?setup=spend" className="lab2-pill lab2-seeall" data-lab-ink="" data-lab-shared="pipeline">Spend and runs</Link>
+                          <h2 id="pipe-title" className="lab2-card-title" data-lab-ink="">{t('Pipeline')}</h2>
+                          <Link href="?setup=spend" className="lab2-pill lab2-seeall" data-lab-ink="" data-lab-shared="pipeline">{t('Spend and runs')}</Link>
                         </header>
                         <div className="lab2-stats">
                           {data.pipeline.stats.map((s) => (
@@ -208,18 +209,18 @@ export function FrameTodayView({ state, data }: { state: Exclude<FrameState, 'co
                               <span className="lab2-stat-num" data-lab-ink=""><sup style={{ marginLeft: 0, marginRight: 2 }}>$</sup>{data.pipeline.spend.text}</span>
                               <CapViz spent={data.pipeline.spend.spent} cap={data.pipeline.spend.cap} />
                             </span>
-                            <span className="lab2-stat-label" data-lab-ink="">Spend, {data.pipeline.spend.foot}</span>
+                            <span className="lab2-stat-label" data-lab-ink="">{t('Spend, {foot}', { foot: data.pipeline.spend.foot })}</span>
                           </span>
                         </div>
                         <span className="lab2-card-cap" data-lab-ink="">{data.pipeline.lastRunText}</span>
                       </Glass>
                       <Glass as="section" tone="strong" radius="tile" priority={3} className="lab2-card" aria-labelledby="ledger-title">
                         <header className="lab2-card-head">
-                          <h2 id="ledger-title" className="lab2-card-title" data-lab-ink="">Ledger</h2>
-                          <Link href="/lab/ledger" className="lab2-pill lab2-seeall" data-lab-ink="">Open ledger</Link>
+                          <h2 id="ledger-title" className="lab2-card-title" data-lab-ink="">{t('Ledger')}</h2>
+                          <Link href="/lab/ledger" className="lab2-pill lab2-seeall" data-lab-ink="">{t('Open ledger')}</Link>
                         </header>
                         <p className="lab2-card-text" data-lab-ink="">{data.ledgerLine}</p>
-                        <span className="lab2-card-cap" data-lab-ink="">Every prediction is frozen before posting and graded at 7 days.</span>
+                        <span className="lab2-card-cap" data-lab-ink="">{t('Every prediction is frozen before posting and graded at 7 days.')}</span>
                       </Glass>
                     </div>
                   </>

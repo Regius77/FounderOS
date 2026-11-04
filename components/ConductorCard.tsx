@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Agent, Broadcast } from '@/lib/schemas';
 import { ConductorEmblem } from '@/components/ConductorEmblem';
+import { t } from '@/lib/i18n';
 
 /**
  * The "AI Head" card from the GladOS board: the Wizard super-agent
@@ -35,7 +36,7 @@ export function ConductorCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
-      if (!res.ok) throw new Error(`broadcast failed (${res.status})`);
+      if (!res.ok) throw new Error(t('broadcast failed ({status})', { status: res.status }));
       const body = (await res.json()) as { broadcast: Broadcast };
       setBroadcast(body.broadcast);
       setShowReplies(true);
@@ -49,7 +50,7 @@ export function ConductorCard({
 
   return (
     <div className="hoverable group w-[340px] rounded-2xl border border-os-border-bright bg-os-surface p-6">
-      <div className="text-center text-[12.5px] text-os-muted">AI head</div>
+      <div className="text-center text-[12.5px] text-os-muted">{t('AI head')}</div>
 
       {/* Living core — breathes and orbits while the Wizard is broadcasting */}
       <div className="mt-3 flex justify-center">
@@ -57,7 +58,7 @@ export function ConductorCard({
       </div>
       <div className="mt-3 text-center text-[14.5px] font-medium">Wizard</div>
       <div className="text-center text-[11.5px] text-os-dim">
-        super agent · {conductor.instance} runtime until the dedicated host lands
+        {t('super agent · {instance} runtime until the dedicated host lands', { instance: conductor.instance })}
       </div>
 
       {/* Chat pill → broadcast to every agent */}
@@ -66,7 +67,7 @@ export function ConductorCard({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
-          placeholder="Chat with Wizard — reaches every agent"
+          placeholder={t('Chat with Wizard — reaches every agent')}
           className="min-w-0 flex-1 rounded-sm-t border border-os-border bg-os-bg px-3 py-2.5 text-[13px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
           disabled={sending}
         />
@@ -75,14 +76,14 @@ export function ConductorCard({
           disabled={sending || !message.trim()}
           className="c-btn c-btn-primary h-auto shrink-0 px-3.5 py-2.5 text-[13px]"
         >
-          {sending ? '…' : 'Send'}
+          {sending ? '…' : t('Send')}
         </button>
       </div>
       {error && <p className="mt-1.5 text-[12.5px] text-os-muted">✗ {error}</p>}
 
       {/* Capability pills */}
       <div className="mt-4 grid grid-cols-3 gap-1">
-        {['Broadcast', 'Orchestration', 'Instances'].map((cap) => (
+        {[t('Broadcast'), t('Orchestration'), t('Instances')].map((cap) => (
           <span key={cap} className="truncate rounded-[6px] border border-os-border-strong bg-os-surface2 px-1.5 py-1 text-center text-[11px] text-os-muted">
             {cap}
           </span>
@@ -91,7 +92,7 @@ export function ConductorCard({
 
       {/* Agent tools bar */}
       <div className="mt-3 rounded-md bg-os-raised px-2 py-1 text-center text-[11.5px] text-os-muted">
-        Agent tools
+        {t('Agent tools')}
       </div>
       <div className="mt-1.5 flex justify-center gap-1">
         {conductor.tools.map((tool) => (
@@ -110,7 +111,7 @@ export function ConductorCard({
           >
             <span className="truncate text-[12.5px] text-os-muted">«{broadcast.message}»</span>
             <span className="shrink-0 text-[11.5px] text-os-dim">
-              {broadcast.replies.filter((r) => r.ok).length}/{broadcast.replies.length} ok {showReplies ? '▾' : '▸'}
+              {broadcast.replies.filter((r) => r.ok).length}/{broadcast.replies.length} {t('ok')} {showReplies ? '▾' : '▸'}
             </span>
           </button>
           {showReplies && (

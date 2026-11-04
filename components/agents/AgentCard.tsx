@@ -4,6 +4,8 @@ import { GButton, GCard, GTickStrip } from '@/components/g';
 import { relativeTime } from '@/lib/wizard/helpers';
 import type { Agent, AgentRun } from '@/lib/schemas';
 import { AgentFace } from './AgentFace';
+import { agentStatusLabel } from '@/founderos/lib/labels';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * Compact roster card (glados-ui SPEC S04 F-A4, X1 composite "AgentCard"):
@@ -18,7 +20,7 @@ export function AgentCard({ agent, avatar, runs, setup, onOpen }: { agent: Agent
   const active = agent.status === 'active';
   return (
     <div className="wg-agent" data-status={agent.status}>
-      <GCard p={16} onClick={onOpen} aria-label={`Open ${agent.name} profile`} className="wg-agent-open">
+      <GCard p={16} onClick={onOpen} aria-label={t('Open {name} profile', { name: agent.name })} className="wg-agent-open">
         <span className="wg-agent-top">
           <AgentFace src={avatar} name={agent.name} size={36} />
           <span className="wg-agent-id">
@@ -28,24 +30,24 @@ export function AgentCard({ agent, avatar, runs, setup, onOpen }: { agent: Agent
         </span>
         <span className="wg-agent-status">
           <span className="wg-dot" data-tone={active ? 'ok' : 'idle'} aria-hidden />
-          {agent.status}
+          {agentStatusLabel(agent.status)}
         </span>
         <span className="wg-agent-run" title={last?.summary}>
-          {last ? `Last run ${last.ok ? 'ok' : 'failed'} · ${relativeTime(last.startedAt)}` : 'No runs recorded'}
+          {last ? (last.ok ? t('Last run ok · {when}', { when: relativeTime(last.startedAt) }) : t('Last run failed · {when}', { when: relativeTime(last.startedAt) })) : t('No runs recorded')}
         </span>
         {recent.length > 0 && (
           <GTickStrip
             kind="runs"
-            label={`${agent.name}: last ${recent.length} runs, ${recent.filter((r) => r.ok).length} ok`}
+            label={t('{name}: last {n} runs, {ok} ok', { name: agent.name, n: recent.length, ok: recent.filter((r) => r.ok).length })}
             states={recent.map((r) => (r.ok ? 'ok' : 'failed'))}
-            titles={recent.map((r) => `${r.ok ? 'ok' : 'failed'} · ${new Date(r.startedAt).toLocaleDateString()} · ${r.summary}`)}
+            titles={recent.map((r) => `${r.ok ? t('ok') : t('failed')} · ${new Date(r.startedAt).toLocaleDateString(localeTag())} · ${r.summary}`)}
             className="wg-agent-ticks"
           />
         )}
       </GCard>
       {setup && (
         <GButton variant="sm" href={`/agents/setup/${agent.id}`} className="wg-agent-setup">
-          Set up
+          {t('Set up')}
         </GButton>
       )}
     </div>

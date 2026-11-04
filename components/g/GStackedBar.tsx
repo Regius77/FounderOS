@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag } from '@/lib/i18n';
 import { useId } from 'react';
 import { stackParts } from '@/lib/chart-geometry';
 import { GChartTooltip } from './GChartTooltip';
@@ -31,7 +32,7 @@ export type GStackedBarProps = VizStateProps & {
  * hatching), rounded caps. Hidden keys drop out of both the stack and the
  * scale. Columns are buttons when `onSelect` is set.
  */
-export function GStackedBar({ columns, keys, height = 160, hiddenKeys = [], formatValue = (v) => v.toLocaleString('en-US'), onSelect, selected = null, syncId, label, className = '', ...stateProps }: GStackedBarProps) {
+export function GStackedBar({ columns, keys, height = 160, hiddenKeys = [], formatValue = (v) => v.toLocaleString(localeTag()), onSelect, selected = null, syncId, label, className = '', ...stateProps }: GStackedBarProps) {
   const [ref, W] = useWidth<HTMLDivElement>(600);
   const selfId = useId();
   const [cursor, setHover] = useCursor(syncId, selfId);

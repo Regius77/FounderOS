@@ -42,6 +42,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { ENGINE_HREF, ENGINE_KEYWORDS, ENGINE_NAME, LEGACY_ENGINE_HREF } from '@/lib/creative-engine/name';
+import { t } from '@/lib/i18n';
 
 /** The one Wizard glyph (S08 FR-1, SPEC §5 C31): the nav item, the dock
  *  launcher and the topbar all read it from here. */
@@ -74,36 +75,36 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'command',
     title: null,
-    label: 'Command',
+    label: t('Command'),
     items: [
-      { href: '/', label: 'Home', icon: Home, keywords: 'dashboard today overview start operator console' },
-      { href: '/wizard', label: 'Wizard', icon: WizardIcon, keywords: 'chat agent conductor ask projects conversations' },
-      { href: '/inbox', label: 'Comms', icon: MessageSquare, keywords: 'messages email whatsapp slack inbox unified feed' },
+      { href: '/', label: t('Home'), icon: Home, keywords: 'dashboard today overview start operator console' },
+      { href: '/wizard', label: t('Wizard'), icon: WizardIcon, keywords: 'chat agent conductor ask projects conversations' },
+      { href: '/inbox', label: t('Comms'), icon: MessageSquare, keywords: 'messages email whatsapp slack inbox unified feed' },
     ],
   },
   {
     id: 'revenue',
-    title: 'Revenue',
-    label: 'Revenue',
+    title: t('Revenue'),
+    label: t('Revenue'),
     items: [
-      { href: '/funnel', label: 'Funnel', icon: Filter, keywords: 'pipeline leads attio ghl stages crm journeys' },
+      { href: '/funnel', label: t('Funnel'), icon: Filter, keywords: 'pipeline leads attio ghl stages crm journeys' },
       {
         href: '/brand-deals',
-        label: 'Brand Deals',
+        label: t('Brand Deals'),
         icon: Handshake,
         keywords: 'deals sponsorship brands pipeline bdpilot telegram approval gsend unique journeys',
       },
-      { href: '/clients', label: 'Clients', icon: Briefcase, keywords: 'client roster retainer confirmed requests briefs work superset drafts' },
-      { href: '/finances', label: 'Finances', icon: Wallet, keywords: 'money revenue processors books stripe payments cash' },
-      { href: '/trading', label: 'Trading', icon: CandlestickChart, keywords: 'markets robinhood phantom wallet stocks positions trades agent sleeve limits autopilot' },
+      { href: '/clients', label: t('Clients'), icon: Briefcase, keywords: 'client roster retainer confirmed requests briefs work superset drafts' },
+      { href: '/finances', label: t('Finances'), icon: Wallet, keywords: 'money revenue processors books stripe payments cash' },
+      { href: '/trading', label: t('Trading'), icon: CandlestickChart, keywords: 'markets robinhood phantom wallet stocks positions trades agent sleeve limits autopilot' },
     ],
   },
   {
     id: 'growth',
-    title: 'Growth',
-    label: 'Growth',
+    title: t('Growth'),
+    label: t('Growth'),
     items: [
-      { href: '/social', label: 'Social', icon: Share2, keywords: 'instagram tiktok twitter x youtube linkedin followers audience publish zernio' },
+      { href: '/social', label: t('Social'), icon: Share2, keywords: 'instagram tiktok twitter x youtube linkedin followers audience publish zernio' },
       { href: '/adpilot', label: 'AdPilot', icon: Crosshair, keywords: 'paid media ads meta campaigns watchlist signals', accent: 'adpilot' },
       {
         href: ENGINE_HREF,
@@ -113,55 +114,55 @@ export const NAV_GROUPS: NavGroup[] = [
         match: [LEGACY_ENGINE_HREF],
         accent: 'adpilot',
       },
-      { href: '/analytics', label: 'Analytics', icon: BarChart3, keywords: 'metrics numbers audience share runs outcomes' },
+      { href: '/analytics', label: t('Analytics'), icon: BarChart3, keywords: 'metrics numbers audience share runs outcomes' },
       {
         href: '/lab',
-        label: 'Content Lab',
+        label: t('Content Lab'),
         icon: FlaskConical,
         keywords: 'viral breakouts creators apify scrape trends ideas scripts hooks formats specimens',
       },
-      { href: '/lead-magnets', label: 'Lead Magnets', icon: Magnet, keywords: 'landing pages opt-in freebie captures leads email booking campaign' },
+      { href: '/lead-magnets', label: t('Lead Magnets'), icon: Magnet, keywords: 'landing pages opt-in freebie captures leads email booking campaign' },
     ],
   },
   {
     id: 'workforce',
-    title: 'Workforce',
-    label: 'Workforce',
+    title: t('Workforce'),
+    label: t('Workforce'),
     items: [
-      { href: '/agents', label: 'Agents', icon: Users, keywords: 'runtime run real roster team', match: ['/org'] },
-      { href: '/chats', label: 'Chats', icon: MessagesSquare, keywords: 'chat conversations threads messages direct line talk agent' },
-      { href: '/tasks', label: 'Tasks', icon: ListChecks, keywords: 'todo work board assignments' },
-      { href: '/workflows', label: 'Workflows', icon: Workflow, keywords: 'automations canvas steps flows' },
-      { href: '/skills', label: 'Skills', icon: Sparkles, keywords: 'capabilities skill library abilities' },
-      { href: '/compute', label: 'Compute', icon: MonitorSmartphone, keywords: 'cloud computers machines desktops miosa' },
+      { href: '/agents', label: t('Agents'), icon: Users, keywords: 'runtime run real roster team', match: ['/org'] },
+      { href: '/chats', label: t('Chats'), icon: MessagesSquare, keywords: 'chat conversations threads messages direct line talk agent' },
+      { href: '/tasks', label: t('Tasks'), icon: ListChecks, keywords: 'todo work board assignments' },
+      { href: '/workflows', label: t('Workflows'), icon: Workflow, keywords: 'automations canvas steps flows' },
+      { href: '/skills', label: t('Skills'), icon: Sparkles, keywords: 'capabilities skill library abilities' },
+      { href: '/compute', label: t('Compute'), icon: MonitorSmartphone, keywords: 'cloud computers machines desktops miosa' },
     ],
   },
   {
     id: 'knowledge',
-    title: 'Knowledge',
-    label: 'Knowledge',
+    title: t('Knowledge'),
+    label: t('Knowledge'),
     items: [
       {
         href: '/brain',
-        label: 'Optimal Engine',
+        label: t('Optimal Engine'),
         icon: Brain,
         keywords: 'brain knowledge core markdown vector pgvector supabase embeddings zeroentropy graph doctor',
       },
-      { href: '/database', label: 'Brain Files', icon: FolderTree, keywords: 'brain folder files disk storage treemap database' },
-      { href: '/knowledge', label: 'Knowledge Visualizer', icon: Waypoints, keywords: 'graph connections load-bearing analysis' },
-      { href: '/drift', label: 'Drift', icon: GitCompareArrows, keywords: 'canon contradictions conflicts resolutions' },
+      { href: '/database', label: t('Brain Files'), icon: FolderTree, keywords: 'brain folder files disk storage treemap database' },
+      { href: '/knowledge', label: t('Knowledge Visualizer'), icon: Waypoints, keywords: 'graph connections load-bearing analysis' },
+      { href: '/drift', label: t('Drift'), icon: GitCompareArrows, keywords: 'canon contradictions conflicts resolutions' },
     ],
   },
   {
     id: 'system',
-    title: 'System',
-    label: 'System',
+    title: t('System'),
+    label: t('System'),
     items: [
-      { href: '/setup', label: 'Settings', icon: Wrench, keywords: 'setup appearance style colour color accent theme mode dark light bring-up onboarding keys connectors wiring checklist install' },
-      { href: '/integrations', label: 'Connections', icon: Plug, keywords: 'integrations tools status creds' },
-      { href: '/usage', label: 'Usage', icon: Gauge, keywords: 'tokens burn claude codex chatgpt ollama plan limits models machines' },
-      { href: '/blueprint', label: 'Blueprint', icon: Network, keywords: 'system map architecture reference model domains' },
-      { href: '/roadmap', label: 'Roadmap', icon: Map, keywords: 'plan phases quarters' },
+      { href: '/setup', label: t('Settings'), icon: Wrench, keywords: 'setup appearance style colour color accent theme mode dark light bring-up onboarding keys connectors wiring checklist install' },
+      { href: '/integrations', label: t('Connections'), icon: Plug, keywords: 'integrations tools status creds' },
+      { href: '/usage', label: t('Usage'), icon: Gauge, keywords: 'tokens burn claude codex chatgpt ollama plan limits models machines' },
+      { href: '/blueprint', label: t('Blueprint'), icon: Network, keywords: 'system map architecture reference model domains' },
+      { href: '/roadmap', label: t('Roadmap'), icon: Map, keywords: 'plan phases quarters' },
     ],
   },
 ];
@@ -184,7 +185,7 @@ export function digitViewsFor(off: readonly string[]): string[] {
 
 /** Palette-only views: real pages that are deliberately not in the sidebar. */
 export const NAV_EXTRA: NavItem[] = [
-  { href: '/org', label: 'Org Chart', icon: Users, keywords: 'org chart hierarchy departments tree structure leads specialists' },
+  { href: '/org', label: t('Org Chart'), icon: Users, keywords: 'org chart hierarchy departments tree structure leads specialists' },
 ];
 
 /** The group an href belongs to. */

@@ -23,6 +23,7 @@ import {
   timelineBuckets,
   type RankRow,
 } from '@/lib/knowledge-views';
+import { t } from '@/lib/i18n';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Matrix
@@ -62,8 +63,8 @@ export function MatrixView({
   // Sequential: one hue, light to dark. On this surface more = brighter.
   const shade = (v: number) => {
     if (v === 0) return 'rgb(var(--mist-rgb) / 0.035)';
-    const t = Math.sqrt(v / max); // sqrt so the long tail is visible at all
-    const idx = Math.min(SEQ_MINT.length - 1, Math.floor((1 - t) * SEQ_MINT.length));
+    const frac = Math.sqrt(v / max); // sqrt so the long tail is visible at all
+    const idx = Math.min(SEQ_MINT.length - 1, Math.floor((1 - frac) * SEQ_MINT.length));
     return SEQ_MINT[idx];
   };
 
@@ -73,16 +74,13 @@ export function MatrixView({
   return (
     <div className={limit != null ? 'overflow-x-auto p-5' : 'h-full overflow-auto p-5'}>
       <div className="mb-3">
-        <div className="text-[13px] text-os-text">Cluster connection matrix</div>
+        <div className="text-[13px] text-os-text">{t('Cluster connection matrix')}</div>
         <p className="mt-1 max-w-[70ch] text-[11.5px] leading-relaxed text-os-muted">
-          Every edge between two clusters, counted. A bright cell means those two bodies of knowledge reference each
-          other; a dark row means a cluster that mostly talks to itself. The diagonal is deliberately left out — a
-          cluster is always densest internally, and including it would wash out the comparison that matters.
+          {t('Every edge between two clusters, counted. A bright cell means those two bodies of knowledge reference each other; a dark row means a cluster that mostly talks to itself. The diagonal is deliberately left out — a cluster is always densest internally, and including it would wash out the comparison that matters.')}
         </p>
         {capped && (
           <p className="mt-1.5 text-[10.5px] text-os-dim">
-            Showing the {limit} most-connected of {full.clusters.length} clusters — open Full screen for the complete
-            matrix.
+            {t('Showing the {limit} most-connected of {n} clusters — open Full screen for the complete matrix.', { limit: limit ?? 0, n: full.clusters.length })}
           </p>
         )}
       </div>
@@ -166,18 +164,18 @@ export function MatrixView({
             <div className="text-[11px] text-os-text">
               {clusters[hover.i]} ↔ {clusters[hover.j]}
             </div>
-            <div className="font-mono text-[13px] text-os-accent">{counts[hover.i][hover.j]} edges</div>
+            <div className="font-mono text-[13px] text-os-accent">{t('{n} edges', { n: counts[hover.i][hover.j] })}</div>
           </div>
         )}
       </div>
 
       {/* scale legend */}
       <div className="mt-4 flex items-center gap-2">
-        <span className="text-[10.5px] text-os-dim">fewer</span>
+        <span className="text-[10.5px] text-os-dim">{t('fewer')}</span>
         {[...SEQ_MINT].reverse().map((c) => (
           <span key={c} className="h-3 w-8 rounded-[2px]" style={{ background: c }} />
         ))}
-        <span className="text-[10.5px] text-os-dim">more · up to {max}</span>
+        <span className="text-[10.5px] text-os-dim">{t('more · up to {max}', { max })}</span>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -198,7 +196,7 @@ export function MatrixView({
                   <span className="font-mono text-[13px] font-light text-os-accent">{pct.toFixed(0)}%</span>
                 </div>
                 <div className="mt-1 text-[10.5px] text-os-dim">
-                  of its {out + inside} connections leave the cluster
+                  {t('of its {n} connections leave the cluster', { n: out + inside })}
                 </div>
               </div>
             );
@@ -260,11 +258,9 @@ export function TimelineView({ entities }: { entities: KIEntity[] }) {
 
   return (
     <div className="p-5">
-      <div className="mb-1 text-[13px] text-os-text">When this knowledge was last touched</div>
+      <div className="mb-1 text-[13px] text-os-text">{t('When this knowledge was last touched')}</div>
       <p className="mb-4 max-w-[70ch] text-[11.5px] leading-relaxed text-os-muted">
-        Each bar is one month, counting records whose file was last modified then. Records with no date on disk —
-        database rows rather than files — are not plotted, because they would be a guess. A long tail on the left with
-        nothing above it is knowledge that was written once and never revisited.
+        {t('Each bar is one month, counting records whose file was last modified then. Records with no date on disk — database rows rather than files — are not plotted, because they would be a guess. A long tail on the left with nothing above it is knowledge that was written once and never revisited.')}
       </p>
 
       <div className="relative">
@@ -337,7 +333,7 @@ export function TimelineView({ entities }: { entities: KIEntity[] }) {
                 <div key={s} className="flex items-center gap-2 text-[11px] text-os-text">
                   <span className="h-2 w-2 rounded-full" style={{ background: CATEGORY_COLOR[s] }} />
                   <span className="font-mono">{data[hover].counts[s]}</span>
-                  <span className="text-os-muted">{CATEGORY_LABEL[s]}</span>
+                  <span className="text-os-muted">{t(CATEGORY_LABEL[s])}</span>
                 </div>
               ))}
           </div>
@@ -350,7 +346,7 @@ export function TimelineView({ entities }: { entities: KIEntity[] }) {
           .map((s) => (
             <span key={s} className="flex items-center gap-1.5 text-[11px] text-os-muted">
               <span className="h-2 w-2 rounded-full" style={{ background: CATEGORY_COLOR[s] }} />
-              {CATEGORY_LABEL[s]}
+              {t(CATEGORY_LABEL[s])}
             </span>
           ))}
       </div>
@@ -415,28 +411,29 @@ export function RankingView({
   return (
     <div>
       <div className="px-5 pb-2 pt-5">
-        <div className="text-[13px] text-os-text">Every record, ranked</div>
+        <div className="text-[13px] text-os-text">{t('Every record, ranked')}</div>
         <p className="mt-1 max-w-[76ch] text-[11.5px] leading-relaxed text-os-muted">
-          The same numbers the graph is drawn from, sortable. <span className="text-os-text">Authority</span> is
-          PageRank — how much of the graph eventually flows through a record.{' '}
-          <span className="text-os-text">Brokerage</span> is betweenness — how often it sits on the shortest path
-          between two others. High brokerage with low connections is the signature of a single point of failure. Both
-          are computed on <span className="text-os-text">written</span> connections only: inferred vocabulary
-          similarity is a way to find things, not evidence that anyone relies on them.
+          {t('The same numbers the graph is drawn from, sortable.')}{' '}
+          <span className="text-os-text">{t('Authority')}</span>{' '}
+          {t('is PageRank — how much of the graph eventually flows through a record.')}{' '}
+          <span className="text-os-text">{t('Brokerage')}</span>{' '}
+          {t('is betweenness — how often it sits on the shortest path between two others. High brokerage with low connections is the signature of a single point of failure. Both are computed on')}{' '}
+          <span className="text-os-text">{t('written')}</span>{' '}
+          {t('connections only: inferred vocabulary similarity is a way to find things, not evidence that anyone relies on them.')}
         </p>
       </div>
       <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] text-[11.5px]">
         <thead className="bg-os-bg2/60">
           <tr className="border-b border-os-border">
-            {head('label', 'Record')}
-            {head('kind', 'Kind')}
-            {head('cluster', 'Cluster')}
-            {head('degree', 'Links', 'Total connections, inferred included')}
-            {head('authored', 'Written', 'Connections a person actually wrote')}
-            {head('authority', 'Authority', 'PageRank')}
-            {head('brokerage', 'Brokerage', 'Betweenness centrality')}
-            {head('days', 'Age', 'Days since last edit')}
+            {head('label', t('Record'))}
+            {head('kind', t('Kind'))}
+            {head('cluster', t('Cluster'))}
+            {head('degree', t('Links'), t('Total connections, inferred included'))}
+            {head('authored', t('Written'), t('Connections a person actually wrote'))}
+            {head('authority', t('Authority'), 'PageRank')}
+            {head('brokerage', t('Brokerage'), t('Betweenness centrality'))}
+            {head('days', t('Age'), t('Days since last edit'))}
           </tr>
         </thead>
         <tbody>
@@ -450,7 +447,7 @@ export function RankingView({
                 <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full align-middle" style={{ background: CATEGORY_COLOR[KIND_CATEGORY[r.kind] ?? 'system'] }} />
                 {r.label.length > 46 ? `${r.label.slice(0, 45)}…` : r.label}
               </td>
-              <td className="px-3 py-1.5 text-os-muted">{KIND_LABEL[r.kind] ?? r.kind}</td>
+              <td className="px-3 py-1.5 text-os-muted">{KIND_LABEL[r.kind] ? t(KIND_LABEL[r.kind]) : r.kind}</td>
               <td className="px-3 py-1.5 text-os-muted">{r.cluster}</td>
               <td className="px-3 py-1.5 font-mono text-os-text">{r.degree}</td>
               <td className="px-3 py-1.5 font-mono text-os-muted">{r.authored}</td>
@@ -478,7 +475,7 @@ export function RankingView({
       </div>
       {sorted.length > 300 && (
         <div className="px-5 py-3 text-[11px] text-os-dim">
-          Showing the first 300 of {sorted.length} — narrow with the search box.
+          {t('Showing the first 300 of {n} — narrow with the search box.', { n: sorted.length })}
         </div>
       )}
     </div>
@@ -509,10 +506,9 @@ export function FindingsView({
 
   return (
     <div className="p-5">
-      <div className="mb-1 text-[13px] text-os-text">Structural audit</div>
+      <div className="mb-1 text-[13px] text-os-text">{t('Structural audit')}</div>
       <p className="mb-4 max-w-[74ch] text-[11.5px] leading-relaxed text-os-muted">
-        Everything below is derived from the graph, not asserted. Each finding names the measurement that produced it,
-        so you can disagree with the threshold rather than the conclusion. Open one to see the records it is about.
+        {t('Everything below is derived from the graph, not asserted. Each finding names the measurement that produced it, so you can disagree with the threshold rather than the conclusion. Open one to see the records it is about.')}
       </p>
 
       <div className="grid gap-3">
@@ -528,15 +524,15 @@ export function FindingsView({
                   <span className="mt-1 block text-[11.5px] leading-relaxed text-os-muted">{f.detail}</span>
                 </span>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide" style={{ color: SEV_COLOR[f.severity] }}>
-                  {f.severity}
+                  {f.severity === 'high' ? t('high') : f.severity === 'medium' ? t('medium') : t('low')}
                 </span>
               </button>
               {isOpen && targets.length > 0 && (
                 <div className="border-t border-os-border px-4 py-3">
                   <div className="mb-2 font-mono text-[10px] text-os-dim">
                     {targets.length < f.total
-                      ? `showing ${Math.min(60, targets.length)} of ${f.total}`
-                      : `${targets.length} records`}
+                      ? t('showing {n} of {total}', { n: Math.min(60, targets.length), total: f.total })
+                      : t('{n} records', { n: targets.length })}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {targets.slice(0, 60).map((id) => {

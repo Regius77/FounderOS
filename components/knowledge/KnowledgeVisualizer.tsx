@@ -45,20 +45,21 @@ import { FindingsView, MatrixView, RankingView, TimelineView } from '@/component
 import { FocusPanel } from '@/components/knowledge/FocusPanel';
 import { FullscreenOverlay } from '@/components/knowledge/FullscreenOverlay';
 import { SectionHead } from '@/components/terminal';
+import { t } from '@/lib/i18n';
 
 const SECTIONS: { key: string; label: string; blurb: string }[] = [
-  { key: 'network', label: 'Network', blurb: 'How everything connects' },
-  { key: 'matrix', label: 'Matrix', blurb: 'Which clusters talk' },
-  { key: 'timeline', label: 'Timeline', blurb: 'What has gone cold' },
-  { key: 'ranking', label: 'Ranking', blurb: 'The numbers, sortable' },
-  { key: 'findings', label: 'Findings', blurb: 'The structural audit' },
+  { key: 'network', label: t('Network'), blurb: t('How everything connects') },
+  { key: 'matrix', label: t('Matrix'), blurb: t('Which clusters talk') },
+  { key: 'timeline', label: t('Timeline'), blurb: t('What has gone cold') },
+  { key: 'ranking', label: t('Ranking'), blurb: t('The numbers, sortable') },
+  { key: 'findings', label: t('Findings'), blurb: t('The structural audit') },
 ];
 
 const DIMS: { key: ColorDimension; label: string; blurb: string }[] = [
-  { key: 'kind', label: 'Kind', blurb: 'What sort of record it is' },
-  { key: 'recency', label: 'Recency', blurb: 'How long since it was edited' },
-  { key: 'authority', label: 'Authority', blurb: 'How much the graph leans on it' },
-  { key: 'health', label: 'Health', blurb: 'What is structurally wrong with it' },
+  { key: 'kind', label: t('Kind'), blurb: t('What sort of record it is') },
+  { key: 'recency', label: t('Recency'), blurb: t('How long since it was edited') },
+  { key: 'authority', label: t('Authority'), blurb: t('How much the graph leans on it') },
+  { key: 'health', label: t('Health'), blurb: t('What is structurally wrong with it') },
 ];
 
 // Inline cap for the cluster matrix — see the comment on MatrixView's `limit`.
@@ -194,10 +195,9 @@ export function KnowledgeVisualizer({
   if (!index.mounted && index.entities.length === 0) {
     return (
       <div className="rounded-[14px] border border-os-border bg-os-surface p-8 text-center">
-        <div className="text-[14px] text-os-text">Nothing to index</div>
+        <div className="text-[14px] text-os-text">{t('Nothing to index')}</div>
         <p className="mx-auto mt-2 max-w-[52ch] text-[12px] leading-relaxed text-os-muted">
-          The knowledge store is not mounted and the database has no records, so there is no graph to draw. This page
-          shows an empty state rather than an invented one.
+          {t('The knowledge store is not mounted and the database has no records, so there is no graph to draw. This page shows an empty state rather than an invented one.')}
         </p>
       </div>
     );
@@ -208,20 +208,20 @@ export function KnowledgeVisualizer({
       {/* ── summary strip ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {[
-          { v: String(s.nodes), l: 'records indexed', h: 'Pages, skills, agents, accounts, workflows, tools and departments' },
-          { v: String(s.edges), l: 'connections', h: 'Every edge, including inferred similarity' },
-          { v: s.avgDegree.toFixed(1), l: 'avg connections', h: 'Mean degree across the graph' },
+          { v: String(s.nodes), l: t('records indexed'), h: t('Pages, skills, agents, accounts, workflows, tools and departments') },
+          { v: String(s.edges), l: t('connections'), h: t('Every edge, including inferred similarity') },
+          { v: s.avgDegree.toFixed(1), l: t('avg connections'), h: t('Mean degree across the graph') },
           {
             v: `${s.largestComponentPct.toFixed(0)}%`,
-            l: 'in one network',
-            h: `${s.components} disconnected groups, counting written connections only`,
+            l: t('in one network'),
+            h: t('{n} disconnected groups, counting written connections only', { n: s.components }),
           },
-          { v: String(s.orphans), l: 'orphans', h: 'Records nothing an author wrote points to' },
-          { v: s.medianDays === null ? '—' : `${s.medianDays}d`, l: 'median age', h: 'Median days since last edit, files only' },
-        ].map((t) => (
-          <div key={t.l} className="hoverable rounded-[12px] border border-os-border bg-os-surface px-3 py-2.5" title={t.h}>
-            <div className="font-mono text-[17px] font-light tabular-nums text-os-text">{t.v}</div>
-            <div className="mt-0.5 text-[10.5px] text-os-dim">{t.l}</div>
+          { v: String(s.orphans), l: t('orphans'), h: t('Records nothing an author wrote points to') },
+          { v: s.medianDays === null ? '—' : `${s.medianDays}d`, l: t('median age'), h: t('Median days since last edit, files only') },
+        ].map((tile) => (
+          <div key={tile.l} className="hoverable rounded-[12px] border border-os-border bg-os-surface px-3 py-2.5" title={tile.h}>
+            <div className="font-mono text-[17px] font-light tabular-nums text-os-text">{tile.v}</div>
+            <div className="mt-0.5 text-[10.5px] text-os-dim">{tile.l}</div>
           </div>
         ))}
       </div>
@@ -244,7 +244,7 @@ export function KnowledgeVisualizer({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search records, clusters, summaries…"
+          placeholder={t('Search records, clusters, summaries…')}
           className="min-w-[220px] flex-1 rounded-[10px] border border-os-border bg-os-surface px-3 py-2 text-[12px] text-os-text outline-none placeholder:text-os-dim focus:border-[var(--accent-line)]"
         />
 
@@ -254,14 +254,14 @@ export function KnowledgeVisualizer({
             className="rounded-[10px] border px-3 py-2 text-[12px] text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
             style={{ borderColor: 'var(--accent-line)' }}
           >
-            Whole graph
+            {t('Whole graph')}
           </button>
         )}
       </div>
 
       {/* ── network — the centerpiece ───────────────────────────────────── */}
       <section id="network" className="scroll-mt-20">
-        <SectionHead label="Network" count={`${s.nodes} records`} />
+        <SectionHead label={t('Network')} count={t('{n} records', { n: s.nodes })} />
         <div
           className={
             networkFs
@@ -272,7 +272,7 @@ export function KnowledgeVisualizer({
         >
           {/* controls rail */}
           <div className="w-[212px] shrink-0 overflow-y-auto border-r border-os-border p-3">
-            <div className="text-[10.5px] uppercase tracking-wide text-os-dim">Colour by</div>
+            <div className="text-[10.5px] uppercase tracking-wide text-os-dim">{t('Colour by')}</div>
             <div className="mt-1.5 grid gap-1">
               {DIMS.map((d) => (
                 <button
@@ -295,14 +295,14 @@ export function KnowledgeVisualizer({
             </div>
 
             <div className="mt-4 flex items-baseline justify-between">
-              <span className="text-[10.5px] uppercase tracking-wide text-os-dim">Legend</span>
+              <span className="text-[10.5px] uppercase tracking-wide text-os-dim">{t('Legend')}</span>
               {hidden.size > 0 && (
                 <button onClick={() => setHidden(new Set())} className="text-[10px] text-os-accent">
-                  reset
+                  {t('reset')}
                 </button>
               )}
             </div>
-            <p className="mt-1 text-[10px] leading-snug text-os-dim">Click a swatch to hide that group.</p>
+            <p className="mt-1 text-[10px] leading-snug text-os-dim">{t('Click a swatch to hide that group.')}</p>
             <div className="mt-1.5 grid gap-0.5">
               {legend.map((l) => {
                 const off = hidden.has(l.key);
@@ -310,21 +310,21 @@ export function KnowledgeVisualizer({
                   <button
                     key={l.key}
                     onClick={() => setHidden(toggle(hidden, l.key))}
-                    title={l.hint}
+                    title={l.hint ? t(l.hint) : undefined}
                     className="flex items-center gap-2 rounded-[7px] px-1.5 py-1 text-left transition-colors hover:bg-[rgb(var(--cold-hover-rgb) / 0.08)]"
                     aria-pressed={!off}
                     data-kv-off={off || undefined}
                     style={{ opacity: off ? 0.35 : 1 }}
                   >
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: l.color }} />
-                    <span className="flex-1 truncate text-[11px] text-os-muted">{l.label}</span>
+                    <span className="flex-1 truncate text-[11px] text-os-muted">{t(l.label)}</span>
                     <span className="font-mono text-[10px] text-os-dim">{l.count}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="mt-4 text-[10.5px] uppercase tracking-wide text-os-dim">Connection kinds</div>
+            <div className="mt-4 text-[10.5px] uppercase tracking-wide text-os-dim">{t('Connection kinds')}</div>
             <div className="mt-1.5 grid gap-0.5">
               {(['link', 'owns', 'mention', 'similar'] as EdgeKind[]).map((k) => {
                 const on = activeKinds.has(k);
@@ -334,23 +334,21 @@ export function KnowledgeVisualizer({
                   <button
                     key={k}
                     onClick={() => setActiveKinds(toggle(activeKinds, k))}
-                    title={EDGE_HINT[k]}
+                    title={t(EDGE_HINT[k])}
                     className="flex items-center gap-2 rounded-[7px] px-1.5 py-1 text-left transition-colors hover:bg-[rgb(var(--cold-hover-rgb) / 0.08)]"
                     aria-pressed={on}
                     data-kv-off={!on || undefined}
                     style={{ opacity: on ? 1 : 0.35 }}
                   >
                     <span className="h-1.5 w-4 shrink-0 rounded-full" style={{ background: EDGE_COLOR[k] }} />
-                    <span className="flex-1 truncate text-[11px] text-os-muted">{EDGE_LABEL[k]}</span>
+                    <span className="flex-1 truncate text-[11px] text-os-muted">{t(EDGE_LABEL[k])}</span>
                     <span className="font-mono text-[10px] text-os-dim">{count}</span>
                   </button>
                 );
               })}
             </div>
             <p className="mt-2 text-[10px] leading-snug text-os-dim">
-              In the whole-graph view these are summed into the ribbons between clusters. Open one record to see the
-              individual connections and the evidence behind each. Similarity is inferred rather than observed, so it
-              stays off by default.
+              {t('In the whole-graph view these are summed into the ribbons between clusters. Open one record to see the individual connections and the evidence behind each. Similarity is inferred rather than observed, so it stays off by default.')}
             </p>
           </div>
 
@@ -379,7 +377,7 @@ export function KnowledgeVisualizer({
                 docks once a record is open. */}
             <button
               onClick={() => setNetworkFs((v) => !v)}
-              title={networkFs ? 'Exit full screen (esc)' : 'Full screen — pan + zoom'}
+              title={networkFs ? t('Exit full screen (esc)') : t('Full screen — pan + zoom')}
               className="absolute left-4 top-4 z-30 flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px]"
               style={{
                 background: 'color-mix(in srgb, var(--elevated) 82%, transparent)',
@@ -389,7 +387,7 @@ export function KnowledgeVisualizer({
               }}
             >
               {networkFs ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-              {networkFs ? 'Exit' : 'Full screen'}
+              {networkFs ? t('Exit') : t('Full screen')}
             </button>
           </div>
 
@@ -412,14 +410,14 @@ export function KnowledgeVisualizer({
       {/* ── matrix ───────────────────────────────────────────────────────── */}
       <section id="matrix" className="scroll-mt-20">
         <div className="mb-4 flex items-baseline justify-between gap-4">
-          <SectionHead label="Matrix" count={`${analysis.clusterMatrix.clusters.length} clusters`} />
+          <SectionHead label={t('Matrix')} count={t('{n} clusters', { n: analysis.clusterMatrix.clusters.length })} />
           {analysis.clusterMatrix.clusters.length > MATRIX_INLINE_LIMIT && (
             <button
               onClick={() => setMatrixFs(true)}
               className="flex shrink-0 items-center gap-2 rounded-[10px] border px-3 py-2 text-[12px] text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
               style={{ borderColor: 'var(--accent-line)' }}
             >
-              <Maximize2 className="h-3.5 w-3.5" /> Full screen
+              <Maximize2 className="h-3.5 w-3.5" /> {t('Full screen')}
             </button>
           )}
         </div>
@@ -428,14 +426,14 @@ export function KnowledgeVisualizer({
         </div>
       </section>
       {matrixFs && (
-        <FullscreenOverlay title="Cluster connection matrix — complete" onClose={() => setMatrixFs(false)}>
+        <FullscreenOverlay title={t('Cluster connection matrix — complete')} onClose={() => setMatrixFs(false)}>
           <MatrixView analysis={analysis as unknown as GraphAnalysis} onPickCluster={setQuery} />
         </FullscreenOverlay>
       )}
 
       {/* ── timeline ─────────────────────────────────────────────────────── */}
       <section id="timeline" className="scroll-mt-20">
-        <SectionHead label="Timeline" />
+        <SectionHead label={t('Timeline')} />
         <div className="rounded-[16px] border border-os-border bg-os-surface">
           <TimelineView entities={index.entities} />
         </div>
@@ -443,7 +441,7 @@ export function KnowledgeVisualizer({
 
       {/* ── ranking ──────────────────────────────────────────────────────── */}
       <section id="ranking" className="scroll-mt-20">
-        <SectionHead label="Ranking" count={`${index.entities.length} records`} />
+        <SectionHead label={t('Ranking')} count={t('{n} records', { n: index.entities.length })} />
         <div className="rounded-[16px] border border-os-border bg-os-surface">
           <RankingView entities={index.entities} metrics={metrics} query={query} onFocus={openRecord} />
         </div>
@@ -451,7 +449,7 @@ export function KnowledgeVisualizer({
 
       {/* ── findings ─────────────────────────────────────────────────────── */}
       <section id="findings" className="scroll-mt-20">
-        <SectionHead label="Findings" count={`${analysis.findings.length} findings`} />
+        <SectionHead label={t('Findings')} count={t('{n} findings', { n: analysis.findings.length })} />
         <div className="rounded-[16px] border border-os-border bg-os-surface">
           <FindingsView findings={analysis.findings} entities={index.entities} onFocus={openRecord} />
         </div>

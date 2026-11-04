@@ -11,6 +11,7 @@ import type { EdgeKind, KIEntity, KnowledgeIndex } from '@/lib/knowledge-index';
 import type { Finding } from '@/lib/knowledge-metrics';
 import { CATEGORY_LABEL, EDGE_LABEL, KIND_CATEGORY, KIND_LABEL, rankRows, type ColorDimension, type RankRow } from '@/lib/knowledge-views';
 import { RANK_PAGE, TIMELINE_SERIES, filterRank, openClusters, timelineMonths, timelineSentence, topClusters } from '@/lib/knowledge-g';
+import { t } from '@/lib/i18n';
 import { KnowledgeCanvas } from './KnowledgeCanvas';
 import { FocusG } from './FocusG';
 import { useKnowledgeState, type KnowledgeAnalysis } from './KnowledgeVisualizer';
@@ -26,18 +27,18 @@ import { useKnowledgeState, type KnowledgeAnalysis } from './KnowledgeVisualizer
  */
 
 const SECTIONS = [
-  { value: 'network', label: 'Network' },
-  { value: 'matrix', label: 'Matrix' },
-  { value: 'timeline', label: 'Timeline' },
-  { value: 'ranking', label: 'Ranking' },
-  { value: 'findings', label: 'Findings' },
+  { value: 'network', label: t('Network') },
+  { value: 'matrix', label: t('Matrix') },
+  { value: 'timeline', label: t('Timeline') },
+  { value: 'ranking', label: t('Ranking') },
+  { value: 'findings', label: t('Findings') },
 ];
 
 const DIMS: { value: ColorDimension; label: string; title: string }[] = [
-  { value: 'kind', label: 'Kind', title: 'What sort of record it is' },
-  { value: 'recency', label: 'Recency', title: 'How long since it was edited' },
-  { value: 'authority', label: 'Authority', title: 'How much the graph leans on it' },
-  { value: 'health', label: 'Health', title: 'What is structurally wrong with it' },
+  { value: 'kind', label: t('Kind'), title: t('What sort of record it is') },
+  { value: 'recency', label: t('Recency'), title: t('How long since it was edited') },
+  { value: 'authority', label: t('Authority'), title: t('How much the graph leans on it') },
+  { value: 'health', label: t('Health'), title: t('What is structurally wrong with it') },
 ];
 
 /** Legend key → token slot under the GladOS style. Sequential bands run from the accent (most) to dim (least). */
@@ -86,22 +87,22 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
   if (!index.mounted && index.entities.length === 0) {
     return (
       <GCard p={24}>
-        <GEmpty title="Nothing indexed yet" body="The knowledge store is not mounted and the database has no records, so there is no graph to draw." />
+        <GEmpty title={t('Nothing indexed yet')} body={t('The knowledge store is not mounted and the database has no records, so there is no graph to draw.')} />
       </GCard>
     );
   }
 
-  const legendItems: GLegendItem[] = legend.map((l) => ({ id: l.key, label: l.label, count: l.count, color: G_COLOR[dim][l.key] ?? 'dim', on: !hidden.has(l.key) }));
+  const legendItems: GLegendItem[] = legend.map((l) => ({ id: l.key, label: t(l.label), count: l.count, color: G_COLOR[dim][l.key] ?? 'dim', on: !hidden.has(l.key) }));
   const edgeItems: GLegendItem[] = (['link', 'owns', 'mention', 'similar'] as EdgeKind[])
     .filter((e) => (index.byEdgeKind[e] ?? 0) > 0)
-    .map((e) => ({ id: e, label: EDGE_LABEL[e], count: index.byEdgeKind[e] ?? 0, color: EDGE_G[e], on: activeKinds.has(e) }));
+    .map((e) => ({ id: e, label: t(EDGE_LABEL[e]), count: index.byEdgeKind[e] ?? 0, color: EDGE_G[e], on: activeKinds.has(e) }));
 
   const rail = (
             <div className="kg-rail">
-              <span className="kg-rail-label">Colour by</span>
+              <span className="kg-rail-label">{t('Colour by')}</span>
               <GSegmented
                 size="compact"
-                label="Colour by"
+                label={t('Colour by')}
                 options={DIMS}
                 value={dim}
                 onChange={(d) => {
@@ -109,21 +110,21 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
                   setHidden(new Set());
                 }}
               />
-              <span className="kg-rail-label">Groups</span>
+              <span className="kg-rail-label">{t('Groups')}</span>
               <GLegend
                 layout="stack"
-                label="Groups"
+                label={t('Groups')}
                 items={legendItems}
                 onToggle={(id) => setHidden(toggle(hidden, id))}
                 onIsolate={(id) => setHidden(new Set(legend.map((l) => l.key).filter((x) => x !== id)))}
               />
               {hidden.size > 0 && (
                 <GButton variant="sm" size="compact" onClick={() => setHidden(new Set())}>
-                  Show all
+                  {t('Show all')}
                 </GButton>
               )}
-              <span className="kg-rail-label">Connections</span>
-              <GLegend layout="stack" label="Connection kinds" items={edgeItems} onToggle={(id) => setActiveKinds(toggle(activeKinds, id as EdgeKind))} />
+              <span className="kg-rail-label">{t('Connections')}</span>
+              <GLegend layout="stack" label={t('Connection kinds')} items={edgeItems} onToggle={(id) => setActiveKinds(toggle(activeKinds, id as EdgeKind))} />
             </div>
   );
 
@@ -131,45 +132,45 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
     <div className="kg-section kg-know">
       {/* stats (F05.31): avg connections cut; orphans opens its finding */}
       <div className="kg-know-stats">
-        <GStat value={s.nodes} label="Records" source="Pages, skills, agents, accounts, workflows, tools and departments" />
-        <GStat value={s.edges} label="Connections" source="Every edge, including inferred similarity" />
-        <GStat value={`${s.largestComponentPct.toFixed(0)}%`} label="In one network" source={`${s.components} disconnected groups, counting written connections only`} />
+        <GStat value={s.nodes} label={t('Records')} source={t('Pages, skills, agents, accounts, workflows, tools and departments')} />
+        <GStat value={s.edges} label={t('Connections')} source={t('Every edge, including inferred similarity')} />
+        <GStat value={`${s.largestComponentPct.toFixed(0)}%`} label={t('In one network')} source={t('{n} disconnected groups, counting written connections only', { n: s.components })} />
         <GStat
           value={s.orphans}
-          label="Orphans"
-          source="Records nothing an author wrote points to. Opens the finding."
+          label={t('Orphans')}
+          source={t('Records nothing an author wrote points to. Opens the finding.')}
           onClick={() => {
             setOpenFinding('orphans');
             requestAnimationFrame(() => scrollTo('finding-orphans'));
           }}
         />
-        <GStat value={s.medianDays === null ? null : `${s.medianDays}d`} label="Median age" source="Median days since last edit, files only" />
+        <GStat value={s.medianDays === null ? null : `${s.medianDays}d`} label={t('Median age')} source={t('Median days since last edit, files only')} />
       </div>
 
       <div className="kg-know-nav">
-        <GTabs tabs={SECTIONS} variant="anchor" label="Sections" className="kg-know-tabs" />
+        <GTabs tabs={SECTIONS} variant="anchor" label={t('Sections')} className="kg-know-tabs" />
         <div className="kg-know-search">
-          <GSearch value={query} onValueChange={onSearch} size="md" placeholder="Search records, clusters, summaries…" aria-label="Search records" />
+          <GSearch value={query} onValueChange={onSearch} size="md" placeholder={t('Search records, clusters, summaries…')} aria-label={t('Search records')} />
         </div>
         {focusId && (
           <GButton variant="sm" onClick={() => setFocusId(null)}>
-            Whole graph
+            {t('Whole graph')}
           </GButton>
         )}
       </div>
 
       {/* Network */}
-      <section id="network" className="kg-anchor" aria-label="Network">
+      <section id="network" className="kg-anchor" aria-label={t('Network')}>
         <GVizStage
-          label="Knowledge network"
+          label={t('Knowledge network')}
           height="max(600px, 72vh)"
           fullscreen={networkFs}
           onFullscreenChange={setNetworkFs}
           hudTopRight={
             <>
-              <span className="kg-cap">{s.nodes} records</span>
+              <span className="kg-cap">{t('{n} records', { n: s.nodes })}</span>
               <GButton variant="sm" className="kg-legend-btn" onClick={() => setLegendSheet(true)}>
-                Legend
+                {t('Legend')}
               </GButton>
             </>
           }
@@ -198,13 +199,13 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
         )}
       </section>
 
-      <GSheet open={legendSheet} onClose={() => setLegendSheet(false)} title="Legend" width={420}>
+      <GSheet open={legendSheet} onClose={() => setLegendSheet(false)} title={t('Legend')} width={420}>
         {rail}
       </GSheet>
 
       {/* Matrix (F05.34) */}
       <MatrixG matrix={analysis.clusterMatrix} onPick={onSearch} onFull={() => setMatrixFs(true)} />
-      <GSheet open={matrixFs} onClose={() => setMatrixFs(false)} title="Cluster connection matrix" caption={`All ${analysis.clusterMatrix.clusters.length} clusters`}>
+      <GSheet open={matrixFs} onClose={() => setMatrixFs(false)} title={t('Cluster connection matrix')} caption={t('All {n} clusters', { n: analysis.clusterMatrix.clusters.length })}>
         <ClusterHeat matrix={analysis.clusterMatrix} onPick={(c) => { onSearch(c); setMatrixFs(false); }} />
       </GSheet>
 
@@ -216,9 +217,9 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
 
       {/* Findings (F05.37) */}
       <section id="findings" className="kg-anchor kg-section" aria-labelledby="findings-head">
-        <GSectionHeader size={22} id="findings-head" title="Findings" caption="The structural audit. Each finding names the measurement behind it." />
+        <GSectionHeader size={22} id="findings-head" title={t('Findings')} caption={t('The structural audit. Each finding names the measurement behind it.')} />
         <GCard p={16}>
-          <GList divided label="Findings">
+          <GList divided label={t('Findings')}>
             {analysis.findings.map((f) => {
               const open = openFinding === f.id;
               const targets = [...new Set(f.targets)];
@@ -238,9 +239,9 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
           </GList>
         </GCard>
       </section>
-      <GSheet open={Boolean(allTargets)} onClose={() => setAllTargets(null)} title={allTargets?.title ?? 'Records'} caption={allTargets ? `${allTargets.total} records` : undefined} width={720}>
+      <GSheet open={Boolean(allTargets)} onClose={() => setAllTargets(null)} title={allTargets?.title ?? t('Records')} caption={allTargets ? t('{n} records', { n: allTargets.total }) : undefined} width={720}>
         {allTargets && (
-          <GList label="Records">
+          <GList label={t('Records')}>
             {[...new Set(allTargets.targets)].map((id) => {
               const e = k.byId.get(id);
               if (!e) return null;
@@ -249,7 +250,7 @@ export function KnowledgeG({ index, analysis }: { index: KnowledgeIndex; analysi
                   key={id}
                   leading={<i className="kg-swatch" style={{ background: v(catOf(e.kind)) }} aria-hidden="true" />}
                   title={e.label}
-                  meta={`${KIND_LABEL[e.kind] ?? e.kind} · ${e.cluster}`}
+                  meta={`${KIND_LABEL[e.kind] ? t(KIND_LABEL[e.kind]) : e.kind} · ${e.cluster}`}
                   onClick={() => {
                     setAllTargets(null);
                     openRecord(id);
@@ -281,7 +282,7 @@ function FindingRow({ f, open, targets, byId, onToggle, onOpen, onAll }: {
           <span className="kg-cap">{f.detail}</span>
         </span>
         <GTag tone={SEV_TONE[f.severity]} size="xs">
-          {f.severity === 'high' ? 'High' : f.severity === 'medium' ? 'Medium' : 'Low'}
+          {f.severity === 'high' ? t('High') : f.severity === 'medium' ? t('Medium') : t('Low')}
         </GTag>
         <ChevronDown size={14} strokeWidth={1.8} aria-hidden="true" className="kg-chev" data-open={open || undefined} />
       </GButton>
@@ -292,7 +293,7 @@ function FindingRow({ f, open, targets, byId, onToggle, onOpen, onAll }: {
               const e = byId.get(id);
               if (!e) return null;
               return (
-                <GButton key={id} variant="sm" size="compact" onClick={() => onOpen(id)} title={`Open ${e.label} in the network`}>
+                <GButton key={id} variant="sm" size="compact" onClick={() => onOpen(id)} title={t('Open {label} in the network', { label: e.label })}>
                   <i className="kg-swatch" style={{ background: v(catOf(e.kind)) }} aria-hidden="true" />
                   {e.label.length > 34 ? `${e.label.slice(0, 33)}…` : e.label}
                 </GButton>
@@ -301,7 +302,7 @@ function FindingRow({ f, open, targets, byId, onToggle, onOpen, onAll }: {
           </div>
           {f.total > TARGETS_INLINE && (
             <GButton variant="sm" onClick={onAll}>
-              Show all {f.total}
+              {t('Show all {n}', { n: f.total })}
             </GButton>
           )}
         </div>
@@ -314,12 +315,12 @@ function ClusterHeat({ matrix, onPick }: { matrix: KnowledgeAnalysis['clusterMat
   // The diagonal is left out on purpose: a cluster is always densest inside.
   return (
     <GHeatmap
-      label="Connections between clusters"
+      label={t('Connections between clusters')}
       rows={matrix.clusters}
       cols={matrix.clusters}
       values={matrix.counts.map((r, i) => r.map((x, j) => (i === j ? null : x)))}
       onCell={(r) => onPick(matrix.clusters[r])}
-      cellTitle={(r, c, x) => `${matrix.clusters[r]} ↔ ${matrix.clusters[c]}: ${x ?? 0} connections. Click to search ${matrix.clusters[r]}.`}
+      cellTitle={(r, c, x) => t('{a} ↔ {b}: {n} connections. Click to search {a}.', { a: matrix.clusters[r], b: matrix.clusters[c], n: x ?? 0 })}
     />
   );
 }
@@ -333,12 +334,12 @@ function MatrixG({ matrix, onPick, onFull }: { matrix: KnowledgeAnalysis['cluste
       <GSectionHeader
         size={22}
         id="matrix-head"
-        title="Matrix"
-        caption={capped ? `The ${MATRIX_INLINE_LIMIT} most connected of ${matrix.clusters.length} clusters. A bright cell is two clusters that reference each other.` : 'A bright cell is two clusters that reference each other.'}
+        title={t('Matrix')}
+        caption={capped ? t('The {limit} most connected of {n} clusters. A bright cell is two clusters that reference each other.', { limit: MATRIX_INLINE_LIMIT, n: matrix.clusters.length }) : t('A bright cell is two clusters that reference each other.')}
         action={
           capped ? (
             <GButton variant="sm" onClick={onFull}>
-              All {matrix.clusters.length} clusters
+              {t('All {n} clusters', { n: matrix.clusters.length })}
             </GButton>
           ) : undefined
         }
@@ -347,11 +348,11 @@ function MatrixG({ matrix, onPick, onFull }: { matrix: KnowledgeAnalysis['cluste
         <GCard p={20} className="kg-matrix-heat">
           <ClusterHeat matrix={shown} onPick={onPick} />
         </GCard>
-        <GCard p={16} className="kg-matrix-open" aria-label="Least open clusters">
-          <GSectionHeader size={22} title="Least open clusters" caption="Share of each cluster's connections that leave it, lowest first" />
-          <GList label="Least open clusters">
+        <GCard p={16} className="kg-matrix-open" aria-label={t('Least open clusters')}>
+          <GSectionHeader size={22} title={t('Least open clusters')} caption={t("Share of each cluster's connections that leave it, lowest first")} />
+          <GList label={t('Least open clusters')}>
             {open.map((c) => (
-              <GRow key={c.cluster} title={c.cluster} meta={`of ${c.total} connections`} trailing={`${c.pct.toFixed(0)}%`} onClick={() => onPick(c.cluster)} hint={`Search ${c.cluster}`} />
+              <GRow key={c.cluster} title={c.cluster} meta={t('of {n} connections', { n: c.total })} trailing={`${c.pct.toFixed(0)}%`} onClick={() => onPick(c.cluster)} hint={t('Search {cluster}', { cluster: c.cluster })} />
             ))}
           </GList>
         </GCard>
@@ -365,17 +366,17 @@ function TimelineG({ entities }: { entities: KIEntity[] }) {
   const sentence = timelineSentence(months, dated);
   return (
     <section id="timeline" className="kg-anchor kg-section" aria-labelledby="timeline-head">
-      <GSectionHeader size={22} id="timeline-head" title="Timeline" caption="When this knowledge was last touched, by month of last edit" />
+      <GSectionHeader size={22} id="timeline-head" title={t('Timeline')} caption={t('When this knowledge was last touched, by month of last edit')} />
       <GCard p={20}>
         {sentence ? (
-          <GList label="Timeline">
-            <GRow title={sentence} meta="Records with no date on disk are not plotted." />
+          <GList label={t('Timeline')}>
+            <GRow title={sentence} meta={t('Records with no date on disk are not plotted.')} />
           </GList>
         ) : (
           <GStackedBar
-            label="Records by month of last edit"
+            label={t('Records by month of last edit')}
             height={200}
-            keys={TIMELINE_SERIES.map((id) => ({ id, label: CATEGORY_LABEL[id], color: KIND_G[id] }))}
+            keys={TIMELINE_SERIES.map((id) => ({ id, label: t(CATEGORY_LABEL[id]), color: KIND_G[id] }))}
             columns={months.map((m) => ({ id: m.key, label: m.label, parts: m.counts }))}
           />
         )}
@@ -399,7 +400,7 @@ function RankingG({ index, metrics, query, shown, setShown, onOpen, onClear }: {
   const columns: GColumn<RankRow>[] = [
     {
       key: 'label',
-      label: 'Record',
+      label: t('Record'),
       sortValue: (r) => r.label.toLowerCase(),
       render: (r) => (
         <span className="kg-cell-name kg-cell-wide" title={r.label}>
@@ -408,40 +409,40 @@ function RankingG({ index, metrics, query, shown, setShown, onOpen, onClear }: {
         </span>
       ),
     },
-    { key: 'kind', label: 'Kind', sortValue: (r) => r.kind, render: (r) => KIND_LABEL[r.kind] ?? r.kind },
-    { key: 'cluster', label: 'Cluster', sortValue: (r) => r.cluster, render: (r) => <span className="kg-trunc kg-cell-clip">{r.cluster}</span> },
-    { key: 'degree', label: 'Links', numeric: true, title: 'Total connections, inferred included', sortValue: (r) => r.degree, render: (r) => r.degree },
-    { key: 'authored', label: 'Written', numeric: true, title: 'Connections a person actually wrote', sortValue: (r) => r.authored, render: (r) => r.authored },
-    { key: 'authority', label: 'Authority', numeric: true, title: 'PageRank ×1000', sortValue: (r) => r.authority, render: (r) => (r.authority * 1000).toFixed(1) },
-    { key: 'brokerage', label: 'Brokerage', numeric: true, title: 'Betweenness centrality', sortValue: (r) => r.brokerage, render: (r) => Math.round(r.brokerage) },
-    { key: 'days', label: 'Age', numeric: true, title: 'Days since last edit', sortValue: (r) => r.days ?? -1, render: (r) => (r.days === null ? '—' : `${r.days}d`) },
+    { key: 'kind', label: t('Kind'), sortValue: (r) => r.kind, render: (r) => (KIND_LABEL[r.kind] ? t(KIND_LABEL[r.kind]) : r.kind) },
+    { key: 'cluster', label: t('Cluster'), sortValue: (r) => r.cluster, render: (r) => <span className="kg-trunc kg-cell-clip">{r.cluster}</span> },
+    { key: 'degree', label: t('Links'), numeric: true, title: t('Total connections, inferred included'), sortValue: (r) => r.degree, render: (r) => r.degree },
+    { key: 'authored', label: t('Written'), numeric: true, title: t('Connections a person actually wrote'), sortValue: (r) => r.authored, render: (r) => r.authored },
+    { key: 'authority', label: t('Authority'), numeric: true, title: t('PageRank ×1000'), sortValue: (r) => r.authority, render: (r) => (r.authority * 1000).toFixed(1) },
+    { key: 'brokerage', label: t('Brokerage'), numeric: true, title: t('Betweenness centrality'), sortValue: (r) => r.brokerage, render: (r) => Math.round(r.brokerage) },
+    { key: 'days', label: t('Age'), numeric: true, title: t('Days since last edit'), sortValue: (r) => r.days ?? -1, render: (r) => (r.days === null ? '—' : `${r.days}d`) },
   ];
   return (
     <section id="ranking" className="kg-anchor kg-section" aria-labelledby="ranking-head">
       <GSectionHeader
         size={22}
         id="ranking-head"
-        title="Ranking"
-        caption={query ? `${filtered.length} of ${rows.length} records match` : `${rows.length} records, by authority`}
+        title={t('Ranking')}
+        caption={query ? t('{n} of {total} records match', { n: filtered.length, total: rows.length }) : t('{n} records, by authority', { n: rows.length })}
       />
       <GCard p={16} className="kg-rank">
         {filtered.length === 0 ? (
-          <GEmpty title={`No record matches '${query}'`} action={{ label: 'Clear', onClick: onClear }} />
+          <GEmpty title={t("No record matches '{query}'", { query })} action={{ label: t('Clear'), onClick: onClear }} />
         ) : (
           <>
             <div className="kg-table-scroll">
-              <GTable columns={columns} rows={page} rowKey={(r) => r.id} caption="Every record, ranked" onRowClick={(r) => onOpen(r.id)} rowLabel={(r) => `Open ${r.label} in the network`} sticky={false} />
+              <GTable columns={columns} rows={page} rowKey={(r) => r.id} caption={t('Every record, ranked')} onRowClick={(r) => onOpen(r.id)} rowLabel={(r) => t('Open {label} in the network', { label: r.label })} sticky={false} />
             </div>
             {filtered.length > shown && (
               <div className="kg-rank-more">
                 <span className="kg-cap">
-                  Showing {page.length} of {filtered.length}
+                  {t('Showing {n} of {total}', { n: page.length, total: filtered.length })}
                 </span>
                 <GButton variant="sm" onClick={() => setShown(shown + RANK_PAGE)}>
-                  Show {Math.min(RANK_PAGE, filtered.length - shown)} more
+                  {t('Show {n} more', { n: Math.min(RANK_PAGE, filtered.length - shown) })}
                 </GButton>
                 <GButton variant="sm" onClick={() => setShown(filtered.length)}>
-                  Show all
+                  {t('Show all')}
                 </GButton>
               </div>
             )}

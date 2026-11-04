@@ -3,6 +3,7 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { GButton, GCard } from '@/components/g';
+import { categoryLabel } from '@/lib/integration-browser';
 import { useHashOpen } from './useHashOpen';
 
 /** A category accordion on the GladOS Connections board, closed on load (S05 F05.72). */
@@ -14,7 +15,7 @@ export function CategoryG({ label, count, slugs, children }: { label: string; co
     <GCard p={16} className="kg-cat">
       <GButton variant="sm" className="kg-cat-toggle" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
         <ChevronDown size={14} strokeWidth={1.8} aria-hidden="true" className="kg-chev" data-open={open || undefined} />
-        <span className="kg-cat-label">{label}</span>
+        <span className="kg-cat-label">{categoryLabel(label)}</span>
         <span className="kg-cap">{count}</span>
       </GButton>
       {open && (

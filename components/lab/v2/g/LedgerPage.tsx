@@ -17,11 +17,12 @@ import { LAB_UI, fill } from '@/lib/lab/view/ui-copy';
 import { Chip, PageBar, Panel, SectionNote, LabSetupLink } from './bits';
 import { OPEN_OUTSIDE_SCORE } from './Frame';
 import { GPageShell } from './PageShell';
+import { t } from '@/lib/i18n';
 
 const Lg = LAB_COPY.ledger;
 /** Newest predictions shown before Show all (legibility; 06 returns up to 50). */
 const PREDICTION_ROWS = 12;
-const BAND_LABEL: Record<string, string> = { below: 'Below your normal', normal: 'Around your normal', above: 'Above your normal', breakout: 'Breakout' };
+const BAND_LABEL: Record<string, string> = { below: t('Below your normal'), normal: t('Around your normal'), above: t('Above your normal'), breakout: t('Breakout') };
 
 function Reliability({ view }: { view: LedgerPageView }) {
   const bins = view.ledger?.hero.reliability ?? [];
@@ -122,8 +123,8 @@ function Body({ view }: { view: LedgerPageView }) {
           {view.forecasts.record && (
             <div className="lab2g-forecasts">
               <h3 className="lab2g-subtitle" data-lab-ink="">{LAB_COPY.progress.forecastTitle}</h3>
-              {[view.forecasts.record.runCost, view.forecasts.record.month, view.forecasts.record.gates].filter(Boolean).map((t) => (
-                <p key={t} className="lab2g-text" data-lab-ink="">{t}</p>
+              {[view.forecasts.record.runCost, view.forecasts.record.month, view.forecasts.record.gates].filter(Boolean).map((line) => (
+                <p key={line} className="lab2g-text" data-lab-ink="">{line}</p>
               ))}
             </div>
           )}
@@ -206,16 +207,16 @@ function Body({ view }: { view: LedgerPageView }) {
           <SectionNote state={view.tests.state.message ? view.tests.state : { ...view.tests.state, message: Lg.noTests, action: { label: LAB_COPY.frame.logTest, href: keep('?test=new') } }} />
         ) : (
           <ul className="lab2g-rows">
-            {view.tests.rows.map((t) => (
-              <li key={t.row.id}>
-                <Link data-g="LabLink" href={t.href} scroll={false} className="lab2g-row lab2g-testrow" data-lab-shared={`test-${t.row.id}`} data-sheet-title={t.row.title}>
+            {view.tests.rows.map((tr) => (
+              <li key={tr.row.id}>
+                <Link data-g="LabLink" href={tr.href} scroll={false} className="lab2g-row lab2g-testrow" data-lab-shared={`test-${tr.row.id}`} data-sheet-title={tr.row.title}>
                   <span className="lab2g-row-main">
-                    <span className="lab2g-row-title" data-lab-ink="">{t.row.title}</span>
-                    {t.row.status === 'done' && t.row.confirms && <span className="lab2g-muted" data-lab-ink="">{t.row.confirms}</span>}
+                    <span className="lab2g-row-title" data-lab-ink="">{tr.row.title}</span>
+                    {tr.row.status === 'done' && tr.row.confirms && <span className="lab2g-muted" data-lab-ink="">{tr.row.confirms}</span>}
                   </span>
-                  <span className="lab2g-row-meta" data-lab-ink="">{t.kindLabel}</span>
-                  <span className="lab2g-row-meta" data-lab-ink="">{fill(LAB_UI.armsN, { n: t.row.arms.length })}</span>
-                  <Chip tone={t.tone === 'ok' ? 'up' : 'neutral'}>{t.statusLabel}</Chip>
+                  <span className="lab2g-row-meta" data-lab-ink="">{tr.kindLabel}</span>
+                  <span className="lab2g-row-meta" data-lab-ink="">{fill(LAB_UI.armsN, { n: tr.row.arms.length })}</span>
+                  <Chip tone={tr.tone === 'ok' ? 'up' : 'neutral'}>{tr.statusLabel}</Chip>
                 </Link>
               </li>
             ))}

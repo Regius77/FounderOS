@@ -15,7 +15,8 @@ import { SectionHead } from '@/components/terminal';
 import { ConnectionCard } from '@/components/ConnectionCard';
 import { IntegrationCategory } from '@/components/IntegrationCategory';
 import { IntegrationBrowser, type BrowserItem } from '@/components/integrations/IntegrationBrowser';
-import { browseState } from '@/lib/integration-browser';
+import { browseState, categoryLabel } from '@/lib/integration-browser';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,29 +48,29 @@ export default async function ConnectionsPage() {
       <GPage className="kg-page">
         <GSectionHeader
           size="page"
-          title="Connections"
-          caption="Every tool this OS can reach, with its live state."
+          title={t('Connections')}
+          caption={t('Every tool this OS can reach, with its live state.')}
           action={
-            <GButton variant="sm" href="#keys-head" title={`${set} of ${slots.length} key slots hold a value in .env.local on this host`}>
-              {set} of {slots.length} keys set
+            <GButton variant="sm" href="#keys-head" title={t('{set} of {total} key slots hold a value in .env.local on this host', { set, total: slots.length })}>
+              {t('{set} of {total} keys set', { set, total: slots.length })}
             </GButton>
           }
         />
         {connected.length > 0 && (
-          <ConnSection id="conn-connected" title="Your connected tools" caption={`${connected.length} reporting live`}>
+          <ConnSection id="conn-connected" title={t('Your connected tools')} caption={t('{n} reporting live', { n: connected.length })}>
             <div className="kg-grid-3">{connected.map(card)}</div>
           </ConnSection>
         )}
         {popularOpen.length > 0 && (
-          <ConnSection id="conn-popular" title="Popular" caption="Not connected yet">
+          <ConnSection id="conn-popular" title={t('Popular')} caption={t('Not connected yet')}>
             <div className="kg-grid-3">{popularOpen.map(card)}</div>
           </ConnSection>
         )}
-        <ConnSection id="conn-browse" title="Browse by category" caption={`${categories.length} categories`}>
+        <ConnSection id="conn-browse" title={t('Browse by category')} caption={t('{n} categories', { n: categories.length })}>
           <IntegrationBrowser ui="glados" items={browseItems(card)} categories={categoryNames} gridClassName="kg-grid-3">
             <div className="kg-stack-sm">
               {categories.map(([category, tools]) => (
-                <CategoryG key={category} label={category} count={tools.length} slugs={tools.map((t) => t.slug)}>
+                <CategoryG key={category} label={category} count={tools.length} slugs={tools.map((tool) => tool.slug)}>
                   <div className="kg-grid-3">{tools.map((tool) => card(byId.get(tool.slug) as CatalogEntry))}</div>
                 </CategoryG>
               ))}
@@ -83,12 +84,12 @@ export default async function ConnectionsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Live connections board" title="Connections" />
+      <PageHeader eyebrow={t('Live connections board')} title={t('Connections')} />
 
       {/* Your connected tools — driven by real connector status */}
       {connected.length > 0 && (
         <section className="mb-8">
-          <SectionHead label="Your connected tools" count={connected.length} />
+          <SectionHead label={t('Your connected tools')} count={connected.length} />
           <div className={GRID}>
             {connected.map((entry) => (
               <ConnectionCard key={entry.slug} entry={entry} guidance={guidanceFor(entry)} />
@@ -99,7 +100,7 @@ export default async function ConnectionsPage() {
 
       {/* Popular */}
       <section className="mb-8">
-        <SectionHead label="Popular" count={popular.length} />
+        <SectionHead label={t('Popular')} count={popular.length} />
         <div className={GRID}>
           {popular.map((entry) => (
             <ConnectionCard key={entry.slug} entry={entry} guidance={guidanceFor(entry)} />
@@ -109,7 +110,7 @@ export default async function ConnectionsPage() {
 
       {/* Browse by category — collapsible */}
       <section className="mb-8">
-        <SectionHead label="Browse by category" count={categories.length} />
+        <SectionHead label={t('Browse by category')} count={categories.length} />
         <IntegrationBrowser
           ui="classic"
           items={browseItems((entry) => <ConnectionCard key={entry.slug} entry={entry} guidance={guidanceFor(entry)} />)}
@@ -118,7 +119,7 @@ export default async function ConnectionsPage() {
         >
         <div className="flex flex-col gap-3.5">
           {categories.map(([category, tools], idx) => (
-            <IntegrationCategory key={category} label={category} count={tools.length} defaultOpen={idx === 0} slugs={tools.map((t) => t.slug)}>
+            <IntegrationCategory key={category} label={categoryLabel(category)} count={tools.length} defaultOpen={idx === 0} slugs={tools.map((tool) => tool.slug)}>
               <div className={GRID}>
                 {tools.map((tool) => (
                   <ConnectionCard

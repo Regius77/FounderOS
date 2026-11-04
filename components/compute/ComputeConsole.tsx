@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink, Maximize2, Monitor, RefreshCw } from 'lucide-react';
 import type { ComputerRow } from '@/lib/compute/miosa';
 import { BRAND } from '@/lib/brand';
+import { t } from '@/lib/i18n';
 
 /**
  * Compute: the MIOSA computers this account runs, and a live view of one
@@ -48,7 +49,7 @@ export function useComputeEmbed(computers: ComputerRow[]) {
       if (r.ok) setEmbed({ status: 'ready', url: r.url, expiresAt: r.expiresAt });
       else setEmbed({ status: 'error', error: r.error });
     } catch {
-      setEmbed({ status: 'error', error: `Could not reach ${BRAND.name}.` });
+      setEmbed({ status: 'error', error: t('Could not reach {name}.', { name: BRAND.name }) });
     }
   }, []);
 
@@ -61,8 +62,8 @@ export function useComputeEmbed(computers: ComputerRow[]) {
   useEffect(() => {
     if (embed.status !== 'ready' || !embed.expiresAt || !comp) return;
     const wait = Math.max(30_000, embed.expiresAt - Date.now() - 300_000);
-    const t = setTimeout(() => void connect(comp.id), wait);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => void connect(comp.id), wait);
+    return () => clearTimeout(timer);
   }, [embed, comp, connect]);
 
   const fullscreen = () => frameBox.current?.requestFullscreen?.();
@@ -76,7 +77,7 @@ function ConsoleClassic({
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_minmax(0,1fr)]">
       {/* computers */}
       <aside className="space-y-2">
-        <div className="px-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-os-dim">Computers</div>
+        <div className="px-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-os-dim">{t('Computers')}</div>
         {computers.map((c) => (
           <button key={c.id} type="button" onClick={() => setSelected(c.id)}
             className={`w-full rounded-[10px] border p-3 text-left transition-colors ${selected === c.id ? 'border-[var(--accent-line)] bg-[var(--accent-soft)]' : 'border-[var(--hairline)] bg-os-surface hover:bg-[var(--accent-soft)]'}`}>
@@ -97,36 +98,36 @@ function ConsoleClassic({
       {/* live desktop */}
       <section className="min-w-0">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-[13px] font-semibold text-os-text">{comp ? comp.name : 'No computer'}</span>
-          {comp && <span className="text-[12px] text-os-muted">{embed.status === 'ready' ? 'Live desktop' : embed.status === 'loading' ? 'Connecting…' : LIVE.has(comp.status) ? '' : `Computer is ${comp.status}`}</span>}
+          <span className="text-[13px] font-semibold text-os-text">{comp ? comp.name : t('No computer')}</span>
+          {comp && <span className="text-[12px] text-os-muted">{embed.status === 'ready' ? t('Live desktop') : embed.status === 'loading' ? t('Connecting…') : LIVE.has(comp.status) ? '' : t('Computer is {status}', { status: comp.status })}</span>}
           <span className="ml-auto flex items-center gap-1.5">
             <button type="button" onClick={() => comp && connect(comp.id)} disabled={!comp || !LIVE.has(comp.status)}
               className="inline-flex h-8 items-center gap-1.5 rounded-[9px] border border-[var(--hairline)] px-3 text-[12px] text-os-text hover:bg-[var(--accent-soft)] disabled:opacity-50">
-              <RefreshCw className={`h-3.5 w-3.5 ${embed.status === 'loading' ? 'animate-spin' : ''}`} strokeWidth={2} />Reconnect
+              <RefreshCw className={`h-3.5 w-3.5 ${embed.status === 'loading' ? 'animate-spin' : ''}`} strokeWidth={2} />{t('Reconnect')}
             </button>
             <button type="button" onClick={fullscreen} disabled={embed.status !== 'ready'}
               className="inline-flex h-8 items-center gap-1.5 rounded-[9px] border border-[var(--hairline)] px-3 text-[12px] text-os-text hover:bg-[var(--accent-soft)] disabled:opacity-50">
-              <Maximize2 className="h-3.5 w-3.5" strokeWidth={2} />Full screen
+              <Maximize2 className="h-3.5 w-3.5" strokeWidth={2} />{t('Full screen')}
             </button>
             {embed.status === 'ready' && embed.url && (
               <a href={embed.url} target="_blank" rel="noreferrer"
                 className="inline-flex h-8 items-center gap-1.5 rounded-[9px] border border-[var(--hairline)] px-3 text-[12px] text-os-text hover:bg-[var(--accent-soft)]">
-                <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />New tab
+                <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />{t('New tab')}
               </a>
             )}
           </span>
         </div>
         <div ref={frameBox} className="relative aspect-video w-full overflow-hidden rounded-[12px] border border-[var(--hairline)] bg-[var(--bg-2)]">
           {embed.status === 'ready' && embed.url ? (
-            <iframe key={embed.url} src={embed.url} title={`${comp?.name ?? 'Computer'} desktop`} className="absolute inset-0 h-full w-full border-0"
+            <iframe key={embed.url} src={embed.url} title={t('{name} desktop', { name: comp?.name ?? t('Computer') })} className="absolute inset-0 h-full w-full border-0"
               allow="clipboard-read; clipboard-write; fullscreen; autoplay" />
           ) : (
             <div className="absolute inset-0 grid place-items-center px-6 text-center text-[13px] text-os-muted">
-              {embed.status === 'loading' ? 'Opening the desktop…'
+              {embed.status === 'loading' ? t('Opening the desktop…')
                 : embed.status === 'error' ? <span className="text-os-err">{embed.error}</span>
-                : !comp ? 'No computer selected.'
-                : !comp.desktop ? 'This computer has no desktop.'
-                : `This computer is ${comp.status}. Start it from MIOSA to see its desktop here.`}
+                : !comp ? t('No computer selected.')
+                : !comp.desktop ? t('This computer has no desktop.')
+                : t('This computer is {status}. Start it from MIOSA to see its desktop here.', { status: comp.status })}
             </div>
           )}
         </div>

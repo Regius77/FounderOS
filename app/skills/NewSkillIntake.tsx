@@ -14,6 +14,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PenLine, X, ArrowRight, Check } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 type Placement = { domain: string; group: string; path: string };
 type Proposal = { name: string; proposed: Placement; alternates: Placement[] };
@@ -46,7 +47,7 @@ export function NewSkillIntake() {
   async function propose() {
     setError(null);
     if (description.trim().length < 8) {
-      setError('Describe it in a bit more detail — at least a sentence.');
+      setError(t('Describe it in a bit more detail — at least a sentence.'));
       return;
     }
     setBusy(true);
@@ -101,7 +102,7 @@ export function NewSkillIntake() {
         className="glass-chip mb-4 flex items-center gap-2 px-4 py-2.5 text-[13px] text-os-muted transition-colors hover:text-os-text"
       >
         <PenLine className="h-3.5 w-3.5 shrink-0 text-os-accent" strokeWidth={1.7} />
-        Describe a new skill
+        {t('Describe a new skill')}
       </button>
     );
   }
@@ -111,8 +112,8 @@ export function NewSkillIntake() {
   return (
     <div className="glass-panel mb-4 max-w-[640px] p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="glass-label">Describe a new skill</span>
-        <button onClick={close} aria-label="Close" className="text-os-dim transition-colors hover:text-os-text">
+        <span className="glass-label">{t('Describe a new skill')}</span>
+        <button onClick={close} aria-label={t('Close')} className="text-os-dim transition-colors hover:text-os-text">
           <X className="h-4 w-4" strokeWidth={1.7} />
         </button>
       </div>
@@ -121,15 +122,15 @@ export function NewSkillIntake() {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 text-[13px] text-os-text">
             <Check className="h-4 w-4 shrink-0 text-os-accent" strokeWidth={1.7} />
-            Draft created at <span className="font-mono text-[12px] text-os-accent">{created.path}</span>
+            {t('Draft created at')} <span className="font-mono text-[12px] text-os-accent">{created.path}</span>
           </div>
-          <p className="text-[12px] text-os-dim">It's a stub — flesh it out before first use. It's already in the hierarchy below.</p>
+          <p className="text-[12px] text-os-dim">{t("It's a stub — flesh it out before first use. It's already in the hierarchy below.")}</p>
           <button
             onClick={close}
             className="w-fit rounded-[9px] border px-3 py-2 text-[12px] font-medium text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
             style={{ borderColor: 'var(--accent-line)' }}
           >
-            Done
+            {t('Done')}
           </button>
         </div>
       ) : (
@@ -137,7 +138,7 @@ export function NewSkillIntake() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="What should this skill do?"
+            placeholder={t('What should this skill do?')}
             rows={3}
             disabled={busy}
             className="w-full resize-none rounded-[10px] border border-os-border bg-os-surface2 px-3 py-2.5 text-[13.5px] leading-relaxed text-os-text outline-none placeholder:text-os-dim focus:border-os-border-strong disabled:opacity-60"
@@ -145,7 +146,7 @@ export function NewSkillIntake() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name (optional — kebab-case, e.g. invoice-chaser)"
+            placeholder={t('Name (optional — kebab-case, e.g. invoice-chaser)')}
             disabled={busy}
             className="mt-2 w-full rounded-[10px] border border-os-border bg-os-surface2 px-3 py-2 text-[12.5px] text-os-text outline-none placeholder:text-os-dim focus:border-os-border-strong disabled:opacity-60"
           />
@@ -159,13 +160,13 @@ export function NewSkillIntake() {
               className="mt-3 flex items-center gap-1.5 rounded-[9px] border px-3 py-2 text-[12.5px] font-medium text-os-accent transition-colors hover:bg-[var(--accent-soft)] disabled:opacity-50"
               style={{ borderColor: 'var(--accent-line)' }}
             >
-              {busy ? 'Proposing…' : 'Propose placement'}
+              {busy ? t('Proposing…') : t('Propose placement')}
               {!busy && <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.7} />}
             </button>
           ) : (
             <div className="mt-3">
               <p className="text-[12.5px] text-os-muted">
-                Will be created at{' '}
+                {t('Will be created at')}{' '}
                 <span className="font-mono text-[12px] text-os-accent">{placements[chosen].path}</span>
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -180,7 +181,7 @@ export function NewSkillIntake() {
                         : 'border-os-border text-os-dim hover:bg-os-surface2 hover:text-os-muted'
                     }`}
                   >
-                    {i === 0 ? 'Proposed: ' : 'Alternate: '}
+                    {i === 0 ? t('Proposed: ') : t('Alternate: ')}
                     {p.domain}/{p.group}
                   </button>
                 ))}
@@ -192,14 +193,14 @@ export function NewSkillIntake() {
                   className="rounded-[9px] border px-3 py-2 text-[12.5px] font-medium text-os-accent transition-colors hover:bg-[var(--accent-soft)] disabled:opacity-50"
                   style={{ borderColor: 'var(--accent-line)' }}
                 >
-                  {busy ? 'Creating…' : 'Create draft skill'}
+                  {busy ? t('Creating…') : t('Create draft skill')}
                 </button>
                 <button
                   onClick={() => setProposal(null)}
                   disabled={busy}
                   className="text-[12px] text-os-dim transition-colors hover:text-os-text disabled:opacity-50"
                 >
-                  Back
+                  {t('Back')}
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { heatAlpha } from '@/lib/chart-geometry';
 import { useWidth, VizStateBody, type VizStateProps } from './viz-shared';
 
@@ -26,7 +27,7 @@ export type GHeatmapProps = VizStateProps & {
  * alpha from .08 to 1, a scale legend under the grid. Cells are buttons with
  * titles when `onCell` is set. No cells or all-null draws the empty state.
  */
-export function GHeatmap({ rows, cols, values, scale, onCell, formatValue = (v) => v.toLocaleString('en-US'), cellTitle, maxCell = 28, label, className = '', ...stateProps }: GHeatmapProps) {
+export function GHeatmap({ rows, cols, values, scale, onCell, formatValue = (v) => v.toLocaleString(localeTag()), cellTitle, maxCell = 28, label, className = '', ...stateProps }: GHeatmapProps) {
   const [ref, W] = useWidth<HTMLDivElement>(480);
   const flat = values.flatMap((r) => r.filter((v): v is number => v !== null && Number.isFinite(v)));
   const body = VizStateBody({ ...stateProps, state: stateProps.state ?? (flat.length === 0 || rows.length === 0 || cols.length === 0 ? 'empty' : 'ready'), height: 200 });
@@ -46,7 +47,7 @@ export function GHeatmap({ rows, cols, values, scale, onCell, formatValue = (v) 
             {cols.map((cl, j) => {
               const v = values[i]?.[j] ?? null;
               const a = heatAlpha(v, min, max);
-              const title = cellTitle ? cellTitle(i, j, v) : `${rl} · ${cl}: ${v === null ? 'no value' : formatValue(v)}`;
+              const title = cellTitle ? cellTitle(i, j, v) : `${rl} · ${cl}: ${v === null ? t('no value') : formatValue(v)}`;
               const style = { background: a > 0 ? `color-mix(in srgb, var(--g-accent) ${Math.round(a * 100)}%, transparent)` : undefined };
               return onCell ? (
                 <button key={j} type="button" className="g-heat-cell" data-empty={a === 0 || undefined} style={style} title={title} aria-label={title} onClick={() => onCell(i, j)} />
@@ -57,7 +58,7 @@ export function GHeatmap({ rows, cols, values, scale, onCell, formatValue = (v) 
           </div>
         ))}
       </div>
-      <div className="g-heat-scale" aria-label={`Scale ${formatValue(min)} to ${formatValue(max)}`}>
+      <div className="g-heat-scale" aria-label={t('Scale {min} to {max}', { min: formatValue(min), max: formatValue(max) })}>
         <span>{formatValue(min)}</span>
         <i aria-hidden="true" />
         <span>{formatValue(max)}</span>

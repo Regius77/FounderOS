@@ -7,6 +7,7 @@ import { ConductorEmblem } from '@/components/ConductorEmblem';
 import type { WizardProject } from '@/lib/wizard/store';
 import { elapsedLabel, relativeTime, shortSessionId } from '@/lib/wizard/helpers';
 import { projectProgress, tokensLabel } from '@/lib/wizard/ui';
+import { t } from '@/lib/i18n';
 
 export function Conversation({
   project,
@@ -60,10 +61,10 @@ export function Conversation({
       <div className="wz-panel grid place-items-center">
         <div className="text-center">
           <ConductorEmblem size={64} />
-          <p className="mt-4 text-[15px] text-os-text">Start a project</p>
-          <p className="mt-1 max-w-[320px] text-[12.5px] text-os-muted">Say what you want done. The Wizard plans it, hands work to the crew and tracks it here.</p>
+          <p className="mt-4 text-[15px] text-os-text">{t('Start a project')}</p>
+          <p className="mt-1 max-w-[320px] text-[12.5px] text-os-muted">{t('Say what you want done. The Wizard plans it, hands work to the crew and tracks it here.')}</p>
           <button type="button" onClick={onNew} className="wz-new mt-5 inline-flex">
-            New project
+            {t('New project')}
           </button>
         </div>
       </div>
@@ -101,18 +102,18 @@ export function Conversation({
                 setEditing(true);
               }}
               className="max-w-full truncate text-left text-[15px] text-os-text hover:text-os-accent2"
-              title="Rename"
+              title={t('Rename')}
             >
               {project.name}
             </button>
           )}
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-os-dim">
             <span className={`dot ${project.status === 'done' ? 'ok' : 'warn'}`} />
-            <span>{project.status === 'done' ? 'done' : 'active'}</span>
+            <span>{project.status === 'done' ? t('done') : t('active')}</span>
             {sess && (
               <>
                 <span aria-hidden="true">·</span>
-                <span className="font-mono">session {sess}</span>
+                <span className="font-mono">{t('session {id}', { id: sess })}</span>
               </>
             )}
             {project.model && (
@@ -124,7 +125,7 @@ export function Conversation({
             {project.lastUsage && (
               <>
                 <span aria-hidden="true">·</span>
-                <span className="tabular-nums">{tokensLabel(project.lastUsage.inputTokens + project.lastUsage.outputTokens)} tokens last turn</span>
+                <span className="tabular-nums">{t('{n} tokens last turn', { n: tokensLabel(project.lastUsage.inputTokens + project.lastUsage.outputTokens) })}</span>
               </>
             )}
             {project.totalCostUsd > 0 && (
@@ -137,11 +138,11 @@ export function Conversation({
         </div>
         {project.status === 'done' ? (
           <button type="button" onClick={() => onStatus('active')} className="c-btn">
-            <RotateCcw className="h-3.5 w-3.5" /> Reopen
+            <RotateCcw className="h-3.5 w-3.5" /> {t('Reopen')}
           </button>
         ) : (
           <button type="button" onClick={() => onStatus('done')} className="c-btn">
-            <CircleCheck className="h-3.5 w-3.5" /> Mark done
+            <CircleCheck className="h-3.5 w-3.5" /> {t('Mark done')}
           </button>
         )}
         <DeleteProjectConfirm onDelete={onDelete} disabled={pending} />
@@ -154,17 +155,17 @@ export function Conversation({
             <ListChecks className="h-3.5 w-3.5" />
             {progress?.done}/{progress?.total}
           </span>
-          {project.tasks.map((t) => (
+          {project.tasks.map((task) => (
             <button
-              key={t.id}
+              key={task.id}
               type="button"
-              onClick={() => onTask(t.id, t.state === 'done' ? 'open' : 'done')}
-              className={`wz-task ${t.state === 'done' ? 'wz-task-done' : ''}`}
-              title={`${t.ownerName} · click to ${t.state === 'done' ? 'reopen' : 'mark done'}`}
+              onClick={() => onTask(task.id, task.state === 'done' ? 'open' : 'done')}
+              className={`wz-task ${task.state === 'done' ? 'wz-task-done' : ''}`}
+              title={`${task.ownerName} · ${task.state === 'done' ? t('click to reopen') : t('click to mark done')}`}
             >
-              {t.state === 'done' ? <Check className="h-3 w-3 shrink-0" strokeWidth={2.5} /> : <Circle className="h-3 w-3 shrink-0" strokeWidth={2} />}
-              <span className="min-w-0 truncate">{t.title}</span>
-              <span className="shrink-0 whitespace-nowrap text-os-dim">{t.ownerName}</span>
+              {task.state === 'done' ? <Check className="h-3 w-3 shrink-0" strokeWidth={2.5} /> : <Circle className="h-3 w-3 shrink-0" strokeWidth={2} />}
+              <span className="min-w-0 truncate">{task.title}</span>
+              <span className="shrink-0 whitespace-nowrap text-os-dim">{task.ownerName}</span>
             </button>
           ))}
         </div>
@@ -173,7 +174,7 @@ export function Conversation({
       {/* messages */}
       <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {project.messages.length === 0 && !pending && (
-          <p className="pt-6 text-center text-[12.5px] text-os-dim">Say what you need. The first line names the project.</p>
+          <p className="pt-6 text-center text-[12.5px] text-os-dim">{t('Say what you need. The first line names the project.')}</p>
         )}
         <div className="flex flex-col gap-4">
           {project.messages.map((m, i) =>
@@ -207,7 +208,7 @@ export function Conversation({
           {pending && (
             <div className="flex items-center gap-3 text-[12.5px] text-os-muted">
               <ConductorEmblem size={26} thinking />
-              Wizard is working · {elapsedLabel(pendingSeconds)}
+              {t('Wizard is working')} · {elapsedLabel(pendingSeconds)}
             </div>
           )}
           {engineError && (
@@ -226,7 +227,7 @@ export function Conversation({
             ref={textarea}
             value={draft}
             rows={1}
-            placeholder="Ask the Wizard"
+            placeholder={t('Ask the Wizard')}
             onChange={(e) => {
               setDraft(e.target.value);
               e.target.style.height = 'auto';
@@ -241,10 +242,10 @@ export function Conversation({
             className="max-h-40 w-full resize-none bg-transparent px-3 py-2 text-[13.5px] text-os-text outline-none placeholder:text-os-dim"
           />
           <div className="flex items-center justify-between px-2 pb-1.5">
-            <span className="text-[10.5px] text-os-dim">⌘⏎ to send</span>
+            <span className="text-[10.5px] text-os-dim">{t('⌘⏎ to send')}</span>
             <button type="button" onClick={submit} disabled={pending || !draft.trim()} className="wz-send">
               <Send className="h-3.5 w-3.5" strokeWidth={2.2} />
-              Send
+              {t('Send')}
             </button>
           </div>
         </div>

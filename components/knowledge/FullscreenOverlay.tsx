@@ -9,6 +9,7 @@
  */
 import { useEffect } from 'react';
 import { Minimize2 } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 export function FullscreenOverlay({
   title,
@@ -39,7 +40,7 @@ export function FullscreenOverlay({
           className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
           style={{ borderColor: 'var(--accent-line)' }}
         >
-          <Minimize2 className="h-3.5 w-3.5" /> Exit (esc)
+          <Minimize2 className="h-3.5 w-3.5" /> {t('Exit (esc)')}
         </button>
       </div>
       <div className="min-h-0 flex-1">{children}</div>

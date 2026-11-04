@@ -17,13 +17,15 @@ import { SetupLink } from '@/components/SetupLink';
 import { formatUsdCompact } from '@/lib/format-number';
 import { chainDepthColumns, pollStatus, stageBars, type DealFilter } from '@/lib/brand-deals-view';
 import type { BrandDealsSnapshot, Deal, DealEvent, DealOutcome } from '@/lib/brand-deals';
+import { localeTag, t } from '@/lib/i18n';
 
 function fmtUsd(n: number): string {
-  return `$${Math.round(n).toLocaleString('en-US')}`;
+  return `$${Math.round(n).toLocaleString(localeTag())}`;
 }
 
 function dealCount(n: number): string {
-  return `${Math.round(n)} deal${Math.round(n) === 1 ? '' : 's'}`;
+  const c = Math.round(n);
+  return c === 1 ? t('{n} deal', { n: c }) : t('{n} deals', { n: c });
 }
 
 const BTN_SOLID =
@@ -45,15 +47,28 @@ const GRAIN =
 
 const EASE = 'cubic-bezier(.2,.7,.2,1)';
 
+/** Display word for a raw stage/outcome value; the raw value stays for comparisons. */
+const STAGE_WORD: Record<string, string> = {
+  won: t('won'),
+  lost: t('lost'),
+  skipped: t('skipped'),
+  approve: t('approve'),
+  approval: t('approval'),
+  sent: t('sent'),
+  closed: t('closed'),
+  open: t('open'),
+};
+const stageWord = (s: string) => STAGE_WORD[s] ?? s;
+
 function timeAgo(iso: string | null): string {
   if (!iso) return '';
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
   const mins = Math.max(0, Math.round((Date.now() - then) / 60_000));
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return t('{n}m ago', { n: mins });
   const hrs = Math.round(mins / 60);
-  if (hrs < 48) return `${hrs}h ago`;
-  return `${Math.round(hrs / 24)}d ago`;
+  if (hrs < 48) return t('{n}h ago', { n: hrs });
+  return t('{n}d ago', { n: Math.round(hrs / 24) });
 }
 
 /** Card shell: near-bg surface, radius 20, soft dual shadow, stagger-in,
@@ -91,7 +106,7 @@ function CardHead({ title, onRefresh, botUrl }: { title: string; onRefresh: () =
       <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{title}</h2>
       <button
         onClick={() => setOpen((v) => !v)}
-        aria-label={`${title} menu`}
+        aria-label={t('{title} menu', { title })}
         className="grid h-8 w-8 place-items-center rounded-full border border-os-border text-[13px] leading-none text-os-dim transition-colors hover:border-os-border-strong hover:text-os-text"
       >
         ···
@@ -107,7 +122,7 @@ function CardHead({ title, onRefresh, botUrl }: { title: string; onRefresh: () =
               }}
               className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-os-muted transition-colors hover:bg-[color-mix(in_oklab,var(--text)_6%,transparent)] hover:text-os-text"
             >
-              <RefreshCw size={13} strokeWidth={1.7} /> Refresh data
+              <RefreshCw size={13} strokeWidth={1.7} /> {t('Refresh data')}
             </button>
             {botUrl && (
               <a
@@ -117,7 +132,7 @@ function CardHead({ title, onRefresh, botUrl }: { title: string; onRefresh: () =
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-os-muted transition-colors hover:bg-[color-mix(in_oklab,var(--text)_6%,transparent)] hover:text-os-text"
               >
-                <ExternalLink size={13} strokeWidth={1.7} /> Open approval bot
+                <ExternalLink size={13} strokeWidth={1.7} /> {t('Open approval bot')}
               </a>
             )}
           </div>
@@ -172,23 +187,23 @@ function StepLine({ events }: { events: DealEvent[] }) {
     const stamps = events
       .filter((e) => e.kind === 'sent')
       .map((e) => new Date(e.at).getTime())
-      .filter((t) => !Number.isNaN(t))
+      .filter((ms) => !Number.isNaN(ms))
       .sort((a, b) => a - b);
     if (stamps.length === 0) return [] as Array<{ label: string; count: number }>;
     const SLOT = 15 * 60_000;
     const first = Math.floor(stamps[0] / SLOT) * SLOT - SLOT;
     const last = Math.floor(stamps[stamps.length - 1] / SLOT) * SLOT + SLOT;
     const out: Array<{ label: string; count: number }> = [];
-    for (let t = first; t <= last; t += SLOT) {
-      const d = new Date(t);
+    for (let slot = first; slot <= last; slot += SLOT) {
+      const d = new Date(slot);
       out.push({
         label: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
-        count: stamps.filter((s) => s >= t && s < t + SLOT).length,
+        count: stamps.filter((s) => s >= slot && s < slot + SLOT).length,
       });
     }
     return out;
   }, [events]);
-  if (buckets.length === 0) return <div className="px-6 py-8 text-[12px] text-os-dim">No sends recorded yet.</div>;
+  if (buckets.length === 0) return <div className="px-6 py-8 text-[12px] text-os-dim">{t('No sends recorded yet.')}</div>;
   const W = 600;
   const H = 150;
   const max = Math.max(...buckets.map((b) => b.count), 1);
@@ -242,7 +257,7 @@ function StepLine({ events }: { events: DealEvent[] }) {
         <span className="font-semibold tabular-nums" style={{ color: HUE.send }}>
           {buckets[peakIdx].count}
         </span>{' '}
-        <span className="text-os-muted">at {buckets[peakIdx].label}</span>
+        <span className="text-os-muted">{t('at {time}', { time: buckets[peakIdx].label })}</span>
       </div>
       <div className="mt-1 flex justify-between font-mono text-[10.5px] text-os-dim">
         <span>{buckets[0].label}</span>
@@ -345,7 +360,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
       });
       const body = await r.json();
       if (body.snapshot) setSnap(body.snapshot);
-      if (!body.ok) setNotice(body.error ?? 'action failed');
+      if (!body.ok) setNotice(body.error ?? t('action failed'));
       return Boolean(body.ok);
     } catch (e) {
       setNotice(String(e));
@@ -364,8 +379,8 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
   }, []);
 
   useEffect(() => {
-    const t = setInterval(refresh, 30_000);
-    return () => clearInterval(t);
+    const timer = setInterval(refresh, 30_000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
   // One-second clock for the "Updated n s ago" pill.
@@ -373,8 +388,8 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
     const start = Date.now();
     setLastOkAt((v) => v ?? start);
     setNow(start);
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, []);
   const poll = pollStatus(lastOkAt, now, lastError);
 
@@ -427,16 +442,16 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
   // One source for the four columns (lib/brand-deals-view.ts). Bars are sized
   // by dollars, the count is the secondary figure (H8, Q-REV-1).
   const NOTE: Record<string, string> = {
-    all: 'every tracked deal thread',
-    sent: 'awaiting the brand',
-    approval: botUrl ? 'approve here or in Telegram' : 'approve here',
-    closed: `${counts.won} won · ${counts.lost} lost`,
+    all: t('every tracked deal thread'),
+    sent: t('awaiting the brand'),
+    approval: botUrl ? t('approve here or in Telegram') : t('approve here'),
+    closed: t('{won} won · {lost} lost', { won: counts.won, lost: counts.lost }),
   };
   // PipelineChart's headline numeral is `value` and its secondary line is
   // `usd`; here the headline is the dollars (what the bar height encodes)
   // and the secondary line carries the deal count.
   const funnelStages: FunnelStage[] = stageBars(snap).map((c) => ({
-    label: c.label,
+    label: t(c.label),
     value: c.usd,
     usd: c.count,
     note: NOTE[c.key],
@@ -451,22 +466,22 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
     return (
       <div data-bd-empty="unconfigured">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
-          <h1 className="text-[46px] font-semibold leading-none tracking-[-0.035em] max-sm:text-[34px]">Deal Journeys</h1>
+          <h1 className="text-[46px] font-semibold leading-none tracking-[-0.035em] max-sm:text-[34px]">{t('Deal Journeys')}</h1>
           <button
             onClick={refresh}
-            aria-label="Refresh"
+            aria-label={t('Refresh')}
             className="grid h-10 w-10 place-items-center rounded-full border border-os-border text-os-muted transition-colors hover:border-os-border-strong hover:text-os-text"
           >
             <RefreshCw size={15} strokeWidth={1.7} />
           </button>
         </div>
         <div className="flex flex-col items-center gap-3 rounded-[12px] border border-os-border bg-os-surface px-6 py-14 text-center">
-          <Badge>Not configured</Badge>
-          <p className="text-[15px] text-os-text">bdpilot is not reporting</p>
+          <Badge>{t('Not configured')}</Badge>
+          <p className="text-[15px] text-os-text">{t('bdpilot is not reporting')}</p>
           <p className="max-w-[440px] text-[13px] text-os-muted">
-            No brand-deal daemon state was found on this host, so there are no deals, quotes or sends to show yet.
+            {t('No brand-deal daemon state was found on this host, so there are no deals, quotes or sends to show yet.')}
           </p>
-          <SetupLink href="/setup" hint="bdpilot state file not found (BDPILOT_STATE)" />
+          <SetupLink href="/setup" hint={t('bdpilot state file not found (BDPILOT_STATE)')} />
         </div>
       </div>
     );
@@ -498,7 +513,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
         <div className="mb-7 flex flex-wrap items-end justify-between gap-5">
           <div>
             <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.32em] text-os-dim">// verified sender@ · autopilot</div>
-            <h1 className="text-[46px] font-semibold leading-none tracking-[-0.035em] max-sm:text-[34px]">Deal Journeys</h1>
+            <h1 className="text-[46px] font-semibold leading-none tracking-[-0.035em] max-sm:text-[34px]">{t('Deal Journeys')}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <span
@@ -513,7 +528,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
             </span>
             {botUrl && (
               <>
-                <span className="ghost px-2 text-[13px] text-os-dim">approve here or in</span>
+                <span className="ghost px-2 text-[13px] text-os-dim">{t('approve here or in')}</span>
                 <a
                   href={botUrl}
                   target="_blank"
@@ -527,7 +542,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
             )}
             <button
               onClick={refresh}
-              aria-label="Refresh"
+              aria-label={t('Refresh')}
               className="grid h-10 w-10 place-items-center rounded-full border border-os-border text-os-muted transition-colors hover:border-os-border-strong hover:text-os-text"
             >
               <RefreshCw size={15} strokeWidth={1.7} />
@@ -553,14 +568,14 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                 <>
                   <div className="mb-2 flex items-center gap-2 px-1 text-[13px] text-os-muted">
                     <Sparkles size={14} strokeWidth={1.7} className="text-os-accent" />
-                    What are you looking for?
+                    {t('What are you looking for?')}
                   </div>
                   <label className="flex items-center gap-2 rounded-[12px] border border-os-border bg-os-bg px-3.5 py-2.5">
                     <Search size={14} strokeWidth={1.7} className="shrink-0 text-os-dim" />
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Filter deals — try a brand name, or /unique /approval /won /lost"
+                      placeholder={t('Filter deals — try a brand name, or /unique /approval /won /lost')}
                       className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-os-dim"
                     />
                     {slashToken && (
@@ -583,7 +598,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
           </Card>
 
           <Card delay={220} className="flex flex-col">
-            <CardHead title="Deal Volume" onRefresh={refresh} botUrl={botUrl} />
+            <CardHead title={t('Deal Volume')} onRefresh={refresh} botUrl={botUrl} />
             <div className="flex flex-1 flex-col px-6 pb-6">
               <div className="mt-3 flex flex-wrap items-center gap-2.5">
                 <span className="text-[50px] font-semibold leading-none tracking-[-0.035em] tabular-nums max-sm:text-[38px]">
@@ -591,35 +606,35 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                 </span>
                 {volume.wonUsd > 0 && (
                   <span className="rounded-full border border-os-border px-2.5 py-1 font-mono text-[11.5px] tabular-nums text-os-muted">
-                    <span className="text-os-ok">▲</span> {fmtUsd(volume.wonUsd)} won
+                    <span className="text-os-ok">▲</span> {t('{usd} won', { usd: fmtUsd(volume.wonUsd) })}
                   </span>
                 )}
                 {volume.lostUsd > 0 && (
                   <span className="rounded-full border border-os-border px-2.5 py-1 font-mono text-[11.5px] tabular-nums text-os-muted">
-                    <span className="text-os-err">▼</span> {fmtUsd(volume.lostUsd)} lost
+                    <span className="text-os-err">▼</span> {t('{usd} lost', { usd: fmtUsd(volume.lostUsd) })}
                   </span>
                 )}
               </div>
               <div className="mb-5 mt-2 text-[13px] text-os-dim">
-                proposed revenue across open deals · {volume.quotedDeals} of {snap.deals.length} threads quoted
+                {t('proposed revenue across open deals · {q} of {n} threads quoted', { q: volume.quotedDeals, n: snap.deals.length })}
               </div>
               <div className="flex flex-1 flex-col justify-around gap-6 border-t border-os-border pt-5">
                 <Meter
-                  label={`Needs approval (${counts.approval})`}
+                  label={t('Needs approval ({n})', { n: counts.approval })}
                   frac={volume.openUsd > 0 ? volume.approvalUsd / volume.openUsd : 0}
                   display={fmtUsd(volume.approvalUsd)}
                   hue={HUE.amber}
                   delay={500}
                 />
                 <Meter
-                  label={`Awaiting brand (${counts.sent})`}
+                  label={t('Awaiting brand ({n})', { n: counts.sent })}
                   frac={volume.openUsd > 0 ? volume.awaitingUsd / volume.openUsd : 0}
                   display={fmtUsd(volume.awaitingUsd)}
                   hue={HUE.cobalt}
                   delay={650}
                 />
                 <Meter
-                  label={`Won vs lost (${counts.won}/${counts.lost})`}
+                  label={t('Won vs lost ({won}/{lost})', { won: counts.won, lost: counts.lost })}
                   frac={volume.wonUsd + volume.lostUsd > 0 ? volume.wonUsd / (volume.wonUsd + volume.lostUsd) : 0}
                   display={`${fmtUsd(volume.wonUsd)} / ${fmtUsd(volume.lostUsd)}`}
                   hue={HUE.accent}
@@ -627,7 +642,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                 />
               </div>
               <div className="mt-5 border-t border-os-border pt-3 text-center font-mono text-[10.5px] tracking-[0.1em] text-os-dim">
-                open = approval + awaiting · {sentToday} sends in the activity window
+                {t('open = approval + awaiting · {n} sends in the activity window', { n: sentToday })}
               </div>
             </div>
           </Card>
@@ -636,26 +651,26 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
         {/* Second row: activity line + chain stats + THE gradient card */}
         <div className="mt-6 grid grid-cols-[1fr_1fr_1fr] gap-6 max-[1200px]:grid-cols-1">
           <Card delay={320}>
-            <CardHead title="Send Activity" onRefresh={refresh} botUrl={botUrl} />
+            <CardHead title={t('Send Activity')} onRefresh={refresh} botUrl={botUrl} />
             <div className="px-6 pt-3 max-sm:pb-5">
               <span className="text-[30px] font-semibold tabular-nums tracking-[-0.03em]">
                 <StatNumber value={snap.events.filter((e) => e.kind === 'sent').length} />
               </span>
-              <span className="ml-2 text-[13px] text-os-dim">sends, recent activity window</span>
+              <span className="ml-2 text-[13px] text-os-dim">{t('sends, recent activity window')}</span>
             </div>
             <StepLine events={snap.events} />
           </Card>
 
           <Card delay={420}>
-            <CardHead title="Chains" onRefresh={refresh} botUrl={botUrl} />
+            <CardHead title={t('Chains')} onRefresh={refresh} botUrl={botUrl} />
             <div className="flex flex-wrap items-end justify-between gap-4 px-6 pb-6 pt-3">
               <div>
                 <div className="text-[30px] font-semibold tabular-nums tracking-[-0.03em]">
                   <StatNumber value={totalMsgs} />
                 </div>
-                <div className="mt-1 text-[13px] text-os-dim">messages across cached chains</div>
+                <div className="mt-1 text-[13px] text-os-dim">{t('messages across cached chains')}</div>
                 <div className="mt-4 rounded-full border border-os-border px-3 py-1 text-[12px] text-os-muted">
-                  Deepest: <span className="font-semibold tabular-nums">{Math.max(...snap.deals.map((d) => d.chainLen), 0)}</span> msgs
+                  {t('Deepest:')} <span className="font-semibold tabular-nums">{Math.max(...snap.deals.map((d) => d.chainLen), 0)}</span> {t('msgs')}
                 </div>
               </div>
               <DotMatrix deals={snap.deals} hue={HUE.cobalt} />
@@ -684,19 +699,19 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
             />
             <div className="relative flex h-full flex-col px-6 py-5 text-white">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[12px] backdrop-blur">
-                <Lightbulb size={13} strokeWidth={1.7} /> Insights
+                <Lightbulb size={13} strokeWidth={1.7} /> {t('Insights')}
               </span>
               <div className="mt-4 text-[64px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
                 <StatNumber value={counts.unique} />
               </div>
               <div className="mt-2 text-[16px] font-semibold leading-snug">
-                unique deals sit outside the standard reel playbook.
+                {t('unique deals sit outside the standard reel playbook.')}
               </div>
               <div className="mt-1.5 text-[12.5px] leading-relaxed text-white/75">
                 {uniqueDeals
                   .slice(0, 2)
                   .map((d) => d.tagReason || d.brand)
-                  .join(' · ') || 'None flagged right now.'}
+                  .join(' · ') || t('None flagged right now.')}
               </div>
               <div className="mt-auto flex gap-1.5 pt-4">
                 {Array.from({ length: 8 }, (_, i) => (
@@ -715,20 +730,20 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
         <Card delay={620} className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-4 px-6 pt-5">
             <h2 className="text-[19px] font-semibold tracking-[-0.01em]">
-              Deals{' '}
+              {t('Deals')}{' '}
               <span className="ml-1 font-mono text-[12px] font-normal tabular-nums text-os-dim">
-                {filtered.length} of {snap.deals.length}
+                {t('{n} of {total}', { n: filtered.length, total: snap.deals.length })}
               </span>
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               {(
                 [
-                  ['all', `All ${snap.deals.length}`],
-                  ['approval', `Needs approval ${counts.approval}`],
-                  ['sent', `Awaiting ${counts.sent}`],
-                  ['unique', `Unique ${counts.unique}`],
-                  ['won', `Won ${counts.won}`],
-                  ['lost', `Lost ${counts.lost}`],
+                  ['all', t('All {n}', { n: snap.deals.length })],
+                  ['approval', t('Needs approval {n}', { n: counts.approval })],
+                  ['sent', t('Awaiting {n}', { n: counts.sent })],
+                  ['unique', t('Unique {n}', { n: counts.unique })],
+                  ['won', t('Won {n}', { n: counts.won })],
+                  ['lost', t('Lost {n}', { n: counts.lost })],
                 ] as const
               ).map(([key, label]) => (
                 <button
@@ -764,7 +779,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                     <span
                       className="rounded-full px-2.5 py-0.5 font-mono text-[10.5px] tabular-nums tracking-[0.04em]"
                       style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
-                      title={d.quoteSource === 'manual' ? 'quote set manually' : 'quote parsed from the thread'}
+                      title={d.quoteSource === 'manual' ? t('quote set manually') : t('quote parsed from the thread')}
                     >
                       {fmtUsd(d.quotedUsd)}
                     </span>
@@ -774,7 +789,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                       className="rounded-full px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.12em]"
                       style={{ background: 'color-mix(in oklab, var(--ramp-4) 18%, transparent)', color: 'var(--ramp-4-ink, var(--ramp-4))' }}
                     >
-                      unique
+                      {t('unique')}
                     </span>
                   )}
                   <span
@@ -791,7 +806,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                               : { background: 'color-mix(in oklab, var(--text) 8%, transparent)', color: 'var(--text-2)' }
                     }
                   >
-                    {d.outcome !== 'open' ? d.outcome : d.stage === 'approval' ? 'approve' : d.stage}
+                    {stageWord(d.outcome !== 'open' ? d.outcome : d.stage === 'approval' ? 'approve' : d.stage)}
                   </span>
                 </div>
                 <span className="inline-flex w-[46px] items-center gap-1.5 font-mono text-[11px] tabular-nums text-os-dim max-[1000px]:hidden">
@@ -805,7 +820,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                 <span className="w-[64px] text-right font-mono text-[11px] text-os-dim max-[1000px]:hidden">{timeAgo(d.lastEventAt)}</span>
               </button>
             ))}
-            {filtered.length === 0 && <div className="px-6 py-8 text-center text-[12.5px] text-os-dim">Nothing matches that filter.</div>}
+            {filtered.length === 0 && <div className="px-6 py-8 text-center text-[12.5px] text-os-dim">{t('Nothing matches that filter.')}</div>}
           </div>
         </Card>
       </div>
@@ -821,17 +836,17 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
               <div className="truncate text-[17px] font-semibold">{selected.brand}</div>
               <div className="mt-0.5 truncate font-mono text-[11.5px] text-os-dim">{selected.email}</div>
               <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <Badge tone={selected.tag === 'UNIQUE' ? 'accent' : 'default'}>{selected.tag.toLowerCase()}</Badge>
+                <Badge tone={selected.tag === 'UNIQUE' ? 'accent' : 'default'}>{selected.tag === 'UNIQUE' ? t('unique') : selected.tag.toLowerCase()}</Badge>
                 <Badge tone={selected.stage === 'approval' ? 'warn' : selected.stage === 'sent' ? 'ok' : 'default'}>
-                  {selected.stage === 'approval' ? 'needs approval' : selected.stage}
+                  {selected.stage === 'approval' ? t('needs approval') : stageWord(selected.stage)}
                 </Badge>
-                {selected.chainLen > 0 && <Badge tone="default">{selected.chainLen} msgs</Badge>}
+                {selected.chainLen > 0 && <Badge tone="default">{t('{n} msgs', { n: selected.chainLen })}</Badge>}
               </div>
               {selected.tagReason && <div className="mt-2 text-[12px] text-os-accent/85">{selected.tagReason}</div>}
             </div>
             <button
               onClick={() => setSelectedId(null)}
-              aria-label="Close"
+              aria-label={t('Close')}
               className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-sm-t border border-os-border text-os-muted transition-colors hover:border-os-border-strong hover:text-os-text"
             >
               <X size={15} strokeWidth={1.8} />
@@ -845,11 +860,11 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
             )}
             {selected.stage === 'approval' && (
               <section className="mb-6">
-                <Label rule>Draft actions</Label>
+                <Label rule>{t('Draft actions')}</Label>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {!armedSend ? (
                     <button onClick={() => setArmedSend(true)} disabled={busy != null} className={BTN_SOLID}>
-                      <Send size={13} strokeWidth={1.8} /> Send as the verified sender
+                      <Send size={13} strokeWidth={1.8} /> {t('Send as the verified sender')}
                     </button>
                   ) : (
                     <>
@@ -861,10 +876,10 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                         disabled={busy != null}
                         className={BTN_SOLID}
                       >
-                        {busy === 'send' ? 'Sending...' : 'Confirm send'}
+                        {busy === 'send' ? t('Sending...') : t('Confirm send')}
                       </button>
                       <button onClick={() => setArmedSend(false)} disabled={busy != null} className={BTN_GHOST}>
-                        Cancel
+                        {t('Cancel')}
                       </button>
                     </>
                   )}
@@ -873,7 +888,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                     disabled={busy != null}
                     className={BTN_GHOST}
                   >
-                    {busy === 'skip' ? 'Skipping...' : 'Skip'}
+                    {busy === 'skip' ? t('Skipping...') : t('Skip')}
                   </button>
                   {draftText === null && (
                     <button
@@ -884,7 +899,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                           const r = await fetch(`/api/brand-deals/draft?id=${selected.id}`);
                           const b = await r.json();
                           if (b.ok) setDraftText(b.draft.body);
-                          else setNotice(b.error || 'could not load the draft');
+                          else setNotice(b.error || t('could not load the draft'));
                         } catch (e) {
                           setNotice(String(e));
                         } finally {
@@ -894,7 +909,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                       disabled={busy != null}
                       className={BTN_GHOST}
                     >
-                      {busy === 'draft-load' ? 'Loading...' : 'Edit draft'}
+                      {busy === 'draft-load' ? t('Loading...') : t('Edit draft')}
                     </button>
                   )}
                 </div>
@@ -918,27 +933,27 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                         disabled={busy != null || !draftText.trim()}
                         className={BTN_SOLID}
                       >
-                        {busy === 'draft-save' ? 'Saving...' : 'Save draft'}
+                        {busy === 'draft-save' ? t('Saving...') : t('Save draft')}
                       </button>
                       <button onClick={() => setDraftText(null)} disabled={busy != null} className={BTN_GHOST}>
-                        Cancel
+                        {t('Cancel')}
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] text-os-dim">
-                      Recipient, subject, and thread are locked in code — an edit can never redirect the email.
+                      {t('Recipient, subject, and thread are locked in code — an edit can never redirect the email.')}
                     </p>
                   </div>
                 )}
               </section>
             )}
             <section className="mb-6">
-              <Label rule>Outcome</Label>
+              <Label rule>{t('Outcome')}</Label>
               <div className="mt-3 flex flex-wrap gap-2">
                 {(
                   [
-                    ['open', 'Reopen'],
-                    ['won', 'Mark won'],
-                    ['lost', 'Mark lost'],
+                    ['open', t('Reopen')],
+                    ['won', t('Mark won')],
+                    ['lost', t('Mark lost')],
                   ] as Array<[DealOutcome, string]>
                 ).map(([o, label]) => (
                   <button
@@ -956,7 +971,7 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                 ))}
               </div>
               <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                <span className="text-[12px] text-os-muted">Quote</span>
+                <span className="text-[12px] text-os-muted">{t('Quote')}</span>
                 <input
                   value={quoteInput}
                   onChange={(e) => setQuoteInput(e.target.value.replace(/[^0-9]/g, ''))}
@@ -974,36 +989,36 @@ export function DealBoard({ initial, botUrl = null }: { initial: BrandDealsSnaps
                   disabled={busy != null}
                   className={BTN_GHOST}
                 >
-                  {busy === 'quote' ? 'Saving...' : 'Set'}
+                  {busy === 'quote' ? t('Saving...') : t('Set')}
                 </button>
                 <span className="font-mono text-[10.5px] text-os-dim">
                   {selected.quotedUsd != null
                     ? selected.quoteSource === 'manual'
-                      ? 'set manually'
-                      : 'parsed from the thread'
-                    : 'no quote detected'}
+                      ? t('set manually')
+                      : t('parsed from the thread')
+                    : t('no quote detected')}
                 </span>
               </div>
               <p className="mt-2.5 text-[11px] text-os-dim">
-                Outcome and quote are tracked here only — they never email anyone.
+                {t('Outcome and quote are tracked here only — they never email anyone.')}
               </p>
             </section>
             {selected.summary && (
               <section className="mb-6">
-                <Label rule>Summary</Label>
+                <Label rule>{t('Summary')}</Label>
                 <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-os-muted">{selected.summary}</p>
               </section>
             )}
             <section>
               <div className="flex items-center gap-3">
-                <Label>Email chain</Label>
+                <Label>{t('Email chain')}</Label>
                 {selected.chain.length > 0 && (
                   <span className="font-mono text-[11.5px] tabular-nums tracking-normal text-os-muted">{selected.chain.length}</span>
                 )}
                 <span className="h-px flex-1 bg-os-border" />
               </div>
               {selected.chain.length === 0 && (
-                <p className="mt-3 text-[12px] text-os-dim">No cached chain for this deal (sent before chain caching existed).</p>
+                <p className="mt-3 text-[12px] text-os-dim">{t('No cached chain for this deal (sent before chain caching existed).')}</p>
               )}
               <div className="mt-3 flex flex-col gap-2">
                 {selected.chain.map((m, i) => (

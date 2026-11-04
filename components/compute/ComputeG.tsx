@@ -4,6 +4,7 @@ import { ExternalLink, Maximize2, Monitor, RefreshCw } from 'lucide-react';
 import { GButton, GCard, GEmpty, GList, GProgress, GRow, GSectionHeader, GTag, type GTagTone } from '@/components/g';
 import type { ComputerRow } from '@/lib/compute/miosa';
 import { LIVE, TRANSITIONAL, useComputeEmbed } from './ComputeConsole';
+import { t } from '@/lib/i18n';
 
 /**
  * /compute under the GladOS style (SPEC S05 F05.61 to F05.63): the computer
@@ -26,8 +27,8 @@ export function ComputeG({ computers }: { computers: ComputerRow[] }) {
   return (
     <div className="kg-compute">
       <GCard as="section" p={20} aria-labelledby="compute-list" className="kg-compute-list">
-        <GSectionHeader size={22} id="compute-list" title="Computers" caption={`${computers.length} on this account`} />
-        <GList label="Computers">
+        <GSectionHeader size={22} id="compute-list" title={t('Computers')} caption={t('{n} on this account', { n: computers.length })} />
+        <GList label={t('Computers')}>
           {computers.map((c) => (
             <GRow
               key={c.id}
@@ -41,7 +42,7 @@ export function ComputeG({ computers }: { computers: ComputerRow[] }) {
               }
               selected={selected === c.id}
               onClick={() => setSelected(c.id)}
-              hint={`Show ${c.name}'s desktop`}
+              hint={t("Show {name}'s desktop", { name: c.name })}
             />
           ))}
         </GList>
@@ -51,29 +52,29 @@ export function ComputeG({ computers }: { computers: ComputerRow[] }) {
         <GSectionHeader
           size={22}
           id="compute-desk"
-          title={comp ? comp.name : 'No computer'}
+          title={comp ? comp.name : t('No computer')}
           caption={
             !comp
-              ? 'Pick a computer to see its desktop.'
+              ? t('Pick a computer to see its desktop.')
               : embed.status === 'ready'
-                ? 'Live desktop'
+                ? t('Live desktop')
                 : embed.status === 'loading'
-                  ? 'Connecting…'
+                  ? t('Connecting…')
                   : live
-                    ? 'Desktop not open'
-                    : `Computer is ${comp.status}`
+                    ? t('Desktop not open')
+                    : t('Computer is {status}', { status: comp.status })
           }
           action={
             <span className="kg-actions">
-              <GButton variant="sm" onClick={() => comp && connect(comp.id)} busy={embed.status === 'loading'} disabled={!live} disabledReason="The computer is not running">
-                <RefreshCw size={13} strokeWidth={1.8} aria-hidden="true" /> Reconnect
+              <GButton variant="sm" onClick={() => comp && connect(comp.id)} busy={embed.status === 'loading'} disabled={!live} disabledReason={t('The computer is not running')}>
+                <RefreshCw size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Reconnect')}
               </GButton>
-              <GButton variant="sm" onClick={fullscreen} disabled={embed.status !== 'ready'} disabledReason="Open the desktop first">
-                <Maximize2 size={13} strokeWidth={1.8} aria-hidden="true" /> Full screen
+              <GButton variant="sm" onClick={fullscreen} disabled={embed.status !== 'ready'} disabledReason={t('Open the desktop first')}>
+                <Maximize2 size={13} strokeWidth={1.8} aria-hidden="true" /> {t('Full screen')}
               </GButton>
               {embed.status === 'ready' && embed.url && (
                 <GButton variant="sm" href={embed.url} external>
-                  <ExternalLink size={13} strokeWidth={1.8} aria-hidden="true" /> New tab
+                  <ExternalLink size={13} strokeWidth={1.8} aria-hidden="true" /> {t('New tab')}
                 </GButton>
               )}
             </span>
@@ -84,20 +85,20 @@ export function ComputeG({ computers }: { computers: ComputerRow[] }) {
             <iframe
               key={embed.url}
               src={embed.url}
-              title={`${comp?.name ?? 'Computer'} desktop`}
+              title={t('{name} desktop', { name: comp?.name ?? t('Computer') })}
               className="kg-desk-frame"
               data-g-exempt="third-party remote desktop"
               allow="clipboard-read; clipboard-write; fullscreen; autoplay"
             />
           ) : embed.status === 'loading' ? (
-            <GProgress text="Opening the desktop…" />
+            <GProgress text={t('Opening the desktop…')} />
           ) : embed.status === 'error' ? (
-            <GEmpty kind="error" inline title="The desktop did not open" body={embed.error} onRetry={comp ? () => connect(comp.id) : undefined} />
+            <GEmpty kind="error" inline title={t('The desktop did not open')} body={embed.error} onRetry={comp ? () => connect(comp.id) : undefined} />
           ) : (
             <GEmpty
               inline
-              title={!comp ? 'No computer selected' : !comp.desktop ? 'This computer has no desktop' : `This computer is ${comp.status}`}
-              body={comp && comp.desktop && !live ? 'Start it from MIOSA to see its desktop here.' : undefined}
+              title={!comp ? t('No computer selected') : !comp.desktop ? t('This computer has no desktop') : t('This computer is {status}', { status: comp.status })}
+              body={comp && comp.desktop && !live ? t('Start it from MIOSA to see its desktop here.') : undefined}
             />
           )}
         </div>

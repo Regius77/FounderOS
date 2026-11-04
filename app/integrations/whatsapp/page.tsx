@@ -5,6 +5,7 @@ import { whatsappStatus, sendConfigured } from '@/lib/connectors/whatsapp';
 import { WhatsAppG } from '@/components/integrations/WhatsAppG';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ function Facts({ rows }: { rows: Row[] }) {
 }
 
 function Pill({ state }: { state: 'connected' | 'not_configured' | 'error' }) {
-  const label = state === 'connected' ? 'Live' : state === 'error' ? 'Error' : 'Not configured';
+  const label = state === 'connected' ? t('Live') : state === 'error' ? t('Error') : t('Not configured');
   const tone =
     state === 'connected'
       ? 'text-os-accent'
@@ -69,53 +70,54 @@ export default async function WhatsAppConfigPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Connection settings" title="WhatsApp" back={{ href: '/integrations', label: 'Connections' }} />
+      <PageHeader eyebrow={t('Connection settings')} title="WhatsApp" back={{ href: '/integrations', label: t('Connections') }} />
 
       <p className="mb-8 max-w-[58ch] text-[13px] leading-relaxed text-os-dim">
-        WhatsApp is two connections, not one. Reading works off the desktop app already installed on
-        this Mac. Sending cannot use that route at all, so it needs a WhatsApp Business number of its
-        own. Each is configured separately below.
+        {t(
+          'WhatsApp is two connections, not one. Reading works off the desktop app already installed on this Mac. Sending cannot use that route at all, so it needs a WhatsApp Business number of its own. Each is configured separately below.',
+        )}
       </p>
 
       <section className="mb-8">
-        <SectionHead label="Reading" count={1} />
+        <SectionHead label={t('Reading')} count={1} />
         <div className="rounded-lg-t border border-os-border bg-os-surface p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-[14.5px] font-medium text-os-text">Local desktop app</div>
-              <div className="mt-1 text-[12.5px] text-os-dim">Reads the WhatsApp database on this Mac, read-only</div>
+              <div className="text-[14.5px] font-medium text-os-text">{t('Local desktop app')}</div>
+              <div className="mt-1 text-[12.5px] text-os-dim">{t('Reads the WhatsApp database on this Mac, read-only')}</div>
             </div>
             <Pill state={read?.state ?? status.state} />
           </div>
           <Facts
             rows={[
-              { label: 'Status', value: read?.detail ?? status.detail },
-              { label: 'Setup', value: 'Nothing to paste. Requires the desktop app signed in, and Full Disk Access for the process running this console.' },
-              { label: 'Gives you', value: 'Every chat, real message history, profile pictures, and downloaded media — voice notes, images, video, documents.' },
-              { label: 'Cannot do', value: 'Send anything. The app owns the encryption session, so writing to its store transmits nothing.' },
+              { label: t('Status'), value: read?.detail ?? status.detail },
+              { label: t('Setup'), value: t('Nothing to paste. Requires the desktop app signed in, and Full Disk Access for the process running this console.') },
+              { label: t('Gives you'), value: t('Every chat, real message history, profile pictures, and downloaded media — voice notes, images, video, documents.') },
+              { label: t('Cannot do'), value: t('Send anything. The app owns the encryption session, so writing to its store transmits nothing.') },
             ]}
           />
         </div>
       </section>
 
       <section className="mb-8">
-        <SectionHead label="Sending" count={1} />
+        <SectionHead label={t('Sending')} count={1} />
         <div className="rounded-lg-t border border-os-border bg-os-surface p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-[14.5px] font-medium text-os-text">WhatsApp Business Cloud API</div>
-              <div className="mt-1 text-[12.5px] text-os-dim">Meta&apos;s official API, on a business number</div>
+              <div className="mt-1 text-[12.5px] text-os-dim">{t('Meta\'s official API, on a business number')}</div>
             </div>
             <Pill state={send?.state ?? 'not_configured'} />
           </div>
           <Facts
             rows={[
-              { label: 'Setup', value: 'Paste the phone number id and access token from developers.facebook.com → your app → WhatsApp → API Setup.' },
-              { label: 'Gives you', value: 'Replies sent from here to anyone who messaged your business number, within 24 hours of their last message.' },
+              { label: t('Setup'), value: t('Paste the phone number id and access token from developers.facebook.com → your app → WhatsApp → API Setup.') },
+              { label: t('Gives you'), value: t('Replies sent from here to anyone who messaged your business number, within 24 hours of their last message.') },
               {
-                label: 'Cannot do',
-                value:
+                label: t('Cannot do'),
+                value: t(
                   'Reach the personal chats above. It runs on a separate business number, cannot message groups or linked ids, and outside the 24-hour window only pre-approved templates go through.',
+                ),
               },
             ]}
           />
@@ -131,21 +133,23 @@ export default async function WhatsAppConfigPage() {
       </section>
 
       <section className="mb-8">
-        <SectionHead label="Other ways to send" count={1} />
+        <SectionHead label={t('Other ways to send')} count={1} />
         <div className="rounded-lg-t border border-os-border bg-os-surface p-6">
-          <div className="text-[14.5px] font-medium text-os-text">Linked device</div>
-          <div className="mt-1 text-[12.5px] text-os-dim">Not built</div>
+          <div className="text-[14.5px] font-medium text-os-text">{t('Linked device')}</div>
+          <div className="mt-1 text-[12.5px] text-os-dim">{t('Not built')}</div>
           <Facts
             rows={[
               {
-                label: 'What it is',
-                value:
+                label: t('What it is'),
+                value: t(
                   'Pairing this console to your personal account by QR, the way WhatsApp Web does. It is the only route that can reply to the personal chats and groups above.',
+                ),
               },
               {
-                label: 'Why it is not here',
-                value:
+                label: t('Why it is not here'),
+                value: t(
                   'It relies on an unofficial library. Meta does not sanction it and accounts get banned for automated use, so it is a deliberate decision rather than a default.',
+                ),
               },
             ]}
           />

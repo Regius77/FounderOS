@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useState, type ReactNode } from 'react';
 import { Info } from 'lucide-react';
 import { GButton, GSheet } from '@/components/g';
@@ -9,7 +10,7 @@ import { GButton, GSheet } from '@/components/g';
  * act moves off the working surface into a sheet opened from a small `i`
  * button in the page header's right slot. The copy is moved word for word.
  */
-export function AboutButton({ title = 'About this page', children }: { title?: string; children: ReactNode }) {
+export function AboutButton({ title = t('About this page'), children }: { title?: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <>

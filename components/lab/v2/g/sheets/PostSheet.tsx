@@ -14,10 +14,13 @@ import type { PostSheetView } from '@/lib/lab/view/sheets/post';
 import { SectionNote } from '../bits';
 import { SheetShell, SheetTabs, type SheetCtx } from './SheetShell';
 import { LAB_UI, fill } from '@/lib/lab/view/ui-copy';
+import { t } from '@/lib/i18n';
 
 type Tab = 'overview' | 'transcript' | 'frames' | 'metrics' | 'comments';
 const PLATFORM: Record<string, string> = { instagram: 'Reel', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X' };
 const REASONS = ['Collab', 'Newsletter or email push', 'Paid boost', 'Other'];
+/** Display labels; the English reason is what gets stored. */
+const REASON_LABEL: Record<string, string> = { Collab: t('Collab'), 'Newsletter or email push': t('Newsletter or email push'), 'Paid boost': t('Paid boost'), Other: t('Other') };
 
 function Overview({ v }: { v: PostSheetView }) {
   const { post, busy } = useLabPost();
@@ -160,7 +163,7 @@ function Overview({ v }: { v: PostSheetView }) {
         }}
       >
         <GField label={LAB_UI.outsideReason} htmlFor="lab2g-exo">
-          <GSelect id="lab2g-exo" value={reason} onChange={(e) => setReason(e.target.value)} options={REASONS.map((r) => ({ value: r, label: r }))} />
+          <GSelect id="lab2g-exo" value={reason} onChange={(e) => setReason(e.target.value)} options={REASONS.map((r) => ({ value: r, label: REASON_LABEL[r] ?? r }))} />
         </GField>
       </GDialog>
     </div>
@@ -281,9 +284,9 @@ export function PostSheet({ ctx, view }: { ctx: SheetCtx; view: PostSheetView | 
             tabs={tabs}
             value={tab}
             label={LAB_UI.kindPost}
-            onChange={(t) => {
-              setTab(t);
-              ctx.setInner('st', t === 'overview' ? null : t);
+            onChange={(tab) => {
+              setTab(tab);
+              ctx.setInner('st', tab === 'overview' ? null : tab);
             }}
           />
         )

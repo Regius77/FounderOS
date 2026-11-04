@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { pushEscape } from '@/lib/escape-stack';
@@ -71,9 +72,9 @@ export function GVizStage({
         <div className="g-vizstage-hud" data-slot="top-right">
           {hudTopRight}
           {allowFullscreen && (
-            <GButton ref={btn} variant="sm" className="g-viz-act" aria-pressed={on} onClick={() => set(!on)} title={on ? 'Exit full screen (Esc)' : 'Full screen'}>
+            <GButton ref={btn} variant="sm" className="g-viz-act" aria-pressed={on} onClick={() => set(!on)} title={on ? t('Exit full screen (Esc)') : t('Full screen')}>
               {on ? <Minimize2 size={13} strokeWidth={1.8} aria-hidden="true" /> : <Maximize2 size={13} strokeWidth={1.8} aria-hidden="true" />}
-              {on ? 'Exit' : 'Full screen'}
+              {on ? t('Exit') : t('Full screen')}
             </GButton>
           )}
         </div>

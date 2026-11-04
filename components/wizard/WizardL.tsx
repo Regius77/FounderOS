@@ -13,6 +13,7 @@ import { CrewPanel } from './CrewPanel';
 import { SessionsTab } from './SessionsTab';
 import { CreateAgentModal } from './CreateAgentModal';
 import { useWizardWorkspace } from './useWizardWorkspace';
+import { t } from '@/lib/i18n';
 
 /**
  * Bennett Legacy tree of /wizard (founderos-ui pages/wizard.md). Same state
@@ -54,24 +55,24 @@ export function WizardL({
     <div data-l="Wizard" className="l-wz" data-view={view}>
       <header className="l-wz-head l-rise">
         <div className="min-w-0">
-          <div className="l-eyebrow">{'// CONDUCTOR · PROJECTS · SESSIONS'}</div>
+          <div className="l-eyebrow">{t('// CONDUCTOR · PROJECTS · SESSIONS')}</div>
           <h1 className="l-wz-title">Wizard</h1>
         </div>
         <div className="l-wz-actions">
           {filming && <LSampleChip />}
-          <Chip tone={w.pending ? 'warn' : 'ok'}>{w.pending ? 'Working' : `${live} live`}</Chip>
-          <div className="l-wz-tabs" role="tablist" aria-label="Wizard view">
-            {(['workspace', 'sessions'] as WizardTab[]).map((t) => (
-              <ToggleChip key={t} role="tab" aria-selected={w.tab === t} on={w.tab === t} onClick={() => w.setTab(t)}>
-                {t === 'workspace' ? 'Workspace' : 'Sessions'}
+          <Chip tone={w.pending ? 'warn' : 'ok'}>{w.pending ? t('Working') : t('{n} live', { n: live })}</Chip>
+          <div className="l-wz-tabs" role="tablist" aria-label={t('Wizard view')}>
+            {(['workspace', 'sessions'] as WizardTab[]).map((tab) => (
+              <ToggleChip key={tab} role="tab" aria-selected={w.tab === tab} on={w.tab === tab} onClick={() => w.setTab(tab)}>
+                {tab === 'workspace' ? t('Workspace') : t('Sessions')}
               </ToggleChip>
             ))}
           </div>
-          <Pressable tone="secondary" onClick={() => w.setCreateOpen(true)} aria-label="Create an agent">
-            <Plus size={13} strokeWidth={2} aria-hidden /> Agent
+          <Pressable tone="secondary" onClick={() => w.setCreateOpen(true)} aria-label={t('Create an agent')}>
+            <Plus size={13} strokeWidth={2} aria-hidden /> {t('Agent')}
           </Pressable>
           <Pressable tone="primary" onClick={create}>
-            <Plus size={13} strokeWidth={2} aria-hidden /> New project
+            <Plus size={13} strokeWidth={2} aria-hidden /> {t('New project')}
           </Pressable>
         </div>
       </header>
@@ -81,7 +82,7 @@ export function WizardL({
           <div className="l-wz-shell l-rise" data-l="Shell">
             <div className="l-wz-rail">
               <div className="l-wz-cap">
-                <span>Projects</span>
+                <span>{t('Projects')}</span>
                 <span className="l-wz-cap-n">{w.projects.length}</span>
               </div>
               <ProjectsRail
@@ -96,15 +97,15 @@ export function WizardL({
             </div>
             <div className="l-wz-thread">
               <div className="l-wz-cap">
-                <button type="button" className="l-wz-back" onClick={() => setView('list')} aria-label="Back to projects">
-                  <ChevronLeft size={13} strokeWidth={2} aria-hidden /> Projects
+                <button type="button" className="l-wz-back" onClick={() => setView('list')} aria-label={t('Back to projects')}>
+                  <ChevronLeft size={13} strokeWidth={2} aria-hidden /> {t('Projects')}
                 </button>
                 <span className="truncate">Wizard{active ? ` · ${active.name}` : ''}</span>
                 {active && (
                   <span className="l-wz-cap-chips">
-                    <span className="l-wz-cap-n">turns {active.messages.filter((m) => m.role === 'user').length}</span>
-                    <span className="l-wz-cap-n">tasks {active.tasks.length}</span>
-                    <span className="l-wz-cap-n">spend ${(active.totalCostUsd ?? 0).toFixed(2)}</span>
+                    <span className="l-wz-cap-n">{t('turns')} {active.messages.filter((m) => m.role === 'user').length}</span>
+                    <span className="l-wz-cap-n">{t('tasks')} {active.tasks.length}</span>
+                    <span className="l-wz-cap-n">{t('spend')} ${(active.totalCostUsd ?? 0).toFixed(2)}</span>
                   </span>
                 )}
               </div>

@@ -8,8 +8,9 @@ import { Suspense } from 'react';
 import { FRAME_NOW, FRAME_STATES, frameToday, isFrameState } from '@/lib/lab/view/frames';
 import { FrameComponents } from './FrameComponents';
 import { FrameTodayView } from './FrameToday';
+import { t } from '@/lib/i18n';
 
-export const metadata: Metadata = { title: 'Content Lab frames', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: t('Content Lab frames'), robots: { index: false, follow: false } };
 export const dynamicParams = false;
 
 export function generateStaticParams() {

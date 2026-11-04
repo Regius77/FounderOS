@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { WizardProject } from '@/lib/wizard/store';
 import type { CrewSnapshot } from '@/lib/wizard/crew';
 import type { WizardTab } from './WizardHeader';
+import { t } from '@/lib/i18n';
 
 const POLL_MS = 20_000;
 
@@ -105,9 +106,9 @@ export function useWizardWorkspace(initialProjects: WizardProject[], initialCrew
       setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, messages: [...p.messages, { role: 'user', text, at: new Date().toISOString() }] } : p)));
       try {
         const res = await fetch('/api/wizard/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: id, text }) });
-        const body = await res.json().catch(() => ({ ok: false, error: `send failed (${res.status})` }));
+        const body = await res.json().catch(() => ({ ok: false, error: t('send failed ({status})', { status: res.status }) }));
         if (!body.ok) {
-          setEngineError(res.status === 503 ? (body.error ?? 'Wizard engine unavailable on this host') : (body.error ?? `send failed (${res.status})`));
+          setEngineError(res.status === 503 ? (body.error ?? t('Wizard engine unavailable on this host')) : (body.error ?? t('send failed ({status})', { status: res.status })));
           return;
         }
         replace(body.project);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GErrorLine, GToggle } from '@/components/g';
 import { NAV_GROUPS } from '@/lib/nav';
 import { isToggleable } from '@/lib/modules';
+import { t } from '@/lib/i18n';
 
 /**
  * Settings → Modules (lib/modules.ts): one switch per sidebar view. Both
@@ -29,7 +30,7 @@ export function useModules(initialOff: string[]) {
         body: JSON.stringify({ href, on }),
       });
       const body = (await res.json()) as { ok: boolean; off?: string[]; error?: string };
-      if (!body.ok || !body.off) throw new Error(body.error ?? 'Could not save the change');
+      if (!body.ok || !body.off) throw new Error(body.error ?? t('Could not save the change'));
       setOff(body.off);
       router.refresh();
     } catch (e) {
@@ -50,14 +51,14 @@ export function ModulesG({ initialOff }: { initialOff: string[] }) {
     <div className="kg-modules">
       {GROUPS.map((g) => (
         <div key={g.id} className="kg-modules-group" role="group" aria-label={g.label}>
-          <p className="kg-modules-title">{g.title ?? 'Command'}</p>
+          <p className="kg-modules-title">{g.title ?? t('Command')}</p>
           {g.items.map(({ href, label, icon: Icon }) => {
             const on = !off.includes(href);
             return (
               <div key={href} className="kg-modules-row" data-off={on ? undefined : ''}>
                 <Icon size={15} strokeWidth={1.7} aria-hidden="true" />
                 <span className="kg-modules-label">{label}</span>
-                <GToggle checked={on} onCheckedChange={(next) => void toggle(href, next)} disabled={busy === href} aria-label={`${label} module`} />
+                <GToggle checked={on} onCheckedChange={(next) => void toggle(href, next)} disabled={busy === href} aria-label={t('{label} module', { label })} />
               </div>
             );
           })}
@@ -74,7 +75,7 @@ export function ModulesClassic({ initialOff }: { initialOff: string[] }) {
     <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
       {GROUPS.map((g) => (
         <div key={g.id} role="group" aria-label={g.label}>
-          <p className="mb-1.5 text-[11.5px] text-os-dim">{g.title ?? 'Command'}</p>
+          <p className="mb-1.5 text-[11.5px] text-os-dim">{g.title ?? t('Command')}</p>
           <div className="divide-y divide-os-border rounded-[8px] border border-os-border bg-os-surface">
             {g.items.map(({ href, label, icon: Icon }) => {
               const on = !off.includes(href);
@@ -86,7 +87,7 @@ export function ModulesClassic({ initialOff }: { initialOff: string[] }) {
                     type="button"
                     role="switch"
                     aria-checked={on}
-                    aria-label={`${label} module`}
+                    aria-label={t('{label} module', { label })}
                     disabled={busy === href}
                     onClick={() => void toggle(href, !on)}
                     className="relative h-[18px] w-[32px] shrink-0 rounded-full border border-os-border-strong transition-colors disabled:opacity-50"

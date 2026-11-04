@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import { colorVar, type VizColor } from './viz-shared';
 
 export type GBarTone = 'ink' | 'soft' | 'warn' | 'over' | VizColor;
@@ -57,8 +58,8 @@ export function GBar({ label, value = null, max, tone, segments, onHero = false,
       aria-valuemin={0}
       aria-valuemax={m}
       aria-valuenow={v ?? undefined}
-      aria-valuetext={v === null ? 'no data' : undefined}
-      title={v === null ? `${label} · no data` : label}
+      aria-valuetext={v === null ? t('no data') : undefined}
+      title={v === null ? t('{label} · no data', { label }) : label}
       className={`g-bar ${className}`}
       data-on-hero={onHero || undefined}
     >
