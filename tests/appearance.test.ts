@@ -45,12 +45,12 @@ describe('model: cookie, defaults, derive, migrate (SPEC S00 FR-1 to FR-7)', () 
     expect(Object.keys(ACCENTS)).toEqual([...ACCENT_IDS]);
   });
 
-  test('fresh-install default per build (FR-7, Q-SYS-1, Q-SYS-5; FounderOS ui merge T1)', () => {
+  test('fresh-install default: GladOS · Ice · Dark on both builds (FR-7, Q-SYS-1, Q-SYS-5)', () => {
     expect(defaultAppearanceFor('glados')).toEqual({ ui: 'glados', accent: 'ice', mode: 'dark' });
-    expect(defaultAppearanceFor('founderos')).toEqual({ ui: 'legacy', accent: 'ice', mode: 'dark', skin: 'mono' });
+    expect(defaultAppearanceFor('founderos')).toEqual({ ui: 'glados', accent: 'ice', mode: 'dark' });
     // tests run as the client build (GLADOS_BRAND unset)
     expect(DEFAULT_APPEARANCE).toEqual(defaultAppearanceFor('founderos'));
-    expect(serializeAppearance(DEFAULT_APPEARANCE)).toBe('legacy.mono.dark');
+    expect(serializeAppearance(DEFAULT_APPEARANCE)).toBe('glados.ice.dark');
   });
 
   test('cookie round trip for every combination', () => {
@@ -75,8 +75,8 @@ describe('model: cookie, defaults, derive, migrate (SPEC S00 FR-1 to FR-7)', () 
     expect(parseAppearanceCookie('glados.pink.light')).toEqual({ ui: 'glados', accent: 'ice', mode: 'light' });
     expect(parseAppearanceCookie('classic.ember.auto')).toEqual({ ui: 'classic', accent: 'ember', mode: 'dark' });
     expect(parseAppearanceCookie('glados')).toEqual({ ui: 'glados', accent: 'ice', mode: 'dark' });
-    // an unknown style takes this build's default style (Legacy on the client build), its middle field read for that style
-    expect(parseAppearanceCookie('neon.ember.auto')).toEqual({ ui: 'legacy', accent: 'ice', mode: 'dark', skin: 'mono' });
+    // an unknown style takes this build's default style (GladOS), its middle field read for that style
+    expect(parseAppearanceCookie('neon.ember.auto')).toEqual({ ui: 'glados', accent: 'ember', mode: 'dark' });
     // Legacy: an accent or unknown skin in the middle falls back to mono
     expect(parseAppearanceCookie('legacy.ember.light')).toEqual({ ui: 'legacy', accent: 'ice', mode: 'light', skin: 'mono' });
     expect(parseAppearanceCookie('legacy.terminal.system')).toEqual({ ui: 'legacy', accent: 'ice', mode: 'system', skin: 'mono' });
@@ -275,9 +275,10 @@ describe('APPEARANCE_INIT_SCRIPT (pre-paint)', () => {
   test("fresh install (no cookie, no storage): this build's default, cookie written with it (edge 1, FR-7, T1)", () => {
     const f = runScript({});
     expect(f.cookieWrites).toEqual([appearanceCookie(DEFAULT_APPEARANCE)]);
-    // the client build opens on Bennett Legacy · Monolith · Dark
-    expect(attrsOf(f)).toEqual({ 'data-ui': 'legacy', 'data-accent': 'ice', 'data-mode-pref': 'dark', 'data-mode': 'dark', 'data-theme': 'monolith' });
-    expect(f.storage.get('glados-legacy-skin')).toBe('mono');
+    // a fresh install opens on GladOS · Ice · Dark (Grey Frost)
+    expect(attrsOf(f)).toEqual({ 'data-ui': 'glados', 'data-accent': 'ice', 'data-mode-pref': 'dark', 'data-mode': 'dark', 'data-theme': 'grey-frost' });
+    // no Legacy skin is stored until Legacy is chosen
+    expect(f.storage.get('glados-legacy-skin')).toBeUndefined();
   });
 
   test('blocked storage: attributes still apply from the cookie (edge 1)', () => {

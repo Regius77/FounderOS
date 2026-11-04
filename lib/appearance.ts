@@ -104,8 +104,12 @@ export const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
  * Ice is Q-SYS-1. A stored choice always wins.
  */
 export function defaultAppearanceFor(brand: Brand['id']): Appearance {
-  // T1 (FounderOS ui merge §8): the client build (FounderOS brand) opens on Bennett Legacy · Monolith · Dark.
-  return brand === 'founderos' ? { ui: 'legacy', accent: 'ice', mode: 'dark', skin: DEFAULT_LEGACY_SKIN } : { ui: 'glados', accent: 'ice', mode: 'dark' };
+  // Both builds open on GladOS · Ice · Dark. Upstream opened the FounderOS brand
+  // on Bennett Legacy · Monolith (all monospace, 9px tracked labels); a design
+  // review measured it as the harder one to read and work in. Legacy stays one
+  // click away in Settings → Appearance.
+  void brand;
+  return { ui: 'glados', accent: 'ice', mode: 'dark' };
 }
 export const DEFAULT_APPEARANCE: Appearance = defaultAppearanceFor(BRAND.id);
 const DEFAULT_ACCENT: Accent = 'ice';

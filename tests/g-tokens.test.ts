@@ -45,7 +45,7 @@ const TOKENS = {
   surfaces: ['--g-bg', '--g-bg-lift', '--g-card', '--g-card-2', '--g-well'],
   ink: ['--g-ink', '--g-ink-inverse', '--g-muted', '--g-dim'],
   lines: ['--g-line', '--g-ring', '--g-track', '--g-track-soft'],
-  elevation: ['--g-scrim', '--g-shadow', '--g-shadow-sm'],
+  elevation: ['--g-scrim', '--g-shadow', '--g-shadow-sm', '--g-shadow-float'],
   status: ['--g-ok', '--g-warn', '--g-err', '--g-ok-soft', '--g-warn-soft', '--g-err-soft'],
   accent: ['--g-accent', '--g-accent-rgb', '--g-accent-2', '--g-accent-soft', '--g-badge', '--g-badge-ink'],
   heroes: [
@@ -67,9 +67,9 @@ const ALL = Object.values(TOKENS).flat();
 
 /** Fixed values X2 / S00 §5.1 give for the mode-independent tokens. */
 const FIXED: Record<string, string> = {
-  '--g-r-card': '28px', '--g-r-nested': '20px', '--g-r-well': '14px', '--g-r-input': '12px', '--g-r-pill': '999px',
-  '--g-fs-display': '44px', '--g-fs-section': '26px', '--g-fs-title': '28px', '--g-fs-card': '15px',
-  '--g-fs-body': '13.5px', '--g-fs-cap': '11.5px', '--g-fs-faint': '11px',
+  '--g-r-card': '12px', '--g-r-nested': '10px', '--g-r-well': '8px', '--g-r-input': '8px', '--g-r-pill': '999px',
+  '--g-fs-display': '28px', '--g-fs-section': '20px', '--g-fs-title': '22px', '--g-fs-card': '15px',
+  '--g-fs-body': '14px', '--g-fs-cap': '12px', '--g-fs-faint': '11px',
   '--g-fw-light': '300', '--g-fw-body': '400', '--g-fw-badge': '500',
   '--g-space-1': '4px', '--g-space-2': '8px', '--g-space-3': '12px', '--g-space-4': '16px',
   '--g-space-5': '20px', '--g-space-6': '24px', '--g-space-7': '36px', '--g-space-8': '48px',

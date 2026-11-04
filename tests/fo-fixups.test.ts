@@ -250,8 +250,8 @@ describe('GladOS hero contrast without a strip', () => {
     const bare = css.match(/\.g-hero:not\(:has\(\.g-hero-strip\)\):has\(\.g-hero-status\) \{ padding-bottom: (\d+)px; \}/);
     expect(strip?.[1]).toBeDefined();
     expect(bare?.[1]).toBe(strip?.[1]);
-    // the radial glow sits at 108% with a 36% radius: the foot of every hero gradient is light
-    expect(css).toMatch(/--g-hero-a: radial-gradient\(85% 36% at \d+% 108%/);
+    // heroes are flat accent-tinted fields (enterprise pass): no light foot, one colour under every zone
+    expect(css).toMatch(/--g-hero-a: #[0-9a-f]{6};/);
   });
 });
 

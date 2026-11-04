@@ -36,7 +36,7 @@ function kitCssBlock(): string {
 const X2 = new Set<string>([
   ...['bg', 'bg-lift', 'card', 'card-2', 'well'],
   ...['ink', 'ink-inverse', 'muted', 'dim'],
-  ...['line', 'ring', 'track', 'track-soft', 'scrim', 'shadow', 'shadow-sm'],
+  ...['line', 'ring', 'track', 'track-soft', 'scrim', 'shadow', 'shadow-sm', 'shadow-float'],
   ...['ok', 'warn', 'err', 'ok-soft', 'warn-soft', 'err-soft'],
   ...['accent', 'accent-rgb', 'accent-2', 'accent-soft', 'badge', 'badge-ink'],
   ...['hero-a', 'hero-b', 'hero-c', 'hero-a-ink', 'hero-b-ink', 'hero-c-ink', 'on-hero', 'on-hero-dim', 'on-hero-faint'],

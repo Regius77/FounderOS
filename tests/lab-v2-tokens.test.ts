@@ -105,9 +105,10 @@ describe.each(LAB_STYLES.map((s) => [styleName(s), s] as const))('%s', (_name, s
 });
 
 describe('AC-02-3 resolved stops match table 2.2 within 2 per channel', () => {
+  // Neutrals moved from slate (#18191d) to true greys in the enterprise pass, so the cool and deep stops follow.
   const TABLE: [string, Record<string, string>][] = [
-    ['glados ember dark', { deep: '#5d262e', cool: '#43474e', warm: '#ff865c', hot: '#ff4557' }],
-    ['glados ice dark', { cool: '#43474e', hot: '#9fc6ff' }],
+    ['glados ember dark', { deep: '#582127', cool: '#3c3c40', warm: '#ff865c', hot: '#ff4557' }],
+    ['glados ice dark', { cool: '#3c3c40', hot: '#9fc6ff' }],
     ['glados ice light', { hot: '#3a6fc4' }],
     ['classic console', { hot: '#00ffab' }],
   ];

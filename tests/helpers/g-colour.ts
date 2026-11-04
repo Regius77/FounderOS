@@ -64,6 +64,9 @@ function parseStops(parts: string[]): Stop[] {
 /** Parse a hero `background` value into layers (first = top). Throws outside the grammar. */
 export function parseBackground(value: string): Layer[] {
   return splitTop(value).map((layer) => {
+    // A flat fill (the enterprise pass made the heroes flat) is a one-colour gradient.
+    const flat = parseColour(layer.trim());
+    if (flat) return { type: 'linear', deg: 180, stops: [{ c: flat, pos: 0 }, { c: flat, pos: 1 }] };
     const m = layer.match(/^(radial|linear)-gradient\(([\s\S]*)\)$/);
     if (!m) throw new Error(`layer outside the token grammar: "${layer}"`);
     const args = splitTop(m[2]);

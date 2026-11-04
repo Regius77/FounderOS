@@ -119,9 +119,9 @@ describe('pre-paint init script (runs the generated string, Classic style)', () 
   });
 
   test("stale, missing or blocked storage is a fresh install: this build's default (FR-7, T1) and its theme", () => {
-    // glados-private: glados · ice · dark derives Grey Frost; the client build (tests run as it) opens Bennett Legacy · Monolith
+    // glados · ice · dark derives Grey Frost, on both builds
     expect(resolveAppearance(defaultAppearanceFor('glados')).theme).toBe('grey-frost');
-    expect(resolveAppearance(defaultAppearanceFor('founderos')).theme).toBe('monolith');
+    expect(resolveAppearance(defaultAppearanceFor('founderos')).theme).toBe('grey-frost');
     const fresh = resolveAppearance(DEFAULT_APPEARANCE).theme;
     expect(run('grey')).toBe(fresh);
     expect(run(null)).toBe(fresh);
