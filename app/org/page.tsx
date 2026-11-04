@@ -231,7 +231,7 @@ export default function OrgChartPage({ searchParams }: { searchParams?: { ventur
       {/* Operator */}
       <div className="flex flex-col items-center">
         <Users className="h-7 w-7 text-os-text" />
-        <div className="mt-1 text-base font-medium">{OPERATOR_NAME}</div>
+        <div className="mt-1 text-base font-medium">{OPERATOR_NAME === 'Operator' ? t('Operator') : OPERATOR_NAME}</div>
         <div className="text-[12.5px] text-os-dim">{t('Operator')}</div>
         <div className="mt-3 h-6 w-px bg-os-border-bright" />
         <div className="text-[12.5px] text-os-muted">{t('Wizard (super agent)')}</div>

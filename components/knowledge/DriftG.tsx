@@ -111,7 +111,7 @@ function OpenInsight({ insight }: { insight: DriftInsight }) {
           <p>{fix.message}</p>
           <div className="kg-draft-foot">
             <p className="kg-cap">
-              {DRAFT_FOOTER} <Link href="/inbox">Comms</Link>.
+              {DRAFT_FOOTER} <Link href="/inbox">{t('Comms')}</Link>.
             </p>
             <CopyDraft text={fix.message} label={t('Copy the draft to the {to}', { to: fix.to })} />
           </div>
@@ -157,7 +157,7 @@ export function DriftG({ insights }: { insights: DriftInsight[] }) {
       <GCard p={24}>
         <GEmpty
           kind="unconfigured"
-          title="Drift detection is not running yet"
+          title={t('Drift detection is not running yet')}
           body={t('It compares claims in incoming calls and threads against the knowledge canon and surfaces contradictions here.')}
           setupHref="/setup"
           setupHint={t('The extraction pipeline is not configured')}

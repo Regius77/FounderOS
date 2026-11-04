@@ -7,6 +7,8 @@
 /** Fired by ConductorPanel whenever the dock opens, closes or changes width:
  *  `{ open, width }`. The Topbar wand reads it for aria-expanded; the sidebar
  *  reads it to give room back when the dock leaves too little (S09 FR-9). */
+import { t } from '@/lib/i18n';
+
 export const CONDUCTOR_STATE_EVENT = 'conductor:state';
 /** Ask the dock to toggle (the Topbar wand: opens when closed, closes when open). */
 export const CONDUCTOR_TOGGLE_EVENT = 'conductor:toggle';
@@ -34,15 +36,15 @@ export function unreadBadge(unread: number): string {
 export function launcherCopy(state: LauncherState, unread: number): { aria: string; pop: string } {
   switch (state) {
     case 'error':
-      return { aria: 'Open the Wizard, last message failed', pop: 'Failed, open to retry' };
+      return { aria: t('Open the Wizard, last message failed'), pop: t('Failed, open to retry') };
     case 'thinking':
-      return { aria: 'Open the Wizard (working on your last message)', pop: 'Working…' };
+      return { aria: t('Open the Wizard (working on your last message)'), pop: t('Working…') };
     case 'unread':
       return {
-        aria: `Open the Wizard, ${unread} new ${unread === 1 ? 'reply' : 'replies'}`,
-        pop: `${unread > 9 ? '9+' : unread} new`,
+        aria: unread === 1 ? t('Open the Wizard, {n} new reply', { n: unread }) : t('Open the Wizard, {n} new replies', { n: unread }),
+        pop: t('{n} new', { n: unread > 9 ? '9+' : unread }),
       };
     default:
-      return { aria: 'Open the Wizard', pop: 'Ask Wizard' };
+      return { aria: t('Open the Wizard'), pop: t('Ask Wizard') };
   }
 }

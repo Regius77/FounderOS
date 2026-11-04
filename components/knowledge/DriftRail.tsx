@@ -218,7 +218,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
                 <span className="text-[10.5px] text-os-dim">
                   {DRAFT_FOOTER}{' '}
                   <Link href="/inbox" className="text-os-muted underline underline-offset-2 hover:text-os-text">
-                    Comms
+                    {t('Comms')}
                   </Link>
                   .
                 </span>

@@ -1,4 +1,4 @@
-import { locale, localeTag } from '@/lib/i18n';
+import { locale, localeTag, t } from '@/lib/i18n';
 /**
  * Honest inputs for the operator-console pulse row. `runsPerDay` / `inboundPerDay`
  * turn real timestamped history (agent_runs, comms feed) into per-day series for
@@ -62,8 +62,6 @@ export type PulseFacts = {
   failedRuns: number;
 };
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
 /**
  * One honest sentence about what needs the operator, worst-first: failed runs,
  * an unhealthy brain, downed connectors, then inbound to reply to  -  always
@@ -73,11 +71,11 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 export function stateOfWorld(f: PulseFacts): StateSegment[] {
   const segs: StateSegment[] = [];
 
-  if (f.failedRuns > 0) segs.push({ text: `${plural(f.failedRuns, 'run')} failed`, tone: 'err' });
-  if (!f.brainConnected) segs.push({ text: 'G-Brain offline', tone: 'err' });
-  else if (f.health != null && f.health < 70) segs.push({ text: `G-Brain degraded ${f.health}/100`, tone: 'warn' });
-  if (f.connectorsDown > 0) segs.push({ text: `${plural(f.connectorsDown, 'connector')} down`, tone: 'warn' });
-  if (f.inbound > 0) segs.push({ text: `${f.inbound} inbound need reply`, tone: 'accent' });
+  if (f.failedRuns > 0) segs.push({ text: f.failedRuns === 1 ? t('{n} run failed', { n: f.failedRuns }) : t('{n} runs failed', { n: f.failedRuns }), tone: 'err' });
+  if (!f.brainConnected) segs.push({ text: t('G-Brain offline'), tone: 'err' });
+  else if (f.health != null && f.health < 70) segs.push({ text: t('G-Brain degraded {n}/100', { n: f.health }), tone: 'warn' });
+  if (f.connectorsDown > 0) segs.push({ text: f.connectorsDown === 1 ? t('{n} connector down', { n: f.connectorsDown }) : t('{n} connectors down', { n: f.connectorsDown }), tone: 'warn' });
+  if (f.inbound > 0) segs.push({ text: t('{n} inbound need reply', { n: f.inbound }), tone: 'accent' });
 
   const hadAttention = segs.length > 0;
 
@@ -86,18 +84,18 @@ export function stateOfWorld(f: PulseFacts): StateSegment[] {
   // "19/32" a fraction the reader has to do arithmetic on to learn the only
   // thing it is actually saying: thirteen seats are sitting still.
   const idle = Math.max(0, f.totalAgents - f.activeAgents);
-  segs.push({ text: `${f.activeAgents} agents live`, tone: f.activeAgents > 0 ? 'ok' : 'dim' });
-  segs.push({ text: `${idle} idle`, tone: 'dim' });
+  segs.push({ text: t('{n} agents live', { n: f.activeAgents }), tone: f.activeAgents > 0 ? 'ok' : 'dim' });
+  segs.push({ text: t('{n} idle', { n: idle }), tone: 'dim' });
 
   // The artboard states the brain score at every health ("brain 78/100"),
   // not only when it has gone bad. A number that appears only on failure
   // teaches the reader to read its absence as "fine", which is exactly the
   // habit that let /api/metrics report a null page count for two weeks.
   if (f.brainConnected && f.health != null && f.health >= 70) {
-    segs.push({ text: `brain ${f.health}/100`, tone: 'ok' });
+    segs.push({ text: t('brain {n}/100', { n: f.health }), tone: 'ok' });
   }
 
-  if (!hadAttention) segs.unshift({ text: 'All nominal', tone: 'ok' });
+  if (!hadAttention) segs.unshift({ text: t('All nominal'), tone: 'ok' });
 
   return segs;
 }
@@ -139,10 +137,10 @@ export function operatingVolume(x: {
     failedToday: today.length - ok,
     agentsToday: new Set(today.map((r) => r.agentId)).size,
     meters: [
-      { label: `Systems connected (${x.connected}/${x.totalConnections})`, frac: pct(x.connected, x.totalConnections), display: `${Math.round(pct(x.connected, x.totalConnections) * 100)}%`, hue: 'var(--accent)' },
-      { label: `Agents live (${x.activeAgents}/${x.totalAgents})`, frac: pct(x.activeAgents, x.totalAgents), display: `${Math.round(pct(x.activeAgents, x.totalAgents) * 100)}%`, hue: 'var(--ramp-1)' },
-      { label: `Runs OK today (${ok}/${today.length})`, frac: pct(ok, today.length), display: today.length ? `${ok} ok · ${today.length - ok} failed` : 'no runs yet', hue: today.length - ok > 0 ? 'var(--warn)' : 'var(--ok)' },
-      { label: 'G-Brain health', frac: x.health === null ? 0 : Math.max(0, Math.min(1, x.health / 100)), display: x.health === null ? 'offline' : `${x.health} / 100`, hue: 'var(--ramp-4)' },
+      { label: t('Systems connected ({n}/{total})', { n: x.connected, total: x.totalConnections }), frac: pct(x.connected, x.totalConnections), display: `${Math.round(pct(x.connected, x.totalConnections) * 100)}%`, hue: 'var(--accent)' },
+      { label: t('Agents live ({n}/{total})', { n: x.activeAgents, total: x.totalAgents }), frac: pct(x.activeAgents, x.totalAgents), display: `${Math.round(pct(x.activeAgents, x.totalAgents) * 100)}%`, hue: 'var(--ramp-1)' },
+      { label: t('Runs OK today ({n}/{total})', { n: ok, total: today.length }), frac: pct(ok, today.length), display: today.length ? t('{ok} ok · {failed} failed', { ok, failed: today.length - ok }) : t('no runs yet'), hue: today.length - ok > 0 ? 'var(--warn)' : 'var(--ok)' },
+      { label: t('G-Brain health'), frac: x.health === null ? 0 : Math.max(0, Math.min(1, x.health / 100)), display: x.health === null ? t('offline') : `${x.health} / 100`, hue: 'var(--ramp-4)' },
     ],
   };
 }
@@ -184,13 +182,13 @@ export function sourceMix(items: { source: string }[]): { label: string; count: 
 export function homeAttention(x: { inbound: number; failedToday: number; connectorsDown: number; doneToday: number }): { count: number; headline: string; frac: number } {
   const count = x.inbound + x.failedToday + x.connectorsDown;
   const parts = [
-    x.inbound > 0 ? `${x.inbound} inbound` : null,
-    x.failedToday > 0 ? plural(x.failedToday, 'failed run') : null,
-    x.connectorsDown > 0 ? `${plural(x.connectorsDown, 'connector')} down` : null,
+    x.inbound > 0 ? t('{n} inbound', { n: x.inbound }) : null,
+    x.failedToday > 0 ? (x.failedToday === 1 ? t('{n} failed run', { n: x.failedToday }) : t('{n} failed runs', { n: x.failedToday })) : null,
+    x.connectorsDown > 0 ? (x.connectorsDown === 1 ? t('{n} connector down', { n: x.connectorsDown }) : t('{n} connectors down', { n: x.connectorsDown })) : null,
   ].filter(Boolean);
   return {
     count,
-    headline: count === 0 ? 'Nothing is waiting on you.' : parts.join(' · '),
+    headline: count === 0 ? t('Nothing is waiting on you.') : parts.join(' · '),
     frac: count === 0 ? 0 : count / (count + Math.max(0, x.doneToday)),
   };
 }

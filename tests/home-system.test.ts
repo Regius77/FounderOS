@@ -92,12 +92,12 @@ describe('F1: no G-Brain health on Home (H-1, H-2, AC-4)', () => {
       expect(src).not.toMatch(/\.overview\(\)/);
       expect(src).not.toMatch(/healthScore|doctor\.connected|G-Brain doctor/);
       expect(src).not.toMatch(/>\s*G-Brain health\s*</);
-      expect(src).toContain('title="Overall status from failed runs and connectors"');
+      expect(src).toContain("title={t('Overall status from failed runs and connectors')}");
     }
     expect(G).not.toContain('function SystemCard');
     expect(C).toContain('createGBrainProvider().localStats()');
     // the page count stays: it is a count, not health
-    expect(G).toContain('label="brain pages"');
+    expect(G).toContain("label={t('brain pages')}");
   });
 
   test.each([

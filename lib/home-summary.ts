@@ -4,6 +4,7 @@
  * or reads the clock implicitly, so every number on Home is unit-testable.
  */
 import type { CommsItem } from '@/lib/comms';
+import { t } from '@/lib/i18n';
 
 const HOUR_MS = 3_600_000;
 const DAY_MS = 24 * HOUR_MS;
@@ -117,10 +118,10 @@ export function revenueSummary(categories: { key: string; label: string; usd: nu
 /** Compact age: "now", "12m", "5h", "46d". Future timestamps read "now". */
 export function relAge(iso: string, now: Date = new Date()): string {
   const m = Math.floor((now.getTime() - new Date(iso).getTime()) / 60_000);
-  if (!Number.isFinite(m) || m < 1) return 'now';
-  if (m < 60) return `${m}m`;
+  if (!Number.isFinite(m) || m < 1) return t('now');
+  if (m < 60) return t('{n}m', { n: m });
   const h = Math.floor(m / 60);
-  return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
+  return h < 24 ? t('{n}h', { n: h }) : t('{n}d', { n: Math.floor(h / 24) });
 }
 
 /**
@@ -129,6 +130,7 @@ export function relAge(iso: string, now: Date = new Date()): string {
  */
 export function lastRunCaption(lastRunAt: string | null | undefined, now: Date = new Date()): string | null {
   if (!lastRunAt || !Number.isFinite(Date.parse(lastRunAt))) return null;
-  const age = relAge(lastRunAt, now);
-  return age === 'now' ? 'last run just now' : `last run ${age} ago`;
+  const m = Math.floor((now.getTime() - new Date(lastRunAt).getTime()) / 60_000);
+  if (!Number.isFinite(m) || m < 1) return t('last run just now');
+  return t('last run {age} ago', { age: relAge(lastRunAt, now) });
 }

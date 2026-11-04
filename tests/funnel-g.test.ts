@@ -53,7 +53,7 @@ describe('funnel GladOS tree (AC02.5 to AC02.12, GP4)', () => {
   });
   test('grain lives in the Touches card and still writes ?grain= (AC02.9)', () => {
     const touches = src.slice(src.indexOf('const touchCard'), src.indexOf('const dotCard'));
-    expect(touches).toContain('label="Touches chart grain"');
+    expect(touches).toContain("label={t('Touches chart grain')}");
     expect(src).toContain("put('grain', grain, 'monthly')");
   });
   test('every URL param round-trips (AC02.12)', () => {
@@ -65,8 +65,8 @@ describe('funnel GladOS tree (AC02.5 to AC02.12, GP4)', () => {
   });
   test('journeys paginate by 50 and the trail collapses to the last touch (AC02.10, FR-F8)', () => {
     expect(src).toContain('tableJourneys.slice(0, shown)');
-    expect(src).toContain('Show {Math.min(PAGE_ROWS');
-    expect(src).toContain("label: 'Last touch'");
+    expect(src).toContain("t('Show {n} more', { n: Math.min(PAGE_ROWS");
+    expect(src).toContain("label: t('Last touch')");
   });
   test('no kebabs, no sparkle, no raw controls, no literals, no mono, no brand literal', () => {
     expect(src).not.toMatch(/Kebab|Sparkles|fc-/);

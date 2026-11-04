@@ -117,7 +117,7 @@ export function BrainCore({
                   )}
                   {!doctor.connected && (
                     <div className="flex items-center gap-2.5 text-[12.5px] text-os-muted">
-                      <span className="dot err" /> Doctor offline
+                      <span className="dot err" /> {t('Doctor offline')}
                       <SetupLink href="/setup" hint={doctor.detail} className="ml-auto" />
                     </div>
                   )}

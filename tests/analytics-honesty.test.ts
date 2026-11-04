@@ -35,6 +35,6 @@ describe('/analytics honesty (H21 to H23)', () => {
     expect(page).toMatch(/windowRuns === 0 \?/);
     expect(page).toContain('No runs in the last 14 days');
     expect(page).toContain('No agent runs recorded yet');
-    expect(page).toMatch(/Last run \{fmtShort\(lastRunAt/);
+    expect(page).toMatch(/t\('Last run \{date\}', \{ date: fmtShort\(lastRunAt/);
   });
 });

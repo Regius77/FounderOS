@@ -31,7 +31,7 @@ describe('/drift says nothing is sent (H35)', () => {
 
   test('the draft footer says Not sent, links Comms, and offers Copy of the draft text', () => {
     expect(SRC).toMatch(/Not sent\. Copy it, or send from/);
-    expect(SRC).toMatch(/<Link href="\/inbox"[^>]*>\s*Comms\s*<\/Link>/);
+    expect(SRC).toMatch(/<Link href="\/inbox"[^>]*>\s*\{t\('Comms'\)\}\s*<\/Link>/);
     expect(SRC).toMatch(/<CopyButton text=\{fix\.message\}/);
     expect(SRC).toMatch(/navigator\.clipboard\.writeText\(text\)/);
   });

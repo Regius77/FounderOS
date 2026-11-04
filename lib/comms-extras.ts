@@ -9,6 +9,7 @@
 import type { CommsDigest, DigestEntry } from '@/lib/comms-digest';
 import { assignLanes, hourBounds } from '@/lib/calendar-layout';
 import type { CallRecording } from '@/lib/schemas';
+import { localeTag, t } from '@/lib/i18n';
 
 // ── F3 morning digest ────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ export const DIGEST_LANES: { id: DigestLaneId; label: string }[] = [
   { id: 'email', label: 'Email' },
   { id: 'slack', label: 'Slack' },
   { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'calendar', label: 'Calendar' },
+  { id: 'calendar', label: t('Calendar') },
 ];
 
 export type DigestEvent = { id: string; title: string; start: string; end: string | null; allDay: boolean };
@@ -50,9 +51,9 @@ export function digestState(opts: { cronEnabled: boolean; latestDate: string | n
 }
 
 export const DIGEST_COPY = {
-  off: 'Morning digest is off on this instance.',
-  offHint: 'The digest is written at 07:00 by the cron runner, which only runs where GLADOS_CRON=1 is set (the always-on host).',
-  pending: "Today's digest arrives at 7:00.",
+  off: t('Morning digest is off on this instance.'),
+  offHint: t('The digest is written at 07:00 by the cron runner, which only runs where GLADOS_CRON=1 is set (the always-on host).'),
+  pending: t("Today's digest arrives at 7:00."),
 } as const;
 
 export type DigestLane = { id: DigestLaneId; label: string; entries: DigestEntry[]; events: DigestEvent[]; needsReply: number };
@@ -79,13 +80,13 @@ export type RecordingsData = {
   sample: boolean;
 };
 
-export const RECORDINGS_EMPTY = 'No recordings yet.';
+export const RECORDINGS_EMPTY = t('No recordings yet.');
 
 export function formatDuration(seconds: number | null): string {
-  if (seconds === null || !Number.isFinite(seconds)) return 'unknown length';
+  if (seconds === null || !Number.isFinite(seconds)) return t('unknown length');
   const m = Math.round(seconds / 60);
-  if (m < 60) return `${m} min`;
-  return `${Math.floor(m / 60)} h ${m % 60} min`;
+  if (m < 60) return t('{n} min', { n: m });
+  return t('{h} h {m} min', { h: Math.floor(m / 60), m: m % 60 });
 }
 
 // ── F5 Slack client board ────────────────────────────────────────────────
@@ -159,7 +160,7 @@ export function weekDays(events: DigestEvent[], now: Date): { days: WeekDay[]; l
     return {
       key: ymd(b),
       date: ymd(b),
-      label: `${b.toLocaleDateString('en-US', { weekday: 'short' })} ${b.getDate()}`,
+      label: `${b.toLocaleDateString(localeTag(), { weekday: 'short' })} ${b.getDate()}`,
       isToday: i === 0,
       allDay: allDay[i],
       timed: mine.map((t, k) => ({

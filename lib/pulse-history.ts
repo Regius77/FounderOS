@@ -6,6 +6,8 @@
  * pulse row never shows a fabricated trend again.
  */
 
+import { t } from '@/lib/i18n';
+
 const DAY_MS = 86_400_000;
 
 /** UTC date keys (YYYY-MM-DD) for the last `days` days, oldest first. */
@@ -61,8 +63,6 @@ export type PulseFacts = {
   failedRuns: number;
 };
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
 /**
  * The fact segments of the status line, worst-first: failed runs, downed
  * connectors, then inbound in the last 24h, always
@@ -76,10 +76,10 @@ export function stateOfWorld(f: PulseFacts): StateSegment[] {
   const segs: StateSegment[] = [];
   const down = Math.max(0, f.totalConnectors - f.connected);
 
-  if (f.failedRuns > 0) segs.push({ text: `${plural(f.failedRuns, 'run')} failed`, tone: 'err', href: '/agents' });
-  if (down > 0) segs.push({ text: `${plural(down, 'connector')} down`, tone: 'warn', href: '/integrations' });
-  if (f.inbound > 0) segs.push({ text: `${f.inbound} inbound · 24h`, tone: 'accent', href: '/inbox' });
-  segs.push({ text: `${f.activeAgents}/${f.totalAgents} agents live`, tone: f.activeAgents > 0 ? 'ok' : 'dim', href: '/agents' });
+  if (f.failedRuns > 0) segs.push({ text: f.failedRuns === 1 ? t('{n} run failed', { n: f.failedRuns }) : t('{n} runs failed', { n: f.failedRuns }), tone: 'err', href: '/agents' });
+  if (down > 0) segs.push({ text: down === 1 ? t('{n} connector down', { n: down }) : t('{n} connectors down', { n: down }), tone: 'warn', href: '/integrations' });
+  if (f.inbound > 0) segs.push({ text: t('{n} inbound · 24h', { n: f.inbound }), tone: 'accent', href: '/inbox' });
+  segs.push({ text: t('{n}/{total} agents live', { n: f.activeAgents, total: f.totalAgents }), tone: f.activeAgents > 0 ? 'ok' : 'dim', href: '/agents' });
 
   return segs;
 }
@@ -93,9 +93,9 @@ export type StatusPill = { text: string; tone: 'ok' | 'warn' | 'err' };
  */
 export function statusPill(segs: StateSegment[]): StatusPill {
   const bad = segs.filter((s) => s.tone === 'warn' || s.tone === 'err');
-  if (bad.length === 0) return { text: 'All nominal', tone: 'ok' };
+  if (bad.length === 0) return { text: t('All nominal'), tone: 'ok' };
   return {
-    text: `${bad.length} ${bad.length === 1 ? 'needs' : 'need'} attention`,
+    text: bad.length === 1 ? t('{n} needs attention', { n: bad.length }) : t('{n} need attention', { n: bad.length }),
     tone: bad.some((s) => s.tone === 'err') ? 'err' : 'warn',
   };
 }

@@ -174,7 +174,7 @@ export function KnowledgeGraphFullscreen({
           {/* the trail: node → pillar (this) → home. Same affordance inline. */}
           <button
             onClick={onBack}
-            aria-label={`Back to the ${currentDept?.name ?? 'graph'} pillar`}
+            aria-label={t('Back to the {name} pillar', { name: currentDept?.name ?? t('graph') })}
             className={gc('g-btn g-btn-sm kg-panel-back', 'flex shrink-0 items-center gap-2.5 border-b border-os-border px-3 py-3 text-left text-[12px] text-os-dim transition-colors hover:text-os-text')}
           >
             <ArrowLeft className="h-3 w-3 shrink-0" />

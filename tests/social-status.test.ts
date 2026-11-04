@@ -57,9 +57,9 @@ describe('/social queue Remove with Undo (H40)', () => {
     // one state machine for both UI styles (components/social/use-post-composer.ts)
     const c = read('components/social/use-post-composer.ts');
     expect(c).toContain('export const QUEUE_UNDO_MS = 5000;');
-    expect(read('components/PostComposer.tsx')).toMatch(/aria-label="Remove from queue"/);
-    expect(read('components/social/PostComposerG.tsx')).toMatch(/aria-label="Remove from queue"/);
-    expect(c).toMatch(/label: 'Undo'/);
+    expect(read('components/PostComposer.tsx')).toMatch(/aria-label=\{t\('Remove from queue'\)\}/);
+    expect(read('components/social/PostComposerG.tsx')).toMatch(/aria-label=\{t\('Remove from queue'\)\}/);
+    expect(c).toMatch(/label: t\('Undo'\)/);
     expect(c).toMatch(/method: 'DELETE'/);
     expect(c).toMatch(/res\.status === 409\) \{\s*restore\(entry\)/);
   });

@@ -1,5 +1,6 @@
 import type { AgentRun, AgentTask } from '@/lib/schemas';
 import { relAge } from '@/lib/home-summary';
+import { t } from '@/lib/i18n';
 
 /**
  * Home's "Needs you" and "Done today" (founderos-ui pages/feature-additions.md
@@ -106,13 +107,13 @@ export function doneToday(tasks: AgentTask[], runs: AgentRun[], now: Date = new 
 
 /** The Done today caption: what the count is made of. */
 export function doneCaption(d: DoneToday): string {
-  if (d.count === 0) return 'Since midnight';
+  if (d.count === 0) return t('Since midnight');
   const parts = [];
-  if (d.tasks > 0) parts.push(`${d.tasks} ${d.tasks === 1 ? 'task' : 'tasks'}`);
-  if (d.runs > 0) parts.push(`${d.runs} ${d.runs === 1 ? 'run' : 'runs'}`);
-  return `${parts.join(' · ')} since midnight`;
+  if (d.tasks > 0) parts.push(d.tasks === 1 ? t('{n} task', { n: d.tasks }) : t('{n} tasks', { n: d.tasks }));
+  if (d.runs > 0) parts.push(d.runs === 1 ? t('{n} run', { n: d.runs }) : t('{n} runs', { n: d.runs }));
+  return t('{parts} since midnight', { parts: parts.join(' · ') });
 }
 
 /** Copy for the empty states (F2 States). */
-export const NEEDS_YOU_EMPTY = 'Nothing waiting on you.';
-export const DONE_TODAY_EMPTY = 'Nothing finished yet today.';
+export const NEEDS_YOU_EMPTY = t('Nothing waiting on you.');
+export const DONE_TODAY_EMPTY = t('Nothing finished yet today.');

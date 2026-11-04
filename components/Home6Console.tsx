@@ -32,6 +32,9 @@ import { FinancePipelineStrip } from '@/components/FinancePipelineStrip';
 import { configuredProcessors, monthToDateIncome, fanbasisMonthToDateIncome } from '@/lib/connectors/payments';
 import { incomeAccounts, incomeCategories } from '@/lib/finances';
 import { OPERATOR_NAME } from '@/lib/operator';
+
+/** The operator's name, or the translated default when GLADOS_OPERATOR_NAME is unset. */
+const operatorName = (): string => (OPERATOR_NAME === 'Operator' ? t('Operator') : OPERATOR_NAME);
 import { isFilming } from '@/lib/demo-mode';
 import { runtimeEnv } from '@/lib/creds';
 import { demoIncomeCategories } from '@/lib/finance-demo';
@@ -477,7 +480,7 @@ export async function Home6Console() {
     const now = new Date();
     const todayIso = now.toISOString().slice(0, 10);
     const data: HomeGData = {
-      greeting: `${greeting()}, ${OPERATOR_NAME}`,
+      greeting: `${greeting()}, ${operatorName()}`,
       status: {
         pill,
         segments: hero.slice(0, 3).map((s) => ({ text: s.text, href: s.href ?? null, tone: s.tone })),
@@ -548,13 +551,13 @@ export async function Home6Console() {
         {/* header */}
         <div className="mb-5">
           <div className="h6-greeting font-medium leading-tight tracking-[-0.01em]" style={{ color: 'var(--text)' }}>
-            {greeting()}, {OPERATOR_NAME}
+            {greeting()}, {operatorName()}
           </div>
           <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[12.5px]">
             <span
               className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px]"
               style={{ borderColor: pillStyle.rgb, color: pillStyle.text }}
-              title="Overall status from failed runs and connectors"
+              title={t('Overall status from failed runs and connectors')}
             >
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: pillStyle.dot }} />
               {pill.text}
@@ -637,7 +640,7 @@ export async function Home6Console() {
                 <Home6Chart days={activeDays} series={activeSeries} title={chartTitle} />
               ) : (
                 <div className="h6-chart-skeleton flex flex-col items-center justify-center gap-2 text-[12px]" style={{ color: 'var(--text-3)' }}>
-                  No posting or comms history yet
+                  {t('No posting or comms history yet')}
                   <SetupLink href={setupHrefFor('zernio')} hint={t('connect Zernio for posting history')} />
                 </div>
               )}
@@ -694,7 +697,7 @@ export async function Home6Console() {
               </div>
               {dated.length === 0 ? (
                 <div className="flex flex-col items-start gap-2 py-3 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  Brain store not mounted
+                  {t('Brain store not mounted')}
                   <SetupLink href="/setup" hint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
                 </div>
               ) : (
@@ -748,7 +751,7 @@ export async function Home6Console() {
               </div>
               {audienceTiles.length === 0 ? (
                 <div className="flex flex-col items-start gap-2 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  No audience history yet
+                  {t('No audience history yet')}
                   <SetupLink href={setupHrefFor('zernio')} hint={t('connect Zernio to track followers')} />
                 </div>
               ) : (
@@ -837,7 +840,7 @@ export async function Home6Console() {
                 <span
                   className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10.5px] tabular-nums"
                   style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: GOLD, border: '1px solid color-mix(in srgb, var(--accent) 35%, transparent)' }}
-                  title={`${activeAgents} of ${agents.length} agents active`}
+                  title={t('{n} of {total} agents active', { n: activeAgents, total: agents.length })}
                 >
                   {activeAgents}
                 </span>
@@ -865,12 +868,12 @@ export async function Home6Console() {
                   className="h6-row flex items-center rounded-[10px] border px-3 py-2 text-[12px]"
                   style={{ borderColor: 'rgb(var(--mist-rgb) / 0.09)', color: 'var(--text-2)' }}
                 >
-                  +{moreLive} more
+                  {t('+{n} more', { n: moreLive })}
                 </Link>
               )}
               {liveAgents.length === 0 && (
                 <div className="flex flex-col items-start gap-2 text-[11.5px]" style={{ color: 'var(--text-3)' }}>
-                  No agents live
+                  {t('No agents live')}
                   <SetupLink href="/agents" hint={t('no agent is active; open Agents to set one up')} />
                 </div>
               )}

@@ -32,7 +32,7 @@ export default function DatabasePage() {
           <GCard p={24}>
             <GEmpty
               kind="unconfigured"
-              title="No brain folder found on this machine"
+              title={t('No brain folder found on this machine')}
               body={t('Looked in {paths}. Set BRAIN_DIR in .env.local to point at it.', { paths: db.tried.join(t(' and ')) })}
               setupHref="/setup"
               setupHint={t("Set BRAIN_DIR to the brain folder's path")}

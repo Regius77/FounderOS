@@ -78,6 +78,6 @@ describe('workforce honesty (both styles)', () => {
     const ws = src('components/inbox/useInboxWorkspace.ts');
     expect(ws).toMatch(/from '@\/lib\/inbox-triage'/);
     expect(ws).toMatch(/Saved on this browser\./);
-    expect(ws).toMatch(/label: 'Undo'/);
+    expect(ws).toMatch(/label: t\('Undo'\)/);
   });
 });

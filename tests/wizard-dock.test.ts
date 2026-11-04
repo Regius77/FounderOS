@@ -87,6 +87,6 @@ describe('openWizard (FR-GP2.1)', () => {
     expect(src).toMatch(/setBroadcast\(false\); \/\/ the chip resets after each send/);
     expect(src).toContain('fetch(sendEndpoint(toAll)');
     // both trees offer the chip (FR-GP2.4: the dock is shell, both styles)
-    expect(src.match(/Send to every agent\s*</g)?.length).toBe(2);
+    expect(src.match(/\{t\('Send to every agent'\)\}\s*</g)?.length).toBe(2);
   });
 });

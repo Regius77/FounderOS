@@ -47,7 +47,7 @@ export function RadialStage({ data }: { data: ObservatoryData }) {
         <GBrainRadialLazy data={data} g fullscreen={fs} />
       ) : (
         <div className="kg-stage-empty">
-          <GEmpty kind="unconfigured" title="No brain-store mounted" body={t("The radial draws the brain-store's folders and pages once it is mounted.")} setupHref="/setup" setupHint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
+          <GEmpty kind="unconfigured" title={t('No brain-store mounted')} body={t("The radial draws the brain-store's folders and pages once it is mounted.")} setupHref="/setup" setupHint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')} />
         </div>
       )}
     </GVizStage>
@@ -115,7 +115,7 @@ export function DoctorHero({ doctor, lastRun, fallbackActive }: { doctor: Doctor
       <GSheet open={open} onClose={() => setOpen(false)} title={t('Doctor · search')} caption={doctor.connected ? t('{n} of {total} checks need attention', { n: warnings.length, total: doctor.checks.length }) : t('Doctor offline')} width={720}>
         <div className="kg-stack">
           {!doctor.connected ? (
-            <GEmpty kind="unconfigured" title="The engine CLI is unreachable" body={doctor.detail} setupHref="/setup" setupHint={doctor.detail} />
+            <GEmpty kind="unconfigured" title={t('The engine CLI is unreachable')} body={doctor.detail} setupHref="/setup" setupHint={doctor.detail} />
           ) : (
             <GList divided label={t('Doctor checks')}>
               {doctor.checks.map((c) => (

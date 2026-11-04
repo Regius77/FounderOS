@@ -51,7 +51,7 @@ import type { AgentRun, AgentTask } from '@/lib/schemas';
 import { AgentSheetHost } from '@/components/agents/AgentSheet';
 import { openAgentSheet } from '@/components/agents/agent-param';
 import { TimeGrid } from './TimeGrid';
-import { locale, localeTag, t } from '@/lib/i18n';
+import { localeTag, t } from '@/lib/i18n';
 
 /**
  * /tasks under the GladOS style (glados-ui SPEC S04 §4.3, X5). Same data and
@@ -508,7 +508,7 @@ function Outcomes({
         <GEmpty
           inline
           kind="unconfigured"
-          title="No agent runs recorded yet"
+          title={t('No agent runs recorded yet')}
           body={t('Success rate is measured from real runs.')}
           setupHref="/agents"
           setupHint={t('Agents run on the host; bring one online to start recording runs.')}
@@ -520,21 +520,12 @@ function Outcomes({
       body = (
         <GEmpty
           inline
-          title={
-            locale() === 'it'
-              ? t('No runs in the {range} · last run {since}', { range: rangeLabel, since: sinceText(lastRunAt, now) })
-              : `No runs in the ${rangeLabel} · last run ${sinceText(lastRunAt, now)}`
-          }
+          title={t('No runs in the {range} · last run {since}', { range: rangeLabel, since: sinceText(lastRunAt, now) })}
           body={t('The success rate is measured from runs in the page range.')}
           action={
             offer
               ? {
-                  label:
-                    locale() === 'it'
-                      ? offer.days === 365
-                        ? t('Widen to 12 months')
-                        : t('Widen to {n} days', { n: offer.days })
-                      : `Widen to ${offer.days === 365 ? '12 months' : `${offer.days} days`}`,
+                  label: offer.days === 365 ? t('Widen to 12 months') : t('Widen to {n} days', { n: offer.days }),
                   onClick: () => onWiden(offer.id),
                 }
               : undefined

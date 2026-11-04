@@ -386,7 +386,7 @@ export default async function AnalyticsPage() {
               <span className="text-[13px] text-os-muted">
                 {runs.length === 0 ? t('No agent runs recorded yet') : t('No runs in the last 14 days')}
               </span>
-              {lastRunAt && <span className="text-[12px] text-os-dim">Last run {fmtShort(lastRunAt.slice(0, 10))}</span>}
+              {lastRunAt && <span className="text-[12px] text-os-dim">{t('Last run {date}', { date: fmtShort(lastRunAt.slice(0, 10)) })}</span>}
             </div>
           ) : (
             <>

@@ -237,7 +237,7 @@ describe('F9 review and failover', () => {
     const g = read('components/agents-fo/AgentsFoG.tsx');
     expect(g).toMatch(/<GDialog[\s\S]{0,300}fo\.switchTo\(choice\)/);
     const c = read('components/agents-fo/AgentsFoClassic.tsx');
-    expect(c).toMatch(/role="alertdialog" aria-label="Confirm failover"[\s\S]{0,600}fo\.switchTo\(choice\)/);
+    expect(c).toMatch(/role="alertdialog" aria-label=\{t\('Confirm failover'\)\}[\s\S]{0,600}fo\.switchTo\(choice\)/);
     // GladOS: a Review tab and the failover select in the sheet; Classic: Review tab and the select in the work panel
     expect(read('components/agents/AgentsG.tsx')).toContain("value: 'review'");
     expect(read('components/agents/AgentSheet.tsx')).toContain('<FailoverG');

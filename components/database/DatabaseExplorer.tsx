@@ -300,7 +300,7 @@ export function DatabaseExplorer({ initial }: { initial: Tree }) {
               {pinned && (
                 <p className="mx-4 mt-1.5 flex items-center gap-2 text-[11.5px] text-os-muted">
                   <span className="min-w-0 flex-1 truncate">{t('Showing {n} of {total} with {kind}', { n: listItems.length, total: viewItems.length, kind: KINDS.find((x) => x.id === pinned)!.label.toLowerCase() })}</span>
-                  <button type="button" onClick={() => setPinned(null)} className="shrink-0 rounded-[6px] px-1.5 py-0.5 text-os-text hover:bg-[var(--accent-soft)]">Clear</button>
+                  <button type="button" onClick={() => setPinned(null)} className="shrink-0 rounded-[6px] px-1.5 py-0.5 text-os-text hover:bg-[var(--accent-soft)]">{t('Clear')}</button>
                 </p>
               )}
               <ul className="min-h-0 flex-1 overflow-auto px-4 pb-2" onMouseLeave={() => setHover(null)}>

@@ -1,5 +1,6 @@
 import type { CommsItem, CommsSource } from '@/lib/comms';
 import type { CalEvent } from '@/lib/connectors/gcal';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 /**
  * The /inbox model (2026-09-16). One reading surface for every channel —
@@ -15,33 +16,33 @@ export const SOURCES: { id: InboxSource; label: string }[] = [
   { id: 'email', label: 'Email' },
   { id: 'slack', label: 'Slack' },
   { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'calendar', label: 'Meetings' },
+  { id: 'calendar', label: t('Meetings') },
 ];
 
 export type Triage = 'reply' | 'waiting' | 'fyi' | 'done';
 
 export const TRIAGE: { id: Triage; label: string; hint: string }[] = [
-  { id: 'reply', label: 'Needs reply', hint: 'They asked something, or a priority contact is waiting on you' },
-  { id: 'waiting', label: 'Waiting on them', hint: 'The ball is in their court' },
-  { id: 'fyi', label: 'FYI', hint: 'Read it, nothing to send back' },
-  { id: 'done', label: 'Done', hint: 'Older than three days with nothing unread' },
+  { id: 'reply', label: t('Needs reply'), hint: t('They asked something, or a priority contact is waiting on you') },
+  { id: 'waiting', label: t('Waiting on them'), hint: t('The ball is in their court') },
+  { id: 'fyi', label: 'FYI', hint: t('Read it, nothing to send back') },
+  { id: 'done', label: tc('inbox', 'Done'), hint: t('Older than three days with nothing unread') },
 ];
 
 export type Sort = 'newest' | 'oldest' | 'urgency';
 
 export const SORTS: { id: Sort; label: string }[] = [
-  { id: 'newest', label: 'Newest first' },
-  { id: 'oldest', label: 'Oldest first' },
-  { id: 'urgency', label: 'Most urgent' },
+  { id: 'newest', label: t('Newest first') },
+  { id: 'oldest', label: t('Oldest first') },
+  { id: 'urgency', label: t('Most urgent') },
 ];
 
 export type Range = 'today' | 'yesterday' | 'week' | 'all';
 
 export const RANGES: { id: Range; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: 'yesterday', label: 'Yesterday' },
-  { id: 'week', label: 'Last 7 days' },
-  { id: 'all', label: 'All' },
+  { id: 'today', label: t('Today') },
+  { id: 'yesterday', label: t('Yesterday') },
+  { id: 'week', label: t('Last 7 days') },
+  { id: 'all', label: tc('inbox', 'All') },
 ];
 
 export type MediaKind = 'image' | 'video' | 'gif' | 'voice' | 'document';
@@ -116,13 +117,13 @@ export function triageOf(item: CommsItem, now: Date = new Date()): { triage: Tri
   const reasons: string[] = [];
   const ageMs = now.getTime() - Date.parse(item.ts);
   const unread = item.unread ?? 0;
-  if (item.priority === 1) reasons.push('Priority 1 contact');
-  else if (item.priority === 2) reasons.push('Priority 2 contact');
-  if (QUESTION_RE.test(item.preview)) reasons.push('They asked a question');
-  if (unread) reasons.push(unread === 1 ? '1 unread message' : `${unread} unread messages`);
+  if (item.priority === 1) reasons.push(t('Priority 1 contact'));
+  else if (item.priority === 2) reasons.push(t('Priority 2 contact'));
+  if (QUESTION_RE.test(item.preview)) reasons.push(t('They asked a question'));
+  if (unread) reasons.push(unread === 1 ? t('1 unread message') : t('{n} unread messages', { n: unread }));
 
   if (ageMs > 3 * DAY && unread === 0 && item.priority !== 1) {
-    reasons.push('Older than three days, nothing unread');
+    reasons.push(t('Older than three days, nothing unread'));
     return { triage: 'done', reasons };
   }
   // Unread stands on its own. Priority comes from contact tags, and a fresh
@@ -132,10 +133,10 @@ export function triageOf(item: CommsItem, now: Date = new Date()): { triage: Tri
     return { triage: 'reply', reasons };
   }
   if (WAITING_RE.test(item.preview)) {
-    reasons.push('They said what happens next');
+    reasons.push(t('They said what happens next'));
     return { triage: 'waiting', reasons };
   }
-  reasons.push('Nothing to send back');
+  reasons.push(t('Nothing to send back'));
   return { triage: 'fyi', reasons };
 }
 
@@ -211,11 +212,11 @@ export function buildThreads(feed: CommsItem[], events: CalEvent[] = [], now: Da
       source: 'calendar',
       sender: ev.title,
       context: ev.account,
-      preview: ev.location ? ev.location : ev.joinUrl ? 'Video call' : ev.allDay ? 'All day' : 'Meeting',
+      preview: ev.location ? ev.location : ev.joinUrl ? t('Video call') : ev.allDay ? t('All day') : t('Meeting'),
       ts: ev.start,
       unread: 0,
       triage: upcoming ? 'fyi' : 'done',
-      reasons: [upcoming ? 'Upcoming on your calendar' : 'Already happened'],
+      reasons: [upcoming ? t('Upcoming on your calendar') : t('Already happened')],
       event: { end: ev.end, location: ev.location, joinUrl: ev.joinUrl, allDay: ev.allDay, color: ev.color },
     });
   }
@@ -252,12 +253,12 @@ export function dateBucket(ts: string, now: Date = new Date()): 'next' | 'later'
 }
 
 export const BUCKET_LABEL: Record<ReturnType<typeof dateBucket>, string> = {
-  next: 'Up next',
-  later: 'Later this week',
-  today: 'Today',
-  yesterday: 'Yesterday',
-  week: 'This week',
-  older: 'Older',
+  next: t('Up next'),
+  later: t('Later this week'),
+  today: t('Today'),
+  yesterday: t('Yesterday'),
+  week: t('This week'),
+  older: t('Older'),
 };
 
 export interface InboxFilter {
@@ -326,17 +327,17 @@ export function initials(name: string): string {
 
 export function relativeTime(iso: string, now: Date = new Date()): string {
   const minutes = Math.round((now.getTime() - Date.parse(iso)) / 60_000);
-  if (minutes < -60) return `in ${Math.round(-minutes / 60)}h`;
-  if (minutes < 0) return `in ${-minutes}m`;
-  if (minutes < 1) return 'now';
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < -60) return t('in {n}h', { n: Math.round(-minutes / 60) });
+  if (minutes < 0) return t('in {n}m', { n: -minutes });
+  if (minutes < 1) return t('now');
+  if (minutes < 60) return t('{n}m', { n: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 48) return `${hours}h`;
-  return `${Math.round(hours / 24)}d`;
+  if (hours < 48) return t('{n}h', { n: hours });
+  return t('{n}d', { n: Math.round(hours / 24) });
 }
 
 export function clock(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString(localeTag(), { hour: 'numeric', minute: '2-digit' });
 }
 
 /** A thread's messages: the scripted history when one exists, otherwise the

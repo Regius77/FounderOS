@@ -6,6 +6,8 @@
  * department resolver.
  */
 
+import { t } from '@/lib/i18n';
+
 export type LensGroup = 'entity' | 'function' | 'action';
 
 export type Lens = { id: string; group: LensGroup; label: string };
@@ -19,31 +21,31 @@ export type LensContext = {
 };
 
 export const ENTITY_LENSES: Lens[] = [
-  { id: 'ent-people', group: 'entity', label: 'All people' },
-  { id: 'ent-subagents', group: 'entity', label: 'Sub-agents' },
-  { id: 'ent-tools', group: 'entity', label: 'Tools' },
-  { id: 'ent-workflows', group: 'entity', label: 'Workflows' },
-  { id: 'ent-sops', group: 'entity', label: 'SOPs' },
-  { id: 'ent-projects', group: 'entity', label: 'Projects' },
-  { id: 'ent-teams', group: 'entity', label: 'Teams' },
-  { id: 'ent-departments', group: 'entity', label: 'Departments' },
+  { id: 'ent-people', group: 'entity', label: t('All people') },
+  { id: 'ent-subagents', group: 'entity', label: t('Sub-agents') },
+  { id: 'ent-tools', group: 'entity', label: t('Tools') },
+  { id: 'ent-workflows', group: 'entity', label: t('Workflows') },
+  { id: 'ent-sops', group: 'entity', label: t('SOPs') },
+  { id: 'ent-projects', group: 'entity', label: t('Projects') },
+  { id: 'ent-teams', group: 'entity', label: t('Teams') },
+  { id: 'ent-departments', group: 'entity', label: t('Departments') },
 ];
 
 export const FUNCTION_LENSES: Lens[] = [
-  { id: 'fn-core', group: 'function', label: 'Core' },
-  { id: 'fn-enabling', group: 'function', label: 'Enabling' },
+  { id: 'fn-core', group: 'function', label: t('Core') },
+  { id: 'fn-enabling', group: 'function', label: t('Enabling') },
 ];
 
 export const ACTION_LENSES: Lens[] = [
-  { id: 'act-deal-triage', group: 'action', label: 'Deal triage' },
-  { id: 'act-deal-drafting', group: 'action', label: 'Deal drafting' },
-  { id: 'act-sending', group: 'action', label: 'Verified sending' },
-  { id: 'act-deal-alerts', group: 'action', label: 'Deal alerts' },
-  { id: 'act-pipeline', group: 'action', label: 'Pipeline tracking' },
-  { id: 'act-briefings', group: 'action', label: 'Briefings' },
-  { id: 'act-retrieval', group: 'action', label: 'Knowledge retrieval' },
-  { id: 'act-comms-feed', group: 'action', label: 'Unified comms feed' },
-  { id: 'act-infra-watch', group: 'action', label: 'Infra watch' },
+  { id: 'act-deal-triage', group: 'action', label: t('Deal triage') },
+  { id: 'act-deal-drafting', group: 'action', label: t('Deal drafting') },
+  { id: 'act-sending', group: 'action', label: t('Verified sending') },
+  { id: 'act-deal-alerts', group: 'action', label: t('Deal alerts') },
+  { id: 'act-pipeline', group: 'action', label: t('Pipeline tracking') },
+  { id: 'act-briefings', group: 'action', label: t('Briefings') },
+  { id: 'act-retrieval', group: 'action', label: t('Knowledge retrieval') },
+  { id: 'act-comms-feed', group: 'action', label: t('Unified comms feed') },
+  { id: 'act-infra-watch', group: 'action', label: t('Infra watch') },
 ];
 
 export const ALL_LENSES: Lens[] = [...ENTITY_LENSES, ...FUNCTION_LENSES, ...ACTION_LENSES];

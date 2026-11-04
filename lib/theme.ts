@@ -8,6 +8,8 @@
  * The registry shape is kept so a future colorway is a token block + one
  * entry here — the active theme still rides `data-theme` on <html>.
  */
+import { t } from '@/lib/i18n';
+
 export const THEMES = ['console', 'red', 'light', 'frost', 'grey-frost'] as const;
 export type Theme = (typeof THEMES)[number];
 
@@ -16,11 +18,11 @@ export const DEFAULT_THEME: Theme = 'console';
 
 /** Picker metadata: display name, one-line feel, [bg, accent, text] swatch. */
 export const THEME_META: Record<Theme, { name: string; blurb: string; swatch: [string, string, string] }> = {
-  console: { name: 'Console', blurb: 'matte teal-black, mint signal, Geist', swatch: ['#050b0c', '#00ffab', '#e9f0ed'] },
-  red: { name: 'Red', blurb: 'the AdPilot colorway, OS-wide — warm black, red signal', swatch: ['#0a0507', '#ff4557', '#f0eaec'] },
-  light: { name: 'White', blurb: 'paper white, graphite ink, the same signal mint held back to a readable green', swatch: ['#f4f5f7', '#0a8f63', '#15171a'] },
-  frost: { name: 'Frost', blurb: 'black ground, blue-white ink and glow, the sidebar hover made into a whole theme', swatch: ['#06080c', '#9fc6ff', '#eaf4ff'] },
-  'grey-frost': { name: 'Grey Frost', blurb: "Frost's ice ink, signal and glow on a soft grey ground", swatch: ['#18191d', '#9fc6ff', '#ecf2fa'] },
+  console: { name: 'Console', blurb: t('matte teal-black, mint signal, Geist'), swatch: ['#050b0c', '#00ffab', '#e9f0ed'] },
+  red: { name: t('Red'), blurb: t('the AdPilot colorway, OS-wide — warm black, red signal'), swatch: ['#0a0507', '#ff4557', '#f0eaec'] },
+  light: { name: t('White'), blurb: t('paper white, graphite ink, the same signal mint held back to a readable green'), swatch: ['#f4f5f7', '#0a8f63', '#15171a'] },
+  frost: { name: 'Frost', blurb: t('black ground, blue-white ink and glow, the sidebar hover made into a whole theme'), swatch: ['#06080c', '#9fc6ff', '#eaf4ff'] },
+  'grey-frost': { name: 'Grey Frost', blurb: t("Frost's ice ink, signal and glow on a soft grey ground"), swatch: ['#18191d', '#9fc6ff', '#ecf2fa'] },
 };
 
 export const THEME_STORAGE_KEY = 'glados-theme';

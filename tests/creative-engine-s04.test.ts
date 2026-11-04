@@ -179,15 +179,15 @@ describe('G8: Connect Arcads asks before it spends or writes, and says why a con
   test('Run the probe and Create open a confirm; only the confirm calls the API', () => {
     expect(src).toContain("onClick={() => setAsk('probe')}");
     expect(src).toContain('onClick={() => void firstRun()}');
-    expect(src).toMatch(/Spends credits on \$\{probeModel\} \(one request\)\./);
-    expect(src).toMatch(/Creates “\{newProduct\.trim\(\)\}” in your Arcads account\./);
+    expect(src).toContain("t('Spends credits on {model} (one request).', { model: probeModel })");
+    expect(src).toContain("t('Creates “{name}” in your Arcads account.', { name: newProduct.trim() })");
   });
   test('product and path pills carry aria-pressed; Reset shows the count and offers Undo; load errors retry', () => {
     // product and path choices are PickPills: aria-pressed on the paper pill (classic.tsx) and on the kit's GChip
     expect(src.match(/<PickPill /g)?.length).toBeGreaterThanOrEqual(3);
     expect(read('components/creative-engine/classic.tsx')).toMatch(/function ClassicPickPill[\s\S]*?aria-pressed=\{on\}/);
     expect(src).toMatch(/Reset session count \(/);
-    expect(src).toContain("label: 'Undo'");
+    expect(src).toContain("label: t('Undo')");
     expect(src).toContain('Retry');
   });
   test('every disabled control in the sheet has a title', () => {
@@ -207,7 +207,7 @@ describe('§3.1.7: live research asks before it spends Foreplay credits', () => 
   test('Generate arms first when not dry, names the source and count, and disarms on edit', () => {
     const gen = read('components/creative-engine/CreativeGenerator.tsx');
     expect(gen).toContain('if (!health.dry && !armed) { setArmed(true); return; }');
-    expect(gen).toContain('`Spend up to ${DEPTH_BUDGET[depth].maxCalls} Foreplay credits. Run`');
+    expect(gen).toContain("t('Spend up to {n} Foreplay credits. Run', { n: DEPTH_BUDGET[depth].maxCalls })");
     expect(gen).toContain('useEffect(() => { setArmed(false); }, [text, depth]);');
   });
 });

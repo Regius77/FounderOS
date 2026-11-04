@@ -8,14 +8,16 @@
  * the tile renders its honest empty state instead of a flattering zero.
  */
 import type { AgentRun, AgentTask, Agent, Department } from '@/lib/schemas';
+import { t, tc } from '@/lib/i18n';
+import { MONTHS_SHORT, WEEKDAYS_SHORT } from '@/lib/locale-names';
 
 export type RangeId = '7d' | '30d' | '90d' | '12mo';
 
 export const TASK_RANGES: { id: RangeId; label: string; days: number }[] = [
-  { id: '7d', label: 'Last 7 days', days: 7 },
-  { id: '30d', label: 'Last 30 days', days: 30 },
-  { id: '90d', label: 'Last 90 days', days: 90 },
-  { id: '12mo', label: 'Last 12 months', days: 365 },
+  { id: '7d', label: t('Last 7 days'), days: 7 },
+  { id: '30d', label: t('Last 30 days'), days: 30 },
+  { id: '90d', label: t('Last 90 days'), days: 90 },
+  { id: '12mo', label: t('Last 12 months'), days: 365 },
 ];
 
 export function resolveRange(param: string | null | undefined): (typeof TASK_RANGES)[number] {
@@ -79,11 +81,11 @@ export function latestRunAt(runs: AgentRun[]): string | null {
 /** "just now", "12m ago", "5h ago", "46d ago": the "last run" caption. */
 export function sinceText(iso: string, now: number): string {
   const mins = Math.floor((now - ms(iso)) / 60_000);
-  if (!Number.isFinite(mins) || mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (!Number.isFinite(mins) || mins < 1) return t('just now');
+  if (mins < 60) return t('{n}m ago', { n: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 48) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 48) return t('{n}h ago', { n: hours });
+  return t('{n}d ago', { n: Math.floor(hours / 24) });
 }
 
 /** The smallest page range that would contain `iso` (the "Widen to ..."
@@ -170,8 +172,8 @@ export function formatRuntime(msTotal: number): string {
 export type Grain = 'daily' | 'monthly' | 'yearly';
 export type OverviewBucket = { label: string; pending: number; completed: number };
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = MONTHS_SHORT;
+const WEEKDAYS = WEEKDAYS_SHORT;
 
 /**
  * Buckets for the paired-bar chart. `pending` counts tasks created in the
@@ -379,7 +381,7 @@ export function outcomeTrend(runs: AgentRun[], days: number, now: number): Outco
 
 // ── Task deep link (?task=<id>) ────────────────────────────────────────────
 
-export const TASK_STATUS_LABEL: Record<AgentTask['status'], string> = { open: 'Open', doing: 'In progress', blocked: 'Blocked', done: 'Done' };
+export const TASK_STATUS_LABEL: Record<AgentTask['status'], string> = { open: tc('task', 'Open'), doing: tc('task', 'In progress'), blocked: tc('task', 'Blocked'), done: tc('task', 'Done') };
 
 /**
  * The task a `/tasks?task=<id>` link asks for (Home's Needs you rows, the
@@ -398,10 +400,10 @@ export function linkedTask(tasks: AgentTask[], id: string | string[] | null | un
 // ── To-Do rail grouping ────────────────────────────────────────────────────
 
 export const HORIZONS: { id: 'week' | 'month' | 'quarter' | 'someday'; label: string }[] = [
-  { id: 'week', label: 'This week' },
-  { id: 'month', label: 'This month' },
-  { id: 'quarter', label: 'This quarter' },
-  { id: 'someday', label: 'Someday' },
+  { id: 'week', label: t('This week') },
+  { id: 'month', label: t('This month') },
+  { id: 'quarter', label: t('This quarter') },
+  { id: 'someday', label: t('Someday') },
 ];
 
 /** The operator's own lane, grouped for the rail. Tasks with no horizon fall
@@ -414,6 +416,6 @@ export function todoGroups(tasks: AgentTask[]): { id: string; label: string; tas
     tasks: mine.filter((t) => t.horizon === h.id),
   }));
   const unsorted = mine.filter((t) => t.horizon == null);
-  if (unsorted.length > 0) groups.push({ id: 'unsorted', label: 'Unsorted', tasks: unsorted });
+  if (unsorted.length > 0) groups.push({ id: 'unsorted', label: t('Unsorted'), tasks: unsorted });
   return groups.filter((g) => g.tasks.length > 0);
 }

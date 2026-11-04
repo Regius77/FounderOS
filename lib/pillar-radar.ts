@@ -1,6 +1,7 @@
 import type { Agent, AgentRun, Department, SopTask } from '@/lib/schemas';
 import { orderGraphDepartments } from '@/lib/knowledge-graph';
 import { lifeAreaForDepartment } from '@/lib/life-map';
+import { tc } from '@/lib/i18n';
 
 /**
  * Per-pillar health for the spider chart beside the Optimal Engine monitor: one axis
@@ -57,7 +58,7 @@ export function pillarRadarAxes(
     const score = Math.round(55 * activeShare + 30 * recency + 15 * sopCoverage);
     return {
       id: d.id,
-      label: d.name,
+      label: tc('pillar', d.name),
       color: lifeAreaForDepartment(d.id)?.color ?? d.color,
       score: clamp(15, 100, Math.max(score, 15)),
       roster: Math.round(activeShare * 100),

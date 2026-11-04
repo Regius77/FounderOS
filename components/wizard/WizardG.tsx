@@ -536,7 +536,7 @@ function SessionsG({ projects, now }: { projects: WizardProject[]; now: number }
         <GCard>
           <GSectionHeader size={22} title={t('Engine')} action={<GTag tone={engine ? (engine.present ? 'ok' : 'err') : failed ? 'err' : 'neutral'} dot>{engine ? (engine.present ? t('Present') : t('Not found')) : failed ? t('Unknown') : t('Checking')}</GTag>} />
           {engine && !engine.present ? (
-            <GEmpty inline kind="unconfigured" title="Claude binary not found on this host" body={t('The Wizard runs one exchange per message through it.')} setupHref="/setup" />
+            <GEmpty inline kind="unconfigured" title={t('Claude binary not found on this host')} body={t('The Wizard runs one exchange per message through it.')} setupHref="/setup" />
           ) : (
             <GKeyValue
               items={[

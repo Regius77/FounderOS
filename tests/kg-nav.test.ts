@@ -21,7 +21,7 @@ describe('knowledge-graph wheel navigation', () => {
 
   test('inline detail card walks back up the trail to the pillar', () => {
     const src = read('components/KnowledgeGraph.tsx');
-    expect(src).toMatch(/Back to the \$\{focusedTeam\?\.label \?\? 'graph'\} pillar/);
+    expect(src).toContain("t('Back to the {name} pillar', { name: focusedTeam?.label ?? t('graph') })");
   });
 
   test('fullscreen: selector rides the top-left, paddles hug the edges', () => {
@@ -45,7 +45,7 @@ describe('knowledge-graph wheel navigation', () => {
 
   test('fullscreen detail aside carries the same back-trail', () => {
     const src = read('components/KnowledgeGraphFullscreen.tsx');
-    expect(src).toMatch(/Back to the \$\{currentDept\?\.name \?\? 'graph'\} pillar/);
+    expect(src).toContain("t('Back to the {name} pillar', { name: currentDept?.name ?? t('graph') })");
   });
 
   test('focus mode projects the rest of the graph onto the lowered wheel', () => {

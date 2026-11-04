@@ -30,6 +30,6 @@ describe('/database kind chips are real filters (H38)', () => {
     expect(SRC).toMatch(/\{listItems\.map\(/);
     // the pinned chip stays visible (to clear it) even where the kind is absent
     expect(SRC).toMatch(/viewMix\[k\.id\] > 0 \|\| k\.id === pinned/);
-    expect(SRC).toMatch(/onClick=\{\(\) => setPinned\(null\)\}[^>]*>Clear</);
+    expect(SRC).toMatch(/onClick=\{\(\) => setPinned\(null\)\}[^>]*>\{t\('Clear'\)\}</);
   });
 });

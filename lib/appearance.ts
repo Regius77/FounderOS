@@ -26,6 +26,7 @@ import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY, isTheme, type Theme } from '.
 import { isGReady } from './g-ready';
 import { isLReady } from './l-ready';
 import { BRAND, type Brand } from './brand';
+import { t } from '@/lib/i18n';
 
 export { G_READY, G_TREE_FILES, isGReady } from './g-ready';
 export { L_READY, isLReady } from './l-ready';
@@ -38,7 +39,7 @@ export const UI_STYLES = ['classic', 'glados', 'legacy'] as const;
 export type UiStyle = (typeof UI_STYLES)[number];
 
 /** User-facing style names. Legacy's is fixed (T1); GladOS's is the product name (§3.6). */
-export const STYLE_LABELS: Record<UiStyle, string> = { glados: BRAND.name, classic: 'Classic', legacy: 'Bennett Legacy' };
+export const STYLE_LABELS: Record<UiStyle, string> = { glados: BRAND.name, classic: t('Classic'), legacy: 'Bennett Legacy' };
 
 /**
  * Legacy skins (FO THEME_META). T2 default: Monolith only, which wears its
@@ -55,8 +56,8 @@ export type LegacyTheme = (typeof LEGACY_THEMES)[number];
 
 /** Picker metadata for the two faces of the mono skin. Swatch fills are --l-swatch-* tokens. */
 export const LEGACY_FACES: Record<LegacyTheme, { name: string; blurb: string; mode: Mode }> = {
-  monolith: { name: 'Monolith', blurb: 'white on black, colour is status only', mode: 'dark' },
-  daylight: { name: 'Daylight', blurb: 'brain blue on cool white', mode: 'light' },
+  monolith: { name: 'Monolith', blurb: t('white on black, colour is status only'), mode: 'dark' },
+  daylight: { name: 'Daylight', blurb: t('brain blue on cool white'), mode: 'light' },
 };
 
 export const ACCENT_IDS = ['ice', 'lime', 'ember', 'mint'] as const;
@@ -84,10 +85,10 @@ export type AppliedAppearance = {
 
 /** Picker metadata (S00 §7). The swatch fill is each accent's hero-a token, owned by the token block. */
 export const ACCENTS: Record<Accent, { name: string; blurb: string }> = {
-  ice: { name: 'Ice', blurb: 'blue-white signal on the grey ground' },
-  lime: { name: 'Lime', blurb: 'lime badge and green heroes' },
-  ember: { name: 'Ember', blurb: 'red, orange and amber' },
-  mint: { name: 'Mint', blurb: 'mint and teal' },
+  ice: { name: t('Ice'), blurb: t('blue-white signal on the grey ground') },
+  lime: { name: t('Lime'), blurb: t('lime badge and green heroes') },
+  ember: { name: t('Ember'), blurb: t('red, orange and amber') },
+  mint: { name: t('Mint'), blurb: t('mint and teal') },
 };
 
 export const APPEARANCE_COOKIE = 'glados-appearance';

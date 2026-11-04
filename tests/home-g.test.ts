@@ -35,15 +35,15 @@ describe('heroes (FR-1 to FR-4, C22)', () => {
     expect(G.match(/<GHeroCard/g)?.length).toBe(4); // a populated and an unconfigured form each
     expect(G).toMatch(/variant="a"[\s\S]{0,60}href="\/finances"/);
     expect(G).toMatch(/variant="b"[\s\S]{0,60}href="\/inbox"/);
-    expect(G).toContain('`Revenue · ${period}`');
+    expect(G).toContain("t('Revenue · {period}', { period })");
     expect(G).toContain("'Inbound · 24h'");
     expect(G).toContain('<GShareBar');
     expect(G).toContain('<GTickStrip');
   });
 
   test('empty heroes say what is missing and route to setup (honest or absent)', () => {
-    expect(G).toMatch(/status="No payment processor connected"\s+setupHref=\{setupHrefFor\('stripe'\)\}/);
-    expect(G).toMatch(/status="Comms not connected"\s+setupHref=\{setupHrefFor\('email'\)\}/);
+    expect(G).toMatch(/status=\{t\('No payment processor connected'\)\}\s+setupHref=\{setupHrefFor\('stripe'\)\}/);
+    expect(G).toMatch(/status=\{t\('Comms not connected'\)\}\s+setupHref=\{setupHrefFor\('email'\)\}/);
     expect(G).toContain("'Quiet day · 0 in 24h'");
     expect(G).not.toContain('need reply');
   });
@@ -73,7 +73,7 @@ describe('cards (FR-5 to FR-15)', () => {
 
   test('agents live counts every active agent and says how many more (H3)', () => {
     expect(G).toContain('{live.active}');
-    expect(G).toContain('`+${live.more} more`');
+    expect(G).toContain("t('+{n} more', { n: live.more })");
   });
 
   test('no G-Brain card: health, the doctor bar and its Details drawer left Home (founderos-ui F1)', () => {

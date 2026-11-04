@@ -76,8 +76,8 @@ describe('every unconfigured surface routes to setup', () => {
   });
 
   test('brain doctor-offline states and the radial empty state route to /setup', () => {
-    expect(read('app/brain/page.tsx')).toMatch(/Doctor offline\s*<SetupLink/);
-    expect(read('components/BrainCore.tsx')).toMatch(/Doctor offline\s*<SetupLink/);
+    expect(read('app/brain/page.tsx')).toMatch(/\{t\('Doctor offline'\)\}\s*<SetupLink/);
+    expect(read('components/BrainCore.tsx')).toMatch(/\{t\('Doctor offline'\)\}\s*<SetupLink/);
     expect(read('components/GBrainRadial.tsx')).toMatch(/brain-store not mounted[\s\S]{0,300}SetupLink/);
   });
 
@@ -89,9 +89,9 @@ describe('every unconfigured surface routes to setup', () => {
 
   test('home empty states (chart, audience, freshness) each offer setup (S10)', () => {
     const home = read('components/Home6Console.tsx');
-    expect(home).toMatch(/No posting or comms history yet\s*<SetupLink href=\{setupHrefFor\('zernio'\)\}/);
-    expect(home).toMatch(/No audience history yet\s*<SetupLink href=\{setupHrefFor\('zernio'\)\}/);
-    expect(home).toMatch(/Brain store not mounted\s*<SetupLink/);
+    expect(home).toMatch(/\{t\('No posting or comms history yet'\)\}\s*<SetupLink href=\{setupHrefFor\('zernio'\)\}/);
+    expect(home).toMatch(/\{t\('No audience history yet'\)\}\s*<SetupLink href=\{setupHrefFor\('zernio'\)\}/);
+    expect(home).toMatch(/\{t\('Brain store not mounted'\)\}\s*<SetupLink/);
     expect(setupHrefFor('zernio')).toBe('/integrations#zernio');
   });
 
@@ -99,11 +99,11 @@ describe('every unconfigured surface routes to setup', () => {
     expect(setupHrefFor('meta-ads')).toBe('/integrations#meta');
     const deck = read('components/adpilot/AdPilotDeck.tsx');
     expect(deck).toContain("setupHrefFor('meta-ads')");
-    expect(deck).toMatch(/No ad account connected<\/span>\s*<SetupLink/);
+    expect(deck).toMatch(/\{t\('No ad account connected'\)\}<\/span>\s*<SetupLink/);
     const lib = read('components/adpilot/AdLibrary.tsx');
     expect(lib).toContain("setupHrefFor('foreplay')");
     // <Setup> picks the Classic SetupLink or the kit button by style (GP4)
-    expect(lib).toMatch(/Not configured <Setup href=\{FOREPLAY_SETUP\}/);
+    expect(lib).toMatch(/\{t\('Not configured'\)\} <Setup href=\{FOREPLAY_SETUP\}/);
     expect(lib).toMatch(/kind="unconfigured"[\s\S]{0,200}setupHref=\{FOREPLAY_SETUP\}/);
     const deckG = read('components/adpilot/AdPilotDeckG.tsx');
     expect(deckG).toMatch(/No ad account connected[\s\S]{0,300}setupHref=\{setupHrefFor\('meta-ads'\)\}|setupHrefFor\('meta-ads'\)[\s\S]{0,300}No ad account connected/);
@@ -153,23 +153,23 @@ describe('every unconfigured surface routes to setup', () => {
   test('Knowledge and System (GladOS trees): every unconfigured surface is a GEmpty with a Set up link (S05 F05.4, §10)', () => {
     // brain-store missing: the radial stage (edge 1); gbrain CLI unreachable: the Doctor sheet (edge 2)
     const brain = read('components/brain/BrainG.tsx');
-    expect(brain).toMatch(/kind="unconfigured" title="No brain-store mounted"[^>]*setupHref="\/setup"/);
-    expect(brain).toMatch(/kind="unconfigured" title="The engine CLI is unreachable"[^>]*setupHref="\/setup"/);
+    expect(brain).toMatch(/kind="unconfigured" title=\{t\('No brain-store mounted'\)\}[^>]*setupHref="\/setup"/);
+    expect(brain).toMatch(/kind="unconfigured" title=\{t\('The engine CLI is unreachable'\)\}[^>]*setupHref="\/setup"/);
     // drift pipeline not running (edge 8)
-    expect(read('components/knowledge/DriftG.tsx')).toMatch(/kind="unconfigured"\s+title="Drift detection is not running yet"[\s\S]{0,300}setupHref="\/setup"/);
+    expect(read('components/knowledge/DriftG.tsx')).toMatch(/kind="unconfigured"\s+title=\{t\('Drift detection is not running yet'\)\}[\s\S]{0,300}setupHref="\/setup"/);
     // compute without a MIOSA key, brain files without a folder
-    expect(read('app/compute/page.tsx')).toMatch(/kind="unconfigured"\s+title="No MIOSA key on this machine"[\s\S]{0,300}setupHref="\/setup"/);
-    expect(read('app/database/page.tsx')).toMatch(/kind="unconfigured"\s+title="No brain folder found on this machine"[\s\S]{0,300}setupHref="\/setup"/);
+    expect(read('app/compute/page.tsx')).toMatch(/kind="unconfigured"\s+title=\{t\('No MIOSA key on this machine'\)\}[\s\S]{0,300}setupHref="\/setup"/);
+    expect(read('app/database/page.tsx')).toMatch(/kind="unconfigured"\s+title=\{t\('No brain folder found on this machine'\)\}[\s\S]{0,300}setupHref="\/setup"/);
     // the GEmpty unconfigured kind always renders the Set up button
     const states = read('components/g/States.tsx');
     expect(states).toMatch(/props\.kind === 'unconfigured' && \(\s*<GButton variant="sm" href=\{props\.setupHref\}/);
   });
 
   test('workforce under the GladOS style: run outcomes, the Wizard engine and an all-disconnected inbox route to setup (S04 AC04.38)', () => {
-    expect(read('components/tasks/TasksG.tsx')).toMatch(/kind="unconfigured"[\s\S]{0,120}title="No agent runs recorded yet"[\s\S]{0,160}setupHref="\/agents"/);
-    expect(read('components/wizard/WizardG.tsx')).toMatch(/kind="unconfigured" title="Claude binary not found on this host"[\s\S]{0,120}setupHref="\/setup"/);
+    expect(read('components/tasks/TasksG.tsx')).toMatch(/kind="unconfigured"[\s\S]{0,120}title=\{t\('No agent runs recorded yet'\)\}[\s\S]{0,160}setupHref="\/agents"/);
+    expect(read('components/wizard/WizardG.tsx')).toMatch(/kind="unconfigured" title=\{t\('Claude binary not found on this host'\)\}[\s\S]{0,120}setupHref="\/setup"/);
     const inbox = read('components/inbox/InboxG.tsx');
-    expect(inbox).toMatch(/caption="Connect a channel" setupHref="\/integrations"/);
+    expect(inbox).toMatch(/caption=\{t\('Connect a channel'\)\} setupHref="\/integrations"/);
     expect(inbox).toContain('href={setupHrefFor(s.id)}');
   });
 
@@ -178,13 +178,13 @@ describe('every unconfigured surface routes to setup', () => {
     const kit = read('components/g/Surfaces.tsx');
     // an unconfigured hero renders the kit Set up button (div mode, no nested anchors)
     expect(kit).toMatch(/unconfigured && \(\s*<GButton variant="sm" href=\{setupHref\}/);
-    expect(home).toMatch(/status="No payment processor connected"\s+setupHref=\{setupHrefFor\('stripe'\)\}/);
-    expect(home).toMatch(/status="Comms not connected"\s+setupHref=\{setupHrefFor\('email'\)\}/);
-    expect(home).toMatch(/title="No posting or comms history yet"[\s\S]{0,120}setupHref=\{setupHrefFor\('zernio'\)\}/);
-    expect(home).toMatch(/title="No audience history yet"[\s\S]{0,120}setupHref=\{setupHrefFor\('zernio'\)\}/);
-    expect(home).toMatch(/title="Brain store not mounted"[\s\S]{0,160}setupHref="\/setup"/);
-    expect(home).toMatch(/title="No agent runs recorded yet"[\s\S]{0,160}setupHref="\/agents"/);
-    expect(home).toMatch(/title="No agents live"[\s\S]{0,160}setupHref="\/agents"/);
+    expect(home).toMatch(/status=\{t\('No payment processor connected'\)\}\s+setupHref=\{setupHrefFor\('stripe'\)\}/);
+    expect(home).toMatch(/status=\{t\('Comms not connected'\)\}\s+setupHref=\{setupHrefFor\('email'\)\}/);
+    expect(home).toMatch(/title=\{t\('No posting or comms history yet'\)\}[\s\S]{0,120}setupHref=\{setupHrefFor\('zernio'\)\}/);
+    expect(home).toMatch(/title=\{t\('No audience history yet'\)\}[\s\S]{0,120}setupHref=\{setupHrefFor\('zernio'\)\}/);
+    expect(home).toMatch(/title=\{t\('Brain store not mounted'\)\}[\s\S]{0,160}setupHref="\/setup"/);
+    expect(home).toMatch(/title=\{t\('No agent runs recorded yet'\)\}[\s\S]{0,160}setupHref="\/agents"/);
+    expect(home).toMatch(/title=\{t\('No agents live'\)\}[\s\S]{0,160}setupHref="\/agents"/);
     // the G-Brain health card left Home (founderos-ui F1): no health empty state remains
     expect(home).not.toContain('No health score yet');
     expect(home).toMatch(/status\.degraded && \(\s*<GButton variant="sm" href="\/setup"/);

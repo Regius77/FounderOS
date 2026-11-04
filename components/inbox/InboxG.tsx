@@ -237,7 +237,7 @@ export function InboxG({
 
       <div className="wg-ib-report">
         {allDown ? (
-          <GHeroCard variant="a" size="sm" caption="Connect a channel" setupHref="/integrations" setupHint={t('No inbox channel is connected yet')} />
+          <GHeroCard variant="a" size="sm" caption={t('Connect a channel')} setupHref="/integrations" setupHint={t('No inbox channel is connected yet')} />
         ) : (
           <GHeroCard
             variant="a"

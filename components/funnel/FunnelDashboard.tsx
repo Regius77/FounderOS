@@ -1255,7 +1255,7 @@ export function FunnelDashboard({
             <div className="fc-card fc-c1">
               <div className="fc-card-head">
                 <div className="fc-card-title">
-                  Pipeline<span className="fc-card-window">All active journeys</span>
+                  {t('Pipeline')}<span className="fc-card-window">{t('All active journeys')}</span>
                 </div>
                 <Kebab label="Pipeline" period={period} onPeriod={setPeriod} onJourneys={() => goJourneys(stage)} />
               </div>
@@ -1273,7 +1273,7 @@ export function FunnelDashboard({
             <div className="fc-card fc-c2">
               <div className="fc-card-head">
                 <div className="fc-card-title">
-                  Revenue<span className="fc-card-window">{periodWindow}</span>
+                  {t('Revenue')}<span className="fc-card-window">{periodWindow}</span>
                 </div>
                 <Kebab label={t('Revenue')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
               </div>
@@ -1324,7 +1324,7 @@ export function FunnelDashboard({
               <div className="fc-sub">
                 <div className="fc-card-head">
                   <div className="fc-card-title">
-                    New leads<span className="fc-card-window">{periodWindow}</span>
+                    {t('New leads')}<span className="fc-card-window">{periodWindow}</span>
                   </div>
                   <Kebab label={t('New leads')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('first_touch')} />
                 </div>
@@ -1352,7 +1352,7 @@ export function FunnelDashboard({
               <div className="fc-sub">
                 <div className="fc-card-head">
                   <div className="fc-card-title">
-                    Converted<span className="fc-card-window">{periodWindow}</span>
+                    {t('Converted')}<span className="fc-card-window">{periodWindow}</span>
                   </div>
                   <Kebab label={t('Converted')} period={period} onPeriod={setPeriod} onJourneys={() => goJourneys('converted')} />
                 </div>

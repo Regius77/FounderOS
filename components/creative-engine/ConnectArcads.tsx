@@ -108,7 +108,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
         text: t('Session count reset (was {credits}).', { credits: (spent === 1 ? t('{n} credit', { n: fmtCredits(spent) }) : t('{n} credits', { n: fmtCredits(spent) })) }),
         tone: 'ok',
         ms: 5000,
-        action: { label: 'Undo', onClick: () => void run('session', async () => { await api.setupAction({ action: 'settings', sessionStartedAt: before }); return t('Session count restored.'); }) },
+        action: { label: t('Undo'), onClick: () => void run('session', async () => { await api.setupAction({ action: 'settings', sessionStartedAt: before }); return t('Session count restored.'); }) },
       });
       return t('Session counter reset to zero.');
     });
@@ -141,7 +141,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
   const sessionWhy = readOnly ? SAMPLE_OFF : busyWhy;
   const probeCost = health.dry || filming
     ? t('{mode}: a fixture probe on {model}, nothing is charged.', { mode: filming ? t('Filming') : t('Dry run'), model: probeModel })
-    : `Spends credits on ${probeModel} (one request).`;
+    : t('Spends credits on {model} (one request).', { model: probeModel });
 
   return (
     <Drawer title={t('Connect Arcads')} onClose={onClose} back={back} backLabel={backLabel}>
@@ -207,7 +207,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
             </form>
             {ask === 'create' && (
               <div className="ae-confirm text-[12.5px]" role="group" aria-label={t('Confirm creating the product')}>
-                <span className="min-w-0 flex-1">Creates “{newProduct.trim()}” in your Arcads account.</span>
+                <span className="min-w-0 flex-1">{t('Creates “{name}” in your Arcads account.', { name: newProduct.trim() })}</span>
                 <Btn size="sm" tone="ink" onClick={() => void createProduct()} autoFocus>{t('Create')}</Btn>
                 <Btn size="sm" onClick={() => setAsk(null)}>{t('Cancel')}</Btn>
               </div>

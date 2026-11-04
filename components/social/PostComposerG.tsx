@@ -70,7 +70,7 @@ export function PostComposerG({ initialPosts, unconnected }: { initialPosts: Soc
                 trailing={
                   <span className="soc-g-row-trail">
                     <GTag tone={post.scheduledFor ? 'warn' : 'accent'}>{post.scheduledFor ? fmtWhen(post.scheduledFor) : t('Queued')}</GTag>
-                    <GButton variant="icon" size="sm" aria-label="Remove from queue" title={t('Remove from queue (Undo for 5 seconds)')} onClick={() => c.remove(post)}>
+                    <GButton variant="icon" size="sm" aria-label={t('Remove from queue')} title={t('Remove from queue (Undo for 5 seconds)')} onClick={() => c.remove(post)}>
                       <X size={13} strokeWidth={1.75} aria-hidden />
                     </GButton>
                   </span>

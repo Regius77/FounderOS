@@ -172,7 +172,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
         action={seeJourneys(t('Touches'), () => goJourneys())}
       />
       <div className="fn-g-grain">
-        <GSegmented<Grain> label="Touches chart grain" value={grain} onChange={setGrain} options={[{ value: 'monthly', label: t('Monthly') }, { value: 'weekly', label: t('Weekly') }]} />
+        <GSegmented<Grain> label={t('Touches chart grain')} value={grain} onChange={setGrain} options={[{ value: 'monthly', label: t('Monthly') }, { value: 'weekly', label: t('Weekly') }]} />
       </div>
       {touches.series.every((v) => v === 0) ? (
         <GEmpty inline title={grain === 'monthly' ? t('No touches in the last 6 months') : t('No touches in the last 12 weeks')} />
@@ -387,7 +387,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const contactCol: GColumn<FunnelJourney> = { key: 'contact', label: t('Contact'), render: (j) => <Contact j={j} /> };
   const lastTouchCol: GColumn<FunnelJourney> = {
     key: 'last',
-    label: 'Last touch',
+    label: t('Last touch'),
     render: (j) => {
       const last = j.touches[j.touches.length - 1];
       return last ? (
@@ -527,7 +527,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
           {table(tableJourneys.slice(0, shown), [leadCol, stageCol, quietCol, likelyCol, entryCol, valueCol, lastTouchCol, contactCol], t('Journey data'), t('No leads match those filters.'))}
           {tableJourneys.length > shown && (
             <div className="fn-g-more">
-              <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>Show {Math.min(PAGE_ROWS, tableJourneys.length - shown)} more</GButton>
+              <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>{t('Show {n} more', { n: Math.min(PAGE_ROWS, tableJourneys.length - shown) })}</GButton>
               <span className="fn-g-cap">{t('{n} of {total} shown', { n: shown, total: tableJourneys.length })}</span>
             </div>
           )}
@@ -540,7 +540,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
           {table(archived.slice(0, shown), [leadCol, { ...stageCol, label: t('Reached') }, quietCol, likelyCol, lastTouchCol, contactCol], t('Archived journeys'), t('Nothing decayed. No lead has sat quiet past {n} days.', { n: DECAY_DAYS }))}
           {archived.length > shown && (
             <div className="fn-g-more">
-              <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>Show {Math.min(PAGE_ROWS, archived.length - shown)} more</GButton>
+              <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>{t('Show {n} more', { n: Math.min(PAGE_ROWS, archived.length - shown) })}</GButton>
             </div>
           )}
         </GCard>

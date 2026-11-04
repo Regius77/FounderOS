@@ -106,7 +106,7 @@ describe('/tasks?task=<id> (Home Needs you, the composer)', () => {
     expect(read('app/api/interject/route.ts')).toContain('href: taskHref(id)');
     expect(read('app/api/interject/route.ts')).not.toContain('`/tasks?task=');
     const i = read('components/home/Interject.tsx');
-    expect(i).toMatch(/link: \{ label: 'Open', href: body\.href \?\? taskHref\(id\) \}/);
+    expect(i).toMatch(/link: \{ label: t\('Open'\), href: body\.href \?\? taskHref\(id\) \}/);
     expect(read('components/ui/Toast.tsx')).toContain('t.link.href');
   });
 });

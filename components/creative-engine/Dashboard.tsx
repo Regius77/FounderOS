@@ -434,9 +434,9 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                     )}
                     {!readOnly && !renamingH1 && (
                       <PopAnchor className="flex items-center gap-1 self-center">
-                        <Btn icon onClick={() => setRenamingH1(true)} aria-label="Rename campaign" title={t('Rename campaign')}><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
+                        <Btn icon onClick={() => setRenamingH1(true)} aria-label={t('Rename campaign')} title={t('Rename campaign')}><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
                         <ActionsMenu
-                          label="Campaign actions"
+                          label={t('Campaign actions')}
                           triggerIcon={<MoreHorizontal className="h-4 w-4" strokeWidth={1.6} />}
                           items={[
                             { id: 'rename', label: t('Rename'), icon: <PenLine className="h-4 w-4" strokeWidth={1.6} />, onSelect: () => setRenamingH1(true) },
@@ -688,7 +688,7 @@ function RerunResearch({ campaign, health, onCampaign }: { campaign: Campaign; h
   if (!health.foreplay.configured) {
     return (
       <div className="mt-4 space-y-2">
-        <Btn size="sm" disabled title="Research needs the Foreplay key" disabledReason={t('Research needs the Foreplay key')}>{t('Re-run research live')}</Btn>
+        <Btn size="sm" disabled title={t('Research needs the Foreplay key')} disabledReason={t('Research needs the Foreplay key')}>{t('Re-run research live')}</Btn>
         <div><SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" label={t('Set up Foreplay')} /></div>
       </div>
     );
@@ -712,7 +712,7 @@ function RerunResearch({ campaign, health, onCampaign }: { campaign: Campaign; h
         <Progress text={t('Researching: planning searches and keeping only ads still running')} />
       ) : phase === 'confirm' ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-[var(--p-ink)]">{health.dry ? t('Dry run: fixtures again, nothing is charged.') : `Spends up to ${max} Foreplay credits.`}</span>
+          <span className="text-[12px] text-[var(--p-ink)]">{health.dry ? t('Dry run: fixtures again, nothing is charged.') : t('Spends up to {n} Foreplay credits.', { n: max })}</span>
           <Btn tone="ink" size="sm" onClick={() => void run()}>{t('Run')}</Btn>
           <Btn size="sm" onClick={() => setPhase('idle')}>{t('Cancel')}</Btn>
         </div>

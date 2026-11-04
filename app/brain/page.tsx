@@ -401,7 +401,7 @@ export default async function BrainPage() {
               ))}
               {doctor.checks.length === 0 && (
                 <li className="flex items-center gap-3 rounded-md-t border border-dashed border-os-border px-3 py-3 text-[12.5px] text-os-dim">
-                  <span className="dot err" /> Doctor offline
+                  <span className="dot err" /> {t('Doctor offline')}
                   <SetupLink href="/setup" hint={doctor.detail} className="ml-auto" />
                 </li>
               )}

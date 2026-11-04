@@ -111,9 +111,9 @@ describe('H12, H13: funnel deltas and windows', () => {
   });
 
   test('H13: Pipeline says all active journeys; period cards name the period', () => {
-    expect(funnel).toMatch(/Pipeline<span className="fc-card-window">All active journeys<\/span>/);
+    expect(funnel).toMatch(/\{t\('Pipeline'\)\}<span className="fc-card-window">\{t\('All active journeys'\)\}<\/span>/);
     for (const card of ['Revenue', 'New leads', 'Converted']) {
-      expect(funnel).toContain(`${card}<span className="fc-card-window">{periodWindow}</span>`);
+      expect(funnel).toContain(`{t('${card}')}<span className="fc-card-window">{periodWindow}</span>`);
     }
     expect(funnel).toMatch(/const periodWindow = PERIODS\.find/);
   });
