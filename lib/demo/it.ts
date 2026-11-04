@@ -655,6 +655,179 @@ const IT: Record<string, string> = {
   '- A brand deal sender goes to the approval queue with the quote parsed': '- Un mittente di brand deal va nella coda di approvazione con il preventivo già letto',
   '- A new sender with a pricing question is scored by {agent} against the ICP first': '- Un nuovo mittente con una domanda sui prezzi viene prima valutato da {agent} rispetto all’ICP',
   '- Anything about money owed goes to {agent}': '- Tutto ciò che riguarda crediti da incassare va a {agent}',
+  // ── demo-mode.ts: tasks board ────────────────────────────────────────────
+  'Lock the September content angle: the agent-hierarchy series':
+    'Fissare l’angolo dei contenuti di settembre: la serie sulla gerarchia degli agenti',
+  'Three-part series. Angle is the org chart dissolving, not the tooling.':
+    'Serie in tre parti. L’angolo è l’organigramma che si dissolve, non gli strumenti.',
+  'Northwind Logistics: send the order form and book the kickoff': 'Northwind Logistics: inviare l’order form e fissare il kickoff',
+  'Order form is signed. Kickoff week needs to clear delivery capacity first.':
+    'L’order form è firmato. Prima di fissare la settimana del kickoff bisogna liberare capacità di consegna.',
+  'Cut the 14 minute walkthrough into six verticals': 'Tagliare il walkthrough da 14 minuti in sei verticali',
+  'Hooks at 0:00, 2:40, 6:15, 8:50, 11:05, 12:40.': 'Hook a 0:00, 2:40, 6:15, 8:50, 11:05, 12:40.',
+  'Second-touch schedule for the August cohort': 'Calendario del secondo contatto per la coorte di agosto',
+  'Review the multi-tenant data model': 'Rivedere il modello dati multi-tenant',
+  'Tune the tone gate, two false positives this week': 'Tarare il filtro sul tono: due falsi positivi questa settimana',
+  'Re-score the pipeline after the Ironwood close': 'Rivalutare la pipeline dopo la chiusura di Ironwood',
+  'Draft the Halcyon rollout one-pager': 'Scrivere la bozza del one-pager sul rollout di Halcyon',
+  'Send the 45 queued negotiation replies': 'Inviare le 45 risposte di negoziazione in coda',
+  'Waiting on you to approve the send batch. Nothing leaves until you do.':
+    'Aspetta che approvi il batch di invio. Non parte nulla finché non lo fai.',
+  'Re-index the brain-store after the September import': 'Reindicizzare il brain-store dopo l’import di settembre',
+  'Waiting on a ZeroEntropy key with write scope.': 'In attesa di una chiave ZeroEntropy con permesso di scrittura.',
+  'Vertex Freight security questionnaire': 'Questionario di sicurezza di Vertex Freight',
+  'Waiting on your sign-off for the data-retention answer.': 'Aspetta il tuo via libera sulla risposta sulla conservazione dei dati.',
+  'Approve the September send batch': 'Approvare il batch di invio di settembre',
+  'Call the designer about the demo host': 'Chiamare il designer per l’host della demo',
+  'Record the walkthrough voiceover': 'Registrare la voce fuori campo del walkthrough',
+  'Decide the Q4 pricing tiers': 'Decidere le fasce di prezzo del Q4',
+  'Hire a second editor': 'Assumere un secondo montatore',
+  'Move the fleet onto the mini': 'Spostare la flotta sul mini',
+  'Write the operator handbook': 'Scrivere il manuale dell’operatore',
+  'Open-source the workflow engine': 'Rendere open source il motore dei workflow',
+  'Ship the funnel dashboard': 'Rilasciare la dashboard del funnel',
+  'Migrate the brand-deal pipeline': 'Migrare la pipeline dei brand deal',
+  'Rebuild the wizard': 'Ricostruire il Wizard',
+  'Import the Claude archive': 'Importare l’archivio di Claude',
+  'Wire the Attio connector': 'Collegare il connettore Attio',
+  'Cut the Q2 sizzle reel': 'Montare il sizzle reel del Q2',
+  'Close the Ironwood contract': 'Chiudere il contratto con Ironwood',
+  'Rewrite the onboarding SOP': 'Riscrivere la SOP di onboarding',
+  'Audit the vector index': 'Verificare l’indice vettoriale',
+  'Ship the blueprint view': 'Rilasciare la vista blueprint',
+  'Retire the org chart': 'Mandare in pensione l’organigramma',
+  'Tune the inbound watcher': 'Tarare il monitor dei messaggi in entrata',
+  'Publish module three': 'Pubblicare il modulo tre',
+  'Reconcile the August close': 'Riconciliare la chiusura di agosto',
+  'Fix the tone gate regressions': 'Correggere le regressioni del filtro sul tono',
+  'Onboard Cascade Health': 'Fare l’onboarding di Cascade Health',
+  'Batch the September verticals': 'Preparare in blocco i verticali di settembre',
+  'Refresh the skills library': 'Aggiornare la libreria delle skill',
+
+  // ── demo-mode.ts: connector details ──────────────────────────────────────
+  'optimal · 412 pages indexed · hybrid search verified': 'optimal · 412 pagine indicizzate · ricerca ibrida verificata',
+  '4 inboxes connected · 37 unread across all': '4 caselle collegate · 37 non letti in tutto',
+  '6 channels watched · 14 messages today': '6 canali monitorati · 14 messaggi oggi',
+  '318 chats · 22 unread · read-only bridge': '318 chat · 22 non lette · bridge in sola lettura',
+  'Approval bot online · 9 drafts announced today': 'Bot di approvazione online · 9 bozze annunciate oggi',
+  'Verified sender · 6 sends today, all receipted': 'Mittente verificato · 6 invii oggi, tutti con ricevuta',
+  '3 calendars · 11 events this week': '3 calendari · 11 eventi questa settimana',
+  '68 open deals · pipeline synced 4m ago': '68 deal aperti · pipeline sincronizzata 4 min fa',
+  '4 platforms · 24 posts queued': '4 piattaforme · 24 post in coda',
+  'Live · $84,500 recurring, $12,240 available': 'Attivo · $84,500 ricorrenti, $12,240 disponibili',
+  '61 pages synced · 3 databases': '61 pagine sincronizzate · 3 database',
+  'IG DM automation live · 1,284 conversations': 'Automazione dei DM di IG attiva · 1,284 conversazioni',
+  '18,400 subscribers · 42% open rate': '18,400 iscritti · 42% di tasso di apertura',
+  '2,140 dictations captured': '2,140 dettature acquisite',
+  'Location synced · 41 contacts in pipeline': 'Location sincronizzata · 41 contatti in pipeline',
+  'Ad account linked · 3 campaigns active': 'Account pubblicitario collegato · 3 campagne attive',
+  'Filming · fixtures, no charges · 3 accounts, 27 creators tracked':
+    'Filming · fixture, nessun addebito · 3 account, 27 creator monitorati',
+
+  // ── demo-mode.ts: unified inbox previews (each thread’s last message too) ───
+  'Order form is signed and back with you. When can the team start onboarding?':
+    'L’order form è firmato ed è di nuovo da voi. Quando può partire l’onboarding del team?',
+  'Sending the campaign brief over this afternoon — can you review before Friday?':
+    'Ti mando il brief della campagna oggi pomeriggio: riesci a guardarlo prima di venerdì?',
+  'Partners reviewed the proposal. Two questions on the rollout order.':
+    'I soci hanno esaminato la proposta. Due domande sull’ordine del rollout.',
+  'Ironwood environment is provisioned. Security review is the last gate.':
+    'L’ambiente Ironwood è pronto. La revisione di sicurezza è l’ultimo passaggio.',
+  'Our GC cleared the contract. Sending the countersigned copy today.':
+    'Il nostro legale interno ha approvato il contratto. Oggi vi mandiamo la copia controfirmata.',
+  'Shot the walkthrough this morning — footage is in the drive.': 'Girato il walkthrough stamattina: il materiale è nel drive.',
+  'Security questionnaire attached. Procurement needs it back by the 29th.':
+    'In allegato il questionario di sicurezza. L’ufficio acquisti lo vuole indietro entro il 29.',
+  'Kestrel moved to a Q4 timeline. Parking it in nurture.': 'Kestrel è slittato al Q4. Lo parcheggio in nurture.',
+  'Partner meeting is set for Tuesday. Can you join for 15 minutes?':
+    'La riunione con i soci è fissata per martedì. Riesci a esserci per 15 minuti?',
+  'The editing pipeline scope looks right. What is the lead time?':
+    'Lo scope della pipeline di montaggio ci sembra giusto. Che tempi di consegna avete?',
+  'August close is done. Nine lines still need a category before we file.':
+    'La chiusura di agosto è fatta. Nove righe hanno ancora bisogno di una categoria prima della presentazione.',
+  'Delivery host disk crossed 70%. Cleared 12GB of build cache.':
+    'Il disco dell’host di delivery ha superato il 70%. Liberati 12GB di cache di build.',
+  'Finished module 3. The agent-routing section finally made it click.':
+    'Finito il modulo 3. Con la parte sul routing degli agenti finalmente ho capito tutto.',
+  'Two inbound partnership asks from the conference. Forwarding now.':
+    'Due richieste di partnership arrivate dalla conferenza. Te le inoltro ora.',
+  'Circling back on the automation quote from last month.': 'Torno sul preventivo per l’automazione del mese scorso.',
+  'The vertical cut is outperforming the long form 3:1 on saves.': 'Il taglio verticale batte il long form 3:1 sui salvataggi.',
+  'Payment plan works for us. Where do I sign?': 'Il piano di pagamento ci va bene. Dove firmo?',
+  'Technical walkthrough Thursday still good on your end?': 'Il walkthrough tecnico di giovedì è ancora confermato da parte tua?',
+  'Sharing the one-pager with our ops committee this week.': 'Questa settimana condividiamo il one-pager con il nostro comitato operativo.',
+  'Brightpath usage down 30% week over week. Opening a check-in.':
+    'L’utilizzo di Brightpath è sceso del 30% rispetto alla settimana scorsa. Apro un check-in.',
+  'Enrolled and started module 1. This is exactly what I needed.':
+    'Iscrizione fatta e modulo 1 iniziato. È esattamente quello che mi serviva.',
+  'Multi-tenant model review notes are in the doc.': 'Le note della revisione del modello multi-tenant sono nel documento.',
+  'Following up on the scope we discussed': 'Riprendo lo scope di cui abbiamo parlato',
+  'Invoice attached for last month': 'In allegato la fattura del mese scorso',
+  'Can we move the Thursday call?': 'Possiamo spostare la call di giovedì?',
+  'Notes from the review are in the doc': 'Le note della revisione sono nel documento',
+  'Quick question about the rollout order': 'Domanda veloce sull’ordine del rollout',
+  'Sending the signed copy over': 'Ti mando la copia firmata',
+  'Team is aligned, ready to proceed': 'Il team è allineato, pronti a procedere',
+  'Sharing this with our ops lead': 'Lo giro al nostro responsabile operativo',
+
+  // ── demo-mode.ts: calendar events ────────────────────────────────────────
+  'Northwind onboarding kickoff': 'Kickoff dell’onboarding di Northwind',
+  'Ironwood security review': 'Revisione di sicurezza Ironwood',
+  'Gym': 'Palestra',
+  'Brightpath partner meeting': 'Riunione con i soci di Brightpath',
+  'Walkthrough edit review with Mars': 'Revisione del montaggio del walkthrough con Mars',
+  'Lumen Studios scope call': 'Call sullo scope con Lumen Studios',
+  'Halcyon rollout Q&A': 'Q&A sul rollout di Halcyon',
+  'Film day': 'Giornata di riprese',
+  'Vertex procurement follow-up': 'Follow-up con l’ufficio acquisti di Vertex',
+  'Dinner with Koda': 'Cena con Koda',
+  'Weekly pipeline review': 'Revisione settimanale della pipeline',
+  'Orbit Labs payment plan': 'Piano di pagamento Orbit Labs',
+
+  // ── demo-mode.ts: inbox thread histories ─────────────────────────────────
+  'Order form is attached. Once it is signed we can lock the onboarding week.':
+    'In allegato l’order form. Appena è firmato fissiamo la settimana di onboarding.',
+  'Legal had one wording change on the data clause, sending back shortly.':
+    'Il legale ha una modifica di formulazione sulla clausola dei dati, ve lo rimandiamo a breve.',
+  'Change accepted. Countersigned copy is on its way back to you now.':
+    'Modifica accettata. La copia controfirmata vi sta arrivando proprio ora.',
+  'We want to run the Q4 launch through your team again. Same format as last time?':
+    'Vogliamo affidare di nuovo il lancio del Q4 al vostro team. Stesso formato dell’ultima volta?',
+  'Same format works. Send the brief when it is ready and I will scope the deliverables.':
+    'Lo stesso formato va bene. Mandatemi il brief quando è pronto e definisco i deliverable.',
+  'Proposal attached. The rollout order is front desk first, then the two clinics.':
+    'In allegato la proposta. L’ordine del rollout è prima la reception, poi le due cliniche.',
+  'Provisioning Ironwood today. Security review is scheduled for 4:30.':
+    'Oggi preparo l’ambiente Ironwood. La revisione di sicurezza è fissata per le 4:30 del pomeriggio.',
+  'Contract is with your GC. Let me know if the indemnity language needs another pass.':
+    'Il contratto è dal vostro legale interno. Fatemi sapere se la clausola di manleva va rivista ancora.',
+  'Walkthrough shoot is tomorrow morning. Drop the footage in the shared drive when done.':
+    'Le riprese del walkthrough sono domattina. Quando hai finito, metti il materiale nel drive condiviso.',
+  'Procurement wants a security questionnaire before they issue the PO.':
+    'L’ufficio acquisti vuole un questionario di sicurezza prima di emettere l’ordine.',
+  'Send it over and I will turn it around this week.': 'Mandatemelo e ve lo restituisco compilato entro la settimana.',
+  'Scope for the editing pipeline is in the doc: intake, rough cut, review, delivery.':
+    'Lo scope della pipeline di montaggio è nel documento: intake, primo montaggio, revisione, consegna.',
+  'Two options: pay in full, or three monthly payments starting on signature.':
+    'Due opzioni: pagamento in un’unica soluzione, oppure tre rate mensili a partire dalla firma.',
+  'Thursday 11am for the technical walkthrough. I will send the invite.': 'Giovedì alle 11 per il walkthrough tecnico. Ti mando l’invito.',
+
+  // ── finance-demo.ts: transfers, charges and categories ───────────────────
+  'Deployment engineering — sprint payment': 'Ingegneria di deployment — pagamento dello sprint',
+  'Video production — monthly retainer': 'Produzione video — retainer mensile',
+  'Course support — cohort operations': 'Supporto al corso — gestione della coorte',
+  'Northwind Logistics — deployment retainer': 'Northwind Logistics — retainer di deployment',
+  'Cohort 14 enrollment': 'Iscrizione alla coorte 14',
+  'Vertex Freight — deployment retainer': 'Vertex Freight — retainer di deployment',
+  'Sol Vantage — sponsorship invoice': 'Sol Vantage — fattura di sponsorizzazione',
+  'Halcyon Dental Group — deployment retainer': 'Halcyon Dental Group — retainer di deployment',
+  'Deployments': 'Deployment',
+  'Course': 'Corso',
+  'Brand deals': 'Brand deal',
+  'Contractor payouts': 'Pagamenti ai collaboratori',
+  'Ads': 'Pubblicità',
+  'Software & infrastructure': 'Software e infrastruttura',
+  'Payment processing fees': 'Commissioni di pagamento',
 };
 
 export default IT;

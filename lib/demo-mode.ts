@@ -16,13 +16,15 @@ import type { ConnectorStatus } from '@/lib/connectors/types';
 import type { CalEvent } from '@/lib/connectors/gcal';
 import type { ThreadMessage } from '@/lib/inbox';
 import { filmingMode } from '@/lib/paths';
+import { dt } from '@/lib/demo/it';
 
 export function isFilming(): boolean {
   return filmingMode();
 }
 
 const ago = (mins: number) => new Date(Date.now() - mins * 60_000).toISOString();
-/** Older filler threads so the 30-day activity chart has a real shape. */
+/** Older filler threads so the 30-day activity chart has a real shape.
+    Translated where used (dt), so the locale is read per call, not at import. */
 const FILLER = [
   'Following up on the scope we discussed', 'Invoice attached for last month',
   'Can we move the Thursday call?', 'Notes from the review are in the doc',
@@ -105,41 +107,41 @@ export function demoTasks(): DemoTask[] {
   };
 
   // ── fleet work landing across this week, so the grid has cards ──────────
-  add('d-t1', 'kanye', 'Lock the September content angle: the agent-hierarchy series', 'doing',
-    { dueAt: slot(1, 10), priority: 'high', detail: 'Three-part series. Angle is the org chart dissolving, not the tooling.' });
-  add('d-t2', 'drake', 'Northwind Logistics: send the order form and book the kickoff', 'doing',
-    { dueAt: slot(0, 9), priority: 'high', detail: 'Order form is signed. Kickoff week needs to clear delivery capacity first.' });
-  add('d-t3', 'carti', 'Cut the 14 minute walkthrough into six verticals', 'doing',
-    { dueAt: slot(2, 13), detail: 'Hooks at 0:00, 2:40, 6:15, 8:50, 11:05, 12:40.' });
-  add('d-t4', 'future', 'Second-touch schedule for the August cohort', 'open',
+  add('d-t1', 'kanye', dt('Lock the September content angle: the agent-hierarchy series'), 'doing',
+    { dueAt: slot(1, 10), priority: 'high', detail: dt('Three-part series. Angle is the org chart dissolving, not the tooling.') });
+  add('d-t2', 'drake', dt('Northwind Logistics: send the order form and book the kickoff'), 'doing',
+    { dueAt: slot(0, 9), priority: 'high', detail: dt('Order form is signed. Kickoff week needs to clear delivery capacity first.') });
+  add('d-t3', 'carti', dt('Cut the 14 minute walkthrough into six verticals'), 'doing',
+    { dueAt: slot(2, 13), detail: dt('Hooks at 0:00, 2:40, 6:15, 8:50, 11:05, 12:40.') });
+  add('d-t4', 'future', dt('Second-touch schedule for the August cohort'), 'open',
     { dueAt: slot(3, 11), createdAt: daysAgo(6) });
-  add('d-t5', 'kendrick', 'Review the multi-tenant data model', 'open',
+  add('d-t5', 'kendrick', dt('Review the multi-tenant data model'), 'open',
     { dueAt: slot(4, 15), createdAt: daysAgo(8), priority: 'high' });
-  add('d-t6', 'don-toliver', 'Tune the tone gate, two false positives this week', 'open',
+  add('d-t6', 'don-toliver', dt('Tune the tone gate, two false positives this week'), 'open',
     { dueAt: slot(1, 16), createdAt: daysAgo(4) });
-  add('d-t7', 'crm-pulse', 'Re-score the pipeline after the Ironwood close', 'doing',
+  add('d-t7', 'crm-pulse', dt('Re-score the pipeline after the Ironwood close'), 'doing',
     { dueAt: slot(2, 9), createdAt: daysAgo(2) });
-  add('d-t8', 'cudi', 'Draft the Halcyon rollout one-pager', 'open',
+  add('d-t8', 'cudi', dt('Draft the Halcyon rollout one-pager'), 'open',
     { dueAt: slot(3, 14), createdAt: daysAgo(5) });
 
   // ── blocked: the "Needs you" tile, each saying what it waits on ─────────
-  add('d-b1', 'gsend-sender', 'Send the 45 queued negotiation replies', 'blocked',
-    { createdAt: daysAgo(2), priority: 'high', detail: 'Waiting on you to approve the send batch. Nothing leaves until you do.' });
-  add('d-b2', 'data-agent', 'Re-index the brain-store after the September import', 'blocked',
-    { createdAt: daysAgo(5), detail: 'Waiting on a ZeroEntropy key with write scope.' });
-  add('d-b3', 'drake', 'Vertex Freight security questionnaire', 'blocked',
-    { createdAt: daysAgo(1), dueAt: slot(4, 10), priority: 'high', detail: 'Waiting on your sign-off for the data-retention answer.' });
+  add('d-b1', 'gsend-sender', dt('Send the 45 queued negotiation replies'), 'blocked',
+    { createdAt: daysAgo(2), priority: 'high', detail: dt('Waiting on you to approve the send batch. Nothing leaves until you do.') });
+  add('d-b2', 'data-agent', dt('Re-index the brain-store after the September import'), 'blocked',
+    { createdAt: daysAgo(5), detail: dt('Waiting on a ZeroEntropy key with write scope.') });
+  add('d-b3', 'drake', dt('Vertex Freight security questionnaire'), 'blocked',
+    { createdAt: daysAgo(1), dueAt: slot(4, 10), priority: 'high', detail: dt('Waiting on your sign-off for the data-retention answer.') });
 
   // ── your own lane, grouped for the To-Do rail ───────────────────────────
   const mine: [string, string, 'week' | 'month' | 'quarter' | 'someday'][] = [
-    ['Approve the September send batch', 'd-m1', 'week'],
-    ['Call the designer about the demo host', 'd-m2', 'week'],
-    ['Record the walkthrough voiceover', 'd-m3', 'week'],
-    ['Decide the Q4 pricing tiers', 'd-m4', 'month'],
-    ['Hire a second editor', 'd-m5', 'month'],
-    ['Move the fleet onto the mini', 'd-m6', 'quarter'],
-    ['Write the operator handbook', 'd-m7', 'quarter'],
-    ['Open-source the workflow engine', 'd-m8', 'someday'],
+    [dt('Approve the September send batch'), 'd-m1', 'week'],
+    [dt('Call the designer about the demo host'), 'd-m2', 'week'],
+    [dt('Record the walkthrough voiceover'), 'd-m3', 'week'],
+    [dt('Decide the Q4 pricing tiers'), 'd-m4', 'month'],
+    [dt('Hire a second editor'), 'd-m5', 'month'],
+    [dt('Move the fleet onto the mini'), 'd-m6', 'quarter'],
+    [dt('Write the operator handbook'), 'd-m7', 'quarter'],
+    [dt('Open-source the workflow engine'), 'd-m8', 'someday'],
   ];
   mine.forEach(([title, id, horizon], i) => {
     add(id, null, title, 'open', { horizon, createdAt: daysAgo(i + 1), ownerKind: 'me' });
@@ -147,12 +149,12 @@ export function demoTasks(): DemoTask[] {
 
   // ── completed work across the year, so the overview chart has shape ─────
   const finished = [
-    'Ship the funnel dashboard', 'Migrate the brand-deal pipeline', 'Rebuild the wizard',
-    'Import the Claude archive', 'Wire the Attio connector', 'Cut the Q2 sizzle reel',
-    'Close the Ironwood contract', 'Rewrite the onboarding SOP', 'Audit the vector index',
-    'Ship the blueprint view', 'Retire the org chart', 'Tune the inbound watcher',
-    'Publish module three', 'Reconcile the August close', 'Fix the tone gate regressions',
-    'Onboard Cascade Health', 'Batch the September verticals', 'Refresh the skills library',
+    dt('Ship the funnel dashboard'), dt('Migrate the brand-deal pipeline'), dt('Rebuild the wizard'),
+    dt('Import the Claude archive'), dt('Wire the Attio connector'), dt('Cut the Q2 sizzle reel'),
+    dt('Close the Ironwood contract'), dt('Rewrite the onboarding SOP'), dt('Audit the vector index'),
+    dt('Ship the blueprint view'), dt('Retire the org chart'), dt('Tune the inbound watcher'),
+    dt('Publish module three'), dt('Reconcile the August close'), dt('Fix the tone gate regressions'),
+    dt('Onboard Cascade Health'), dt('Batch the September verticals'), dt('Refresh the skills library'),
   ];
   const owners = ['kanye', 'drake', 'carti', 'future', 'kendrick', 'yeat', 'markdown-auditor', 'cudi', 'crm-pulse'];
   finished.forEach((title, i) => {
@@ -173,23 +175,23 @@ export function demoConnectors(): ConnectorStatus[] {
              meta?: Record<string, string | number>): ConnectorStatus =>
     ({ id, name, kind, state: 'connected', detail, meta });
   return [
-    c('gbrain', 'Optimal Engine', 'knowledge', 'optimal · 412 pages indexed · hybrid search verified', { pages: 412 }),
-    c('email', 'Email Inboxes', 'email', '4 inboxes connected · 37 unread across all', { inboxes: 4, unread: 37 }),
-    c('slack', 'Slack', 'slack', '6 channels watched · 14 messages today', { channels: 6 }),
-    c('whatsapp', 'WhatsApp', 'email', '318 chats · 22 unread · read-only bridge', { chats: 318 }),
-    c('telegram', 'Telegram', 'email', 'Approval bot online · 9 drafts announced today'),
-    c('gsend', 'gsend', 'email', 'Verified sender · 6 sends today, all receipted'),
-    c('calendar', 'Calendar', 'calendar', '3 calendars · 11 events this week', { events: 11 }),
-    c('attio', 'Attio', 'crm', '68 open deals · pipeline synced 4m ago', { deals: 68 }),
-    c('zernio', 'Zernio', 'social', '4 platforms · 24 posts queued', { platforms: 4 }),
-    c('payments', 'Stripe', 'payments', 'Live · $84,500 recurring, $12,240 available', { available: 12240 }),
-    c('notion', 'Notion', 'notion', '61 pages synced · 3 databases'),
-    c('manychat', 'ManyChat', 'social', 'IG DM automation live · 1,284 conversations', { conversations: 1284 }),
-    c('beehiiv', 'beehiiv', 'ads', '18,400 subscribers · 42% open rate', { subscribers: 18400 }),
-    c('wispr', 'Wispr Flow', 'local', '2,140 dictations captured', { dictations: 2140 }),
-    c('ghl', 'GoHighLevel', 'crm', 'Location synced · 41 contacts in pipeline', { contacts: 41 }),
-    c('meta-ads', 'Meta Ads', 'ads', 'Ad account linked · 3 campaigns active', { campaigns: 3 }),
-    c('apify', 'Apify', 'social', 'Filming · fixtures, no charges · 3 accounts, 27 creators tracked', { owned: 3, tracked: 27 }),
+    c('gbrain', 'Optimal Engine', 'knowledge', dt('optimal · 412 pages indexed · hybrid search verified'), { pages: 412 }),
+    c('email', 'Email Inboxes', 'email', dt('4 inboxes connected · 37 unread across all'), { inboxes: 4, unread: 37 }),
+    c('slack', 'Slack', 'slack', dt('6 channels watched · 14 messages today'), { channels: 6 }),
+    c('whatsapp', 'WhatsApp', 'email', dt('318 chats · 22 unread · read-only bridge'), { chats: 318 }),
+    c('telegram', 'Telegram', 'email', dt('Approval bot online · 9 drafts announced today')),
+    c('gsend', 'gsend', 'email', dt('Verified sender · 6 sends today, all receipted')),
+    c('calendar', 'Calendar', 'calendar', dt('3 calendars · 11 events this week'), { events: 11 }),
+    c('attio', 'Attio', 'crm', dt('68 open deals · pipeline synced 4m ago'), { deals: 68 }),
+    c('zernio', 'Zernio', 'social', dt('4 platforms · 24 posts queued'), { platforms: 4 }),
+    c('payments', 'Stripe', 'payments', dt('Live · $84,500 recurring, $12,240 available'), { available: 12240 }),
+    c('notion', 'Notion', 'notion', dt('61 pages synced · 3 databases')),
+    c('manychat', 'ManyChat', 'social', dt('IG DM automation live · 1,284 conversations'), { conversations: 1284 }),
+    c('beehiiv', 'beehiiv', 'ads', dt('18,400 subscribers · 42% open rate'), { subscribers: 18400 }),
+    c('wispr', 'Wispr Flow', 'local', dt('2,140 dictations captured'), { dictations: 2140 }),
+    c('ghl', 'GoHighLevel', 'crm', dt('Location synced · 41 contacts in pipeline'), { contacts: 41 }),
+    c('meta-ads', 'Meta Ads', 'ads', dt('Ad account linked · 3 campaigns active'), { campaigns: 3 }),
+    c('apify', 'Apify', 'social', dt('Filming · fixtures, no charges · 3 accounts, 27 creators tracked'), { owned: 3, tracked: 27 }),
   ];
 }
 
@@ -203,28 +205,28 @@ type Thread = [CommsItem['source'], string, string, number, number?, string?];
 /** The unified inbox: a believable morning across four channels. */
 export function demoComms(): CommsItem[] {
   const threads: Thread[] = [
-    ['email', 'Dara Whitfield — Northwind Logistics', 'Order form is signed and back with you. When can the team start onboarding?', 14, 2, 'whitfield@northwind.example'],
-    ['whatsapp', 'Sol Vantage (brand)', 'Sending the campaign brief over this afternoon — can you review before Friday?', 26, 1],
-    ['email', 'Priya Raman — Halcyon Dental', 'Partners reviewed the proposal. Two questions on the rollout order.', 48, 1, 'raman@halcyon.example'],
-    ['slack', '#delivery — Juno Bellamy', 'Ironwood environment is provisioned. Security review is the last gate.', 63, 1],
-    ['email', 'Grant Mercer — Ironwood Legal', 'Our GC cleared the contract. Sending the countersigned copy today.', 92, 1, 'mercer@ironwood.example'],
-    ['whatsapp', 'Mars Delacroix', 'Shot the walkthrough this morning — footage is in the drive.', 110, 1],
-    ['email', 'Elena Sokolov — Vertex Freight', 'Security questionnaire attached. Procurement needs it back by the 29th.', 145, 1, 'sokolov@vertex.example'],
-    ['slack', '#pipeline — Sable Whitmore', 'Kestrel moved to a Q4 timeline. Parking it in nurture.', 168, undefined],
-    ['email', 'Marcus Alder — Brightpath Realty', 'Partner meeting is set for Tuesday. Can you join for 15 minutes?', 190, 1, 'alder@brightpath.example'],
-    ['whatsapp', 'Theo Bassett — Lumen Studios', 'The editing pipeline scope looks right. What is the lead time?', 220, 1],
-    ['email', 'Cassian & Vale', 'August close is done. Nine lines still need a category before we file.', 265, 1, 'team@cassianvale.example'],
-    ['slack', '#alerts — Yeat', 'Delivery host disk crossed 70%. Cleared 12GB of build cache.', 300, undefined],
-    ['email', 'Ruben Diaz — Atlas Media', 'Finished module 3. The agent-routing section finally made it click.', 340, undefined, 'diaz@atlasmedia.example'],
-    ['whatsapp', 'Koda Reyes', 'Two inbound partnership asks from the conference. Forwarding now.', 380, 2],
-    ['email', 'Nina Petrov — Solace Interiors', 'Circling back on the automation quote from last month.', 430, 1, 'petrov@solace.example'],
-    ['slack', '#content — Remy Alvarez', 'The vertical cut is outperforming the long form 3:1 on saves.', 470, undefined],
-    ['email', 'Hana Kim — Orbit Labs', 'Payment plan works for us. Where do I sign?', 520, 1, 'kim@orbitlabs.example'],
-    ['whatsapp', 'Elias Juniper', 'Technical walkthrough Thursday still good on your end?', 560, 1],
-    ['email', 'Dr. Amara Osei — Cascade Health', 'Sharing the one-pager with our ops committee this week.', 610, undefined, 'osei@cascade.example'],
-    ['slack', '#delivery — Vince Staples', 'Brightpath usage down 30% week over week. Opening a check-in.', 660, 1],
-    ['email', 'Sasha Bright — Quill Agency', 'Enrolled and started module 1. This is exactly what I needed.', 720, undefined, 'bright@quill.example'],
-    ['whatsapp', 'Atlas Nguyen', 'Multi-tenant model review notes are in the doc.', 790, undefined],
+    ['email', 'Dara Whitfield — Northwind Logistics', dt('Order form is signed and back with you. When can the team start onboarding?'), 14, 2, 'whitfield@northwind.example'],
+    ['whatsapp', 'Sol Vantage (brand)', dt('Sending the campaign brief over this afternoon — can you review before Friday?'), 26, 1],
+    ['email', 'Priya Raman — Halcyon Dental', dt('Partners reviewed the proposal. Two questions on the rollout order.'), 48, 1, 'raman@halcyon.example'],
+    ['slack', '#delivery — Juno Bellamy', dt('Ironwood environment is provisioned. Security review is the last gate.'), 63, 1],
+    ['email', 'Grant Mercer — Ironwood Legal', dt('Our GC cleared the contract. Sending the countersigned copy today.'), 92, 1, 'mercer@ironwood.example'],
+    ['whatsapp', 'Mars Delacroix', dt('Shot the walkthrough this morning — footage is in the drive.'), 110, 1],
+    ['email', 'Elena Sokolov — Vertex Freight', dt('Security questionnaire attached. Procurement needs it back by the 29th.'), 145, 1, 'sokolov@vertex.example'],
+    ['slack', '#pipeline — Sable Whitmore', dt('Kestrel moved to a Q4 timeline. Parking it in nurture.'), 168, undefined],
+    ['email', 'Marcus Alder — Brightpath Realty', dt('Partner meeting is set for Tuesday. Can you join for 15 minutes?'), 190, 1, 'alder@brightpath.example'],
+    ['whatsapp', 'Theo Bassett — Lumen Studios', dt('The editing pipeline scope looks right. What is the lead time?'), 220, 1],
+    ['email', 'Cassian & Vale', dt('August close is done. Nine lines still need a category before we file.'), 265, 1, 'team@cassianvale.example'],
+    ['slack', '#alerts — Yeat', dt('Delivery host disk crossed 70%. Cleared 12GB of build cache.'), 300, undefined],
+    ['email', 'Ruben Diaz — Atlas Media', dt('Finished module 3. The agent-routing section finally made it click.'), 340, undefined, 'diaz@atlasmedia.example'],
+    ['whatsapp', 'Koda Reyes', dt('Two inbound partnership asks from the conference. Forwarding now.'), 380, 2],
+    ['email', 'Nina Petrov — Solace Interiors', dt('Circling back on the automation quote from last month.'), 430, 1, 'petrov@solace.example'],
+    ['slack', '#content — Remy Alvarez', dt('The vertical cut is outperforming the long form 3:1 on saves.'), 470, undefined],
+    ['email', 'Hana Kim — Orbit Labs', dt('Payment plan works for us. Where do I sign?'), 520, 1, 'kim@orbitlabs.example'],
+    ['whatsapp', 'Elias Juniper', dt('Technical walkthrough Thursday still good on your end?'), 560, 1],
+    ['email', 'Dr. Amara Osei — Cascade Health', dt('Sharing the one-pager with our ops committee this week.'), 610, undefined, 'osei@cascade.example'],
+    ['slack', '#delivery — Vince Staples', dt('Brightpath usage down 30% week over week. Opening a check-in.'), 660, 1],
+    ['email', 'Sasha Bright — Quill Agency', dt('Enrolled and started module 1. This is exactly what I needed.'), 720, undefined, 'bright@quill.example'],
+    ['whatsapp', 'Atlas Nguyen', dt('Multi-tenant model review notes are in the doc.'), 790, undefined],
   ];
   // deterministic older traffic spread across the full trailing month, with a
   // weekday-ish rhythm so the activity chart has shape instead of a flat wall
@@ -237,7 +239,7 @@ export function demoComms(): CommsItem[] {
       threads.push([
         SRC[(day + k) % SRC.length],
         NAMES[(day * 2 + k) % NAMES.length],
-        FILLER[(day + k * 3) % FILLER.length],
+        dt(FILLER[(day + k * 3) % FILLER.length]),
         mins,
         undefined,
         undefined,
@@ -291,18 +293,18 @@ export function demoEvents(): CalEvent[] {
     location: null, joinUrl: null, ...extra,
   });
   return [
-    ev('e1', 'Work', '#5ec9f8', 'Northwind onboarding kickoff', 0, 14, 0, 45, { joinUrl: 'https://meet.example/northwind' }),
-    ev('e2', 'Work', '#5ec9f8', 'Ironwood security review', 0, 16, 30, 30, { joinUrl: 'https://meet.example/ironwood' }),
-    ev('e3', 'Personal', '#3df08c', 'Gym', 0, 18, 30, 60, { location: 'Equinox' }),
-    ev('e4', 'Work', '#5ec9f8', 'Brightpath partner meeting', 1, 10, 0, 30, { joinUrl: 'https://meet.example/brightpath' }),
-    ev('e5', 'Content', '#e1306c', 'Walkthrough edit review with Mars', 1, 13, 0, 45),
-    ev('e6', 'Work', '#5ec9f8', 'Lumen Studios scope call', 2, 11, 0, 30, { joinUrl: 'https://meet.example/lumen' }),
-    ev('e7', 'Work', '#5ec9f8', 'Halcyon rollout Q&A', 2, 15, 0, 30, { joinUrl: 'https://meet.example/halcyon' }),
-    ev('e8', 'Content', '#e1306c', 'Film day', 3, 9, 0, 240, { location: 'Studio B' }),
-    ev('e9', 'Work', '#5ec9f8', 'Vertex procurement follow-up', 4, 10, 30, 30, { joinUrl: 'https://meet.example/vertex' }),
-    ev('e10', 'Personal', '#3df08c', 'Dinner with Koda', 4, 19, 0, 120, { location: 'Miku' }),
-    ev('e11', 'Work', '#5ec9f8', 'Weekly pipeline review', -1, 9, 30, 30),
-    ev('e12', 'Work', '#5ec9f8', 'Orbit Labs payment plan', -1, 14, 0, 30),
+    ev('e1', 'Work', '#5ec9f8', dt('Northwind onboarding kickoff'), 0, 14, 0, 45, { joinUrl: 'https://meet.example/northwind' }),
+    ev('e2', 'Work', '#5ec9f8', dt('Ironwood security review'), 0, 16, 30, 30, { joinUrl: 'https://meet.example/ironwood' }),
+    ev('e3', 'Personal', '#3df08c', dt('Gym'), 0, 18, 30, 60, { location: 'Equinox' }),
+    ev('e4', 'Work', '#5ec9f8', dt('Brightpath partner meeting'), 1, 10, 0, 30, { joinUrl: 'https://meet.example/brightpath' }),
+    ev('e5', 'Content', '#e1306c', dt('Walkthrough edit review with Mars'), 1, 13, 0, 45),
+    ev('e6', 'Work', '#5ec9f8', dt('Lumen Studios scope call'), 2, 11, 0, 30, { joinUrl: 'https://meet.example/lumen' }),
+    ev('e7', 'Work', '#5ec9f8', dt('Halcyon rollout Q&A'), 2, 15, 0, 30, { joinUrl: 'https://meet.example/halcyon' }),
+    ev('e8', 'Content', '#e1306c', dt('Film day'), 3, 9, 0, 240, { location: 'Studio B' }),
+    ev('e9', 'Work', '#5ec9f8', dt('Vertex procurement follow-up'), 4, 10, 30, 30, { joinUrl: 'https://meet.example/vertex' }),
+    ev('e10', 'Personal', '#3df08c', dt('Dinner with Koda'), 4, 19, 0, 120, { location: 'Miku' }),
+    ev('e11', 'Work', '#5ec9f8', dt('Weekly pipeline review'), -1, 9, 30, 30),
+    ev('e12', 'Work', '#5ec9f8', dt('Orbit Labs payment plan'), -1, 14, 0, 30),
   ];
 }
 
@@ -316,54 +318,54 @@ export function demoThreadBodies(): Record<string, ThreadMessage[]> {
   ];
   return Object.fromEntries([
     x('Dara Whitfield',
-      ['me', 'Order form is attached. Once it is signed we can lock the onboarding week.', 2 * 1440 + 30],
-      ['them', 'Legal had one wording change on the data clause, sending back shortly.', 1440 + 200],
-      ['me', 'Change accepted. Countersigned copy is on its way back to you now.', 1440 + 90],
-      ['them', 'Order form is signed and back with you. When can the team start onboarding?', 14],
+      ['me', dt('Order form is attached. Once it is signed we can lock the onboarding week.'), 2 * 1440 + 30],
+      ['them', dt('Legal had one wording change on the data clause, sending back shortly.'), 1440 + 200],
+      ['me', dt('Change accepted. Countersigned copy is on its way back to you now.'), 1440 + 90],
+      ['them', dt('Order form is signed and back with you. When can the team start onboarding?'), 14],
     ),
     x('Sol Vantage',
-      ['them', 'We want to run the Q4 launch through your team again. Same format as last time?', 3 * 1440],
-      ['me', 'Same format works. Send the brief when it is ready and I will scope the deliverables.', 3 * 1440 - 40],
-      ['them', 'Sending the campaign brief over this afternoon — can you review before Friday?', 26],
+      ['them', dt('We want to run the Q4 launch through your team again. Same format as last time?'), 3 * 1440],
+      ['me', dt('Same format works. Send the brief when it is ready and I will scope the deliverables.'), 3 * 1440 - 40],
+      ['them', dt('Sending the campaign brief over this afternoon — can you review before Friday?'), 26],
     ),
     x('Priya Raman',
-      ['me', 'Proposal attached. The rollout order is front desk first, then the two clinics.', 4 * 1440],
-      ['them', 'Partners reviewed the proposal. Two questions on the rollout order.', 48],
+      ['me', dt('Proposal attached. The rollout order is front desk first, then the two clinics.'), 4 * 1440],
+      ['them', dt('Partners reviewed the proposal. Two questions on the rollout order.'), 48],
     ),
     x('Juno Bellamy',
-      ['them', 'Provisioning Ironwood today. Security review is scheduled for 4:30.', 300],
-      ['them', 'Ironwood environment is provisioned. Security review is the last gate.', 63],
+      ['them', dt('Provisioning Ironwood today. Security review is scheduled for 4:30.'), 300],
+      ['them', dt('Ironwood environment is provisioned. Security review is the last gate.'), 63],
     ),
     x('Grant Mercer',
-      ['me', 'Contract is with your GC. Let me know if the indemnity language needs another pass.', 5 * 1440],
-      ['them', 'Our GC cleared the contract. Sending the countersigned copy today.', 92],
+      ['me', dt('Contract is with your GC. Let me know if the indemnity language needs another pass.'), 5 * 1440],
+      ['them', dt('Our GC cleared the contract. Sending the countersigned copy today.'), 92],
     ),
     x('Mars Delacroix',
-      ['me', 'Walkthrough shoot is tomorrow morning. Drop the footage in the shared drive when done.', 1440 + 60],
-      ['them', 'Shot the walkthrough this morning — footage is in the drive.', 110],
+      ['me', dt('Walkthrough shoot is tomorrow morning. Drop the footage in the shared drive when done.'), 1440 + 60],
+      ['them', dt('Shot the walkthrough this morning — footage is in the drive.'), 110],
     ),
     x('Elena Sokolov',
-      ['them', 'Procurement wants a security questionnaire before they issue the PO.', 2 * 1440],
-      ['me', 'Send it over and I will turn it around this week.', 2 * 1440 - 30],
-      ['them', 'Security questionnaire attached. Procurement needs it back by the 29th.', 145],
+      ['them', dt('Procurement wants a security questionnaire before they issue the PO.'), 2 * 1440],
+      ['me', dt('Send it over and I will turn it around this week.'), 2 * 1440 - 30],
+      ['them', dt('Security questionnaire attached. Procurement needs it back by the 29th.'), 145],
     ),
     x('Marcus Alder',
-      ['them', 'Partner meeting is set for Tuesday. Can you join for 15 minutes?', 190],
+      ['them', dt('Partner meeting is set for Tuesday. Can you join for 15 minutes?'), 190],
     ),
     x('Theo Bassett',
-      ['me', 'Scope for the editing pipeline is in the doc: intake, rough cut, review, delivery.', 1440 + 30],
-      ['them', 'The editing pipeline scope looks right. What is the lead time?', 220],
+      ['me', dt('Scope for the editing pipeline is in the doc: intake, rough cut, review, delivery.'), 1440 + 30],
+      ['them', dt('The editing pipeline scope looks right. What is the lead time?'), 220],
     ),
     x('Hana Kim',
-      ['me', 'Two options: pay in full, or three monthly payments starting on signature.', 2 * 1440],
-      ['them', 'Payment plan works for us. Where do I sign?', 520],
+      ['me', dt('Two options: pay in full, or three monthly payments starting on signature.'), 2 * 1440],
+      ['them', dt('Payment plan works for us. Where do I sign?'), 520],
     ),
     x('Elias Juniper',
-      ['me', 'Thursday 11am for the technical walkthrough. I will send the invite.', 3 * 1440],
-      ['them', 'Technical walkthrough Thursday still good on your end?', 560],
+      ['me', dt('Thursday 11am for the technical walkthrough. I will send the invite.'), 3 * 1440],
+      ['them', dt('Technical walkthrough Thursday still good on your end?'), 560],
     ),
     x('Nina Petrov',
-      ['them', 'Circling back on the automation quote from last month.', 430],
+      ['them', dt('Circling back on the automation quote from last month.'), 430],
     ),
   ]);
 }

@@ -16,6 +16,7 @@
  */
 import { incomeAccounts, type IncomeAccount, type OutgoingTransfer } from '@/lib/finances';
 import type { BusinessSeries } from '@/lib/bank-statements';
+import { dt } from '@/lib/demo/it';
 
 /** Headline figure — YTD revenue across every business + processor. */
 export const FINANCE_DEMO_TOTAL_USD = 631_240;
@@ -99,9 +100,9 @@ const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString
 
 export function demoWiseOutgoing(): OutgoingTransfer[] {
   return [
-    { amountCents: 780_000, currency: 'USD', status: 'completed', created: hoursAgo(14), reference: 'Deployment engineering — sprint payment' },
-    { amountCents: 420_000, currency: 'USD', status: 'completed', created: hoursAgo(56), reference: 'Video production — monthly retainer' },
-    { amountCents: 215_000, currency: 'GBP', status: 'completed', created: hoursAgo(132), reference: 'Course support — cohort operations' },
+    { amountCents: 780_000, currency: 'USD', status: 'completed', created: hoursAgo(14), reference: dt('Deployment engineering — sprint payment') },
+    { amountCents: 420_000, currency: 'USD', status: 'completed', created: hoursAgo(56), reference: dt('Video production — monthly retainer') },
+    { amountCents: 215_000, currency: 'GBP', status: 'completed', created: hoursAgo(132), reference: dt('Course support — cohort operations') },
   ];
 }
 
@@ -110,12 +111,12 @@ const minsAgo = (m: number) => Math.floor(Date.now() / 1000) - m * 60;
 
 export function demoRecentStripeCharges(): { amount: number; currency: string; description: string; created: number }[] {
   return [
-    { amount: 480_000, currency: 'usd', description: 'Northwind Logistics — deployment retainer', created: minsAgo(45) },
-    { amount: 129_900, currency: 'usd', description: 'Cohort 14 enrollment', created: minsAgo(130) },
-    { amount: 250_000, currency: 'usd', description: 'Vertex Freight — deployment retainer', created: minsAgo(210) },
-    { amount: 900_000, currency: 'usd', description: 'Sol Vantage — sponsorship invoice', created: minsAgo(340) },
-    { amount: 64_900, currency: 'usd', description: 'Cohort 14 enrollment', created: minsAgo(480) },
-    { amount: 375_000, currency: 'usd', description: 'Halcyon Dental Group — deployment retainer', created: minsAgo(610) },
+    { amount: 480_000, currency: 'usd', description: dt('Northwind Logistics — deployment retainer'), created: minsAgo(45) },
+    { amount: 129_900, currency: 'usd', description: dt('Cohort 14 enrollment'), created: minsAgo(130) },
+    { amount: 250_000, currency: 'usd', description: dt('Vertex Freight — deployment retainer'), created: minsAgo(210) },
+    { amount: 900_000, currency: 'usd', description: dt('Sol Vantage — sponsorship invoice'), created: minsAgo(340) },
+    { amount: 64_900, currency: 'usd', description: dt('Cohort 14 enrollment'), created: minsAgo(480) },
+    { amount: 375_000, currency: 'usd', description: dt('Halcyon Dental Group — deployment retainer'), created: minsAgo(610) },
   ];
 }
 
@@ -148,7 +149,7 @@ export function demoIncomeCategories(): IncomeCategory[] {
   return [
     {
       key: 'deployments',
-      label: 'Deployments',
+      label: dt('Deployments'),
       usd:
         STRIPE_BY_CATEGORY_USD.deployments +
         DEMO_PROCESSOR_YTD_USD['wise-1'] +
@@ -157,12 +158,12 @@ export function demoIncomeCategories(): IncomeCategory[] {
     },
     {
       key: 'course',
-      label: 'Course',
+      label: dt('Course'),
       usd: STRIPE_BY_CATEGORY_USD.course + DEMO_PROCESSOR_YTD_USD['fanbasis-2'],
     },
     {
       key: 'brand-deals',
-      label: 'Brand deals',
+      label: dt('Brand deals'),
       usd: STRIPE_BY_CATEGORY_USD.brandDeals + DEMO_PROCESSOR_YTD_USD.paypal,
     },
     {
@@ -179,9 +180,9 @@ export function demoIncomeCategories(): IncomeCategory[] {
 // this is spend, not revenue, and never touches FINANCE_DEMO_TOTAL_USD. ────
 export function demoExpensesByCategory(): { category: string; total: number }[] {
   return [
-    { category: 'Contractor payouts', total: 18_400 },
-    { category: 'Ads', total: 6_100 },
-    { category: 'Software & infrastructure', total: 4_250 },
-    { category: 'Payment processing fees', total: 2_890 },
+    { category: dt('Contractor payouts'), total: 18_400 },
+    { category: dt('Ads'), total: 6_100 },
+    { category: dt('Software & infrastructure'), total: 4_250 },
+    { category: dt('Payment processing fees'), total: 2_890 },
   ];
 }

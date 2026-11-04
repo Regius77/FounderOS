@@ -53,6 +53,25 @@ describe('the demo dictionary', () => {
   });
 });
 
+describe('Filming stand-ins in Italian (lib/demo-mode.ts)', () => {
+  test('tasks, inbox and connectors speak Italian; names stay as they are', async () => {
+    vi.stubEnv('GLADOS_LOCALE', 'it');
+    const { demoTasks, demoComms, demoConnector, demoThreadBodies } = await import('@/lib/demo-mode');
+    const task = demoTasks().find((x) => x.id === 'd-t2');
+    expect(task?.title).toBe('Northwind Logistics: inviare l’order form e fissare il kickoff');
+    expect(task?.agentId).toBe('drake');
+    const dara = demoComms().find((c) => c.sender === 'Dara Whitfield');
+    expect(dara?.title).toBe('Dara Whitfield — Northwind Logistics');
+    expect(dara?.preview).toMatch(/^L’order form è firmato/);
+    // the thread's last message is the inbox preview, word for word
+    expect(demoThreadBodies()['Dara Whitfield'].at(-1)?.text).toBe(dara?.preview);
+    expect(demoConnector('email')).toMatchObject({ name: 'Email Inboxes', detail: '4 caselle collegate · 37 non letti in tutto' });
+    vi.stubEnv('GLADOS_LOCALE', '');
+    expect(demoConnector('email')?.detail).toBe('4 inboxes connected · 37 unread across all');
+    vi.unstubAllEnvs();
+  });
+});
+
 describe('the demo store in Italian', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'founderos-demo-it-'));
   const dir = path.join(root, 'demo-data');
