@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it as test } from 'vitest';
 import it from '@/lib/i18n/it';
-import { localeFor, translate } from '@/lib/i18n';
+import { localeFor, tc, translate } from '@/lib/i18n';
 
 const ROOTS = ['app', 'components', 'founderos', 'lib'];
 
@@ -26,11 +26,15 @@ function calls(): { file: string; key: string; literal: boolean }[] {
       const key = raw.replace(/\\(['"`\\])/g, '$1').replace(/\\n/g, '\n');
       out.push({ file: path.relative(process.cwd(), file), key, literal: m[3] === undefined || !raw.includes('${') });
     }
+    // tc('context', 'Text'): needs the `context|Text` entry.
+    for (const m of src.matchAll(/(?<![\w.$])tc\(\s*'([^'\\]+)'\s*,\s*'((?:\\.|[^'\\])*)'/g)) {
+      out.push({ file: path.relative(process.cwd(), file), key: `${m[1]}|${m[2].replace(/\\(['"`\\])/g, '$1')}`, literal: true });
+    }
   }
   return out;
 }
 
-const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+const placeholders = (s: string) => [...s.replace(/^[\w-]+\|/, '').matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
 describe('i18n', () => {
   test('falls back to the English text and fills placeholders', () => {
@@ -38,6 +42,7 @@ describe('i18n', () => {
     expect(translate('en', '{a} of {b}', { a: 1, b: 3 })).toBe('1 of 3');
     expect(localeFor('IT')).toBe('it');
     expect(localeFor(undefined)).toBe('en');
+    expect(tc('status', 'zz-open')).toBe('zz-open');
   });
 
   test('t() keys are plain literals, not template strings with ${}', () => {

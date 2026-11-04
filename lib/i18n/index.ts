@@ -39,3 +39,15 @@ export function translate(loc: Locale, text: string, vars?: Record<string, strin
 export function t(text: string, vars?: Record<string, string | number>): string {
   return translate(locale(), text, vars);
 }
+
+/**
+ * A short English word that needs different Italian in different places
+ * ("Open" as a button vs a status, "Run" as verb vs noun). The dictionary key
+ * is `context|text`; it falls back to the plain `text` entry, then English.
+ *   tc('status', 'Open')  →  it['status|Open'] ?? it['Open'] ?? 'Open'
+ */
+export function tc(context: string, text: string, vars?: Record<string, string | number>): string {
+  const loc = locale();
+  const hit = DICTIONARIES[loc][`${context}|${text}`];
+  return hit !== undefined ? fill(hit, vars) : translate(loc, text, vars);
+}
