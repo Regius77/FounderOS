@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ConsoleControlsSchema, IMAGE_MODELS, VIDEO_MODELS, type NodeType, type PortType, type Workflow, type WorkflowEdge, type WorkflowNode } from '@/lib/creative-engine/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * Workflow builder — the node registry (PLAN: Arcads' palette with our UI).
@@ -161,42 +162,42 @@ export function validateGraph(w: Pick<Workflow, 'nodes' | 'edges'>): GraphProble
   const problems: GraphProblem[] = [];
   const err = (nodeId: string | null, message: string) => { problems.push({ nodeId, message, level: 'error' }); };
   const warn = (nodeId: string | null, message: string) => { problems.push({ nodeId, message, level: 'warn' }); };
-  if (w.nodes.length === 0) return [{ nodeId: null, message: 'Create a node first', level: 'error' }];
-  if (!topoOrder(w)) err(null, 'The graph has a loop');
+  if (w.nodes.length === 0) return [{ nodeId: null, message: t('Create a node first'), level: 'error' }];
+  if (!topoOrder(w)) err(null, t('The graph has a loop'));
   const ids = new Set(w.nodes.map((n) => n.id));
-  for (const e of w.edges) if (!ids.has(e.from) || !ids.has(e.to)) err(null, `edge ${e.id} points at a missing node`);
+  for (const e of w.edges) if (!ids.has(e.from) || !ids.has(e.to)) err(null, t('edge {id} points at a missing node', { id: e.id }));
   const seenEdge = new Set<string>();
   for (const e of w.edges) {
     const k = `${e.from}|${e.fromPort}|${e.to}|${e.toPort}`;
-    if (seenEdge.has(k)) { const a = w.nodes.find((n) => n.id === e.from); const b = w.nodes.find((n) => n.id === e.to); err(e.to, `${a?.title ?? 'A node'} is linked to ${b?.title ?? 'a node'}.${e.toPort} twice`); }
+    if (seenEdge.has(k)) { const a = w.nodes.find((n) => n.id === e.from); const b = w.nodes.find((n) => n.id === e.to); err(e.to, t('{a} is linked to {b}.{port} twice', { a: a?.title ?? t('A node'), b: b?.title ?? t('a node'), port: e.toPort })); }
     seenEdge.add(k);
   }
   for (const n of w.nodes) {
-    if (n.type === 'missing') { err(n.id, `Remove or replace ${n.title}: its type "${String(n.settings.originalType ?? 'unknown')}" no longer exists`); continue; }
+    if (n.type === 'missing') { err(n.id, t('Remove or replace {title}: its type "{type}" no longer exists', { title: n.title, type: String(n.settings.originalType ?? 'unknown') })); continue; }
     const spec = NODE_SPECS[n.type];
     const parsed = spec.settings.safeParse(n.settings);
-    if (!parsed.success) err(n.id, `${n.title}: ${parsed.error.issues[0]?.message ?? 'bad settings'}`);
+    if (!parsed.success) err(n.id, `${n.title}: ${parsed.error.issues[0]?.message ?? t('bad settings')}`);
     for (const p of spec.inputs) {
-      if (p.required && !w.edges.some((e) => e.to === n.id && e.toPort === p.name)) err(n.id, `${n.title} needs ${p.name}`);
+      if (p.required && !w.edges.some((e) => e.to === n.id && e.toPort === p.name)) err(n.id, t('{title} needs {port}', { title: n.title, port: p.name }));
     }
     for (const e of w.edges.filter((x) => x.to === n.id)) {
       const from = w.nodes.find((x) => x.id === e.from);
       if (!from) continue;
       const out = NODE_SPECS[from.type].outputs.find((p) => p.name === e.fromPort);
       const inp = spec.inputs.find((p) => p.name === e.toPort);
-      if (!out || !inp || out.type !== inp.type) err(n.id, `${from.title}.${e.fromPort} cannot feed ${n.title}.${e.toPort}`);
+      if (!out || !inp || out.type !== inp.type) err(n.id, t('{from}.{fromPort} cannot feed {to}.{toPort}', { from: from.title, fromPort: e.fromPort, to: n.title, toPort: e.toPort }));
     }
-    if (n.type === 'text' && !String(n.settings.text ?? '').trim()) err(n.id, `${n.title} is empty`);
-    if (n.type === 'media' && !String(n.settings.path ?? '').trim()) err(n.id, `${n.title} has no file`);
-    if (n.type === 'asset' && !n.settings.assetId && !n.settings.arcadsAssetId) err(n.id, `${n.title} has no asset picked`);
-    if (n.type === 'script' && !n.settings.scriptId) err(n.id, `${n.title} has no script picked`);
-    if ((n.type === 'talkingActor' || n.type === 'audioDriven' || n.type === 'omnihuman' || n.type === 'preset') && !n.settings.situationId) err(n.id, `${n.title} needs a scene (situation)`);
+    if (n.type === 'text' && !String(n.settings.text ?? '').trim()) err(n.id, t('{title} is empty', { title: n.title }));
+    if (n.type === 'media' && !String(n.settings.path ?? '').trim()) err(n.id, t('{title} has no file', { title: n.title }));
+    if (n.type === 'asset' && !n.settings.assetId && !n.settings.arcadsAssetId) err(n.id, t('{title} has no asset picked', { title: n.title }));
+    if (n.type === 'script' && !n.settings.scriptId) err(n.id, t('{title} has no script picked', { title: n.title }));
+    if ((n.type === 'talkingActor' || n.type === 'audioDriven' || n.type === 'omnihuman' || n.type === 'preset') && !n.settings.situationId) err(n.id, t('{title} needs a scene (situation)', { title: n.title }));
     if (n.type === 'preset') {
       const pt = n.settings.presetType as PresetType;
       const hasImg = w.edges.some((e) => e.to === n.id && e.toPort === 'images');
       const hasVid = w.edges.some((e) => e.to === n.id && e.toPort === 'videos');
-      if (pt === 'gameplay-ad' && !hasVid) err(n.id, 'Gameplay ad needs a gameplay video');
-      if (pt !== 'gameplay-ad' && !hasImg) err(n.id, `${pt} needs an image`);
+      if (pt === 'gameplay-ad' && !hasVid) err(n.id, t('Gameplay ad needs a gameplay video'));
+      if (pt !== 'gameplay-ad' && !hasImg) err(n.id, t('{preset} needs an image', { preset: pt }));
     }
   }
   // FR-68: not wrong, but worth a look (never blocks Run)
@@ -209,13 +210,13 @@ export function validateGraph(w: Pick<Workflow, 'nodes' | 'edges'>): GraphProble
   for (const n of w.nodes) {
     const spec = NODE_SPECS[n.type];
     if (n.type === 'missing') continue; // already an error above
-    if (n.type === 'deliver') { if (!w.edges.some((e) => e.to === n.id)) warn(n.id, `${n.title} has nothing to collect`); continue; }
-    if (spec.category === 'input') { if (!w.edges.some((e) => e.from === n.id)) warn(n.id, `${n.title} isn't linked to anything`); continue; }
-    if (delivers.length && !reachesDeliver.has(n.id)) warn(n.id, `${n.title} isn't connected to Deliver; its output still lands in the campaign`);
+    if (n.type === 'deliver') { if (!w.edges.some((e) => e.to === n.id)) warn(n.id, t('{title} has nothing to collect', { title: n.title })); continue; }
+    if (spec.category === 'input') { if (!w.edges.some((e) => e.from === n.id)) warn(n.id, t("{title} isn't linked to anything", { title: n.title })); continue; }
+    if (delivers.length && !reachesDeliver.has(n.id)) warn(n.id, t("{title} isn't connected to Deliver; its output still lands in the campaign", { title: n.title }));
   }
-  if (!delivers.length) problems.push({ nodeId: null, message: 'No Deliver node: every output still lands in the campaign, none is marked final', level: 'info' });
+  if (!delivers.length) problems.push({ nodeId: null, message: t('No Deliver node: every output still lands in the campaign, none is marked final'), level: 'info' });
   const paid = w.nodes.filter(isPaid).length;
-  if (paid > MAX_PAID_NODES) err(null, `Split this workflow; one run is capped at ${MAX_PAID_NODES} paid requests (this one has ${paid})`);
+  if (paid > MAX_PAID_NODES) err(null, t('Split this workflow; one run is capped at {max} paid requests (this one has {n})', { max: MAX_PAID_NODES, n: paid }));
   return problems;
 }
 

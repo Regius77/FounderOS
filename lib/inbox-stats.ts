@@ -135,7 +135,7 @@ export function buildStatCards(
       sub: live.length ? live.map((s) => s.label).join(', ') : t('none connected yet'),
       chart: {
         kind: 'cells',
-        cells: SOURCES.map((s) => ({ on: connected[s.id], label: `${s.label}: ${connected[s.id] ? t('connected') : t('not configured')}` })),
+        cells: SOURCES.map((s) => ({ on: connected[s.id], label: `${s.label}: ${connected[s.id] ? tc('channel', 'connected') : tc('channel', 'not configured')}` })),
         tone: live.length === SOURCES.length ? 'accent' : 'warn',
         caption: t('one block per channel'),
       },

@@ -8,6 +8,7 @@ import { maskSecret } from '@/lib/keys';
 import type { LabStore } from '@/lib/lab/store';
 import type { LabHealthResult } from '@/lib/lab/setup/health';
 import { LAB_KEYS, type LabKeyRow, type LabKeySpec, type LabKeyState } from '@/lib/lab/setup/keys';
+import { t } from '@/lib/i18n';
 
 const cred = (name: string) => resolveCred(name, [CRED_FILES.agentsEnv, CRED_FILES.socialMedia]);
 /** Fields an operator does not have to fill for a row to count as configured. */
@@ -26,43 +27,43 @@ export function keyRow(spec: LabKeySpec, ctx: { health: LabHealthResult[]; dry: 
   const failing = health.find((h) => h.state === 'fail');
   const warn = health.find((h) => h.state === 'warn');
 
-  if (ctx.dry) return row('dry', 'Dry: not checked', { kind: 'none', label: '' });
+  if (ctx.dry) return row('dry', t('Dry: not checked'), { kind: 'none', label: '' });
 
   switch (spec.id) {
     case 'xwatch': {
       const n = ctx.store.sources.all('watch').filter((s) => s.status === 'active').length;
-      if (!n) return row('not_configured', 'Add accounts to the X watch list.', { kind: 'manage_sources', label: 'Set up' });
-      if (failing) return row('error', failing.detail, { kind: 'manage_sources', label: 'Check again' }, checkedAt);
-      return row('connected', `${n} account${n === 1 ? '' : 's'} on the watch list.`, { kind: 'manage_sources', label: 'Manage' }, checkedAt);
+      if (!n) return row('not_configured', t('Add accounts to the X watch list.'), { kind: 'manage_sources', label: t('Set up') });
+      if (failing) return row('error', failing.detail, { kind: 'manage_sources', label: t('Check again') }, checkedAt);
+      return row('connected', n === 1 ? t('{n} account on the watch list.', { n }) : t('{n} accounts on the watch list.', { n }), { kind: 'manage_sources', label: t('Manage') }, checkedAt);
     }
     case 'claude_cli':
-      return failing ? row('error', failing.detail, { kind: 'none', label: 'Check again' }, checkedAt) : row('connected', health[0]?.detail ?? null, { kind: 'none', label: '' }, checkedAt);
+      return failing ? row('error', failing.detail, { kind: 'none', label: t('Check again') }, checkedAt) : row('connected', health[0]?.detail ?? null, { kind: 'none', label: '' }, checkedAt);
     case 'youtube': {
-      if (!has('LAB_YT_CLIENT_ID') || !has('LAB_YT_CLIENT_SECRET')) return row('not_configured', null, { kind: 'paste', label: 'Set up' });
-      if (!has('LAB_YT_REFRESH_TOKEN')) return row('needs_connect', 'In Google Cloud, set the OAuth consent screen to In production, or this connection stops after 7 days.', { kind: 'connect', label: 'Connect YouTube' });
+      if (!has('LAB_YT_CLIENT_ID') || !has('LAB_YT_CLIENT_SECRET')) return row('not_configured', null, { kind: 'paste', label: t('Set up') });
+      if (!has('LAB_YT_REFRESH_TOKEN')) return row('needs_connect', t('In Google Cloud, set the OAuth consent screen to In production, or this connection stops after 7 days.'), { kind: 'connect', label: t('Connect YouTube') });
       break;
     }
     case 'instagram': {
       const token = has('LAB_IG_ACCESS_TOKEN');
-      if (!token && (!has('LAB_IG_APP_ID') || !has('LAB_IG_APP_SECRET'))) return row('not_configured', null, { kind: 'paste', label: 'Set up' });
-      if (!token) return row('needs_connect', null, { kind: 'connect', label: 'Connect Instagram' });
+      if (!token && (!has('LAB_IG_APP_ID') || !has('LAB_IG_APP_SECRET'))) return row('not_configured', null, { kind: 'paste', label: t('Set up') });
+      if (!token) return row('needs_connect', null, { kind: 'connect', label: t('Connect Instagram') });
       if (warn && /^Expires in/.test(warn.detail)) {
         const days = Number(/(\d+)/.exec(warn.detail)?.[1] ?? 0);
-        return row('expiring', `Expires in ${days} days`, { kind: 'reconnect', label: 'Reconnect' }, checkedAt);
+        return row('expiring', t('Expires in {n} days', { n: days }), { kind: 'reconnect', label: t('Reconnect') }, checkedAt);
       }
       break;
     }
     default: {
       const operator = spec.fields.filter((f) => f.writtenBy === 'operator' && !OPTIONAL.has(f.env));
-      if (operator.some((f) => !has(f.env))) return row('not_configured', null, { kind: 'paste', label: 'Set up' });
+      if (operator.some((f) => !has(f.env))) return row('not_configured', null, { kind: 'paste', label: t('Set up') });
     }
   }
-  if (failing) return row('error', failing.detail, { kind: spec.id === 'youtube' || spec.id === 'instagram' ? 'reconnect' : 'paste', label: 'Check again' }, checkedAt);
+  if (failing) return row('error', failing.detail, { kind: spec.id === 'youtube' || spec.id === 'instagram' ? 'reconnect' : 'paste', label: t('Check again') }, checkedAt);
   if (health.length && health.every((h) => h.state === 'ok')) {
-    return row('connected', health.map((h) => h.detail).find(Boolean) ?? null, { kind: spec.id === 'youtube' || spec.id === 'instagram' ? 'disconnect' : 'paste', label: spec.id === 'youtube' || spec.id === 'instagram' ? 'Disconnect' : 'Replace key' }, checkedAt);
+    return row('connected', health.map((h) => h.detail).find(Boolean) ?? null, { kind: spec.id === 'youtube' || spec.id === 'instagram' ? 'disconnect' : 'paste', label: spec.id === 'youtube' || spec.id === 'instagram' ? t('Disconnect') : t('Replace key') }, checkedAt);
   }
   // present but not checked yet (or a warning): the client runs Check again
-  return row('checking', warn?.detail ?? 'Not checked yet.', { kind: 'paste', label: 'Check again' }, checkedAt);
+  return row('checking', warn?.detail ?? t('Not checked yet.'), { kind: 'paste', label: t('Check again') }, checkedAt);
 }
 
 /** Every LAB_KEYS row, in registry order. */
