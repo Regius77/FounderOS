@@ -5,7 +5,11 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Which product this deployment shows (lib/brand.ts). Inlined at build so
   // client components read the same value the server does.
-  env: { GLADOS_BRAND: process.env.GLADOS_BRAND ?? '' },
+  env: {
+    GLADOS_BRAND: process.env.GLADOS_BRAND ?? '',
+    // UI language (lib/i18n): Italian unless GLADOS_LOCALE=en.
+    GLADOS_LOCALE: process.env.GLADOS_LOCALE ?? 'it',
+  },
   // Ad Engine was renamed Creative Engine (S02). Old bookmarks, history and
   // links keep working: 308, query string carried. S12's /reference rule
   // joins this same function (SPEC §5 C30).

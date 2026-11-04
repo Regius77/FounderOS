@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { BRAND } from '@/lib/brand';
+import { locale } from '@/lib/i18n';
 import { Topbar } from '@/components/Topbar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { ConductorPanel } from '@/components/ConductorPanel';
@@ -81,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // Style, accent and mode come from the glados-appearance cookie, so the
     // server already renders the right attributes (SPEC S00 FR-2, lib/appearance.ts).
-    <html lang="en" className={`${fontGeist.variable} ${fontGeistMono.variable} ${fontJetBrainsMono.variable}`} {...htmlAttributes(appearance)} suppressHydrationWarning>
+    <html lang={locale()} className={`${fontGeist.variable} ${fontGeistMono.variable} ${fontJetBrainsMono.variable}`} {...htmlAttributes(appearance)} suppressHydrationWarning>
       <head>
         {/* Before first paint: resolve System mode, ?mode=, the Classic theme from
             storage and the one-time migration, so there is no flash (lib/appearance.ts). */}
