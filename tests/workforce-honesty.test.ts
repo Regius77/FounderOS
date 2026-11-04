@@ -62,7 +62,7 @@ describe('workforce honesty (both styles)', () => {
     const confirm = src('components/wizard/DeleteProjectConfirm.tsx');
     expect(confirm).toMatch(/Delete this project and its history\?/);
     expect(confirm).toMatch(/role="alertdialog"/);
-    expect(src('components/wizard/CrewPanel.tsx')).toMatch(/runs · \{crew\.windowDays\} days/);
+    expect(src('components/wizard/CrewPanel.tsx')).toMatch(/\{t\('runs'\)\} · \{t\('\{n\} days', \{ n: crew\.windowDays \}\)\}/);
   });
 
   test('H31 (Classic minimum): non-clickable org and roadmap items do not lift on hover', () => {

@@ -44,10 +44,10 @@ describe('placeholder copy carries no example concept', () => {
 
   test('generator and library search use the S03 copy', () => {
     const gen = files.find((f) => f.path.endsWith('creative-engine/CreativeGenerator.tsx'))!.src;
-    expect(gen).toContain('placeholder="Describe the idea you want ads for"');
+    expect(gen).toContain("placeholder={t('Describe the idea you want ads for')}");
     expect(gen).toContain('One sentence about the outcome your customer wants. The engine turns it into searches.');
     const lib = files.find((f) => f.path.endsWith('adpilot/AdLibrary.tsx'))!.src;
-    expect(lib).toContain('placeholder="Describe a concept to search proven ads"');
+    expect(lib).toContain("placeholder={t('Describe a concept to search proven ads')}");
     expect(lib).toContain('Describe a concept. Probes expand it and the library answers with proven ads.');
     expect(lib).not.toContain('#f04e52');
   });
