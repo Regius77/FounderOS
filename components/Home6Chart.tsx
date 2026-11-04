@@ -199,9 +199,9 @@ export function Home6Chart({ days, series, title = t('Activity chart'), skin = '
               </g>
             );
           })}
-          {ticks.map((t) => (
-            <text key={t.i} x={xOf(t.i)} y={H - 6} fontSize={FONT} fill={c.axis}>
-              {t.label}
+          {ticks.map((tick) => (
+            <text key={tick.i} x={xOf(tick.i)} y={H - 6} fontSize={FONT} fill={c.axis}>
+              {tick.label}
             </text>
           ))}
         </svg>

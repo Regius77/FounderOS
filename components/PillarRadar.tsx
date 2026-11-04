@@ -70,7 +70,7 @@ export function PillarRadar({
           viewBox={`0 0 ${S} ${S}`}
           className="block w-full max-w-[500px]"
           role="img"
-          aria-label="Pillar health radar — hover to sift between layers"
+          aria-label={t('Pillar health radar — hover to sift between layers')}
           onMouseMove={onMove}
           onMouseLeave={() => setActive(null)}
         >

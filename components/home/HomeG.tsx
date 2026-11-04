@@ -176,7 +176,7 @@ export function HomeG({ data }: { data: HomeGData }) {
 function StatusLine({ status }: { status: HomeGData['status'] }) {
   return (
     <div className="hg-status">
-      <GTag tone={status.pill.tone} dot title={t('Overall status from failed runs and connectors')}>
+      <GTag tone={status.pill.tone} dot title="Overall status from failed runs and connectors">
         {status.pill.text}
       </GTag>
       {status.segments.map((s) =>
@@ -202,13 +202,13 @@ function StatusLine({ status }: { status: HomeGData['status'] }) {
 /* ── heroes (FR-1 to FR-4) ───────────────────────────────────────────── */
 
 function RevenueHero({ revenue, period }: { revenue: RevenueSummary | null; period: 'MTD' | 'YTD' }) {
-  const caption = t('Revenue · {period}', { period });
+  const caption = `Revenue · ${period}`;
   if (!revenue) {
     return (
       <GHeroCard
         variant="a"
         caption={caption}
-        status={t('No payment processor connected')}
+        status="No payment processor connected"
         setupHref={setupHrefFor('stripe')}
         setupHint={t('connect a payment processor to see revenue')}
         title={t('Revenue: no payment processor connected')}
@@ -267,7 +267,7 @@ function InboundHero({ inbound, starts }: { inbound: InboundSummary; starts: str
       <GHeroCard
         variant="b"
         caption={caption}
-        status={t('Comms not connected')}
+        status="Comms not connected"
         setupHref={setupHrefFor('email')}
         setupHint={t('connect email, WhatsApp or Slack to count inbound messages')}
         title={t('Inbound: no comms channel connected')}
@@ -336,7 +336,7 @@ function Stats({ stats }: { stats: HomeGData['stats'] }) {
           ) : undefined
         }
       />
-      <GStat value={stats.brainPages} label={t('brain pages')} href="/brain" source={t('{n} pages in the brain store', { n: formatFull(stats.brainPages) })} />
+      <GStat value={stats.brainPages} label="brain pages" href="/brain" source={t('{n} pages in the brain store', { n: formatFull(stats.brainPages) })} />
     </div>
   );
 }
@@ -376,7 +376,7 @@ function ActivityCard({ chart }: { chart: HomeGData['chart'] }) {
       ) : (
         <GEmpty
           kind="unconfigured"
-          title={t('No posting or comms history yet')}
+          title="No posting or comms history yet"
           body={t('Connect Zernio for posting history.')}
           setupHref={setupHrefFor('zernio')}
           setupHint={t('connect Zernio for posting history')}
@@ -469,7 +469,7 @@ function AgentsCard({ runs, failed, runs7 }: { runs: HomeGData['runs']; failed: 
       {runs.recent.length === 0 && runs7 === 0 ? (
         <GEmpty
           kind="unconfigured"
-          title={t('No agent runs recorded yet')}
+          title="No agent runs recorded yet"
           body={t('Runs appear here once an agent has a job.')}
           setupHref="/agents"
           setupHint={t('no agent has run yet; open Agents to set one up')}
@@ -525,7 +525,7 @@ function FreshnessCard({ f }: { f: HomeGData['freshness'] }) {
       {f.dated === 0 ? (
         <GEmpty
           kind="unconfigured"
-          title={t('Brain store not mounted')}
+          title="Brain store not mounted"
           body={t('Expected at ~/knowledge/brain-store or GBRAIN_STORE.')}
           setupHref="/setup"
           setupHint={t('expected at ~/knowledge/brain-store (or GBRAIN_STORE)')}
@@ -581,7 +581,7 @@ function AudienceCard({ rows }: { rows: HomeGData['audience'] }) {
       {rows.length === 0 ? (
         <GEmpty
           kind="unconfigured"
-          title={t('No audience history yet')}
+          title="No audience history yet"
           body={t('Connect Zernio to track followers.')}
           setupHref={setupHrefFor('zernio')}
           setupHint={t('connect Zernio to track followers')}
@@ -724,7 +724,7 @@ function LiveCard({ live }: { live: HomeGData['live'] }) {
       {live.agents.length === 0 ? (
         <GEmpty
           kind="unconfigured"
-          title={t('No agents live')}
+          title="No agents live"
           body={t('No agent is active right now.')}
           setupHref="/agents"
           setupHint={t('no agent is active; open Agents to set one up')}
@@ -734,7 +734,7 @@ function LiveCard({ live }: { live: HomeGData['live'] }) {
           {live.agents.map((a) => (
             <GRow key={a.id} href={`/agents?agent=${encodeURIComponent(a.id)}`} title={a.name} hint={t('Open {name}', { name: a.name })} />
           ))}
-          {live.more > 0 && <GRow href="/agents" title={t('+{n} more', { n: live.more })} hint={t('{n} more active agents', { n: live.more })} />}
+          {live.more > 0 && <GRow href="/agents" title={`+${live.more} more`} hint={t('{n} more active agents', { n: live.more })} />}
         </GList>
       )}
     </GCard>

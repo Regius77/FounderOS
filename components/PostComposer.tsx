@@ -106,7 +106,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
                 <button
                   type="button"
                   onClick={() => remove(post)}
-                  aria-label={t('Remove from queue')}
+                  aria-label="Remove from queue"
                   title={t('Remove from queue (Undo for 5 seconds)')}
                   className="grid h-6 w-6 shrink-0 place-items-center rounded-sm-t border border-os-border text-os-dim transition-colors hover:bg-os-surface3 hover:text-os-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 >

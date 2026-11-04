@@ -100,8 +100,8 @@ export function ToastProvider({ children, anchor = false }: { children?: ReactNo
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
 
   const dismiss = useCallback((id: number) => {
-    const t = timers.current.get(id);
-    if (t) clearTimeout(t);
+    const timer = timers.current.get(id);
+    if (timer) clearTimeout(timer);
     timers.current.delete(id);
     setItems((list) => list.filter((x) => x.id !== id));
   }, []);
@@ -114,8 +114,8 @@ export function ToastProvider({ children, anchor = false }: { children?: ReactNo
         // Toasts pushed out of the stack lose their timers too.
         for (const old of list) {
           if (!next.includes(old)) {
-            const t = timers.current.get(old.id);
-            if (t) clearTimeout(t);
+            const timer = timers.current.get(old.id);
+            if (timer) clearTimeout(timer);
             timers.current.delete(old.id);
           }
         }
@@ -130,7 +130,7 @@ export function ToastProvider({ children, anchor = false }: { children?: ReactNo
   useEffect(() => {
     const map = timers.current;
     return () => {
-      map.forEach((t) => clearTimeout(t));
+      map.forEach((timer) => clearTimeout(timer));
       map.clear();
     };
   }, []);
@@ -145,11 +145,11 @@ export function ToastProvider({ children, anchor = false }: { children?: ReactNo
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z' || e.defaultPrevented) return;
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
-      const t = undoTarget(itemsRef.current);
-      if (!t?.action) return;
+      const target = undoTarget(itemsRef.current);
+      if (!target?.action) return;
       e.preventDefault();
-      t.action.onClick();
-      dismiss(t.id);
+      target.action.onClick();
+      dismiss(target.id);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -177,12 +177,15 @@ export function ToastStack({
   if (items.length === 0) return null;
   return (
     <div className="ui-toasts" data-anchor={anchor ? '' : undefined}>
-      {items.map((t) => (
-        <ToastPill key={t.id} item={t} onDismiss={onDismiss} />
+      {items.map((item) => (
+        <ToastPill key={item.id} item={item} onDismiss={onDismiss} />
       ))}
     </div>
   );
 }
+
+// Module scope: ToastPill names its item `t`, so the label is read here.
+const DISMISS_LABEL = t('Dismiss notification');
 
 /**
  * One toast. Under the GladOS style this is the kit's GToast (SPEC X1, C16):
@@ -220,7 +223,7 @@ export function ToastPill({ item: t, onDismiss }: { item: ToastItem; onDismiss: 
             {t.action.label}
           </button>
         ))}
-      <button type="button" className="ui-toast-close" aria-label={t('Dismiss notification')} onClick={() => onDismiss(t.id)}>
+      <button type="button" className="ui-toast-close" aria-label={DISMISS_LABEL} onClick={() => onDismiss(t.id)}>
         <X size={14} strokeWidth={1.75} aria-hidden />
       </button>
     </div>

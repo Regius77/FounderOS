@@ -60,7 +60,7 @@ function useInterject() {
           ms: INTERJECT_UNDO_MS,
           action: { label: t('Undo'), onClick: () => void undo(id) },
           // the same deep link as Home's Needs you rows (lib/home-today.ts taskHref)
-          link: { label: t('Open'), href: body.href ?? taskHref(id) },
+          link: { label: 'Open', href: body.href ?? taskHref(id) },
         });
       }
     } catch {

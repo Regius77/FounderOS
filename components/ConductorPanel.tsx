@@ -456,7 +456,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           <div className="g-dock-compose">
             <div className="g-dock-chips">
               <GChip pressed={broadcast} onPressedChange={setBroadcast} size="compact" title={broadcastTitle} disabled={sending} disabledReason={t('Wait for the reply')}>
-                {t('Send to every agent')}
+                Send to every agent
               </GChip>
             </div>
             <GAsk
@@ -657,7 +657,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
               disabled={sending}
               title={broadcastTitle}
             >
-              {t('Send to every agent')}
+              Send to every agent
             </button>
           </div>
           <div className={`wiz-ask${sending ? ' is-busy' : ''}`}>

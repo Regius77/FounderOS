@@ -39,13 +39,14 @@ import type {
   PipelineNode,
   PipelineNodeKind,
 } from '@/lib/content-pipelines';
+import { t } from '@/lib/i18n';
 
 const NODE_KINDS: PipelineNodeKind[] = ['input', 'generate', 'transform', 'output'];
 const NODE_KIND_LABEL: Record<PipelineNodeKind, string> = {
-  input: 'Input',
-  generate: 'Generate',
-  transform: 'Transform',
-  output: 'Output',
+  input: t('Input'),
+  generate: t('Generate'),
+  transform: t('Transform'),
+  output: t('Output'),
 };
 const KIND_ICON: Record<PipelineNodeKind, LucideIcon> = {
   input: Upload,
@@ -55,11 +56,11 @@ const KIND_ICON: Record<PipelineNodeKind, LucideIcon> = {
 };
 const MEDIA_SOURCE_TYPES: MediaSourceType[] = ['upload', 'library', 'identity', 'text', 'node'];
 const MEDIA_SOURCE_LABEL: Record<MediaSourceType, string> = {
-  upload: 'Upload',
-  library: 'Library asset',
-  identity: 'Identity asset',
-  text: 'Literal text',
-  node: 'Upstream node',
+  upload: t('Upload'),
+  library: t('Library asset'),
+  identity: t('Identity asset'),
+  text: t('Literal text'),
+  node: t('Upstream node'),
 };
 
 function newNodeId(kind: PipelineNodeKind): string {
@@ -71,7 +72,7 @@ function emptyNode(kind: PipelineNodeKind): PipelineNode {
   return {
     id: newNodeId(kind),
     kind,
-    label: kind === 'input' ? 'New input' : kind === 'output' ? 'Deliver to campaign' : 'New node',
+    label: kind === 'input' ? t('New input') : kind === 'output' ? t('Deliver to campaign') : t('New node'),
     model: null,
     params: {},
     aspectRatio: null,
@@ -218,7 +219,7 @@ export function PipelineBuilder({
     setError(null);
     setProblems([]);
     if (!name.trim()) {
-      setError('Give the pipeline a name.');
+      setError(t('Give the pipeline a name.'));
       return;
     }
     setBusy(true);
@@ -232,9 +233,9 @@ export function PipelineBuilder({
       if (!res.ok) {
         if (Array.isArray(body?.problems)) {
           setProblems(body.problems as string[]);
-          setError('Fix the problems below before saving.');
+          setError(t('Fix the problems below before saving.'));
         } else {
-          setError(typeof body?.error === 'string' ? body.error : `save failed (HTTP ${res.status})`);
+          setError(typeof body?.error === 'string' ? body.error : t('save failed (HTTP {status})', { status: res.status }));
         }
         return;
       }
@@ -257,7 +258,7 @@ export function PipelineBuilder({
     setError(null);
     try {
       const res = await fetch(`/api/content/pipelines/${pipeline.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`delete failed (HTTP ${res.status})`);
+      if (!res.ok) throw new Error(t('delete failed (HTTP {status})', { status: res.status }));
       router.refresh();
       onClose();
     } catch (err) {
@@ -281,35 +282,35 @@ export function PipelineBuilder({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={editing ? `Edit ${pipeline!.name}` : 'New pipeline'}
+        aria-label={editing ? t('Edit {name}', { name: pipeline!.name }) : t('New pipeline')}
       >
         <button
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('Close')}
           className="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full border border-[rgb(var(--mist-rgb) / 0.14)] bg-black/30 text-os-dim transition-colors hover:text-os-text"
         >
           <X className="h-4 w-4" />
         </button>
 
         <div className="flex-1 overflow-y-auto px-7 py-7">
-          <h2 className="pr-10 text-[18px] font-medium leading-tight">{editing ? 'Edit pipeline' : 'New pipeline'}</h2>
+          <h2 className="pr-10 text-[18px] font-medium leading-tight">{editing ? t('Edit pipeline') : t('New pipeline')}</h2>
 
           <section className="mt-5 grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5">
-              <span className="glass-label">Name</span>
+              <span className="glass-label">{t('Name')}</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Thumbnail pack"
+                placeholder={t('e.g. Thumbnail pack')}
                 className="glass-chip border-none px-3 py-2.5 text-[13px] text-os-text outline-none placeholder:text-os-dim"
               />
             </label>
             <label className="flex flex-col gap-1.5">
-              <span className="glass-label">Description</span>
+              <span className="glass-label">{t('Description')}</span>
               <input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What this pipeline delivers, in one line"
+                placeholder={t('What this pipeline delivers, in one line')}
                 className="glass-chip border-none px-3 py-2.5 text-[13px] text-os-text outline-none placeholder:text-os-dim"
               />
             </label>
@@ -318,13 +319,13 @@ export function PipelineBuilder({
           <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="overflow-x-auto">
               <div className="mb-3 flex items-center justify-between">
-                <span className="glass-label">Flow</span>
-                <InsertMenu onPick={(kind) => addNode(nodes.at(-1)?.id ?? null, kind)} label="Add node" />
+                <span className="glass-label">{t('Flow')}</span>
+                <InsertMenu onPick={(kind) => addNode(nodes.at(-1)?.id ?? null, kind)} label={t('Add node')} />
               </div>
               {nodes.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-10 text-center">
-                  <p className="text-[12.5px] text-os-dim">No nodes yet.</p>
-                  <InsertMenu onPick={(kind) => addNode(null, kind)} label="Add the first node" />
+                  <p className="text-[12.5px] text-os-dim">{t('No nodes yet.')}</p>
+                  <InsertMenu onPick={(kind) => addNode(null, kind)} label={t('Add the first node')} />
                 </div>
               ) : (
                 <div className="flex min-w-max items-start gap-3 pb-2">
@@ -349,14 +350,14 @@ export function PipelineBuilder({
               <NodeDetailPanel node={selectedNode} nodes={nodes} edges={edges} setNodes={setNodes} setEdges={setEdges} onClose={() => setSelectedId(null)} />
             ) : (
               <div className="glass-panel-violet flex min-h-[220px] flex-col items-center justify-center gap-1 px-5 py-8 text-center">
-                <span className="text-[12px] text-os-dim">Select a node to edit it.</span>
+                <span className="text-[12px] text-os-dim">{t('Select a node to edit it.')}</span>
               </div>
             )}
           </section>
 
           {problems.length > 0 && (
             <section className="mt-5">
-              <span className="glass-label">Problems</span>
+              <span className="glass-label">{t('Problems')}</span>
               <ul className="mt-2 flex flex-col gap-1.5">
                 {problems.map((p, i) => (
                   <li key={i} className="flex items-start gap-2 text-[12px] leading-relaxed text-os-muted">
@@ -386,16 +387,16 @@ export function PipelineBuilder({
                 className="flex items-center gap-1.5 rounded-sm-t border border-[color-mix(in_oklab,var(--err)_35%,transparent)] bg-[color-mix(in_oklab,var(--err)_9%,transparent)] px-3 py-2 text-[12.5px] text-os-err transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                {deleting ? 'Deleting…' : deleteArmed ? 'Really delete? Click again' : 'Delete pipeline'}
+                {deleting ? t('Deleting…') : deleteArmed ? t('Really delete? Click again') : t('Delete pipeline')}
               </button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={onClose} className="c-btn">
-              Cancel
+              {t('Cancel')}
             </button>
             <button type="button" onClick={submit} disabled={busy} className="c-btn c-btn-primary">
-              {busy ? 'Saving…' : 'Save'}
+              {busy ? t('Saving…') : t('Save')}
             </button>
           </div>
         </div>
@@ -411,10 +412,10 @@ function InsertMenu({ onPick, compact, label }: { onPick: (kind: PipelineNodeKin
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={compact ? 'Insert node' : label}
+        aria-label={compact ? t('Insert node') : label}
         className={compact ? 'glass-chip grid h-8 w-8 shrink-0 place-items-center text-os-dim hover:text-os-text' : 'c-btn'}
       >
-        <Plus className="h-3 w-3" strokeWidth={1.8} /> {!compact && (label ?? 'Add node')}
+        <Plus className="h-3 w-3" strokeWidth={1.8} /> {!compact && (label ?? t('Add node'))}
       </button>
       {open && (
         <>
@@ -461,7 +462,7 @@ function NodeChip({
         <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: selected ? 'var(--accent)' : 'var(--text-2)' }} strokeWidth={1.8} />
         <span className="max-w-[130px] truncate text-[12px] text-os-text">{node.label}</span>
       </button>
-      <button type="button" onClick={onDelete} aria-label={`Delete ${node.label}`} className="shrink-0 text-os-dim hover:text-os-err">
+      <button type="button" onClick={onDelete} aria-label={t('Delete {name}', { name: node.label })} className="shrink-0 text-os-dim hover:text-os-err">
         <X className="h-3 w-3" strokeWidth={1.8} />
       </button>
     </div>
@@ -529,14 +530,14 @@ function NodeDetailPanel({
   return (
     <div className="glass-panel-violet flex flex-col gap-4 overflow-y-auto px-5 py-5" style={{ maxHeight: '62vh' }}>
       <div className="flex items-start justify-between gap-2">
-        <span className="glass-label">Node</span>
-        <button onClick={onClose} aria-label="Close node detail" className="glass-chip grid h-6 w-6 place-items-center text-os-dim hover:text-os-text">
+        <span className="glass-label">{t('Node')}</span>
+        <button onClick={onClose} aria-label={t('Close node detail')} className="glass-chip grid h-6 w-6 place-items-center text-os-dim hover:text-os-text">
           <X className="h-3 w-3" strokeWidth={1.8} />
         </button>
       </div>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-[10.5px] text-os-dim">Label</span>
+        <span className="text-[10.5px] text-os-dim">{t('Label')}</span>
         <input
           value={node.label}
           onChange={(e) => patch({ label: e.target.value })}
@@ -545,7 +546,7 @@ function NodeDetailPanel({
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-[10.5px] text-os-dim">Kind</span>
+        <span className="text-[10.5px] text-os-dim">{t('Kind')}</span>
         <select
           value={node.kind}
           onChange={(e) => {
@@ -566,16 +567,16 @@ function NodeDetailPanel({
 
       {node.kind === 'input' && (
         <label className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] text-os-dim">Input kind</span>
+          <span className="text-[10.5px] text-os-dim">{t('Input kind')}</span>
           <select
             value={node.inputKind ?? 'image'}
             onChange={(e) => patch({ inputKind: e.target.value as InputKind })}
             className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none"
           >
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-            <option value="audio">Audio</option>
-            <option value="text">Text (URL / literal value)</option>
+            <option value="image">{t('Image')}</option>
+            <option value="video">{t('Video')}</option>
+            <option value="audio">{t('Audio')}</option>
+            <option value="text">{t('Text (URL / literal value)')}</option>
           </select>
         </label>
       )}
@@ -583,9 +584,9 @@ function NodeDetailPanel({
       {(node.kind === 'generate' || node.kind === 'transform') && (
         <>
           <label className="flex flex-col gap-1.5">
-            <span className="text-[10.5px] text-os-dim">Model</span>
+            <span className="text-[10.5px] text-os-dim">{t('Model')}</span>
             <select value={node.model ?? ''} onChange={(e) => onModelChange(e.target.value)} className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none">
-              <option value="">Pick a model…</option>
+              <option value="">{t('Pick a model…')}</option>
               {MODEL_FAMILIES.map((family) => {
                 const models = modelsByFamily(family);
                 if (models.length === 0) return null;
@@ -606,13 +607,13 @@ function NodeDetailPanel({
             <>
               {model.aspectRatios.length > 0 && (
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[10.5px] text-os-dim">Aspect ratio</span>
+                  <span className="text-[10.5px] text-os-dim">{t('Aspect ratio')}</span>
                   <select
                     value={node.aspectRatio ?? ''}
                     onChange={(e) => patch({ aspectRatio: e.target.value || null })}
                     className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none"
                   >
-                    <option value="">Not set</option>
+                    <option value="">{t('Not set')}</option>
                     {model.aspectRatios.map((a) => (
                       <option key={a} value={a}>
                         {a}
@@ -624,14 +625,14 @@ function NodeDetailPanel({
 
               {(model.durations || model.durationRange) && (
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[10.5px] text-os-dim">Duration (seconds)</span>
+                  <span className="text-[10.5px] text-os-dim">{t('Duration (seconds)')}</span>
                   {model.durations ? (
                     <select
                       value={node.duration ?? ''}
                       onChange={(e) => patch({ duration: e.target.value ? Number(e.target.value) : null })}
                       className="glass-chip border-none px-3 py-2 text-[13px] text-os-text outline-none"
                     >
-                      <option value="">Not set</option>
+                      <option value="">{t('Not set')}</option>
                       {model.durations.map((d) => (
                         <option key={d} value={d}>
                           {d}s
@@ -652,7 +653,7 @@ function NodeDetailPanel({
               )}
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-[10.5px] text-os-dim">Batch (parallel runs)</span>
+                <span className="text-[10.5px] text-os-dim">{t('Batch (parallel runs)')}</span>
                 <input
                   type="number"
                   min={1}
@@ -664,7 +665,7 @@ function NodeDetailPanel({
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-[10.5px] text-os-dim">Prompt</span>
+                <span className="text-[10.5px] text-os-dim">{t('Prompt')}</span>
                 <textarea
                   value={node.prompt ?? ''}
                   onChange={(e) => patch({ prompt: e.target.value })}
@@ -674,7 +675,7 @@ function NodeDetailPanel({
               </label>
 
               <div className="flex flex-col gap-1">
-                <span className="text-[10.5px] text-os-dim">Parameters</span>
+                <span className="text-[10.5px] text-os-dim">{t('Parameters')}</span>
                 <ParamFields
                   model={model}
                   values={node.params as ParamValues}
@@ -684,7 +685,7 @@ function NodeDetailPanel({
 
               {model.medias.length > 0 && (
                 <div className="flex flex-col gap-2.5">
-                  <span className="text-[10.5px] text-os-dim">Media bindings</span>
+                  <span className="text-[10.5px] text-os-dim">{t('Media bindings')}</span>
                   {model.medias.map((slot) => (
                     <MediaBindingRow
                       key={slot.role}
@@ -704,7 +705,7 @@ function NodeDetailPanel({
 
       {node.kind === 'output' && (
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10.5px] text-os-dim">Media bindings</span>
+          <span className="text-[10.5px] text-os-dim">{t('Media bindings')}</span>
           {node.mediaBindings.map((b, i) => (
             <MediaBindingRow
               key={i}
@@ -722,14 +723,14 @@ function NodeDetailPanel({
             onClick={() => patch({ mediaBindings: [...node.mediaBindings, { role: 'image_references', source: { type: 'node', ref: '' } }] })}
             className="c-btn self-start"
           >
-            <Plus className="h-3 w-3" strokeWidth={1.8} /> Add media binding
+            <Plus className="h-3 w-3" strokeWidth={1.8} /> {t('Add media binding')}
           </button>
         </div>
       )}
 
       {otherNodes.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] text-os-dim">Connects to</span>
+          <span className="text-[10.5px] text-os-dim">{t('Connects to')}</span>
           <div className="flex flex-wrap gap-1.5">
             {otherNodes.map((n) => {
               const connected = edges.some((e) => e.from === node.id && e.to === n.id);
@@ -789,12 +790,12 @@ function MediaBindingRow({
         >
           {(Object.keys(ROLE_LABELS) as HfMediaRole[]).map((r) => (
             <option key={r} value={r}>
-              {ROLE_LABELS[r]}
+              {t(ROLE_LABELS[r])}
             </option>
           ))}
         </select>
       ) : (
-        <span className="w-[118px] shrink-0 pt-2 text-[11px] text-os-dim">{ROLE_LABELS[role as HfMediaRole] ?? role}</span>
+        <span className="w-[118px] shrink-0 pt-2 text-[11px] text-os-dim">{ROLE_LABELS[role as HfMediaRole] ? t(ROLE_LABELS[role as HfMediaRole]) : role}</span>
       )}
 
       <select
@@ -813,10 +814,10 @@ function MediaBindingRow({
         }}
         className="glass-chip shrink-0 border-none px-2.5 py-2 text-[11.5px] text-os-text outline-none"
       >
-        <option value="">— none —</option>
-        {MEDIA_SOURCE_TYPES.map((t) => (
-          <option key={t} value={t}>
-            {MEDIA_SOURCE_LABEL[t]}
+        <option value="">{t('— none —')}</option>
+        {MEDIA_SOURCE_TYPES.map((st) => (
+          <option key={st} value={st}>
+            {MEDIA_SOURCE_LABEL[st]}
           </option>
         ))}
       </select>
@@ -827,7 +828,7 @@ function MediaBindingRow({
           onChange={(e) => onChange({ role, source: { type: 'node', ref: e.target.value } })}
           className="glass-chip min-w-0 flex-1 border-none px-2.5 py-2 text-[11.5px] text-os-text outline-none"
         >
-          <option value="">Pick a node…</option>
+          <option value="">{t('Pick a node…')}</option>
           {upstream.map((n) => (
             <option key={n.id} value={n.id}>
               {n.label}
@@ -840,10 +841,10 @@ function MediaBindingRow({
           onChange={(e) => onChange({ role, source: { type: sourceType as MediaSourceType, ref: e.target.value } })}
           placeholder={
             sourceType === 'identity'
-              ? 'Soul/Element id from the Identity section'
+              ? t('Soul/Element id from the Identity section')
               : sourceType === 'text'
-                ? 'Literal value'
-                : 'Path under /content-media/'
+                ? t('Literal value')
+                : t('Path under /content-media/')
           }
           className="glass-chip min-w-0 flex-1 border-none px-2.5 py-2 text-[11.5px] text-os-text outline-none placeholder:text-os-dim"
         />

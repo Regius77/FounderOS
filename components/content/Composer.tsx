@@ -40,6 +40,9 @@ import {
 import type { Campaign } from '@/lib/content-campaigns';
 import type { HiggsfieldAccount, IdentityAsset } from '@/lib/higgsfield/account';
 import type { UploadAsset } from '@/lib/content-uploads';
+import { t } from '@/lib/i18n';
+
+const TAB_LABEL: Record<PickerTab, string> = { library: t('library'), uploads: t('uploads'), identity: t('identity'), upload: t('upload') };
 
 const inputCls =
   'w-full rounded-[9px] border border-[rgb(var(--mist-rgb) / 0.14)] bg-[var(--surface-2)] px-3 py-2 text-[13px] text-os-text outline-none placeholder:text-os-dim';
@@ -81,7 +84,7 @@ function ReferenceSlot({
   const selected = spec.medias.filter((m) => m.role === slot.role);
   const max = slot.max ?? 1;
   const full = selected.length >= max;
-  const label = ROLE_LABELS[slot.role];
+  const label = t(ROLE_LABELS[slot.role]);
   const showIdentityTab = slot.type === 'image' && identityOptions.length > 0;
 
   const libraryOptions = libraryAssets.filter((a) => a.kind === slot.type);
@@ -102,11 +105,11 @@ function ReferenceSlot({
       form.append('file', file);
       const res = await fetch('/api/content/upload', { method: 'POST', body: form });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(typeof body?.error === 'string' ? body.error : 'Upload failed.');
+      if (!res.ok) throw new Error(typeof body?.error === 'string' ? body.error : t('Upload failed.'));
       const asset = body.upload as UploadAsset;
       pick(`/content-media/uploads/${asset.file}`, asset.title);
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed.');
+      setUploadError(err instanceof Error ? err.message : t('Upload failed.'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -118,7 +121,7 @@ function ReferenceSlot({
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-os-muted">
           {label}
-          {max > 1 ? ` (up to ${max})` : ''}
+          {max > 1 ? ` ${t('(up to {n})', { n: max })}` : ''}
         </span>
         {!full && (
           <button
@@ -126,7 +129,7 @@ function ReferenceSlot({
             onClick={() => setPickerOpen((v) => !v)}
             className="flex items-center gap-1 text-[11.5px] text-os-accent"
           >
-            <Plus className="h-3 w-3" strokeWidth={2} /> Add
+            <Plus className="h-3 w-3" strokeWidth={2} /> {t('Add')}
           </button>
         )}
       </div>
@@ -149,7 +152,7 @@ function ReferenceSlot({
               <button
                 type="button"
                 onClick={() => onRemoveMedia(slot.role, m.ref)}
-                aria-label={`Remove ${label}`}
+                aria-label={t('Remove {label}', { label })}
                 className="absolute right-0.5 top-0.5 grid h-4 w-4 place-items-center rounded-full bg-black/60 text-os-text"
               >
                 <X className="h-2.5 w-2.5" />
@@ -163,16 +166,16 @@ function ReferenceSlot({
         <div className="mt-2.5 rounded-[10px] border border-[rgb(var(--mist-rgb) / 0.12)] bg-black/25 p-2.5">
           <div className="flex flex-wrap gap-1.5 border-b border-[var(--hairline)] pb-2">
             {(['library', 'uploads', ...(showIdentityTab ? (['identity'] as const) : []), 'upload'] as PickerTab[]).map(
-              (t) => (
+              (tb) => (
                 <button
-                  key={t}
+                  key={tb}
                   type="button"
-                  onClick={() => setTab(t)}
+                  onClick={() => setTab(tb)}
                   className={`rounded-[6px] px-2 py-1 text-[11px] capitalize ${
-                    tab === t ? 'bg-os-accent/15 text-os-accent' : 'text-os-dim hover:text-os-text'
+                    tab === tb ? 'bg-os-accent/15 text-os-accent' : 'text-os-dim hover:text-os-text'
                   }`}
                 >
-                  {t}
+                  {TAB_LABEL[tb]}
                 </button>
               ),
             )}
@@ -181,7 +184,7 @@ function ReferenceSlot({
           <div className="mt-2 max-h-40 overflow-y-auto">
             {tab === 'library' &&
               (libraryOptions.length === 0 ? (
-                <p className="text-[11.5px] text-os-dim">No {slot.type} assets in the library yet.</p>
+                <p className="text-[11.5px] text-os-dim">{slot.type === 'image' ? t('No image assets in the library yet.') : slot.type === 'video' ? t('No video assets in the library yet.') : t('No audio assets in the library yet.')}</p>
               ) : (
                 <div className="grid grid-cols-4 gap-1.5">
                   {libraryOptions.map((a) => (
@@ -200,7 +203,7 @@ function ReferenceSlot({
 
             {tab === 'uploads' &&
               (uploadOptions.length === 0 ? (
-                <p className="text-[11.5px] text-os-dim">No uploads of this kind yet.</p>
+                <p className="text-[11.5px] text-os-dim">{t('No uploads of this kind yet.')}</p>
               ) : (
                 <div className="grid grid-cols-4 gap-1.5">
                   {uploadOptions.map((u) => (
@@ -247,7 +250,7 @@ function ReferenceSlot({
                   disabled={uploading}
                   className="text-[11.5px] text-os-muted file:mr-2 file:rounded-[6px] file:border-0 file:bg-[var(--surface-2)] file:px-2 file:py-1 file:text-os-text"
                 />
-                {uploading && <p className="mt-1 text-[11px] text-os-dim">Uploading…</p>}
+                {uploading && <p className="mt-1 text-[11px] text-os-dim">{t('Uploading…')}</p>}
                 {uploadError && <p className="mt-1 text-[11px] text-os-err">{uploadError}</p>}
               </div>
             )}
@@ -352,7 +355,7 @@ export function Composer({
   async function refinePrompt() {
     if (!spec || !model) return;
     if (!spec.prompt.trim()) {
-      setRefineError('Write a direction first.');
+      setRefineError(t('Write a direction first.'));
       return;
     }
     setRefining(true);
@@ -365,12 +368,12 @@ export function Composer({
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body.ok) {
-        setRefineError(typeof body?.error === 'string' ? body.error : 'Refinement unavailable');
+        setRefineError(typeof body?.error === 'string' ? body.error : t('Refinement unavailable'));
         return;
       }
       setSpec((s) => (s ? { ...s, prompt: body.prompt } : s));
     } catch {
-      setRefineError('Refinement unavailable');
+      setRefineError(t('Refinement unavailable'));
     } finally {
       setRefining(false);
     }
@@ -379,11 +382,11 @@ export function Composer({
   async function submit() {
     if (!tool || !model || !spec) return;
     if (!title.trim()) {
-      setSubmitError('Give the production a title.');
+      setSubmitError(t('Give the production a title.'));
       return;
     }
     if (!campaignId) {
-      setSubmitError('Pick a campaign.');
+      setSubmitError(t('Pick a campaign.'));
       return;
     }
     setSubmitting(true);
@@ -397,12 +400,12 @@ export function Composer({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(typeof body?.error === 'string' ? body.error : 'Could not queue that production.');
+        throw new Error(typeof body?.error === 'string' ? body.error : t('Could not queue that production.'));
       }
       closeComposer();
       router.refresh();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Could not queue that production.');
+      setSubmitError(err instanceof Error ? err.message : t('Could not queue that production.'));
     } finally {
       setSubmitting(false);
     }
@@ -422,17 +425,17 @@ export function Composer({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`Compose ${tool.label}`}
+        aria-label={t('Compose {tool}', { tool: t(tool.label) })}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[var(--hairline)] px-6 py-4">
           <div>
-            <span className="glass-label">{tool.label}</span>
-            <h2 className="mt-1 text-[16px] font-medium text-os-text">Compose production</h2>
+            <span className="glass-label">{t(tool.label)}</span>
+            <h2 className="mt-1 text-[16px] font-medium text-os-text">{t('Compose production')}</h2>
           </div>
           <button
             type="button"
             onClick={closeComposer}
-            aria-label="Close"
+            aria-label={t('Close')}
             className="grid h-8 w-8 place-items-center rounded-full border border-[rgb(var(--mist-rgb) / 0.14)] text-os-dim transition-colors hover:text-os-text"
           >
             <X className="h-4 w-4" />
@@ -443,12 +446,12 @@ export function Composer({
           {/* Creative zone */}
           <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-1.5">
-              <span className="text-[12px] text-os-muted">Title</span>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What this production is" className={inputCls} />
+              <span className="text-[12px] text-os-muted">{t('Title')}</span>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('What this production is')} className={inputCls} />
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-[12px] text-os-muted">Campaign</span>
+              <span className="text-[12px] text-os-muted">{t('Campaign')}</span>
               <select value={campaignId} onChange={(e) => setCampaignId(e.target.value)} className={inputCls}>
                 {campaigns.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -460,7 +463,7 @@ export function Composer({
 
             <label className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-os-muted">Creative direction</span>
+                <span className="text-[12px] text-os-muted">{t('Creative direction')}</span>
                 <button
                   type="button"
                   onClick={refinePrompt}
@@ -468,14 +471,14 @@ export function Composer({
                   className="flex items-center gap-1.5 text-[11.5px] text-os-accent disabled:opacity-50"
                 >
                   <Sparkles className="h-3 w-3" strokeWidth={2} />
-                  {refining ? 'Refining…' : 'Refine with director'}
+                  {refining ? t('Refining…') : t('Refine with director')}
                 </button>
               </div>
               <textarea
                 value={spec.prompt}
                 onChange={(e) => setSpec((s) => (s ? { ...s, prompt: e.target.value } : s))}
                 rows={4}
-                placeholder="What goes into the model — composition, references, mood"
+                placeholder={t('What goes into the model — composition, references, mood')}
                 className={`${inputCls} resize-none leading-relaxed`}
               />
               {refineError && <p className="text-[12px] text-os-err">{refineError}</p>}
@@ -483,7 +486,7 @@ export function Composer({
 
             {model.medias.length > 0 && (
               <div className="flex flex-col gap-2.5">
-                <span className="glass-label">References</span>
+                <span className="glass-label">{t('References')}</span>
                 {model.medias.map((slot) => (
                   <ReferenceSlot
                     key={slot.role}
@@ -501,13 +504,13 @@ export function Composer({
             )}
 
             <div>
-              <span className="glass-label">Identity</span>
+              <span className="glass-label">{t('Identity')}</span>
               {support === 'none' ? (
-                <p className="mt-1.5 text-[12px] text-os-dim">This model takes no identity reference.</p>
+                <p className="mt-1.5 text-[12px] text-os-dim">{t('This model takes no identity reference.')}</p>
               ) : !account ? (
-                <p className="mt-1.5 text-[12px] text-os-dim">Higgsfield not synced — no identity assets available.</p>
+                <p className="mt-1.5 text-[12px] text-os-dim">{t('Higgsfield not synced — no identity assets available.')}</p>
               ) : identityList.length === 0 ? (
-                <p className="mt-1.5 text-[12px] text-os-dim">No {support === 'soul' ? 'Soul characters' : 'Elements'} synced yet.</p>
+                <p className="mt-1.5 text-[12px] text-os-dim">{support === 'soul' ? t('No Soul characters synced yet.') : t('No Elements synced yet.')}</p>
               ) : (
                 <div className="mt-1.5 flex flex-wrap gap-2">
                   {identityList.map((a) => {
@@ -538,7 +541,7 @@ export function Composer({
             {tool.skill && (
               <label className="flex items-center justify-between gap-3 border-t border-[var(--hairline)] py-2.5">
                 <span className="text-[12.5px] text-os-text">
-                  Apply skill: <span className="font-mono text-os-muted">{tool.skill}</span>
+                  {t('Apply skill:')} <span className="font-mono text-os-muted">{tool.skill}</span>
                 </span>
                 <button
                   type="button"
@@ -561,7 +564,7 @@ export function Composer({
             {/* Parameter rail */}
             <div className="mt-2 flex flex-col gap-4 border-t border-[var(--hairline)] pt-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-[12px] text-os-muted">Model</span>
+                <span className="text-[12px] text-os-muted">{t('Model')}</span>
                 <select value={model.id} onChange={(e) => handleModelChange(e.target.value)} className={inputCls}>
                   {familyGroups.map(([family, models]) => (
                     <optgroup key={family} label={family}>
@@ -579,13 +582,13 @@ export function Composer({
                   onClick={() => setShowAllModels((v) => !v)}
                   className="self-start text-[11.5px] text-os-dim transition-colors hover:text-os-text"
                 >
-                  {showAllModels ? `Only ${model.family} models` : 'All models'}
+                  {showAllModels ? t('Only {family} models', { family: model.family }) : t('All models')}
                 </button>
               </label>
 
               {model.aspectRatios.length > 0 && (
                 <div>
-                  <span className="text-[12px] text-os-muted">Aspect ratio</span>
+                  <span className="text-[12px] text-os-muted">{t('Aspect ratio')}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {model.aspectRatios.map((ar) => (
                       <button
@@ -603,7 +606,7 @@ export function Composer({
 
               {model.durations && model.durations.length > 0 && (
                 <div>
-                  <span className="text-[12px] text-os-muted">Duration</span>
+                  <span className="text-[12px] text-os-muted">{t('Duration')}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {model.durations.map((d) => (
                       <button
@@ -621,7 +624,7 @@ export function Composer({
 
               {!model.durations && model.durationRange && (
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[12px] text-os-muted">Duration (seconds)</span>
+                  <span className="text-[12px] text-os-muted">{t('Duration (seconds)')}</span>
                   <input
                     type="number"
                     min={model.durationRange.min}
@@ -645,13 +648,13 @@ export function Composer({
 
               {(model.output === 'image' || model.output === 'video') && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-os-muted">Batch</span>
+                  <span className="text-[12px] text-os-muted">{t('Batch')}</span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setSpec((s) => (s ? { ...s, batch: Math.max(1, s.batch - 1) } : s))}
                       className="c-btn h-7 w-7 justify-center p-0"
-                      aria-label="Decrease batch"
+                      aria-label={t('Decrease batch')}
                     >
                       −
                     </button>
@@ -660,7 +663,7 @@ export function Composer({
                       type="button"
                       onClick={() => setSpec((s) => (s ? { ...s, batch: Math.min(8, s.batch + 1) } : s))}
                       className="c-btn h-7 w-7 justify-center p-0"
-                      aria-label="Increase batch"
+                      aria-label={t('Increase batch')}
                     >
                       +
                     </button>
@@ -673,15 +676,15 @@ export function Composer({
 
         <div className="flex shrink-0 items-center justify-between border-t border-[var(--hairline)] px-6 py-4">
           <span className="font-mono text-[11.5px] text-os-dim">
-            ~{credits} credit{credits === 1 ? '' : 's'}
+            {credits === 1 ? t('~{n} credit', { n: credits }) : t('~{n} credits', { n: credits })}
           </span>
           <div className="flex items-center gap-2.5">
             {submitError && <span className="text-[12px] text-os-err">{submitError}</span>}
             <button type="button" onClick={closeComposer} className="c-btn">
-              Cancel
+              {t('Cancel')}
             </button>
             <button type="button" onClick={submit} disabled={submitting} className="c-btn c-btn-primary">
-              {submitting ? 'Queuing…' : 'Queue production'}
+              {submitting ? t('Queuing…') : t('Queue production')}
             </button>
           </div>
         </div>

@@ -2385,7 +2385,7 @@ export function KnowledgeGraph({
             <div className={gc('kg-panel kg-graph-panel absolute right-3 top-[46px] z-10 flex max-h-[calc(100%-58px)] w-[300px] flex-col overflow-hidden', 'kg-panel absolute right-3 top-[46px] z-10 flex max-h-[calc(100%-58px)] w-[300px] flex-col overflow-hidden rounded-[16px] border border-white/10 bg-[var(--kg-panel-bg)] backdrop-blur-md')}>
               <button
                 onClick={clearDetail}
-                aria-label={t('Back to the {name} pillar', { name: focusedTeam?.label ?? t('graph') })}
+                aria-label={`Back to the ${focusedTeam?.label ?? 'graph'} pillar`}
                 className={gc('g-btn g-btn-sm kg-panel-back', 'flex shrink-0 items-center gap-2.5 border-b border-os-border px-3 py-3 text-left text-[12px] text-os-dim transition-colors hover:text-os-text')}
               >
                 <ArrowLeft className="h-3 w-3 shrink-0" />

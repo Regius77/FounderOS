@@ -21,7 +21,7 @@ export function GraphBrainContext({ label }: { label: string | null }) {
     }
     let alive = true;
     setState({ q: label, hits: null });
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       fetch(`/api/brain?q=${encodeURIComponent(label)}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((j: { results?: Hit[] } | null) => {
@@ -31,7 +31,7 @@ export function GraphBrainContext({ label }: { label: string | null }) {
     }, 250);
     return () => {
       alive = false;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [label]);
 

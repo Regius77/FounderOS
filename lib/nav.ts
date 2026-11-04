@@ -96,7 +96,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       { href: '/clients', label: t('Clients'), icon: Briefcase, keywords: 'client roster retainer confirmed requests briefs work superset drafts' },
       { href: '/finances', label: t('Finances'), icon: Wallet, keywords: 'money revenue processors books stripe payments cash' },
-      { href: '/trading', label: t('Trading'), icon: CandlestickChart, keywords: 'markets robinhood phantom wallet stocks positions trades agent sleeve limits autopilot' },
+      { href: '/trading', label: 'Trading', icon: CandlestickChart, keywords: 'markets robinhood phantom wallet stocks positions trades agent sleeve limits autopilot' },
     ],
   },
   {

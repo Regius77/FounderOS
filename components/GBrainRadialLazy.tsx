@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import type { ObservatoryData } from '@/lib/gbrain-observatory';
+import { t } from '@/lib/i18n';
 
 /** Radial engine is client-only (SVG interactions) — ships lazily, real data flows in as props. */
 const GBrainRadial = dynamic(() => import('@/components/GBrainRadial').then((m) => m.GBrainRadial), {
@@ -9,7 +10,7 @@ const GBrainRadial = dynamic(() => import('@/components/GBrainRadial').then((m) 
   loading: () => (
     <div className="h-full w-full" style={{ background: 'var(--viz-stage-2)' }}>
       <div className="flex h-full items-center justify-center font-mono text-[11px] text-[var(--gbr-footer)]">
-        waking the brain…
+        {t('waking the brain…')}
       </div>
     </div>
   ),

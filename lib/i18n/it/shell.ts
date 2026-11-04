@@ -799,6 +799,8 @@ const it: Record<string, string> = {
   'Action': 'Azione',
   '{group} lens': 'Lente {group}',
   '{group} · all': '{group} · tutte',
+  'Pillar health radar — hover to sift between layers': 'Radar della salute dei pilastri — passa sopra per filtrare i livelli',
+  'waking the brain…': 'risveglio del brain…',
 };
 
 export default it;
