@@ -1,4 +1,5 @@
 import type { Agent } from '@/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * The wiki-style detail shown when you click an agent in the knowledge graph:
@@ -48,26 +49,26 @@ export function buildAgentWiki(agent: Agent): AgentWiki {
 // Short, real-ready summaries for the tools agents lean on most. Anything not
 // listed falls back to a generic line — swap for live tool docs later.
 const TOOL_SUMMARY: Record<string, string> = {
-  attio: 'CRM of record — companies, people, and deals across Acme + Workshop.',
-  gbrain: 'The Optimal Engine CLI — hybrid search over the markdown brain-store + Supabase second brain.',
-  'brain-store': 'Local markdown knowledge base; the source of truth Optimal Engine syncs from.',
-  supabase: 'Postgres + pgvector "second brain" holding chunked embeddings.',
-  zeroentropy: 'Embedding provider behind Optimal Engine hybrid retrieval.',
-  'comms-feed': 'Unified inbox feed — WhatsApp, email, Slack, calendar in one stream.',
-  zernio: 'Social posting + audience analytics across the five platforms.',
-  manychat: 'DM automation across Instagram and Messenger.',
-  notion: 'Docs + databases workspace.',
-  obsidian: 'Local vault, incl. the Claude conversation archive.',
-  miro: 'Visual boards for planning and maps.',
-  wispr: 'Local dictation / flow capture.',
-  arcads: 'AI UGC ad generation.',
-  higgsfield: 'AI image / video / audio generation.',
-  playwright: 'Headless browser automation (e.g. Skool).',
-  stripe: 'Payments + balance + charges.',
-  slack: 'Team channels, read + post via the bot.',
-  openclaw: 'OpenClaw runtime the agents execute on.',
-  ollama: 'Local model runtime.',
-  remotion: 'Programmatic video rendering.',
+  attio: t('CRM of record — companies, people, and deals across Acme + Workshop.'),
+  gbrain: t('The Optimal Engine CLI — hybrid search over the markdown brain-store + Supabase second brain.'),
+  'brain-store': t('Local markdown knowledge base; the source of truth Optimal Engine syncs from.'),
+  supabase: t('Postgres + pgvector "second brain" holding chunked embeddings.'),
+  zeroentropy: t('Embedding provider behind Optimal Engine hybrid retrieval.'),
+  'comms-feed': t('Unified inbox feed — WhatsApp, email, Slack, calendar in one stream.'),
+  zernio: t('Social posting + audience analytics across the five platforms.'),
+  manychat: t('DM automation across Instagram and Messenger.'),
+  notion: t('Docs + databases workspace.'),
+  obsidian: t('Local vault, incl. the Claude conversation archive.'),
+  miro: t('Visual boards for planning and maps.'),
+  wispr: t('Local dictation / flow capture.'),
+  arcads: t('AI UGC ad generation.'),
+  higgsfield: t('AI image / video / audio generation.'),
+  playwright: t('Headless browser automation (e.g. Skool).'),
+  stripe: t('Payments + balance + charges.'),
+  slack: t('Team channels, read + post via the bot.'),
+  openclaw: t('OpenClaw runtime the agents execute on.'),
+  ollama: t('Local model runtime.'),
+  remotion: t('Programmatic video rendering.'),
 };
 
 export type ToolWiki = {
@@ -89,7 +90,7 @@ export function buildToolWiki(slug: string, usedBy: string[] = []): ToolWiki {
     mcp,
     kind: mcp ? 'MCP server' : 'integration',
     path: `brain-store/tools/${slug}.md`,
-    summary: TOOL_SUMMARY[slug] ?? `${name} — wired in through the ${mcp ? 'MCP server' : 'tool'} layer.`,
+    summary: TOOL_SUMMARY[slug] ?? (mcp ? t('{name} — wired in through the MCP server layer.', { name }) : t('{name} — wired in through the tool layer.', { name })),
     usedBy,
   };
 }

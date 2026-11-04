@@ -7,6 +7,8 @@
  * window that fall in that ISO week. Nothing is interpolated or smoothed.
  */
 
+import { localeTag, t } from '@/lib/i18n';
+
 export type ChartSeries = { key: string; points: number[] };
 export type ChartTick = { i: number; label: string };
 
@@ -28,7 +30,7 @@ function utc(day: string): Date {
 
 /** "Oct 6" for a UTC day key. */
 export function dayLabel(day: string): string {
-  return utc(day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return utc(day).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 /** The Monday (UTC) of the ISO week holding `day`, as a day key. */
@@ -60,7 +62,7 @@ export function bucketSeries<S extends ChartSeries>(days: string[], series: S[],
     });
     return { ...s, points };
   });
-  return { days: weeks, labels: weeks.map((w) => `Week of ${dayLabel(w)}`), series: summed, weekly: true };
+  return { days: weeks, labels: weeks.map((w) => t('Week of {date}', { date: dayLabel(w) })), series: summed, weekly: true };
 }
 
 /** One tick per month: the first bar whose key falls in a new month, labelled "Oct". */
@@ -71,7 +73,7 @@ export function monthTicks(days: string[]): ChartTick[] {
     const m = d.slice(0, 7);
     if (m !== last) {
       last = m;
-      out.push({ i, label: utc(d).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }) });
+      out.push({ i, label: utc(d).toLocaleDateString(localeTag(), { month: 'short', timeZone: 'UTC' }) });
     }
   });
   return out;

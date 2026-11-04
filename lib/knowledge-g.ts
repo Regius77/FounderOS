@@ -5,6 +5,7 @@
  */
 import type { KIEntity } from './knowledge-index';
 import { KIND_CATEGORY } from './knowledge-views';
+import { localeTag, t } from '@/lib/i18n';
 
 export const TIMELINE_SERIES = ['page', 'skill', 'agent', 'client', 'system'] as const;
 
@@ -33,7 +34,7 @@ export function timelineMonths(entities: readonly KIEntity[], now = Date.now()):
 
 export function monthLabel(key: string): string {
   const [y, m] = key.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(localeTag(), { month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
 /**
@@ -42,11 +43,11 @@ export function monthLabel(key: string): string {
  * Returns that sentence, or null when the chart should draw.
  */
 export function timelineSentence(months: readonly TimelineMonth[], dated: number): string | null {
-  if (dated === 0) return 'No dated records: these come from the database, not files.';
+  if (dated === 0) return t('No dated records: these come from the database, not files.');
   const held = months.filter((m) => m.counts.some((c) => c > 0));
   if (held.length >= 3) return null;
-  if (held.length === 1) return `All ${dated} dated records were last touched in ${held[0].label}.`;
-  return `All ${dated} dated records were last touched in ${held.map((m) => m.label).join(' and ')}.`;
+  if (held.length === 1) return t('All {n} dated records were last touched in {when}.', { n: dated, when: held[0].label });
+  return t('All {n} dated records were last touched in {when}.', { n: dated, when: held.map((m) => m.label).join(t(' and ')) });
 }
 
 export const RANK_PAGE = 25;

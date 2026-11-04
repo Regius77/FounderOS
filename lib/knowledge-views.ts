@@ -17,7 +17,7 @@
  */
 import type { KIEdge, KIEntity, EdgeKind } from '@/lib/knowledge-index';
 import type { NodeMetrics } from '@/lib/knowledge-metrics';
-import { t } from '@/lib/i18n';
+import { localeTag, t } from '@/lib/i18n';
 
 export type Placed = KIEntity & {
   x: number;
@@ -431,7 +431,7 @@ export function timelineBuckets(entities: KIEntity[], now = Date.now()): Timelin
       map
         .set(key, {
           key,
-          label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+          label: d.toLocaleDateString(localeTag(), { month: 'short', year: '2-digit' }),
           total: 0,
           byCluster: {},
         })
