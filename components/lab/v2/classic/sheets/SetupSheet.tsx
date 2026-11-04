@@ -6,6 +6,7 @@
  * labels, states and money arrive from SetupView; only `fmtUsd` turns a dollar figure into text.
  */
 import Link from 'next/link';
+import { statusLabel } from '@/lib/i18n/status';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { SetupLink } from '@/components/SetupLink';
 import type { SetupSheetView } from '@/lib/lab/view/sheets/setup';
@@ -444,8 +445,8 @@ function Spend({ v, ro }: { v: SetupSheetView; ro: string | null }) {
               {runs.map((r) => (
                 <tr key={r.id}>
                   <td data-lab-ink="">{fmtDayMonth(r.at)} {fmtClock(r.at)}</td>
-                  <td data-lab-ink="">{r.line ?? r.kind}</td>
-                  <td data-lab-ink="">{r.status}</td>
+                  <td data-lab-ink="">{r.line ?? statusLabel(r.kind, 'labrun')}</td>
+                  <td data-lab-ink="">{statusLabel(r.status, 'run')}</td>
                   <td className="lab2c-setup-num" data-lab-ink="">{r.costUsd !== null ? fmtUsd(r.costUsd) : ''}</td>
                 </tr>
               ))}

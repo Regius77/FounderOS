@@ -1,6 +1,7 @@
 'use client';
 
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
@@ -307,7 +308,7 @@ function TipRun({ run, now }: { run: ResolvedRun; now: number }) {
   return (
     <>
       <div className="truncate text-[var(--p-ink)]">{run.title}</div>
-      <div className="text-[var(--p-muted)]">{kindNoun(run.kind)} · {run.status}</div>
+      <div className="text-[var(--p-muted)]">{kindNoun(run.kind)} · {statusLabel(run.status, 'runstatus')}</div>
       <div className="text-[var(--p-muted)]">{t('Started {ago}', { ago: agoText(run.startedAt, now) })} · {fmtElapsed(elapsedAt(run, now))}{credits != null ? t(' · {n} credits', { n: fmtCredits(credits) }) : ''}</div>
     </>
   );

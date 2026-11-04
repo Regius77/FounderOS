@@ -7,6 +7,7 @@
  * route; free jobs are read-only rows under "Free jobs (no cost)".
  */
 import { useMemo, useState } from 'react';
+import { statusLabel } from '@/lib/i18n/status';
 import { GCheck, GInput, GSegmented, GToggle } from '@/components/g';
 import { CostFitBar } from '@/components/lab/v2/shared';
 import { useLabPost } from '@/components/lab/v2/shared/useLabPost';
@@ -256,7 +257,7 @@ export function ScheduleEditor({ schedule, planner, readOnly, pausedBanner }: { 
           <span className="lab2g-job-label" data-lab-ink="">{schedule.label}</span>
           {schedule.agentLabel && <span className="lab2g-muted" data-lab-ink="">{schedule.agentLabel}</span>}
         </span>
-        <span className="lab2-chip" data-state={hb.state}><span data-lab-ink="">{age === null ? LAB_UI.noTick : `${fill(LAB_UI.lastTick, { age: fmtAge(age) })}, ${hb.state}`}</span></span>
+        <span className="lab2-chip" data-state={hb.state}><span data-lab-ink="">{age === null ? LAB_UI.noTick : `${fill(LAB_UI.lastTick, { age: fmtAge(age) })}, ${statusLabel(hb.state, 'health')}`}</span></span>
       </div>
       {hb.state === 'warn' && age !== null && <p className="lab2g-muted" data-lab-ink="">{fill(LAB_COPY.schedule.heartbeatLate, { age: fmtAge(age) })}</p>}
       {!schedule.installed && <p className="lab2g-muted" data-lab-ink="">{schedule.privateInstance ? LAB_COPY.schedule.notInstalled : LAB_COPY.schedule.client}</p>}

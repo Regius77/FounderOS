@@ -5,6 +5,7 @@ import { GButton, GCard, GEmpty, GList, GProgress, GRow, GSectionHeader, GTag, t
 import type { ComputerRow } from '@/lib/compute/miosa';
 import { LIVE, TRANSITIONAL, useComputeEmbed } from './ComputeConsole';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 /**
  * /compute under the GladOS style (SPEC S05 F05.61 to F05.63): the computer
@@ -37,7 +38,7 @@ export function ComputeG({ computers }: { computers: ComputerRow[] }) {
               meta={[c.size, c.template.replace(/^miosa-/, ''), c.resolution, c.region].filter(Boolean).join(' · ')}
               trailing={
                 <GTag tone={tone(c.status)} dot size="xs">
-                  {c.status}
+                  {statusLabel(c.status, 'computer')}
                 </GTag>
               }
               selected={selected === c.id}

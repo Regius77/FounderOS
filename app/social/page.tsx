@@ -37,6 +37,7 @@ import { PostComposer } from '@/founderos/components/PostComposer';
 import { CountUp } from '@/founderos/components/CountUp';
 import { Rise } from '@/founderos/components/motion';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 export const dynamic = 'force-dynamic';
 
@@ -379,7 +380,7 @@ export default async function SocialPage() {
                   <RecencyDots rank={i} of={livePosts.length} />
                   <div className="mt-2 line-clamp-3 text-[12px] [text-wrap:pretty]">{p.caption.split('\n')[0]}</div>
                   <div className="mt-auto flex items-center gap-1.5 pt-2 font-mono text-[10px] text-os-dim">
-                    <span className={p.status === 'success' ? 'text-os-ok' : 'text-os-warn'}>{p.status === 'success' ? t('success') : p.status}</span>
+                    <span className={p.status === 'success' ? 'text-os-ok' : 'text-os-warn'}>{p.status === 'success' ? t('success') : statusLabel(p.status, 'post')}</span>
                     {p.url && (
                       <a
                         href={p.url}

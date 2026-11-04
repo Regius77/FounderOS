@@ -32,6 +32,7 @@ import { PostComposerG } from './PostComposerG';
 import { ContentCrewG } from './ContentCrew';
 import type { ContentCrew } from '@/lib/social-crew';
 import { t, tc } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 /** "over 30 days" / "all time" (lib/social-view rangePhrase, translated). */
 const rangePhrase = (r: SocialRange): string => (r === 'all' ? t('all time') : t('over {n} days', { n: r }));
@@ -261,7 +262,7 @@ export function SocialG(props: SocialGProps) {
                       meta={`${p.platform}${p.ago ? ` · ${t('{ago} ago', { ago: p.ago })}` : ''}`}
                       trailing={
                         <span className="soc-g-row-trail">
-                          <GTag tone={p.status === 'success' ? 'ok' : 'warn'} dot>{p.status === 'success' ? t('success') : p.status}</GTag>
+                          <GTag tone={p.status === 'success' ? 'ok' : 'warn'} dot>{p.status === 'success' ? t('success') : statusLabel(p.status, 'post')}</GTag>
                           {p.url && <GButton size="sm" href={p.url} external title={t('Open the post')}>{t('Open')}</GButton>}
                         </span>
                       }

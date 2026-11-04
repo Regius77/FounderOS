@@ -27,6 +27,7 @@ import {
   touchSeries as buildTouchSeries, worstStep as findWorstStep,
 } from './model';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
 const num = (n: number) => n.toLocaleString(localeTag());
@@ -391,7 +392,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
     render: (j) => {
       const last = j.touches[j.touches.length - 1];
       return last ? (
-        <span className="fn-g-last" title={t('{stage} · via {source} · {at}', { stage: stageLabel(last.stage), source: last.source, at: last.at })}>
+        <span className="fn-g-last" title={t('{stage} · via {source} · {at}', { stage: stageLabel(last.stage), source: statusLabel(last.source, 'source'), at: last.at })}>
           <span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[last.channel] ?? '·'}</span>
           <span className="fn-g-last-text">{last.label}</span>
           <span className="fn-g-cap">{fmtDay(Date.parse(`${last.at}T00:00:00Z`))} · {j.touches.length === 1 ? t('{n} touch', { n: j.touches.length }) : t('{n} touches', { n: j.touches.length })}</span>
@@ -658,7 +659,7 @@ function LeadDrawerG({ j, now, archived, onClose, onStage }: { j: FunnelJourney;
             <span className="fn-g-rail-dot" aria-hidden />
             <span className="fn-g-rail-when">{fmtDate(tc.at)}</span>
             <span className="fn-g-rail-what"><span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[tc.channel] ?? '·'}</span> {tc.label}</span>
-            <span className="fn-g-cap">{stageLabel(tc.stage)} · {tc.source}</span>
+            <span className="fn-g-cap">{stageLabel(tc.stage)} · {statusLabel(tc.source, 'source')}</span>
           </li>
         ))}
         {j.status !== 'converted' && <li data-next=""><span className="fn-g-rail-dot" aria-hidden /><span className="fn-g-cap">{t('Next touch is yours')}</span></li>}

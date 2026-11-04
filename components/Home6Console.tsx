@@ -40,6 +40,7 @@ import { runtimeEnv } from '@/lib/creds';
 import { demoIncomeCategories } from '@/lib/finance-demo';
 import { previewSandboxTasks, sandboxSpeed } from '@/lib/home-sandbox';
 import { locale, localeTag, t, tc } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 // The operator console in the Example-6 skin (Control AI dashboard) — the
 // real home page since 2026-08-23. Teal glass gradient cards, gold chrome,
@@ -305,7 +306,7 @@ function DoneTodayCard({ done }: { done: DoneToday }) {
                   aria-label={r.ok ? t('finished') : t('failed')}
                 />
                 <span className="h6-run-id truncate font-mono text-[10.5px]" style={{ color: 'var(--text-2)' }}>
-                  {r.kind}
+                  {statusLabel(r.kind, 'kind')}
                 </span>
                 <span className="h6-run-sum min-w-0 truncate" style={{ color: 'var(--text-2)' }}>
                   {r.title}

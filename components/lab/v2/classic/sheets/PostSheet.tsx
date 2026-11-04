@@ -5,6 +5,7 @@
  * /api/lab/comments.
  */
 import { useState } from 'react';
+import { statusLabel } from '@/lib/i18n/status';
 import { SetupLink } from '@/components/SetupLink';
 import { BandViz } from '@/components/lab/v2/shared';
 import type { PostSheetView } from '@/lib/lab/view/sheets/post';
@@ -181,7 +182,7 @@ export function PostSheet({ view, readOnly, setInner, st }: { view: PostSheetVie
         {(tab) => {
           if (tab === 'transcript') {
             const t = v.transcript;
-            if (!t || t.status !== 'done') return <p className="lab2c-state-text" data-lab-ink="">{`${C.sheet.noTranscript}${t ? `: ${t.status}` : ''}`}</p>;
+            if (!t || t.status !== 'done') return <p className="lab2c-state-text" data-lab-ink="">{`${C.sheet.noTranscript}${t ? `: ${statusLabel(t.status, 'transcript')}` : ''}`}</p>;
             return (
               <div className="lab2c-transcript">
                 {t.segments.map((s, i) => (

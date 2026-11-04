@@ -9,6 +9,7 @@ import type { Personnel } from '@/lib/personnel';
 import type { MemoryNode } from '@/lib/memory-core';
 import type { Person, RosterClient, SopTask } from '@/lib/schemas';
 import { localeTag, t, tc } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 export type AgentLite = { id: string; name: string; role: string; model: string };
 export type ToolLite = { id: string; slug: string; name: string; mcp: boolean };
@@ -191,7 +192,7 @@ export function AgentHarnessCard({
         <SectionLabel icon={Server}>{t('Harness')}</SectionLabel>
         <div className="mb-4 flex flex-col gap-1 font-mono text-[12px] text-os-muted">
           <span>
-            <span className="text-os-dim">{t('tier')}</span> {agent.tier} · <span className="text-os-dim">{t('runs on')}</span>{' '}
+            <span className="text-os-dim">{t('tier')}</span> {statusLabel(agent.tier, 'tier')} · <span className="text-os-dim">{t('runs on')}</span>{' '}
             {agent.instance} · {agent.model}
           </span>
           {parentName && (
@@ -266,7 +267,7 @@ export function ToolDetailCard({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <PanelHeader title={wiki.name} sub={wiki.kind} onBack={onBack} onClose={onClose} />
+      <PanelHeader title={wiki.name} sub={statusLabel(wiki.kind, 'kind')} onBack={onBack} onClose={onClose} />
       <div className="flex-1 overflow-y-auto px-3 py-3.5">
         <p className="mb-4 text-[12.5px] leading-relaxed text-os-muted">{wiki.summary}</p>
         <SectionLabel icon={FileText}>{t('Context')} · <span className="font-mono text-[11px]">{wiki.path}</span></SectionLabel>
@@ -344,7 +345,7 @@ export function ClientRosterCard({
                   key={c.id}
                   color={color}
                   title={c.name}
-                  sub={c.amountUsd ? `$${c.amountUsd.toLocaleString(localeTag())}` : c.status}
+                  sub={c.amountUsd ? `$${c.amountUsd.toLocaleString(localeTag())}` : statusLabel(c.status, 'client')}
                 />
               ))}
             </div>
@@ -359,7 +360,7 @@ export function ClientRosterCard({
             <div className="flex flex-col gap-1">
               {pipeline.map((c) => (
                 <span key={c.id} className="truncate text-[12.5px] text-os-dim">
-                  {c.name} · {c.status.replace(/_/g, ' ')}
+                  {c.name} · {statusLabel(c.status, 'client', c.status.replace(/_/g, ' '))}
                 </span>
               ))}
             </div>

@@ -20,6 +20,7 @@ import type { ChannelsCard } from '@/lib/funnel-channels';
 import { FunnelChannels } from './FunnelChannels';
 import { FunnelLinks } from './FunnelLinks';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 export type DashboardConnector = {
   id: string;
@@ -808,7 +809,7 @@ function Touches({ j, now }: { j: FunnelJourney; now: Date }) {
       {j.touches.map((tc, i) => (
         <span key={tc.id} style={{ display: 'inline-flex', gap: 6 }}>
           {i > 0 && <span className="fc-arrow">→</span>}
-          <span className="fc-touch" title={t('{stage} · via {source} · {at}', { stage: stageLabel(tc.stage), source: tc.source, at: tc.at })}>
+          <span className="fc-touch" title={t('{stage} · via {source} · {at}', { stage: stageLabel(tc.stage), source: statusLabel(tc.source, 'source'), at: tc.at })}>
             <span className="g">{CHANNEL_GLYPHS[tc.channel] ?? '·'}</span>
             <span className="l">{tc.label}</span>
             <span className="d">{tc.at.slice(5)}</span>
@@ -918,7 +919,7 @@ function LeadDrawer({
                 {tc.label}
               </span>
               <span className="who">
-                {stageLabel(tc.stage)} · {tc.source}
+                {stageLabel(tc.stage)} · {statusLabel(tc.source, 'source')}
               </span>
             </li>
           ))}

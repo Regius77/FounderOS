@@ -22,6 +22,7 @@ import { processorPeriodLabel, processorSetupHref } from '@/lib/finances';
 import type { BusinessSeries, IncomeRange, MonthPoint } from '@/lib/bank-statements';
 import type { FinancesAccount, FinancesClientProps } from './FinancesClient';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 const HIDE_VALUES_KEY = 'finances:hide-values';
 
@@ -239,8 +240,8 @@ export function FinancesG(props: FinancesClientProps) {
                     key={`${w.created}-${i}`}
                     leading={<Send size={15} strokeWidth={1.6} aria-hidden />}
                     title={<span className="fin-g-out"><Money hide={hide}>−{(w.amountCents / 100).toLocaleString(localeTag(), { style: 'currency', currency: w.currency })}</Money></span>}
-                    meta={w.reference ?? w.status}
-                    trailing={<span className="fin-g-cap">{w.status}</span>}
+                    meta={w.reference ?? statusLabel(w.status, 'transfer')}
+                    trailing={<span className="fin-g-cap">{statusLabel(w.status, 'transfer')}</span>}
                   />
                 ))}
               </GList>

@@ -6,6 +6,8 @@ import { assertSeedTarget, dataDir, dataPath, filmingMode } from '@/lib/paths';
 import { seedDemoDatabase } from './seed-v1';
 import { clearSiteTables, seedFromSite, writeSiteFiles } from './company';
 import { writeDemoBrain } from './brain';
+import { localizeCompany } from './it';
+import { locale } from '@/lib/i18n';
 import company from './company.json';
 
 /**
@@ -27,9 +29,14 @@ import company from './company.json';
  * Every date is moved to "now" as it is written, and the store is rebuilt when
  * it is a week old, so the charts never age out of their 30-day windows.
  * Nothing here ever touches data/.
+ *
+ * With GLADOS_LOCALE=it the company's readable text is written in Italian
+ * (./it.ts); the English source is untouched. The locale a store was built in
+ * sits next to the age marker, and a store built in another locale is stale.
  */
 
 const MARKER = '.demo-seeded-at';
+const LOCALE_MARKER = '.demo-locale';
 const MAX_AGE_MS = 7 * 86_400_000;
 
 type Company = { exportedAt: string } & Record<string, unknown>;
@@ -60,11 +67,22 @@ function seededAt(): number | null {
   }
 }
 
-/** True when demo mode is on and its store is missing or a week old. */
+/** The locale the store was built in. A store from before the marker existed
+ *  was built in English. */
+function seededLocale(): string {
+  try {
+    return fs.readFileSync(dataPath(LOCALE_MARKER), 'utf8').trim() || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+/** True when demo mode is on and its store is missing, a week old, or was
+ *  built in a different locale than the one the app now speaks. */
 export function demoStoreStale(now = Date.now()): boolean {
   if (!filmingMode()) return false;
   const at = seededAt();
-  return at == null || !fs.existsSync(dataPath('glados.db')) || now - at > MAX_AGE_MS;
+  return at == null || !fs.existsSync(dataPath('glados.db')) || now - at > MAX_AGE_MS || seededLocale() !== locale();
 }
 
 const demoDir = () => path.join(process.cwd(), 'demo-data');
@@ -89,7 +107,8 @@ export function buildDemoStore(now = Date.now()): { pages: number } {
 function buildDemoStoreIn(now: number): { pages: number } {
   assertSeedTarget();
   const raw = company as unknown as Company;
-  const site = shiftCompanyDates(raw, Math.round((now - Date.parse(raw.exportedAt)) / 86_400_000));
+  const english = shiftCompanyDates(raw, Math.round((now - Date.parse(raw.exportedAt)) / 86_400_000));
+  const site = localizeCompany(english);
 
   fs.rmSync(dataDir(), { recursive: true, force: true });
   fs.mkdirSync(dataDir(), { recursive: true });
@@ -108,8 +127,9 @@ function buildDemoStoreIn(now: number): { pages: number } {
     if (d.status === 'Declined') db.brandDeals.upsert({ dealId: `r-${1040 + i}`, outcome: 'lost', amountUsd: d.dealValueUsd, updatedAt });
   });
   db.close();
-  writeSiteFiles(site);
+  writeSiteFiles(site, english);
   const pages = writeDemoBrain();
+  fs.writeFileSync(dataPath(LOCALE_MARKER), `${locale()}\n`);
   fs.writeFileSync(dataPath(MARKER), `${now}\n`);
   return { pages };
 }

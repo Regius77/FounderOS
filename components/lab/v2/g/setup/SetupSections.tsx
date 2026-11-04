@@ -18,6 +18,7 @@ import { PlanPanel } from './PlanPanel';
 import { LabSetupLink } from '../bits';
 import { LAB_UI, fill, fmtLabDay } from '@/lib/lab/view/ui-copy';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 const KEY_STATE: Record<LabKeyRow['state'], string> = {
   not_configured: t('Not configured'),
@@ -185,7 +186,7 @@ function SourceList({ title, rows, readOnly, kind }: { title: string; rows: Sour
         {rows.map((r) => (
           <li key={r.id} className="lab2g-row lab2g-row-static lab2g-srcrow" data-status={r.status}>
             <span className="lab2g-row-main" data-lab-ink="">{`@${r.handle}`}</span>
-            <span className="lab2g-row-meta" data-lab-ink="">{[PLATFORM[r.platform] ?? r.platform, `${r.posts} ${LAB_UI.postsWord}`, r.status !== 'active' ? r.status : null].filter(Boolean).join(' · ')}</span>
+            <span className="lab2g-row-meta" data-lab-ink="">{[PLATFORM[r.platform] ?? r.platform, `${r.posts} ${LAB_UI.postsWord}`, r.status !== 'active' ? statusLabel(r.status, 'labsource') : null].filter(Boolean).join(' · ')}</span>
             {kind === 'suggested' ? (
               <span className="lab2g-row-tools">
                 <GButton size="sm" variant="ink" disabled={!!readOnly} disabledReason={readOnly ?? undefined} onClick={() => post('/api/lab/suggestions', { id: r.id, action: 'accept' }, { key: `acc-${r.id}` })}>{LAB_UI.track}</GButton>
@@ -335,9 +336,9 @@ export function SpendSection({ spend, readOnly }: { spend: SpendView; readOnly: 
         <ul className="lab2g-rows lab2g-rows-flat">
           {spend.runs.slice(0, 50).map((r) => (
             <li key={r.id} className="lab2g-row lab2g-row-static" data-status={r.status}>
-              <span className="lab2g-row-main" data-lab-ink="">{[r.kind, r.actor].filter(Boolean).join(' · ')}</span>
+              <span className="lab2g-row-main" data-lab-ink="">{[statusLabel(r.kind, 'labrun'), r.actor].filter(Boolean).join(' · ')}</span>
               <span className="lab2g-row-meta" data-lab-ink="">
-                {[fmtLabDay(r.at), r.items !== null ? `${r.items} ${LAB_UI.itemsWord}` : null, r.costUsd !== null ? fmtUsd(r.costUsd) : null, r.actualSource, r.status, r.error].filter(Boolean).join(' · ')}
+                {[fmtLabDay(r.at), r.items !== null ? `${r.items} ${LAB_UI.itemsWord}` : null, r.costUsd !== null ? fmtUsd(r.costUsd) : null, r.actualSource ? statusLabel(r.actualSource, 'labcost') : null, statusLabel(r.status, 'run'), r.error].filter(Boolean).join(' · ')}
               </span>
             </li>
           ))}

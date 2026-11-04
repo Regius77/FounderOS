@@ -5,6 +5,7 @@
  * ledger. Every label is section 05's. Lanes are one tab stop; Up and Down move between them.
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { statusLabel } from '@/lib/i18n/status';
 
 import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fmtClock } from '@/lib/lab/view/format';
@@ -162,7 +163,7 @@ function Tide({ view }: { view: RadarPageView }) {
               const inner = (
                 <>
                   <span className="lab2g-row-main" data-lab-ink="">{r.label}</span>
-                  <span className="lab2g-row-meta" data-lab-ink="">{[r.timing, r.momentumText, `${r.creators} ${LAB_UI.creatorsWord}`].filter(Boolean).join(' · ')}</span>
+                  <span className="lab2g-row-meta" data-lab-ink="">{[r.timing ? statusLabel(r.timing, 'timing') : r.timing, r.momentumText, `${r.creators} ${LAB_UI.creatorsWord}`].filter(Boolean).join(' · ')}</span>
                 </>
               );
               return (

@@ -38,6 +38,7 @@ import type { TradeActivity, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
 import type { TradingTreeProps } from './TradingG';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel as enumLabel } from '@/lib/i18n/status';
 
 const statusTone: Record<TradeActivity['status'], BadgeTone> = { filled: 'ok', pending: 'default', cancelled: 'default', rejected: 'err' };
 const statusLabel: Record<TradeActivity['status'], string> = { filled: t('Filled'), pending: t('Pending'), cancelled: t('Cancelled'), rejected: t('Rejected') };
@@ -354,7 +355,7 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
               <li key={r.ticker} className="l-trd-why" title={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}>
                 <span className="l-sym">{r.ticker}</span>
                 <span className="l-trd-why-text">{r.reason}</span>
-                <Badge tone={verdictTone(r.verdict)}>{r.verdict}</Badge>
+                <Badge tone={verdictTone(r.verdict)}>{enumLabel(r.verdict, 'verdict')}</Badge>
               </li>
             ))}
           </ul>
@@ -455,9 +456,9 @@ function OpenOrders({ m }: { m: TradingModel }) {
                 <span className="l-body-text">
                   {o.dollarAmountUsd !== null ? usd(o.dollarAmountUsd, true) : `${qty(o.quantity)}${o.limitPriceUsd !== null ? ` @ ${usd(o.limitPriceUsd, true)}` : ''}`}
                 </span>{' '}
-                <Badge>{o.state}</Badge>
+                <Badge>{enumLabel(o.state, 'order')}</Badge>
                 <span className="l-sub-line">
-                  {cap(o.type)} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
+                  {enumLabel(o.type, 'ordertype', cap(o.type))} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
                   {o.placedAgent || t('Unknown')}
                 </span>
               </span>

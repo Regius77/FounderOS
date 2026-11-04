@@ -1,4 +1,5 @@
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 /**
  * Display labels for enum values stored in the database. The raw value stays
@@ -20,22 +21,27 @@ export function taskStatusLabel(s: string): string {
   return map[s] ?? s;
 }
 
-/** Paperclip issue and run statuses (snake_case on the wire) as display text. */
+/**
+ * Paperclip issue and run statuses (snake_case on the wire) as display text.
+ * English keeps the humanised wording; Italian reads `board|<raw>` from
+ * lib/i18n/it/status.ts (feminine: attività / esecuzione).
+ */
+const BOARD_EN: Record<string, string> = {
+  in_progress: 'in progress',
+  in_review: 'in review',
+  review: 'review',
+  blocked: 'blocked',
+  todo: 'todo',
+  backlog: 'backlog',
+  done: 'done',
+  cancelled: 'cancelled',
+  running: 'running',
+  failed: 'failed',
+  error: 'error',
+  timed_out: 'timed out',
+  unknown: 'unknown',
+};
+
 export function boardStatusLabel(s: string): string {
-  const map: Record<string, string> = {
-    in_progress: t('in progress'),
-    in_review: t('in review'),
-    review: t('review'),
-    blocked: t('blocked'),
-    todo: t('todo'),
-    backlog: t('backlog'),
-    done: t('done'),
-    cancelled: t('cancelled'),
-    running: t('running'),
-    failed: t('failed'),
-    error: t('error'),
-    timed_out: t('timed out'),
-    unknown: t('unknown'),
-  };
-  return map[s] ?? s.replace(/_/g, ' ');
+  return statusLabel(s, 'board', BOARD_EN[s] ?? s.replace(/_/g, ' '));
 }

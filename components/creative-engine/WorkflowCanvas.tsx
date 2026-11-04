@@ -1,6 +1,7 @@
 'use client';
 
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { OBtn, OInput, useG } from '@/components/creative-engine/skin';
 import { BRAND } from '@/lib/brand';
@@ -1269,8 +1270,8 @@ export function WorkflowCanvas({ campaign, health, runs, readOnly = false, conso
                   {finals.length > 0 && (
                     <div className="ae-o-wf-finals" aria-label={(finals.length === 1 ? t('{n} final output', { n: fmtCredits(finals.length) }) : t('{n} final outputs', { n: fmtCredits(finals.length) }))}>
                       {finals.slice(0, 4).map((a) => (a.path
-                        ? <OBtn kind="row" key={a.id} title={t('{model} · {time}. Open the preview', { model: a.model, time: hhmm(a.at) })} aria-label={t('Open the final {kind} from {model}', { kind: t(a.kind), model: a.model })} onClick={() => setLightbox({ kind: a.kind === 'video' ? 'video' : 'image', path: a.path!, label: t('Final · {model} · {time}', { model: a.model, time: hhmm(a.at) }) })}>{a.thumbnailPath || a.kind === 'image' ? <img src={a.thumbnailPath ?? a.path} alt="" /> : <i>{a.kind}</i>}</OBtn>
-                        : <span key={a.id} title={`${a.model} · ${hhmm(a.at)}`}><i>{a.kind}</i></span>))}
+                        ? <OBtn kind="row" key={a.id} title={t('{model} · {time}. Open the preview', { model: a.model, time: hhmm(a.at) })} aria-label={t('Open the final {kind} from {model}', { kind: t(a.kind), model: a.model })} onClick={() => setLightbox({ kind: a.kind === 'video' ? 'video' : 'image', path: a.path!, label: t('Final · {model} · {time}', { model: a.model, time: hhmm(a.at) }) })}>{a.thumbnailPath || a.kind === 'image' ? <img src={a.thumbnailPath ?? a.path} alt="" /> : <i>{statusLabel(a.kind, 'media')}</i>}</OBtn>
+                        : <span key={a.id} title={`${a.model} · ${hhmm(a.at)}`}><i>{statusLabel(a.kind, 'media')}</i></span>))}
                       {finals.length > 4 && <span className="more">+{finals.length - 4}</span>}
                     </div>
                   )}

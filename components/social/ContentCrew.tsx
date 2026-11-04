@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { GButton, GCard, GEmpty, GList, GRow, GSectionHeader, GStat, GTag } from '@/components/g';
 import { postAgeText, CREW_WINDOW_DAYS, type ContentCrew } from '@/lib/social-crew';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 /**
  * The content crew card on /social (founderos-ui F12, from FO's
@@ -50,7 +51,7 @@ export function ContentCrewG({ crew }: { crew: ContentCrew }) {
                   key={a.id}
                   href={`/agents?agent=${encodeURIComponent(a.id)}`}
                   title={a.name}
-                  meta={a.role || a.status}
+                  meta={a.role || statusLabel(a.status, 'agent')}
                   hint={`${a.name}: ${t('{runs} in {n} days', { runs: runsN(a.runs), n: CREW_WINDOW_DAYS })}`}
                   trailing={
                     a.failed > 0 ? (
@@ -118,7 +119,7 @@ export function ContentCrewClassic({ crew }: { crew: ContentCrew }) {
                 <li key={a.id}>
                   <Link href={`/agents?agent=${encodeURIComponent(a.id)}`} className="flex items-center gap-3 py-2 text-[12.5px] hover:bg-os-surface2">
                     <span className="min-w-0 flex-1 truncate text-os-text">{a.name}</span>
-                    <span className="hidden min-w-0 truncate text-os-muted sm:inline">{a.role || a.status}</span>
+                    <span className="hidden min-w-0 truncate text-os-muted sm:inline">{a.role || statusLabel(a.status, 'agent')}</span>
                     <span className={`shrink-0 font-mono text-[11.5px] ${a.failed > 0 ? 'text-os-err' : 'text-os-muted'}`}>
                       {runsN(a.runs)}
                       {a.failed > 0 ? ` · ${t('{n} failed', { n: a.failed })}` : ''}

@@ -3,6 +3,7 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import type { GladosDb } from '@/lib/db';
 import { dataPath } from '@/lib/paths';
+import { dt } from './it';
 import type { Agent, AgentCron, AgentRun, AgentTaskInput, FunnelContact, FunnelTouch, Skill, SopTask, Workflow } from '@/lib/schemas';
 
 /**
@@ -110,7 +111,7 @@ export function seedFromSite(db: GladosDb, site: Site): void {
       startedAt: r.startedAt,
       finishedAt: new Date(Date.parse(r.startedAt) + 40_000 + (i % 9) * 7_000).toISOString(),
       ok: r.ok,
-      summary: r.ok ? `${c.description}: done.` : `${c.description}: failed, retried on the next tick.`,
+      summary: r.ok ? dt('{task}: done.', { task: c.description }) : dt('{task}: failed, retried on the next tick.', { task: c.description }),
       trigger: 'schedule',
     });
   });
@@ -170,16 +171,19 @@ export function seedFromSite(db: GladosDb, site: Site): void {
   for (const a of tp.activity as Parameters<GladosDb['trading']['recordActivity']>[0][]) db.trading.recordActivity(a);
 }
 
-/** Files outside the database that GladOS screens read in filming mode. */
-export function writeSiteFiles(site: Site): void {
+/** Files outside the database that GladOS screens read in filming mode.
+ *  `english` is the same company before localizeCompany: skill folders are
+ *  paths, so they are named from the English skill names in every locale. */
+export function writeSiteFiles(site: Site, english: Site = site): void {
   const now = Date.now();
 
   // AdPilot: the site's three campaigns.
   fs.writeFileSync(dataPath('adpilot-campaigns.json'), JSON.stringify({ campaigns: site.business.AD_CAMPAIGNS, syncedAt: new Date(now - 40 * 60_000).toISOString() }, null, 2));
 
   // Skills on disk: one SKILL.md per skill, grouped like the site's catalog.
+  const englishSkills = english.work.SKILLS as Skill[];
   for (const s of site.work.SKILLS as Skill[]) {
-    const slug = s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slug = (englishSkills.find((e) => e.id === s.id)?.name ?? s.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const dir = dataPath('skills', slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'SKILL.md'), `---\nname: ${slug}\ndescription: ${s.description}\n---\n\n${s.markdown}\n`);
@@ -201,12 +205,15 @@ export function writeSiteFiles(site: Site): void {
     const at = Date.parse(d.lastEdited);
     const sent = !['New', 'Negotiating', 'Aligned'].includes(d.status);
     announced[id] = Math.floor(at / 1000);
-    tags[id] = (d.dealValueUsd ?? 0) >= 12000 ? ['UNIQUE', 'Category fit and a budget above the floor'] : ['NORMAL', ''];
-    summaries[id] = `${d.brand} wants a ${['YouTube integration', 'newsletter feature', 'podcast read'][i % 3]}. ${d.status === 'Declined' ? 'Declined on timing.' : d.dealValueUsd ? `Budget around $${d.dealValueUsd.toLocaleString('en-US')}.` : 'No budget named yet.'}`;
+    tags[id] = (d.dealValueUsd ?? 0) >= 12000 ? ['UNIQUE', dt('Category fit and a budget above the floor')] : ['NORMAL', ''];
+    const amount = d.dealValueUsd ? `$${d.dealValueUsd.toLocaleString('en-US')}` : '';
+    const wants = dt(`{brand} wants a ${['YouTube integration', 'newsletter feature', 'podcast read'][i % 3]}.`, { brand: d.brand });
+    summaries[id] = `${wants} ${d.status === 'Declined' ? dt('Declined on timing.') : d.dealValueUsd ? dt('Budget around {amount}.', { amount }) : dt('No budget named yet.')}`;
     const day = new Date(at - DAY).toUTCString().slice(0, 22);
-    const ask = d.dealValueUsd ? `For an integration in the main video we are at $${d.dealValueUsd.toLocaleString('en-US')}, which includes the newsletter mention.` : 'Happy to share rates once we know the format you have in mind.';
+    const ask = d.dealValueUsd ? dt('For an integration in the main video we are at {amount}, which includes the newsletter mention.', { amount }) : dt('Happy to share rates once we know the format you have in mind.');
+    // The header line is parsed (lib/brand-deals.ts): it stays English.
     chains[id] = [
-      `Full chain, 2 messages\n<b>${esc(d.contactName)}</b> <i>${day}</i> <blockquote expandable>Hi, we have been following the channel and think ${esc(d.brand)} fits your audience. Would you be open to a partnership this quarter?</blockquote>\n<b>Operator</b> <i>${new Date(at).toUTCString().slice(0, 22)}</i> <blockquote expandable>Thanks for reaching out. ${esc(ask)}</blockquote>`,
+      `Full chain, 2 messages\n<b>${esc(d.contactName)}</b> <i>${day}</i> <blockquote expandable>${dt('Hi, we have been following the channel and think {brand} fits your audience. Would you be open to a partnership this quarter?', { brand: esc(d.brand) })}</blockquote>\n<b>Operator</b> <i>${new Date(at).toUTCString().slice(0, 22)}</i> <blockquote expandable>${dt('Thanks for reaching out. {ask}', { ask: esc(ask) })}</blockquote>`,
     ];
     log.push(`${new Date(at - 3 * 3_600_000).toISOString()}\tannounced ${id} -> "${d.brand}" <${mail(d.brand)}>`);
     if (sent) {
@@ -221,54 +228,54 @@ export function writeSiteFiles(site: Site): void {
   const drift = [
     {
       id: 'drift-onboarding-days',
-      claim: 'Onboarding takes three weeks',
+      claim: dt('Onboarding takes three weeks'),
       confidence: 'high',
       state: 'new',
       detectedAt: new Date(now - 5 * 3_600_000).toISOString(),
-      canon: { file: 'writing/sop-sop-10.md', passage: 'Prepare an onboarding pack: assemble the scope, book the kickoff, send day one. Live inside ten working days.' },
+      canon: { file: 'writing/sop-sop-10.md', passage: dt('Prepare an onboarding pack: assemble the scope, book the kickoff, send day one. Live inside ten working days.') },
       occurrences: [
-        { source: 'Call with Halden & Roe', speaker: 'Pike', date: dayAgo(2), excerpt: 'Realistically you are looking at three weeks before the inboxes are live.' },
-        { source: 'Email to Calder Supply', speaker: 'Vera', date: dayAgo(4), excerpt: 'Onboarding usually runs about three weeks end to end.' },
-        { source: 'Slack #client-northwind', speaker: 'Koda', date: dayAgo(6), excerpt: 'told them three weeks for onboarding, same as last time' },
+        { source: dt('Call with Halden & Roe'), speaker: 'Pike', date: dayAgo(2), excerpt: dt('Realistically you are looking at three weeks before the inboxes are live.') },
+        { source: dt('Email to Calder Supply'), speaker: 'Vera', date: dayAgo(4), excerpt: dt('Onboarding usually runs about three weeks end to end.') },
+        { source: 'Slack #client-northwind', speaker: 'Koda', date: dayAgo(6), excerpt: dt('told them three weeks for onboarding, same as last time') },
       ],
     },
     {
       id: 'drift-retainer-floor',
-      claim: 'The retainer starts at $3,500 a month',
+      claim: dt('The retainer starts at $3,500 a month'),
       confidence: 'high',
       state: 'reviewed',
       detectedAt: new Date(now - 2 * DAY).toISOString(),
-      canon: { file: 'writing/skill-skill-1.md', passage: 'Retainers start at $4,500 a month. Hold the price; trade scope, not rate.' },
+      canon: { file: 'writing/skill-skill-1.md', passage: dt('Retainers start at $4,500 a month. Hold the price; trade scope, not rate.') },
       occurrences: [
-        { source: 'Call with Ossington Partners', speaker: 'Beacon', date: dayAgo(3), excerpt: 'Retainers start around three and a half a month.' },
-        { source: 'DM thread, Kestrel Health', speaker: 'Lark', date: dayAgo(5), excerpt: 'Monthly support starts at $3.5k.' },
-        { source: 'Proposal draft, Dunmore Foods', speaker: 'Nomad', date: dayAgo(8), excerpt: 'Ongoing retainer: $3,500 per month.' },
+        { source: dt('Call with Ossington Partners'), speaker: 'Beacon', date: dayAgo(3), excerpt: dt('Retainers start around three and a half a month.') },
+        { source: dt('DM thread, Kestrel Health'), speaker: 'Lark', date: dayAgo(5), excerpt: dt('Monthly support starts at $3.5k.') },
+        { source: dt('Proposal draft, Dunmore Foods'), speaker: 'Nomad', date: dayAgo(8), excerpt: dt('Ongoing retainer: $3,500 per month.') },
       ],
     },
     {
       id: 'drift-newsletter-day',
-      claim: 'The newsletter goes out on Fridays',
+      claim: dt('The newsletter goes out on Fridays'),
       confidence: 'medium',
       state: 'new',
       detectedAt: new Date(now - 9 * 3_600_000).toISOString(),
-      canon: { file: 'projects/workflow-wf-content.md', passage: 'Wren writes the weekly newsletter from what shipped; it sends Tuesday at 9am.' },
+      canon: { file: 'projects/workflow-wf-content.md', passage: dt('Wren writes the weekly newsletter from what shipped; it sends Tuesday at 9am.') },
       occurrences: [
-        { source: 'Content standup notes', speaker: 'Juno', date: dayAgo(1), excerpt: 'Friday send, so the hooks need to be in by Thursday.' },
-        { source: 'Reply to a reader', speaker: 'Lark', date: dayAgo(3), excerpt: 'It lands every Friday morning.' },
-        { source: 'Sponsor brief, Hollis Audio', speaker: 'Wren', date: dayAgo(7), excerpt: 'Placement runs in the Friday issue.' },
+        { source: dt('Content standup notes'), speaker: 'Juno', date: dayAgo(1), excerpt: dt('Friday send, so the hooks need to be in by Thursday.') },
+        { source: dt('Reply to a reader'), speaker: 'Lark', date: dayAgo(3), excerpt: dt('It lands every Friday morning.') },
+        { source: dt('Sponsor brief, Hollis Audio'), speaker: 'Wren', date: dayAgo(7), excerpt: dt('Placement runs in the Friday issue.') },
       ],
     },
     {
       id: 'drift-reconcile-cadence',
-      claim: 'Books are reconciled weekly',
+      claim: dt('Books are reconciled weekly'),
       confidence: 'medium',
       state: 'resolved',
       detectedAt: new Date(now - 11 * DAY).toISOString(),
-      canon: { file: 'writing/sop-sop-8.md', passage: 'Reconcile the day: match charges to the ledger every night and raise the exceptions as work.' },
+      canon: { file: 'writing/sop-sop-8.md', passage: dt('Reconcile the day: match charges to the ledger every night and raise the exceptions as work.') },
       occurrences: [
-        { source: 'Board pack draft', speaker: 'Tessel', date: dayAgo(12), excerpt: 'Ledger reconciled weekly against the bank feed.' },
-        { source: 'Call with the bookkeeper', speaker: 'Sable', date: dayAgo(13), excerpt: 'We close the books every Friday.' },
-        { source: 'Slack #finance', speaker: 'Brisk', date: dayAgo(14), excerpt: 'weekly recon is done, two exceptions' },
+        { source: dt('Board pack draft'), speaker: 'Tessel', date: dayAgo(12), excerpt: dt('Ledger reconciled weekly against the bank feed.') },
+        { source: dt('Call with the bookkeeper'), speaker: 'Sable', date: dayAgo(13), excerpt: dt('We close the books every Friday.') },
+        { source: 'Slack #finance', speaker: 'Brisk', date: dayAgo(14), excerpt: dt('weekly recon is done, two exceptions') },
       ],
     },
   ];
@@ -289,18 +296,18 @@ export function writeSiteFiles(site: Site): void {
     createdAt: at(h), updatedAt: at(Math.max(1, h - 6)),
   });
   const projects = [
-    project('wp-halden', 'Get Halden & Roe live by the 14th', 'active', 30,
-      'Halden & Roe signed. I want them live by the 14th without me chasing anyone.',
-      'Split it three ways: Pike builds the onboarding pack, Vera takes the scope change reply, Atlas puts the kickoff on the plan. I will move it to done when all three close.',
-      [task('wt-1', 'Assemble the onboarding pack', 'ag-pike', 'Pike', 20, 30), task('wt-2', 'Reply on the scope change', 'ag-vera', 'Vera', null, 30), task('wt-3', 'Book the kickoff and add it to the plan', 'ag-atlas', 'Atlas', 26, 30)]),
-    project('wp-september', 'Close September', 'active', 54,
-      'Close the books for September and tell me what changed against plan.',
-      'Sable reconciles the month against the bank feed, Brisk chases the two invoices past thirty days, and Tessel writes the board pack once both are in.',
-      [task('wt-4', 'Reconcile September against the bank export', 'ag-sable', 'Sable', 40, 54), task('wt-5', 'Chase the two overdue invoices', 'ag-brisk', 'Brisk', null, 54), task('wt-6', 'Write the September board pack', 'ag-tessel', 'Tessel', null, 54)]),
-    project('wp-launch', 'Launch week content', 'done', 140,
-      'Turn the launch call into a week of content.',
-      'Quill drafts the article from the transcript, Ember cuts six clips, Cinder schedules them across the week and Wren writes the newsletter around it.',
-      [task('wt-7', 'Draft the article from the launch call', 'ag-quill', 'Quill', 120, 140), task('wt-8', 'Cut six clips', 'ag-ember', 'Ember', 110, 140), task('wt-9', 'Schedule the week', 'ag-cinder', 'Cinder', 100, 140), task('wt-10', 'Write the launch newsletter', 'ag-wren', 'Wren', 96, 140)]),
+    project('wp-halden', dt('Get Halden & Roe live by the 14th'), 'active', 30,
+      dt('Halden & Roe signed. I want them live by the 14th without me chasing anyone.'),
+      dt('Split it three ways: Pike builds the onboarding pack, Vera takes the scope change reply, Atlas puts the kickoff on the plan. I will move it to done when all three close.'),
+      [task('wt-1', dt('Assemble the onboarding pack'), 'ag-pike', 'Pike', 20, 30), task('wt-2', dt('Reply on the scope change'), 'ag-vera', 'Vera', null, 30), task('wt-3', dt('Book the kickoff and add it to the plan'), 'ag-atlas', 'Atlas', 26, 30)]),
+    project('wp-september', dt('Close September'), 'active', 54,
+      dt('Close the books for September and tell me what changed against plan.'),
+      dt('Sable reconciles the month against the bank feed, Brisk chases the two invoices past thirty days, and Tessel writes the board pack once both are in.'),
+      [task('wt-4', dt('Reconcile September against the bank export'), 'ag-sable', 'Sable', 40, 54), task('wt-5', dt('Chase the two overdue invoices'), 'ag-brisk', 'Brisk', null, 54), task('wt-6', dt('Write the September board pack'), 'ag-tessel', 'Tessel', null, 54)]),
+    project('wp-launch', dt('Launch week content'), 'done', 140,
+      dt('Turn the launch call into a week of content.'),
+      dt('Quill drafts the article from the transcript, Ember cuts six clips, Cinder schedules them across the week and Wren writes the newsletter around it.'),
+      [task('wt-7', dt('Draft the article from the launch call'), 'ag-quill', 'Quill', 120, 140), task('wt-8', dt('Cut six clips'), 'ag-ember', 'Ember', 110, 140), task('wt-9', dt('Schedule the week'), 'ag-cinder', 'Cinder', 100, 140), task('wt-10', dt('Write the launch newsletter'), 'ag-wren', 'Wren', 96, 140)]),
   ];
   fs.mkdirSync(dataPath('wizard'), { recursive: true });
   fs.writeFileSync(dataPath('wizard', 'projects.json'), JSON.stringify(projects, null, 2));

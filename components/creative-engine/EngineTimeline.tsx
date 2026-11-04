@@ -1,6 +1,7 @@
 'use client';
 
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
@@ -87,7 +88,7 @@ function KitRunStrip({ runs, now, onOpen, onEmpty, onRunsDrawer }: ScrubberProps
   const thumbX = current ? placement.xOf[current.id] ?? null : null;
 
   const events: TimelineEvent[] = useMemo(
-    () => runs.map((r) => ({ id: r.id, at: r.startedAt, status: r.status, lane: laneFor(r.kind), title: r.title, detail: `${kindNoun(r.kind)} · ${r.status}`, meta: runSubline(r, now) })),
+    () => runs.map((r) => ({ id: r.id, at: r.startedAt, status: r.status, lane: laneFor(r.kind), title: r.title, detail: `${kindNoun(r.kind)} · ${statusLabel(r.status, 'runstatus')}`, meta: runSubline(r, now) })),
     [runs, now],
   );
 

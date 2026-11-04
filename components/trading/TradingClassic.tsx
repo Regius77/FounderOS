@@ -20,6 +20,7 @@ import type { TradeActivity, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
 import type { TradingTreeProps } from './TradingG';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel as enumLabel } from '@/lib/i18n/status';
 
 const statusTone: Record<TradeActivity['status'], BadgeTone> = { filled: 'ok', pending: 'default', cancelled: 'default', rejected: 'err' };
 const statusLabel: Record<TradeActivity['status'], string> = { filled: t('Filled'), pending: t('Pending'), cancelled: t('Cancelled'), rejected: t('Rejected') };
@@ -370,7 +371,7 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
               <li key={r.ticker} className="flex items-start gap-3 px-5 py-2.5" title={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}>
                 <span className="w-14 shrink-0 font-mono text-[12px] text-os-text">{r.ticker}</span>
                 <span className="min-w-0 flex-1 text-[12px] text-os-muted">{r.reason}</span>
-                <Badge tone={verdictTone(r.verdict)}>{cap(r.verdict)}</Badge>
+                <Badge tone={verdictTone(r.verdict)}>{enumLabel(r.verdict, 'verdict', cap(r.verdict))}</Badge>
               </li>
             ))}
           </ul>
@@ -485,11 +486,11 @@ function OpenOrders({ m }: { m: TradingModel }) {
                   {o.dollarAmountUsd !== null ? usd(o.dollarAmountUsd, true) : `${qty(o.quantity)}${o.limitPriceUsd !== null ? ` @ ${usd(o.limitPriceUsd, true)}` : ''}`}
                 </div>
                 <div className="text-[12px] text-os-muted">
-                  {cap(o.type)} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
+                  {enumLabel(o.type, 'ordertype', cap(o.type))} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
                   {o.placedAgent || t('Unknown')}
                 </div>
               </div>
-              <span className="c-chip">{cap(o.state)}</span>
+              <span className="c-chip">{enumLabel(o.state, 'order', cap(o.state))}</span>
               <span className="trd-c-when font-mono text-[11px] text-os-dim">{ago(o.createdAt, m.now)}</span>
             </li>
           ))}

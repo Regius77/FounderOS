@@ -5,6 +5,7 @@
  * POST /api/lab/posts, /api/lab/frames and /api/lab/comments (the last two behind the spend gate).
  */
 import { useState } from 'react';
+import { statusLabel } from '@/lib/i18n/status';
 import { BigStat } from '@/components/legacy';
 import type { PostSheetView } from '@/lib/lab/view/sheets/post';
 import { fmtCount } from '@/lib/lab/view/format';
@@ -170,7 +171,7 @@ export function PostSheet({ view, readOnly, setInner, st }: { view: PostSheetVie
         {(tab) => {
           if (tab === 'transcript') {
             const t = v.transcript;
-            if (!t || t.status !== 'done') return <p className="l-lab-state-text">{`${C.sheet.noTranscript}${t ? `: ${t.status}` : ''}`}</p>;
+            if (!t || t.status !== 'done') return <p className="l-lab-state-text">{`${C.sheet.noTranscript}${t ? `: ${statusLabel(t.status, 'transcript')}` : ''}`}</p>;
             return (
               <div className="l-lab-transcript">
                 {t.segments.map((s, i) => (

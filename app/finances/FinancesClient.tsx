@@ -27,6 +27,7 @@ import { processorPeriodLabel, processorSetupHref, type ExpensesSource } from '@
 import type { SpendCard } from '@/lib/spend-report';
 import { Spending } from './Spending';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 const HIDE_VALUES_KEY = 'finances:hide-values';
 const MASK_STYLE: React.CSSProperties = { filter: 'blur(6px)', userSelect: 'none' };
@@ -524,8 +525,8 @@ export function FinancesClient({
                       −{(w.amountCents / 100).toLocaleString(localeTag(), { style: 'currency', currency: w.currency })}
                     </Money>
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-os-muted">{w.reference ?? w.status}</span>
-                  <span className="shrink-0 text-[12.5px] text-os-dim">{w.status}</span>
+                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-os-muted">{w.reference ?? statusLabel(w.status, 'transfer')}</span>
+                  <span className="shrink-0 text-[12.5px] text-os-dim">{statusLabel(w.status, 'transfer')}</span>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,5 @@
 import type { GladosDb } from '@/lib/db';
+import { dt } from './it';
 import type {
   AgentCron,
   Agent,
@@ -1932,9 +1933,10 @@ export function seedDemoDatabase(db: GladosDb): void {
   // The roster IS the runtime: rows that left the roster leave the DB too,
   // and departments that left the operating model go with them.
   db.agents.deleteWhereIdNotIn(agents.map((a) => a.id));
-  for (const p of people) db.people.insert(p);
+  // dt(): the readable text in the demo's locale (./it.ts); English unchanged.
+  for (const p of people) db.people.insert({ ...p, role: dt(p.role) });
   db.people.deleteWhereIdNotIn(people.map((p) => p.id));
-  for (const m of leadMagnets) db.leadMagnets.insert(m);
+  for (const m of leadMagnets) db.leadMagnets.insert({ ...m, offer: dt(m.offer), campaign: dt(m.campaign), notes: dt(m.notes) });
   for (const t of sopTasks) db.sopTasks.insert(t);
   db.sopTasks.deleteWhereIdNotIn(sopTasks.map((t) => t.id));
   for (const w of workflows) db.workflows.insert(w);
@@ -1945,12 +1947,12 @@ export function seedDemoDatabase(db: GladosDb): void {
   // Seeded run history (idempotent by id) so /agents shows runtimes + spend; the
   // operator's own real runs (uuid ids) coexist and add real token cost over time.
   for (const r of seededAgentRuns(agents)) db.agentRuns.insert(r);
-  for (const t of tools) db.tools.insert(t);
+  for (const t of tools) db.tools.insert({ ...t, description: dt(t.description) });
   for (const { phaseId: _phase, ...r } of roadmap) db.roadmap.insert(r);
   // A row that left the seed left the plan: prune it so retired work cannot
   // outlive its removal on a long-lived install.
-  for (const m of metrics) db.metrics.insert(m);
-  for (const p of phases) db.phases.insert(p);
+  for (const m of metrics) db.metrics.insert({ ...m, label: dt(m.label), period: dt(m.period) });
+  for (const p of phases) db.phases.insert({ ...p, title: dt(p.title), items: p.items.map((x) => dt(x)) });
   for (const a of socialAccounts) db.social.upsertAccount(a);
   for (const s of socialBaseline) db.social.insertSnapshot(s);
   for (const d of socialDms) db.social.upsertDm(d);
@@ -1960,7 +1962,7 @@ export function seedDemoDatabase(db: GladosDb): void {
   // baseline is authoritative. Live-synced snapshots survive.
   db.emailList.deleteSeeded();
   for (const s of emailListBaseline) db.emailList.insertSnapshot(s);
-  for (const p of socialPosts) db.socialPosts.enqueue(p);
+  for (const p of socialPosts) db.socialPosts.enqueue({ ...p, caption: dt(p.caption) });
   for (const c of funnelContacts) db.funnel.insertContact(c);
   for (const t of funnelTouches) db.funnel.insertTouch(t);
   syncSeededProposals(db);

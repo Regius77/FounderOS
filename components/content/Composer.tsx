@@ -41,6 +41,7 @@ import type { Campaign } from '@/lib/content-campaigns';
 import type { HiggsfieldAccount, IdentityAsset } from '@/lib/higgsfield/account';
 import type { UploadAsset } from '@/lib/content-uploads';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 const TAB_LABEL: Record<PickerTab, string> = { library: t('library'), uploads: t('uploads'), identity: t('identity'), upload: t('upload') };
 
@@ -218,7 +219,7 @@ function ReferenceSlot({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={`/content-media/uploads/${u.file}`} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="grid h-full w-full place-items-center text-[9px] text-os-dim">{u.kind}</div>
+                        <div className="grid h-full w-full place-items-center text-[9px] text-os-dim">{statusLabel(u.kind, 'media')}</div>
                       )}
                     </button>
                   ))}

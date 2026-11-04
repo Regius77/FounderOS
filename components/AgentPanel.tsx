@@ -16,6 +16,7 @@ import { AgentAvatar } from '@/components/AgentAvatar';
 import { Badge, Dot } from '@/components/terminal';
 import { buildLogicRules, buildStepTree, connectedChips, resolveWorksWith } from '@/app/agents/panel-data';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -111,7 +112,7 @@ export function AgentPanel({
               </div>
               <div className="mt-1 text-[13px] text-os-muted">{agent.role}</div>
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                <Badge>{agent.tier}</Badge>
+                <Badge>{statusLabel(agent.tier, 'tier')}</Badge>
                 {department && <Badge>{department.name}</Badge>}
               </div>
               <div className="mt-2 text-[12px] text-os-dim">

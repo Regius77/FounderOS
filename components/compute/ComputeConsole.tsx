@@ -5,6 +5,7 @@ import { ExternalLink, Maximize2, Monitor, RefreshCw } from 'lucide-react';
 import type { ComputerRow } from '@/lib/compute/miosa';
 import { BRAND } from '@/lib/brand';
 import { t } from '@/lib/i18n';
+import { statusLabel } from '@/lib/i18n/status';
 
 /**
  * Compute: the MIOSA computers this account runs, and a live view of one
@@ -85,7 +86,7 @@ function ConsoleClassic({
               <Monitor className="h-4 w-4 shrink-0 text-os-muted" strokeWidth={1.8} />
               <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-os-text">{c.name}</span>
               <span className="flex items-center gap-1.5 text-[11px] text-os-muted">
-                <i className="h-2 w-2 rounded-full" style={{ background: statusTone(c.status) }} />{c.status}
+                <i className="h-2 w-2 rounded-full" style={{ background: statusTone(c.status) }} />{statusLabel(c.status, 'computer')}
               </span>
             </div>
             <div className="mt-1.5 text-[11.5px] text-os-muted">

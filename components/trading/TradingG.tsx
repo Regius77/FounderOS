@@ -17,6 +17,7 @@ import {
 import type { TradeActivity, TradingOrder, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
 import { localeTag, t } from '@/lib/i18n';
+import { statusLabel as enumLabel } from '@/lib/i18n/status';
 
 export type TradingTreeProps = { model: TradingModel; pushPath: string; setup: { robinhood: string; phantom: string } };
 
@@ -381,7 +382,7 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
                   title={<span className="trd-g-sym">{r.ticker}</span>}
                   meta={r.reason}
                   hint={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}
-                  trailing={<GTag tone={verdictTone(r.verdict)}>{cap(r.verdict)}</GTag>}
+                  trailing={<GTag tone={verdictTone(r.verdict)}>{enumLabel(r.verdict, 'verdict', cap(r.verdict))}</GTag>}
                 />
               ))}
             </GList>
@@ -489,8 +490,8 @@ function OpenOrders({ orders, now }: { orders: TradingOrder[]; now: number }) {
                   {o.symbol} {o.dollarAmountUsd !== null ? usd(o.dollarAmountUsd, true) : `${qty(o.quantity)}${o.limitPriceUsd !== null ? ` @ ${usd(o.limitPriceUsd, true)}` : ''}`}
                 </span>
               }
-              meta={`${cap(o.type)} · ${o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}${o.placedAgent || t('Unknown')} · ${ago(o.createdAt, now)}`}
-              trailing={<GTag>{cap(o.state)}</GTag>}
+              meta={`${enumLabel(o.type, 'ordertype', cap(o.type))} · ${o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}${o.placedAgent || t('Unknown')} · ${ago(o.createdAt, now)}`}
+              trailing={<GTag>{enumLabel(o.state, 'order', cap(o.state))}</GTag>}
             />
           ))}
         </GList>

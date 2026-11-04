@@ -6,6 +6,7 @@
  * exactly as the Classic sheet does. Spend lines are the hatched FO meters; switches are the FO knob.
  */
 import Link from 'next/link';
+import { statusLabel } from '@/lib/i18n/status';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { LSwitch, VolumeMeter } from '@/components/legacy';
 import type { SetupSheetView } from '@/lib/lab/view/sheets/setup';
@@ -399,8 +400,8 @@ function Spend({ v, ro }: { v: SetupSheetView; ro: string | null }) {
               {runs.map((r) => (
                 <tr key={r.id}>
                   <td>{fmtDayMonth(r.at)} {fmtClock(r.at)}</td>
-                  <td>{r.line ?? r.kind}</td>
-                  <td>{r.status}</td>
+                  <td>{r.line ?? statusLabel(r.kind, 'labrun')}</td>
+                  <td>{statusLabel(r.status, 'run')}</td>
                   <td className="is-num">{r.costUsd !== null ? fmtUsd(r.costUsd) : ''}</td>
                 </tr>
               ))}
