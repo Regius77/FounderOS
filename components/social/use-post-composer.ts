@@ -93,7 +93,7 @@ export function usePostComposer(initialPosts: SocialPost[], initialPlatforms: st
       tone: 'info',
       ms: QUEUE_UNDO_MS,
       action: {
-        label: t('Undo'),
+        label: 'Undo',
         onClick: () => {
           const entry = pending.current.get(post.id);
           if (!entry) return;

@@ -13,6 +13,7 @@ import { clip } from '@/lib/lab/view/posts';
 import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fill, fmtCount } from '@/lib/lab/view/format';
 import { withSample } from '@/lib/lab/view/section';
+import { t } from '@/lib/i18n';
 
 export type TestSheetView = { mode: 'new'; form: TestFormView } | { mode: 'view'; test: TestDetailView };
 
@@ -77,10 +78,10 @@ export function testForm(store: LabStore, prefillPostId: string | null, now: Dat
   };
 }
 
-function metricsText(t: LabTest, a: LabTest['arms'][number]): string {
+function metricsText(test: LabTest, a: LabTest['arms'][number]): string {
   const m = a.metrics;
-  if (t.kind === 'yt_test_compare' && m.watchTimeSharePct !== null) return `watch time share ${Math.round(m.watchTimeSharePct)}%`;
-  if (m.reach !== null && m.reach > 0 && m.shares !== null) return `reach ${fmtCount(m.reach)} · shares ${fmtCount(m.shares)} · ${((m.shares / m.reach) * 100).toFixed(2)}% shares per reach`;
+  if (test.kind === 'yt_test_compare' && m.watchTimeSharePct !== null) return t('watch time share {pct}%', { pct: Math.round(m.watchTimeSharePct) });
+  if (m.reach !== null && m.reach > 0 && m.shares !== null) return t('reach {reach} · shares {shares} · {pct}% shares per reach', { reach: fmtCount(m.reach), shares: fmtCount(m.shares), pct: ((m.shares / m.reach) * 100).toFixed(2) });
   return LAB_COPY.sheet.noNumbers;
 }
 

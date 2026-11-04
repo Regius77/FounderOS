@@ -22,6 +22,7 @@ import {
   demoIncomeCategories,
   demoExpensesByCategory,
 } from '@/lib/finance-demo';
+import { localeTag } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,7 +105,7 @@ export default async function FinancesPage(route: { searchParams?: { sample?: st
   }
   // "2026-06" → "Jun 2026" for an honest period label on the uploaded figures.
   const monthLabel = ledgerMonth
-    ? new Date(`${ledgerMonth}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+    ? new Date(`${ledgerMonth}-01T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', year: 'numeric', timeZone: 'UTC' })
     : null;
   const { source: expensesSource, byCategory, total: expenses } = expensesView({
     ledgerSpend,

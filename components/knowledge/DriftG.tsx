@@ -157,7 +157,7 @@ export function DriftG({ insights }: { insights: DriftInsight[] }) {
       <GCard p={24}>
         <GEmpty
           kind="unconfigured"
-          title={t('Drift detection is not running yet')}
+          title="Drift detection is not running yet"
           body={t('It compares claims in incoming calls and threads against the knowledge canon and surfaces contradictions here.')}
           setupHref="/setup"
           setupHint={t('The extraction pipeline is not configured')}

@@ -5,6 +5,7 @@ import type { OutcomeTrend as Trend } from '@/lib/tasks-metrics';
 import type { AgentRun } from '@/lib/schemas';
 import { outcomeTrend } from '@/lib/tasks-metrics';
 import { RunsEmpty } from '@/components/tasks/RunsEmpty';
+import { t } from '@/lib/i18n';
 
 /**
  * The dark reference's "Since last month…" panel (docs/TASKS-REDESIGN.md
@@ -36,11 +37,11 @@ export function OutcomeTrend({
   if (!trend) {
     return (
       <div className="glass-panel flex min-h-[220px] flex-col items-center justify-center gap-1.5 px-5 py-6 text-center">
-        <div className="glass-label self-start">Run outcomes</div>
+        <div className="glass-label self-start">{t('Run outcomes')}</div>
         <div className="flex flex-1 flex-col items-center justify-center gap-1.5">
           {/* minDays above the page ranges: these tabs are this card's own
               windows, so widening the page range would not change them */}
-          <RunsEmpty windowLabel={`the last ${days} days`} lastRunAt={lastRunAt} now={now} minDays={Infinity} />
+          <RunsEmpty windowLabel={t('the last {n} days', { n: days })} lastRunAt={lastRunAt} now={now} minDays={Infinity} />
         </div>
       </div>
     );
@@ -56,15 +57,15 @@ export function OutcomeTrend({
   return (
     <div className="glass-panel flex flex-col overflow-hidden px-5 py-4">
       <div className="text-[13.5px] font-medium">
-        Over the last {days} days, agent runs succeeded{' '}
+        {t('Over the last {n} days, agent runs succeeded', { n: days })}{' '}
         {trend.delta == null ? (
-          <span className="text-os-dim">at {Math.round((trend.succeeded / (trend.succeeded + trend.failed)) * 100)}%</span>
+          <span className="text-os-dim">{t('at {pct}%', { pct: Math.round((trend.succeeded / (trend.succeeded + trend.failed)) * 100) })}</span>
         ) : (
           <span className={up ? 'text-[var(--accent)]' : 'text-[var(--err)]'}>
             {up ? '+' : ''}{trend.delta}%
           </span>
         )}{' '}
-        {trend.delta != null && <span className="text-os-dim">against the window before</span>}
+        {trend.delta != null && <span className="text-os-dim">{t('against the window before')}</span>}
       </div>
 
       <div className="mt-3 flex items-center gap-4 border-b border-os-border text-[12px]">
@@ -76,7 +77,7 @@ export function OutcomeTrend({
               days === w ? 'border-[var(--accent)] text-os-text' : 'border-transparent text-os-dim hover:text-os-muted'
             }`}
           >
-            Last {w} days
+            {t('Last {w} days', { w })}
           </button>
         ))}
       </div>
@@ -84,11 +85,11 @@ export function OutcomeTrend({
       <div className="mt-3 flex items-center gap-3 text-[11.5px]">
         <span className="flex items-center gap-1.5 rounded-full border border-os-border px-2 py-0.5 text-os-muted">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
-          {trend.succeeded} succeeded
+          {t('{n} succeeded', { n: trend.succeeded })}
         </span>
         <span className="flex items-center gap-1.5 rounded-full border border-os-border px-2 py-0.5 text-os-muted">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--err)' }} />
-          {trend.failed} failed
+          {t('{n} failed', { n: trend.failed })}
         </span>
       </div>
 

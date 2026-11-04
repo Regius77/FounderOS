@@ -2,6 +2,7 @@
 
 import { RunsEmpty } from '@/components/tasks/RunsEmpty';
 import type { Activity } from '@/lib/tasks-metrics';
+import { t } from '@/lib/i18n';
 
 /**
  * "My Activity" from the dark reference (docs/TASKS-REDESIGN.md §5.6), cloned:
@@ -29,10 +30,10 @@ export function ActivityGraph({
   if (!activity) {
     return (
       <div className="glass-panel flex min-h-[300px] flex-col px-5 py-4">
-        <div className="glass-label">My Activity</div>
+        <div className="glass-label">{t('My Activity')}</div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <RunsEmpty
-            windowLabel={`the ${rangeLabel.toLowerCase()}`}
+            windowLabel={t('the {range}', { range: t(rangeLabel).toLowerCase() })}
             lastRunAt={lastRunAt}
             now={now}
             minDays={rangeDays}
@@ -48,9 +49,9 @@ export function ActivityGraph({
   return (
     <div className="glass-panel flex min-h-[300px] flex-col px-5 py-4">
       <div className="flex items-start justify-between">
-        <div className="glass-label">My Activity</div>
+        <div className="glass-label">{t('My Activity')}</div>
         <span className="rounded-md-t border border-os-border bg-os-surface2 px-2 py-0.5 text-[11.5px] text-os-dim">
-          {rangeLabel}
+          {t(rangeLabel)}
         </span>
       </div>
 
@@ -61,7 +62,7 @@ export function ActivityGraph({
           </div>
         )}
         <div className="text-[40px] font-normal leading-none tabular-nums">{activity.pct}%</div>
-        <div className="mt-1 text-[11.5px] text-os-dim">of agent runs succeeded</div>
+        <div className="mt-1 text-[11.5px] text-os-dim">{t('of agent runs succeeded')}</div>
       </div>
 
       <div className="relative mt-5 flex flex-1 items-end gap-2">
@@ -72,7 +73,7 @@ export function ActivityGraph({
         >
           <span className="tasks-marker h-px flex-1" style={{ background: 'var(--hairline)' }} />
           <span className="ml-2 shrink-0 rounded-full border border-os-border bg-os-surface px-2 py-0.5 font-mono text-[10px] text-os-muted">
-            {activity.peakRuns} runs
+            {t('{n} runs', { n: activity.peakRuns })}
           </span>
         </div>
 
@@ -103,7 +104,7 @@ export function ActivityGraph({
               </span>
               <span className="font-mono text-[9.5px] text-os-dim">{d.label}</span>
               <div className="pointer-events-none absolute -top-7 z-10 whitespace-nowrap rounded-sm-t border border-os-border bg-os-surface px-2 py-1 font-mono text-[10px] text-os-muted opacity-0 transition-opacity group-hover:opacity-100">
-                {d.runs} runs
+                {t('{n} runs', { n: d.runs })}
               </div>
             </div>
           );

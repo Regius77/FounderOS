@@ -128,7 +128,8 @@ export type PipelineCardView = {
   transcribed: Measured;
   dissected: Measured;
   /** "$8.20 of $46" ; near >= 0.8, over >= 1 */
-  spend: { text: string; pct: number | null; tone: 'ok' | 'near' | 'over' };
+  /** text is the whole line; spentText and capText are its two parts, so no tree has to split the (translated) line. */
+  spend: { text: string; spentText?: string; capText?: string | null; pct: number | null; tone: 'ok' | 'near' | 'over' };
   /** "Last run 2h ago, ok" | "Last run failed 3h ago" | "No runs yet" */
   lastRunText: string;
   href: '?setup=spend';
@@ -361,7 +362,7 @@ export function pipelineCard(store: LabStore, from: number, to: number, now: Dat
     scraped: count(sum('scrape')),
     transcribed: count(sum('transcribe')),
     dissected: count(sum('dissect')),
-    spend: { text: cap === null ? fmtUsd(spent) : fill(c.spendOf, { spent: fmtUsd(spent), cap: fmtUsd(cap) }), pct, tone: pct === null ? 'ok' : pct >= 1 ? 'over' : pct >= 0.8 ? 'near' : 'ok' },
+    spend: { text: cap === null ? fmtUsd(spent) : fill(c.spendOf, { spent: fmtUsd(spent), cap: fmtUsd(cap) }), spentText: fmtUsd(spent), capText: cap === null ? null : fmtUsd(cap), pct, tone: pct === null ? 'ok' : pct >= 1 ? 'over' : pct >= 0.8 ? 'near' : 'ok' },
     lastRunText,
     href: '?setup=spend',
   };

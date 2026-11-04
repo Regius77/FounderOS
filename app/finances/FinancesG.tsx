@@ -21,17 +21,18 @@ import { SpendingG } from './SpendingG';
 import { processorPeriodLabel, processorSetupHref } from '@/lib/finances';
 import type { BusinessSeries, IncomeRange, MonthPoint } from '@/lib/bank-statements';
 import type { FinancesAccount, FinancesClientProps } from './FinancesClient';
+import { localeTag, t } from '@/lib/i18n';
 
 const HIDE_VALUES_KEY = 'finances:hide-values';
 
-const usd = (n: number, cents = false) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
+const usd = (n: number, cents = false) => n.toLocaleString(localeTag(), { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
 
 function ago(unix: number): string {
   const mins = Math.round((Date.now() - unix * 1000) / 60_000);
-  if (mins < 60) return `${Math.max(0, mins)} min`;
+  if (mins < 60) return t('{n} min', { n: Math.max(0, mins) });
   const hours = Math.round(mins / 60);
-  if (hours < 48) return `${hours} h`;
-  return `${Math.round(hours / 24)} d`;
+  if (hours < 48) return t('{n} h', { n: hours });
+  return t('{n} d', { n: Math.round(hours / 24) });
 }
 
 /** Blurs an amount while hide-values is on (the kit's [data-mask] recipe). */
@@ -72,14 +73,14 @@ export function FinancesG(props: FinancesClientProps) {
     id: c.key,
     label: c.label,
     value: c.usd,
-    sub: `${pct(c.usd)}% of ${headlinePeriod}`,
-    tip: { lines: [`${usd(c.usd)} · ${pct(c.usd)}% of ${headlinePeriod}`], hint: 'Click to focus' },
+    sub: t('{pct}% of {period}', { pct: pct(c.usd), period: headlinePeriod }),
+    tip: { lines: [`${usd(c.usd)} · ${t('{pct}% of {period}', { pct: pct(c.usd), period: headlinePeriod })}`], hint: t('Click to focus') },
   }));
   const dimCategory = (label: string, amount: number) => active && !matchesQuery({ payee: label, category: label, amountUsd: amount }, query);
 
   const filteredRecent = useMemo(() => recent.filter((c) => matchesQuery({ payee: c.description, description: c.description, amountUsd: c.amount / 100 }, query)), [recent, query]);
   const filteredWise = useMemo(
-    () => (wiseOut ?? []).filter((t) => matchesQuery({ payee: t.reference ?? t.status, description: t.reference ?? t.status, amountUsd: t.amountCents / 100 }, query)),
+    () => (wiseOut ?? []).filter((w) => matchesQuery({ payee: w.reference ?? w.status, description: w.reference ?? w.status, amountUsd: w.amountCents / 100 }, query)),
     [wiseOut, query],
   );
   const dimAccount = (a: FinancesAccount) => active && !matchesQuery({ payee: a.label, description: a.processor, amountUsd: a.income ?? 0 }, query);
@@ -88,19 +89,19 @@ export function FinancesG(props: FinancesClientProps) {
     <GPage className="fin-g">
       <GSectionHeader
         size="page"
-        title="Finances"
-        caption="Every processor, one view"
+        title={t('Finances')}
+        caption={t('Every processor, one view')}
         action={
-          <GButton aria-pressed={hide} onClick={() => setHide((v) => !v)} title={hide ? 'Show every amount' : 'Blur every amount on this page'}>
+          <GButton aria-pressed={hide} onClick={() => setHide((v) => !v)} title={hide ? t('Show every amount') : t('Blur every amount on this page')}>
             {hide ? <EyeOff size={14} strokeWidth={1.75} aria-hidden /> : <Eye size={14} strokeWidth={1.75} aria-hidden />}
-            {hide ? 'Hidden' : 'Visible'}
+            {hide ? t('Hidden') : t('Visible')}
           </GButton>
         }
       />
 
       {/* Hero: income by category on the stage chart (FR-N3), search below it, never over it. */}
       <GCard p={24} className="fin-g-hero" aria-labelledby="fin-g-hero">
-        <GSectionHeader id="fin-g-hero" size={22} title="Income by category" action={<span className="fin-g-cap">{headlinePeriod} · {categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>} />
+        <GSectionHeader id="fin-g-hero" size={22} title={t('Income by category')} action={<span className="fin-g-cap">{headlinePeriod} · {categories.length === 1 ? t('{n} category', { n: categories.length }) : t('{n} categories', { n: categories.length })}</span>} />
         {categoryTotal > 0 ? (
           <>
             <div className="fin-g-chart">
@@ -112,49 +113,49 @@ export function FinancesG(props: FinancesClientProps) {
                 selected={heroKey}
                 onSelect={setHeroKey}
                 hideValues={hide}
-                label={`Income by category, ${headlinePeriod}`}
+                label={t('Income by category, {period}', { period: headlinePeriod })}
               />
             </div>
-            <GAsk mode="filter" value={query} onValueChange={setQuery} label="Search transactions" placeholder="Search transactions, categories and processors" className="fin-g-ask" />
+            <GAsk mode="filter" value={query} onValueChange={setQuery} label={t('Search transactions')} placeholder={t('Search transactions, categories and processors')} className="fin-g-ask" />
           </>
         ) : (
-          <GEmpty kind="unconfigured" title="No processor income configured yet." body="Connect a payment processor to see income by category." setupHref="/integrations" setupHint="connect a payment processor to see income by category" />
+          <GEmpty kind="unconfigured" title={t('No processor income configured yet.')} body={t('Connect a payment processor to see income by category.')} setupHref="/integrations" setupHint={t('connect a payment processor to see income by category')} />
         )}
       </GCard>
 
       {/* Tiles (FR-N4) */}
       <div className="fin-g-tiles">
-        <Tile label={`Income · ${headlinePeriod}`} icon={<ArrowDownLeft size={14} strokeWidth={1.6} aria-hidden />} value={<Money hide={hide}>{usd(incomeMtd)}</Money>} sub={`${liveCount}/${accounts.length} live`} />
+        <Tile label={`${t('Income')} · ${headlinePeriod}`} icon={<ArrowDownLeft size={14} strokeWidth={1.6} aria-hidden />} value={<Money hide={hide}>{usd(incomeMtd)}</Money>} sub={t('{n}/{total} live', { n: liveCount, total: accounts.length })} />
         <Tile
-          label="Expenses · /mo"
+          label={t('Expenses · /mo')}
           icon={<ArrowUpRight size={14} strokeWidth={1.6} aria-hidden />}
           value={expensesSource === 'none' ? '—' : <Money hide={hide}>{usd(expenses)}</Money>}
           sub={
             expensesSource === 'none' ? (
-              <span data-expenses-empty=""><GButton size="sm" href="#statement-upload" title="Upload a card or bank statement below to see monthly spend">No statements yet</GButton></span>
+              <span data-expenses-empty=""><GButton size="sm" href="#statement-upload" title={t('Upload a card or bank statement below to see monthly spend')}>{t('No statements yet')}</GButton></span>
             ) : expensesSource === 'uploaded' ? (
-              <GTag tone="ok" dot>{monthLabel ? `Uploaded · ${monthLabel}` : 'Uploaded'}</GTag>
-            ) : 'per month'
+              <GTag tone="ok" dot>{monthLabel ? `${t('Uploaded')} · ${monthLabel}` : t('Uploaded')}</GTag>
+            ) : t('per month')
           }
         />
         <Tile
-          label={`Net · ${headlinePeriod}`}
+          label={`${t('Net')} · ${headlinePeriod}`}
           icon={<Scale size={14} strokeWidth={1.6} aria-hidden />}
           value={<span data-tone={netMonthly < 0 ? 'err' : undefined}><Money hide={hide}>{netMonthly >= 0 ? '' : '−'}{usd(Math.abs(netMonthly))}</Money></span>}
-          sub={expensesSource === 'none' ? 'no expenses uploaded' : 'in − out'}
+          sub={expensesSource === 'none' ? t('no expenses uploaded') : t('in − out')}
         />
         <Tile
-          label="Stripe balance"
+          label={t('Stripe balance')}
           icon={<Landmark size={14} strokeWidth={1.6} aria-hidden />}
           value={stripeLive ? <Money hide={hide}>{usd(available, true)}</Money> : '—'}
-          sub={stripeLive ? <Money hide={hide}>{usd(pending, true)} pending</Money> : <GButton size="sm" href={processorSetupHref('stripe')} title="STRIPE_SECRET_KEY">Connect Stripe</GButton>}
+          sub={stripeLive ? <Money hide={hide}>{t('{amount} pending', { amount: usd(pending, true) })}</Money> : <GButton size="sm" href={processorSetupHref('stripe')} title="STRIPE_SECRET_KEY">{t('Connect Stripe')}</GButton>}
         />
       </div>
 
       {/* Income by business (FR-N5) */}
       {bankSeries.length > 0 && (
         <section className="fin-g-sec" aria-labelledby="fin-g-business">
-          <GSectionHeader id="fin-g-business" size={22} title="Income by business" caption="Bank deposits, from uploaded statements" />
+          <GSectionHeader id="fin-g-business" size={22} title={t('Income by business')} caption={t('Bank deposits, from uploaded statements')} />
           <div className="fin-g-business">
             {bankSeries.map((s) => <BusinessCard key={s.business} series={s} hide={hide} />)}
           </div>
@@ -166,23 +167,23 @@ export function FinancesG(props: FinancesClientProps) {
         <GSectionHeader
           id="fin-g-expenses"
           size={22}
-          title="Monthly expenses by category"
-          caption={expensesSource === 'none' ? 'None uploaded' : <Money hide={hide}>{expensesSource === 'uploaded' && monthLabel ? `${usd(expenses)} · ${monthLabel}` : `${usd(expenses)} /mo`}</Money>}
+          title={t('Monthly expenses by category')}
+          caption={expensesSource === 'none' ? t('None uploaded') : <Money hide={hide}>{expensesSource === 'uploaded' && monthLabel ? `${usd(expenses)} · ${monthLabel}` : t('{amount} /mo', { amount: usd(expenses) })}</Money>}
         />
         <div className="fin-g-expenses">
           <GCard p={24} className="fin-g-donut">
             {expensesSource === 'none' ? (
               <div data-expenses-empty="">
-                <GEmpty title="Upload a card CSV to see spend by category" body="Nothing has been uploaded yet, so there are no expense figures on this page." />
+                <GEmpty title={t('Upload a card CSV to see spend by category')} body={t('Nothing has been uploaded yet, so there are no expense figures on this page.')} />
               </div>
             ) : (
               <GDonut
                 slices={byCategory.map((c) => ({ id: c.category, label: c.category, value: c.total }))}
                 formatValue={(v) => usd(v)}
-                centreLabel={expensesSource === 'uploaded' && monthLabel ? monthLabel : 'per month'}
+                centreLabel={expensesSource === 'uploaded' && monthLabel ? monthLabel : t('per month')}
                 dimmed={byCategory.filter((c) => dimCategory(c.category, c.total)).map((c) => c.category)}
                 hideValues={hide}
-                label="Monthly expenses by category"
+                label={t('Monthly expenses by category')}
               />
             )}
           </GCard>
@@ -197,7 +198,7 @@ export function FinancesG(props: FinancesClientProps) {
 
       {/* Processors (FR-N7) */}
       <section className="fin-g-sec" aria-labelledby="fin-g-proc">
-        <GSectionHeader id="fin-g-proc" size={22} title="Income by processor" caption={`${liveCount}/${accounts.length} live`} />
+        <GSectionHeader id="fin-g-proc" size={22} title={t('Income by processor')} caption={t('{n}/{total} live', { n: liveCount, total: accounts.length })} />
         <div className="fin-g-proc">
           {accounts.map((a) => (
             <GCard key={a.id} p={20} className="fin-g-proc-card" data-dim={dimAccount(a) || undefined}>
@@ -207,18 +208,18 @@ export function FinancesG(props: FinancesClientProps) {
                   <span className="fin-g-cap">{a.processor}</span>
                 </div>
                 {a.live ? (
-                  <GTag tone="ok" dot>Live</GTag>
+                  <GTag tone="ok" dot>{t('Live')}</GTag>
                 ) : a.configured ? (
-                  <GTag tone="warn" dot>Key set</GTag>
+                  <GTag tone="warn" dot>{t('Key set')}</GTag>
                 ) : (
-                  <GButton size="sm" href={processorSetupHref(a.id)} title={`connect ${a.processor} to pull its income`}>Connect</GButton>
+                  <GButton size="sm" href={processorSetupHref(a.id)} title={t('connect {processor} to pull its income', { processor: a.processor })}>{t('Connect')}</GButton>
                 )}
               </div>
               <div className="fin-g-proc-value">
                 <span className="fin-g-num-md">{a.income != null ? <Money hide={hide}>{usd(a.income)}</Money> : '—'}</span>
                 <span className="fin-g-cap">{processorPeriodLabel(a, headlinePeriod)}</span>
               </div>
-              <GBar label={`${a.label}: ${a.income != null ? usd(a.income) : 'no data'}, share of the largest processor`} value={a.income} max={maxAccount} tone="accent" />
+              <GBar label={t('{label}: {amount}, share of the largest processor', { label: a.label, amount: a.income != null ? usd(a.income) : t('no data') })} value={a.income} max={maxAccount} tone="accent" />
             </GCard>
           ))}
         </div>
@@ -227,19 +228,19 @@ export function FinancesG(props: FinancesClientProps) {
       {/* Outgoing · Wise (hidden until a Wise key lands) */}
       {wiseOut && (
         <section className="fin-g-sec" aria-labelledby="fin-g-wise">
-          <GSectionHeader id="fin-g-wise" size={22} title="Outgoing · Wise" caption={`${filteredWise.length} transfer${filteredWise.length === 1 ? '' : 's'}`} />
+          <GSectionHeader id="fin-g-wise" size={22} title={t('Outgoing · Wise')} caption={filteredWise.length === 1 ? t('{n} transfer', { n: filteredWise.length }) : t('{n} transfers', { n: filteredWise.length })} />
           <GCard p={16}>
             {filteredWise.length === 0 ? (
-              <GEmpty inline title={active ? 'Nothing matches that search.' : 'Wise connected · no recent outgoing transfers'} />
+              <GEmpty inline title={active ? t('Nothing matches that search.') : t('Wise connected · no recent outgoing transfers')} />
             ) : (
-              <GList label="Outgoing Wise transfers">
-                {filteredWise.map((t, i) => (
+              <GList label={t('Outgoing Wise transfers')}>
+                {filteredWise.map((w, i) => (
                   <GRow
-                    key={`${t.created}-${i}`}
+                    key={`${w.created}-${i}`}
                     leading={<Send size={15} strokeWidth={1.6} aria-hidden />}
-                    title={<span className="fin-g-out"><Money hide={hide}>−{(t.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: t.currency })}</Money></span>}
-                    meta={t.reference ?? t.status}
-                    trailing={<span className="fin-g-cap">{t.status}</span>}
+                    title={<span className="fin-g-out"><Money hide={hide}>−{(w.amountCents / 100).toLocaleString(localeTag(), { style: 'currency', currency: w.currency })}</Money></span>}
+                    meta={w.reference ?? w.status}
+                    trailing={<span className="fin-g-cap">{w.status}</span>}
                   />
                 ))}
               </GList>
@@ -251,12 +252,12 @@ export function FinancesG(props: FinancesClientProps) {
       {/* Recent income · Stripe */}
       {stripeLive && recent.length > 0 && (
         <section className="fin-g-sec" aria-labelledby="fin-g-recent">
-          <GSectionHeader id="fin-g-recent" size={22} title="Recent income" caption="Stripe · live" />
+          <GSectionHeader id="fin-g-recent" size={22} title={t('Recent income')} caption={t('Stripe · live')} />
           <GCard p={16}>
             {filteredRecent.length === 0 ? (
-              <GEmpty inline title="Nothing matches that search." />
+              <GEmpty inline title={t('Nothing matches that search.')} />
             ) : (
-              <GList label="Recent Stripe charges">
+              <GList label={t('Recent Stripe charges')}>
                 {filteredRecent.map((c, i) => (
                   <GRow
                     key={`${c.created}-${i}`}
@@ -292,18 +293,18 @@ function Tile({ label, icon, value, sub }: { label: string; icon: React.ReactNod
 
 type Metric = 'in' | 'out' | 'net';
 const RANGES: { label: string; value: string }[] = [
-  { label: '30 days', value: '1' },
-  { label: '60 days', value: '2' },
-  { label: '3 months', value: '3' },
-  { label: '6 months', value: '6' },
-  { label: '12 months', value: '12' },
-  { label: 'All time', value: 'all' },
+  { label: t('30 days'), value: '1' },
+  { label: t('60 days'), value: '2' },
+  { label: t('3 months'), value: '3' },
+  { label: t('6 months'), value: '6' },
+  { label: t('12 months'), value: '12' },
+  { label: t('All time'), value: 'all' },
 ];
 const metricCents = (m: MonthPoint, metric: Metric) => (metric === 'in' ? m.creditsCents : metric === 'out' ? m.debitsCents : m.netCents);
 const cUsd = (cents: number) => usd(cents / 100);
 const signed = (cents: number) => `${cents < 0 ? '−' : '+'}${cUsd(Math.abs(cents))}`;
-const monthShort = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
-const monthLong = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const monthShort = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', timeZone: 'UTC' });
+const monthLong = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 function BusinessCard({ series, hide }: { series: BusinessSeries; hide: boolean }) {
   const [range, setRange] = useState<IncomeRange>('all');
@@ -317,28 +318,28 @@ function BusinessCard({ series, hide }: { series: BusinessSeries; hide: boolean 
     id: m.month,
     label: monthShort(m.month),
     value: metricCents(m, metric) / 100,
-    tip: { title: monthLong(m.month), lines: [`${cUsd(m.creditsCents)} in`, `${cUsd(m.debitsCents)} out · ${signed(m.netCents)} net`] },
+    tip: { title: monthLong(m.month), lines: [t('{amount} in', { amount: cUsd(m.creditsCents) }), `${t('{amount} out', { amount: cUsd(m.debitsCents) })} · ${t('{amount} net', { amount: signed(m.netCents) })}`] },
   }));
   return (
     <GCard p={24} className="fin-g-biz">
       <div className="fin-g-biz-head">
         <div className="fin-g-biz-name">
           <span>{series.business}</span>
-          <span className="fin-g-cap">{metric === 'in' ? 'Income · bank deposits' : metric === 'out' ? 'Outflow · bank debits' : 'Net · after money out'}</span>
+          <span className="fin-g-cap">{metric === 'in' ? t('Income · bank deposits') : metric === 'out' ? t('Outflow · bank debits') : t('Net · after money out')}</span>
         </div>
         <div className="fin-g-biz-ctrls">
-          <GSegmented<Metric> label="Metric" value={metric} onChange={setMetric} options={[{ value: 'in', label: 'In' }, { value: 'out', label: 'Out' }, { value: 'net', label: 'Net' }]} />
-          <GSelect size="compact" aria-label="Range" value={String(range)} onChange={(e) => setRange(e.target.value === 'all' ? 'all' : (Number(e.target.value) as IncomeRange))} options={RANGES} />
+          <GSegmented<Metric> label={t('Metric')} value={metric} onChange={setMetric} options={[{ value: 'in', label: t('In') }, { value: 'out', label: t('Out') }, { value: 'net', label: t('Net') }]} />
+          <GSelect size="compact" aria-label={t('Range')} value={String(range)} onChange={(e) => setRange(e.target.value === 'all' ? 'all' : (Number(e.target.value) as IncomeRange))} options={RANGES} />
         </div>
       </div>
       <div className="fin-g-biz-total">
         <span className="fin-g-num-md" data-tone={metric === 'net' && total < 0 ? 'err' : undefined}><Money hide={hide}>{metric === 'net' ? signed(total) : cUsd(total)}</Money></span>
         <span className="fin-g-cap" data-tone={metric === 'in' ? (net >= 0 ? 'ok' : 'err') : undefined}>
-          <Money hide={hide}>{metric === 'in' ? `${signed(net)} net` : metric === 'out' ? `of ${cUsd(totalIn)} in` : `${cUsd(totalIn)} in − ${cUsd(totalOut)} out`}</Money>
+          <Money hide={hide}>{metric === 'in' ? t('{amount} net', { amount: signed(net) }) : metric === 'out' ? t('of {amount} in', { amount: cUsd(totalIn) }) : t('{in} in − {out} out', { in: cUsd(totalIn), out: cUsd(totalOut) })}</Money>
         </span>
       </div>
       <div className="fin-g-biz-chart" data-mask={hide || undefined}>
-        <GBarChart variant="series" bars={bars} tone={metric === 'in' ? 'accent' : metric === 'out' ? 'err' : 'signed'} height={104} formatValue={(v) => usd(v)} label={`${series.business}: ${metric === 'in' ? 'money in' : metric === 'out' ? 'money out' : 'net'} per month`} />
+        <GBarChart variant="series" bars={bars} tone={metric === 'in' ? 'accent' : metric === 'out' ? 'err' : 'signed'} height={104} formatValue={(v) => usd(v)} label={metric === 'in' ? t('{business}: money in per month', { business: series.business }) : metric === 'out' ? t('{business}: money out per month', { business: series.business }) : t('{business}: net per month', { business: series.business })} />
       </div>
     </GCard>
   );
@@ -355,23 +356,23 @@ function UploadCard() {
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setStatus({ tone: 'busy', text: `Parsing ${file.name}` });
+    setStatus({ tone: 'busy', text: t('Parsing {name}', { name: file.name }) });
     const isPdf = /\.pdf$/i.test(file.name) || file.type === 'application/pdf';
     try {
       const body = new FormData();
       body.append('file', file);
       const res = await fetch(isPdf ? '/api/finances/bank-statement' : '/api/finances/statements', { method: 'POST', body });
       const data = await res.json();
-      if (!res.ok) setStatus({ tone: 'err', text: data.error ?? 'Upload failed' });
+      if (!res.ok) setStatus({ tone: 'err', text: data.error ?? t('Upload failed') });
       else if (isPdf) {
-        setStatus({ tone: 'ok', text: `${data.summary.business} ${data.summary.month}: ${usd(data.summary.creditsCents / 100)} in` });
+        setStatus({ tone: 'ok', text: `${data.summary.business} ${data.summary.month}: ${t('{amount} in', { amount: usd(data.summary.creditsCents / 100) })}` });
         router.refresh();
       } else {
-        setStatus({ tone: 'ok', text: `${data.inserted} new of ${data.parsed} parsed rows` });
+        setStatus({ tone: 'ok', text: t('{inserted} new of {parsed} parsed rows', { inserted: data.inserted, parsed: data.parsed }) });
         router.refresh();
       }
     } catch (err) {
-      setStatus({ tone: 'err', text: err instanceof Error ? err.message : 'Upload failed' });
+      setStatus({ tone: 'err', text: err instanceof Error ? err.message : t('Upload failed') });
     } finally {
       e.target.value = '';
     }
@@ -380,12 +381,12 @@ function UploadCard() {
   return (
     <GCard p={24} className="fin-g-upload">
       <Upload size={20} strokeWidth={1.6} aria-hidden className="fin-g-icon" />
-      <h3 className="fin-g-upload-title">Upload statements</h3>
+      <h3 className="fin-g-upload-title">{t('Upload statements')}</h3>
       <p className="fin-g-upload-copy">
-        A credit card CSV (categorised spend) or a bank statement PDF (income per business). Stored locally, never committed.
+        {t('A credit card CSV (categorised spend) or a bank statement PDF (income per business). Stored locally, never committed.')}
       </p>
-      <GInput ref={input} type="file" accept=".csv,text/csv,.pdf,application/pdf" hidden onChange={onFile} disabled={busy} aria-label="Statement file" />
-      <GButton variant="ink" busy={busy} onClick={() => input.current?.click()}>Choose CSV or PDF</GButton>
+      <GInput ref={input} type="file" accept=".csv,text/csv,.pdf,application/pdf" hidden onChange={onFile} disabled={busy} aria-label={t('Statement file')} />
+      <GButton variant="ink" busy={busy} onClick={() => input.current?.click()}>{t('Choose CSV or PDF')}</GButton>
       {status?.tone === 'busy' && <GProgress text={status.text} />}
       {status?.tone === 'ok' && <p className="fin-g-upload-copy" role="status">{status.text}</p>}
       {status?.tone === 'err' && <GErrorLine>{status.text}</GErrorLine>}

@@ -37,16 +37,18 @@ import {
 import type { TradeActivity, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
 import type { TradingTreeProps } from './TradingG';
+import { localeTag, t } from '@/lib/i18n';
 
 const statusTone: Record<TradeActivity['status'], BadgeTone> = { filled: 'ok', pending: 'default', cancelled: 'default', rejected: 'err' };
-const statusLabel: Record<TradeActivity['status'], string> = { filled: 'Filled', pending: 'Pending', cancelled: 'Cancelled', rejected: 'Rejected' };
+const statusLabel: Record<TradeActivity['status'], string> = { filled: t('Filled'), pending: t('Pending'), cancelled: t('Cancelled'), rejected: t('Rejected') };
 const verdictTone = (v: string): BadgeTone => (/buy|enter|long|take/i.test(v) ? 'ok' : /sell|exit|trim/i.test(v) ? 'warn' : /watch|hold/i.test(v) ? 'accent' : 'default');
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const acctName = (id: string) => (id === 'agentic' ? 'Agentic' : cap(id));
-const EYEBROW = 'Markets · Robinhood + Phantom · agent-fed';
+const acctName = (id: string) => (id === 'agentic' ? t('Agentic') : cap(id));
+const sideLabel = (side: string) => (side === 'buy' ? t('buy') : side === 'sell' ? t('sell') : side);
+const EYEBROW = t('Markets · Robinhood + Phantom · agent-fed');
 
 function Pnl({ n, cents = true }: { n: number | null; cents?: boolean }) {
-  if (n === null) return <span className="l-muted">unknown</span>;
+  if (n === null) return <span className="l-muted">{t('unknown')}</span>;
   return (
     <span className="l-pnl" data-tone={toneOf(n)}>
       {signedUsd(n, cents)}
@@ -60,17 +62,17 @@ export function TradingLegacy({ model: m, pushPath, setup }: TradingTreeProps) {
 
   const right = (
     <>
-      {m.fixture && <LSampleChip label="Sample" />}
+      {m.fixture && <LSampleChip label={t('Sample')} />}
       {m.feedPill ? (
         <span title={m.feedPill.title}>
           <Chip tone={m.feedPill.tone}>{m.feedPill.text}</Chip>
         </span>
       ) : null}
       <span data-l="Pill" className="l-pill-static">
-        monitor-only
+        {t('monitor-only')}
       </span>
       {!m.unconfigured && (
-        <Pressable tone="ghost" onClick={ui.refresh} disabled={ui.refreshing} aria-label="Refresh" title="Reload from the store; the wallet read is cached 60 s">
+        <Pressable tone="ghost" onClick={ui.refresh} disabled={ui.refreshing} aria-label={t('Refresh')} title={t('Reload from the store; the wallet read is cached 60 s')}>
           <RefreshCw size={14} strokeWidth={1.7} aria-hidden className={ui.refreshing ? 'l-spin' : undefined} />
         </Pressable>
       )}
@@ -79,13 +81,13 @@ export function TradingLegacy({ model: m, pushPath, setup }: TradingTreeProps) {
 
   return (
     <div data-l="TradingLegacy" className="l-page">
-      <SlabTitle eyebrow={EYEBROW} title="Trading" meta={m.subtitle ?? m.copy.subtitleEmpty} right={right} />
+      <SlabTitle eyebrow={EYEBROW} title={t('Trading')} meta={m.subtitle ?? m.copy.subtitleEmpty} right={right} />
 
       {m.unconfigured ? (
         <div className="l-row l-row-hero">
           <ConnectCard ui={ui} setupHref={setup.robinhood} i={1} />
-          <SlabCard title="Accounts" sub="no source connected" i={2}>
-            <LUnconfigured what="The Phantom wallet" href={setup.phantom} hint="Set PHANTOM_WALLET_ADDRESS (a public address, not a key)" />
+          <SlabCard title={t('Accounts')} sub={t('no source connected')} i={2}>
+            <LUnconfigured what={t('The Phantom wallet')} href={setup.phantom} hint={t('Set PHANTOM_WALLET_ADDRESS (a public address, not a key)')} />
           </SlabCard>
         </div>
       ) : (
@@ -106,30 +108,30 @@ export function TradingLegacy({ model: m, pushPath, setup }: TradingTreeProps) {
             </>
           )}
           <Limits m={m} ui={ui} />
-          <p className="l-foot-note">Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.</p>
+          <p className="l-foot-note">{t('Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.')}</p>
         </div>
       )}
 
       {ui.openTrade && <TradeDialog trade={ui.openTrade} onClose={() => ui.setOpenTrade(null)} />}
       {ui.positionsOpen && (
-        <LDialog title="Positions" sub={`${p.positions.length} open · ${usd(m.investedUsd)} invested`} onClose={() => ui.setPositionsOpen(false)} width={720}>
+        <LDialog title={t('Positions')} sub={t('{n} open · {amount} invested', { n: p.positions.length, amount: usd(m.investedUsd) })} onClose={() => ui.setPositionsOpen(false)} width={720}>
           <PositionRows rows={p.positions} />
         </LDialog>
       )}
       {ui.notesOpen && p.analysis && (
-        <LDialog title="Agent · reasoning" sub={`${p.analysis.agent} · ${stamp(p.analysis.at)}`} onClose={() => ui.setNotesOpen(false)}>
+        <LDialog title={t('Agent · reasoning')} sub={`${p.analysis.agent} · ${stamp(p.analysis.at)}`} onClose={() => ui.setNotesOpen(false)}>
           <p className="l-prose">{p.analysis.notes}</p>
         </LDialog>
       )}
       {ui.autopilot.confirmOpen && (
         <LDialog
-          title="Turn on autopilot?"
+          title={t('Turn on autopilot?')}
           onClose={() => ui.autopilot.setConfirmOpen(false)}
           footer={
             <>
-              <Pressable onClick={() => ui.autopilot.setConfirmOpen(false)}>Cancel</Pressable>
+              <Pressable onClick={() => ui.autopilot.setConfirmOpen(false)}>{t('Cancel')}</Pressable>
               <Pressable tone="primary" disabled={ui.autopilot.switching} onClick={() => void ui.autopilot.setAutopilot(true, true)}>
-                Turn on
+                {t('Turn on')}
               </Pressable>
             </>
           }
@@ -144,15 +146,15 @@ export function TradingLegacy({ model: m, pushPath, setup }: TradingTreeProps) {
 /** The unconfigured hero: the Not configured badge, the push URL and its copy button. */
 function ConnectCard({ ui, setupHref, i }: { ui: TradingUi; setupHref: string; i: number }) {
   return (
-    <SlabCard title="Connect the feed" sub="Markets agent · push token stays in the agent" i={i}>
-      <LUnconfigured what="The Markets agent feed" href={setupHref} hint="Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN" />
+    <SlabCard title={t('Connect the feed')} sub={t('Markets agent · push token stays in the agent')} i={i}>
+      <LUnconfigured what={t('The Markets agent feed')} href={setupHref} hint={t('Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN')} />
       <div className="l-card-body pt-0">
-        <p className="l-lead">Connect the Markets agent feed. Its first push fills this page.</p>
-        <p className="l-caption">The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here.</p>
+        <p className="l-lead">{t('Connect the Markets agent feed. Its first push fills this page.')}</p>
+        <p className="l-caption">{t('The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here.')}</p>
         <div data-l="CopyField" className="l-copy-field">
           <code data-copy="">{ui.pushUrl}</code>
-          <Pressable onClick={ui.copyPushUrl} aria-label="Copy push URL">
-            <Copy size={12} strokeWidth={1.7} aria-hidden /> Copy
+          <Pressable onClick={ui.copyPushUrl} aria-label={t('Copy push URL')}>
+            <Copy size={12} strokeWidth={1.7} aria-hidden /> {t('Copy')}
           </Pressable>
         </div>
       </div>
@@ -183,7 +185,7 @@ function ValueLine({ points, label }: { points: Array<{ at: string; valueUsd: nu
     return { xs, ys, d, area: `${d} L ${xs[xs.length - 1]} ${H} L ${xs[0]} ${H} Z` };
   }, [values]);
   if (points.length < 2) {
-    return <LEmpty>{points.length === 1 ? 'One capture so far. The line starts with the next push.' : 'No captures for this account yet.'}</LEmpty>;
+    return <LEmpty>{points.length === 1 ? t('One capture so far. The line starts with the next push.') : t('No captures for this account yet.')}</LEmpty>;
   }
   const first = points[0];
   const last = points[points.length - 1];
@@ -239,19 +241,19 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const a = m.payload.view.agent;
   const s = m.series.find((x) => x.accountId === ui.acct) ?? m.series[0];
   const strip: Array<{ label: string; value: ReactNode }> = [
-    { label: 'Deployed', value: usd(a.deployedUsd, true) },
-    { label: 'Idle cash', value: a.idleCashUsd === null ? 'unknown' : usd(a.idleCashUsd, true) },
-    { label: 'Unrealized', value: <Pnl n={a.unrealizedPnlUsd} /> },
-    { label: 'Agent trades', value: a.tradeCount },
+    { label: t('Deployed'), value: usd(a.deployedUsd, true) },
+    { label: t('Idle cash'), value: a.idleCashUsd === null ? t('unknown') : usd(a.idleCashUsd, true) },
+    { label: t('Unrealized'), value: <Pnl n={a.unrealizedPnlUsd} /> },
+    { label: t('Agent trades'), value: a.tradeCount },
   ];
   return (
     <SlabCard
-      title="Agent · the sleeve"
-      sub={a.hasActed ? `${a.tradeCount} ${a.tradeCount === 1 ? 'trade' : 'trades'} · last ${a.lastTrade ? ago(a.lastTrade.at, m.now) : ''}` : 'the agent has not traded yet'}
+      title={t('Agent · the sleeve')}
+      sub={a.hasActed ? `${a.tradeCount === 1 ? t('{n} trade', { n: a.tradeCount }) : t('{n} trades', { n: a.tradeCount })} · ${t('last {ago}', { ago: a.lastTrade ? ago(a.lastTrade.at, m.now) : '' })}` : t('the agent has not traded yet')}
       i={1}
     >
       {m.series.length > 1 && (
-        <div role="radiogroup" aria-label="Account shown in the chart" className="l-chip-row l-pad-x pt-3">
+        <div role="radiogroup" aria-label={t('Account shown in the chart')} className="l-chip-row l-pad-x pt-3">
           {m.series.map((x) => (
             <ToggleChip key={x.accountId} role="radio" aria-checked={ui.acct === x.accountId} on={ui.acct === x.accountId} onClick={() => ui.setAcct(x.accountId)}>
               {x.label}
@@ -260,7 +262,7 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
         </div>
       )}
       <div className="pt-4">
-        <ValueLine points={s?.points ?? []} label={`${s?.label ?? 'Account'} value per capture`} />
+        <ValueLine points={s?.points ?? []} label={t('{account} value per capture', { account: s?.label ?? t('Account') })} />
       </div>
       {m.hasAgentic ? (
         <dl data-l="StatStrip" className="l-strip mx-6 mb-6">
@@ -272,7 +274,7 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
           ))}
         </dl>
       ) : (
-        <LEmpty>No agentic account in the feed. The agent&apos;s stats appear once a push carries the account with id agentic.</LEmpty>
+        <LEmpty>{t('No agentic account in the feed.')} {t("The agent's stats appear once a push carries the account with id agentic.")}</LEmpty>
       )}
     </SlabCard>
   );
@@ -283,18 +285,18 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
   const brokerage = m.accounts.filter((a) => a.kind === 'brokerage');
   const n = m.payload.positions.length;
   const chips = [
-    ...(m.dayPnlUsd !== null ? [{ tone: (m.dayPnlUsd < 0 ? 'err' : 'ok') as 'ok' | 'err', text: `${signedUsd(m.dayPnlUsd)} today` }] : []),
-    ...(n ? [{ tone: 'accent' as const, text: `${usd(m.investedUsd)} in ${n} ${n === 1 ? 'position' : 'positions'}` }] : []),
+    ...(m.dayPnlUsd !== null ? [{ tone: (m.dayPnlUsd < 0 ? 'err' : 'ok') as 'ok' | 'err', text: t('{amount} today', { amount: signedUsd(m.dayPnlUsd) }) }] : []),
+    ...(n ? [{ tone: 'accent' as const, text: t('{amount} in {positions}', { amount: usd(m.investedUsd), positions: n === 1 ? t('{n} position', { n }) : t('{n} positions', { n }) }) }] : []),
   ];
   const meters: Meter[] = m.accounts.map((a) => ({
     label: `${a.label} · ${a.note}`,
     frac: a.valueUsd === null ? null : a.frac,
-    display: a.valueUsd === null ? 'unknown' : usd(a.valueUsd, true),
+    display: a.valueUsd === null ? t('unknown') : usd(a.valueUsd, true),
   }));
   return (
-    <SlabCard title="Accounts" sub={`${m.accounts.length} ${m.accounts.length === 1 ? 'source' : 'sources'} · ${m.payload.view.freshness.label}`} i={2} className="flex flex-col">
+    <SlabCard title={t('Accounts')} sub={`${m.accounts.length === 1 ? t('{n} source', { n: m.accounts.length }) : t('{n} sources', { n: m.accounts.length })} · ${m.payload.view.freshness.label}`} i={2} className="flex flex-col">
       <div className="l-card-body flex flex-1 flex-col">
-        <BigStat display={m.totalUsd === null ? undefined : usd(m.totalUsd, true)} value={m.totalUsd} caption={`brokerage, ${brokerage.length} ${brokerage.length === 1 ? 'account' : 'accounts'}`} />
+        <BigStat display={m.totalUsd === null ? undefined : usd(m.totalUsd, true)} value={m.totalUsd} caption={brokerage.length === 1 ? t('brokerage, {n} account', { n: brokerage.length }) : t('brokerage, {n} accounts', { n: brokerage.length })} />
         {chips.length > 0 && (
           <div className="l-chip-row mt-3">
             {chips.map((c) => (
@@ -304,22 +306,22 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
             ))}
           </div>
         )}
-        <MeterStack meters={meters} dense empty="No account has reported yet." />
-        {!hasWallet && <LUnconfigured what="The Phantom wallet" href={setupPhantom} hint="Set PHANTOM_WALLET_ADDRESS" />}
+        <MeterStack meters={meters} dense empty={t('No account has reported yet.')} />
+        {!hasWallet && <LUnconfigured what={t('The Phantom wallet')} href={setupPhantom} hint={t('Set PHANTOM_WALLET_ADDRESS')} />}
         {brokerage.length > 0 && (
           <dl className="l-kv mt-4">
             <div>
-              <dt>Cash</dt>
-              <dd>{usd(brokerage.reduce((t, a) => t + (a.cashUsd ?? 0), 0), true)}</dd>
+              <dt>{t('Cash')}</dt>
+              <dd>{usd(brokerage.reduce((tr, a) => tr + (a.cashUsd ?? 0), 0), true)}</dd>
             </div>
             <div>
-              <dt>Buying power</dt>
-              <dd>{usd(brokerage.reduce((t, a) => t + (a.buyingPowerUsd ?? 0), 0), true)}</dd>
+              <dt>{t('Buying power')}</dt>
+              <dd>{usd(brokerage.reduce((tr, a) => tr + (a.buyingPowerUsd ?? 0), 0), true)}</dd>
             </div>
             <div>
-              <dt>Total P&amp;L</dt>
+              <dt>{t('Total P&L')}</dt>
               <dd>
-                <Pnl n={m.payload.accounts.reduce((t, a) => t + a.totalPnlUsd, 0)} />
+                <Pnl n={m.payload.accounts.reduce((tr, a) => tr + a.totalPnlUsd, 0)} />
               </dd>
             </div>
           </dl>
@@ -333,23 +335,23 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const a = m.payload.analysis;
   return (
     <SlabCard
-      title="Agent · reasoning"
-      sub={a ? `examined ${a.examined} · ${a.signals} ${a.signals === 1 ? 'signal' : 'signals'} · ${ago(a.at, m.now)}` : 'no run recorded'}
+      title={t('Agent · reasoning')}
+      sub={a ? `${t('examined {n}', { n: a.examined })} · ${a.signals === 1 ? t('{n} signal', { n: a.signals }) : t('{n} signals', { n: a.signals })} · ${ago(a.at, m.now)}` : t('no run recorded')}
       i={3}
       action={
         a && a.notes.length > 140 ? (
-          <Pressable onClick={() => ui.setNotesOpen(true)}>Read all</Pressable>
+          <Pressable onClick={() => ui.setNotesOpen(true)}>{t('Read all')}</Pressable>
         ) : undefined
       }
     >
       {!a ? (
-        <LEmpty>No analysis pushed yet. The agent writes here every run, whether or not it trades.</LEmpty>
+        <LEmpty>{t('No analysis pushed yet.')} {t('The agent writes here every run, whether or not it trades.')}</LEmpty>
       ) : (
         <div className="l-card-body">
           {a.notes && <p className="l-clamp-3 l-body-text">{a.notes}</p>}
           <ul className="l-rows mt-3">
             {a.rows.slice(0, 6).map((r) => (
-              <li key={r.ticker} className="l-trd-why" title={r.score === null ? 'Not scored' : `Score ${r.score.toFixed(2)}`}>
+              <li key={r.ticker} className="l-trd-why" title={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}>
                 <span className="l-sym">{r.ticker}</span>
                 <span className="l-trd-why-text">{r.reason}</span>
                 <Badge tone={verdictTone(r.verdict)}>{r.verdict}</Badge>
@@ -387,17 +389,17 @@ function Positions({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const pos = m.payload.positions;
   return (
     <SlabCard
-      title="Positions"
-      sub={pos.length ? `${usd(m.investedUsd)} invested` : 'nothing held'}
+      title={t('Positions')}
+      sub={pos.length ? t('{amount} invested', { amount: usd(m.investedUsd) }) : t('nothing held')}
       i={4}
-      action={pos.length > 4 ? <Pressable onClick={() => ui.setPositionsOpen(true)}>See all</Pressable> : undefined}
+      action={pos.length > 4 ? <Pressable onClick={() => ui.setPositionsOpen(true)}>{t('See all')}</Pressable> : undefined}
     >
       {pos.length === 0 ? (
-        <LEmpty>No open positions.</LEmpty>
+        <LEmpty>{t('No open positions.')}</LEmpty>
       ) : (
         <>
           <div className="l-trd-pos-head">
-            <BigStat value={pos.length} size={30} caption="open positions" />
+            <BigStat value={pos.length} size={30} caption={t('open positions')} />
             <DotMatrix cols={m.payload.view.sizes.map((b) => ({ label: b.label, count: b.count }))} />
           </div>
           <PositionRows rows={pos.slice(0, 4)} />
@@ -415,15 +417,15 @@ function NextMove({ m }: { m: TradingModel }) {
   const frac = budget ? a.deployedUsd / Math.max(1, budget) : null;
   return (
     <InsightCard
-      badge="Agent · next move"
+      badge={t('Agent · next move')}
       value={a.tradeCount}
-      headline={`${a.tradeCount === 1 ? 'trade' : 'trades'} filled in the sleeve.`}
+      headline={a.tradeCount === 1 ? t('trade filled in the sleeve.') : t('trades filled in the sleeve.')}
       body={
         <>
-          <span className="l-clamp-4">{notes || (last ? `Last: ${last.action} ${tradeLine(last)}, ${ago(last.at, m.now)}. ${last.rationale}` : 'The agent has not reported a run yet.')}</span>
+          <span className="l-clamp-4">{notes || (last ? t('Last: {action} {trade}, {ago}. {rationale}', { action: last.action, trade: tradeLine(last), ago: ago(last.at, m.now), rationale: last.rationale }) : t('The agent has not reported a run yet.'))}</span>
           {m.limits.saved && frac !== null && (
             <span className="mt-2 block text-[11px]">
-              Autopilot {m.limits.saved.autopilot ? 'on' : 'off'} · {Math.round(frac * 100)}% of the autonomy budget deployed
+              {m.limits.saved.autopilot ? t('Autopilot on') : t('Autopilot off')} · {t('{pct}% of the autonomy budget deployed', { pct: Math.round(frac * 100) })}
             </span>
           )}
         </>
@@ -438,15 +440,15 @@ function NextMove({ m }: { m: TradingModel }) {
 function OpenOrders({ m }: { m: TradingModel }) {
   const orders = m.payload.openOrders;
   return (
-    <SlabCard title="Open orders" sub={orders.length ? `${orders.length} working` : 'nothing working'} i={6}>
+    <SlabCard title={t('Open orders')} sub={orders.length ? t('{n} working', { n: orders.length }) : t('nothing working')} i={6}>
       {orders.length === 0 ? (
-        <LEmpty>No live orders at the broker.</LEmpty>
+        <LEmpty>{t('No live orders at the broker.')}</LEmpty>
       ) : (
         <ul className="l-rows l-rows-ruled mt-3">
           {orders.map((o) => (
             <li key={o.id} className="l-trd-trade">
               <span className="l-side" data-side={o.side}>
-                {o.side}
+                {sideLabel(o.side)}
               </span>
               <span className="min-w-0">
                 <span className="l-sym">{o.symbol}</span>{' '}
@@ -455,8 +457,8 @@ function OpenOrders({ m }: { m: TradingModel }) {
                 </span>{' '}
                 <Badge>{o.state}</Badge>
                 <span className="l-sub-line">
-                  {cap(o.type)} · {o.filledQuantity ? `${qty(o.filledQuantity)} filled · ` : ''}
-                  {o.placedAgent || 'Unknown'}
+                  {cap(o.type)} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
+                  {o.placedAgent || t('Unknown')}
                 </span>
               </span>
               <span className="l-when">{ago(o.createdAt, m.now)}</span>
@@ -472,19 +474,19 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const c = m.payload.view.activityCounts;
   const rows = logRows(m, ui.log);
   const filters: { value: ActivityFilter; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'agent', label: 'Agent' },
-    { value: 'you', label: 'You' },
-    { value: 'rejected', label: 'Rejected' },
+    { value: 'all', label: t('All') },
+    { value: 'agent', label: t('Agent') },
+    { value: 'you', label: t('You') },
+    { value: 'rejected', label: t('Rejected') },
   ];
   return (
     <SlabCard
-      title="Trade log"
-      sub={c.all ? `${rows.length} of ${c.all}` : undefined}
+      title={t('Trade log')}
+      sub={c.all ? t('{done} of {total}', { done: rows.length, total: c.all }) : undefined}
       i={7}
       action={
         c.all ? (
-          <div role="radiogroup" aria-label="Filter the trade log" className="l-chip-row l-chip-scroll">
+          <div role="radiogroup" aria-label={t('Filter the trade log')} className="l-chip-row l-chip-scroll">
             {filters.map((f) => (
               <ToggleChip key={f.value} role="radio" aria-checked={ui.log === f.value} on={ui.log === f.value} onClick={() => ui.setLog(f.value)}>
                 {f.label} {c[f.value]}
@@ -495,24 +497,24 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       }
     >
       {c.all === 0 ? (
-        <LEmpty>No trades yet.</LEmpty>
+        <LEmpty>{t('No trades yet.')}</LEmpty>
       ) : rows.length === 0 ? (
-        <LEmpty>Nothing matches this filter.</LEmpty>
+        <LEmpty>{t('Nothing matches this filter.')}</LEmpty>
       ) : (
         <ul className="l-rows l-rows-ruled mt-3">
-          {rows.map((t) => (
-            <li key={t.id}>
-              <Pressable tone="row" className="l-trd-trade" onClick={() => ui.setOpenTrade(t)}>
-                <span className="l-side" data-side={t.action}>
-                  {t.action}
+          {rows.map((tr) => (
+            <li key={tr.id}>
+              <Pressable tone="row" className="l-trd-trade" onClick={() => ui.setOpenTrade(tr)}>
+                <span className="l-side" data-side={tr.action}>
+                  {sideLabel(tr.action)}
                 </span>
                 <span className="min-w-0">
-                  <span className="l-sym">{tradeLine(t)}</span> <Badge tone={statusTone[t.status]}>{statusLabel[t.status]}</Badge>
-                  <span className="l-sub-line">{t.rationale || 'No rationale given'}</span>
+                  <span className="l-sym">{tradeLine(tr)}</span> <Badge tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>
+                  <span className="l-sub-line">{tr.rationale || t('No rationale given')}</span>
                 </span>
                 <span className="l-when">
-                  {whoOf(t)} · {acctName(t.accountId)}
-                  <span className="block">{ago(t.at, m.now)}</span>
+                  {whoOf(tr)} · {acctName(tr.accountId)}
+                  <span className="block">{ago(tr.at, m.now)}</span>
                 </span>
               </Pressable>
             </li>
@@ -523,16 +525,16 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   );
 }
 
-function TradeDialog({ trade: t, onClose }: { trade: TradeActivity; onClose: () => void }) {
+function TradeDialog({ trade: tr, onClose }: { trade: TradeActivity; onClose: () => void }) {
   const rows: [string, ReactNode][] = [
-    ['Order', tradeLine(t)],
-    ['Notional', usd(t.quantity * t.priceUsd, true)],
-    ['Status', <Badge key="s" tone={statusTone[t.status]}>{statusLabel[t.status]}</Badge>],
-    ['Who', whoOf(t)],
-    ['Account', t.accountId === 'agentic' ? 'Agentic sleeve' : acctName(t.accountId)],
+    [t('Order'), tradeLine(tr)],
+    [t('Notional'), usd(tr.quantity * tr.priceUsd, true)],
+    [t('Status'), <Badge key="s" tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>],
+    [t('Who'), whoOf(tr)],
+    [t('Account'), tr.accountId === 'agentic' ? t('Agentic sleeve') : acctName(tr.accountId)],
   ];
   return (
-    <LDialog title={`${t.action === 'buy' ? 'Buy' : 'Sell'} ${t.symbol}`} sub={stamp(t.at)} onClose={onClose}>
+    <LDialog title={`${tr.action === 'buy' ? t('Buy') : t('Sell')} ${tr.symbol}`} sub={stamp(tr.at)} onClose={onClose}>
       <dl className="l-kv">
         {rows.map(([k, v]) => (
           <div key={k}>
@@ -541,7 +543,7 @@ function TradeDialog({ trade: t, onClose }: { trade: TradeActivity; onClose: () 
           </div>
         ))}
       </dl>
-      <p className="l-quote mt-4">{t.rationale || 'No rationale given.'}</p>
+      <p className="l-quote mt-4">{tr.rationale || t('No rationale given.')}</p>
     </LDialog>
   );
 }
@@ -559,7 +561,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       >
         <div className="l-trd-limits-head">
           <h2 id="l-trd-limits" className="l-label">
-            <SlidersHorizontal size={12} strokeWidth={1.8} aria-hidden /> Agent limits
+            <SlidersHorizontal size={12} strokeWidth={1.8} aria-hidden /> {t('Agent limits')}
           </h2>
           <span className="l-micro">{m.limits.savedLabel}</span>
         </div>
@@ -580,10 +582,10 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
                     id={`l-trd-${f.key}`}
                     inputMode="decimal"
                     value={L.values[f.key] ?? ''}
-                    placeholder="Not set"
+                    placeholder={t('Not set')}
                     aria-invalid={Boolean(err)}
                     disabled={m.readOnly}
-                    title={m.readOnly ? (m.readOnlyReason ?? undefined) : `${f.min.toLocaleString('en-US')} to ${f.max.toLocaleString('en-US')}`}
+                    title={m.readOnly ? (m.readOnlyReason ?? undefined) : t('{from} to {to}', { from: f.min.toLocaleString(localeTag()), to: f.max.toLocaleString(localeTag()) })}
                     onChange={(e) => L.setValue(f.key, e.target.value)}
                     onBlur={() => L.blur(f.key)}
                     className="l-input"
@@ -596,14 +598,14 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
         </div>
         <div className="l-trd-autopilot">
           <span className="min-w-0 flex-1">
-            <span className="l-field-label">Autopilot</span>
+            <span className="l-field-label">{t('Autopilot')}</span>
             <span className="l-field-hint">
-              {ui.autopilot.on ? 'On: the Markets agent may place real orders inside these limits.' : 'Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.'}
+              {ui.autopilot.on ? t('On: the Markets agent may place real orders inside these limits.') : t('Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.')}
             </span>
           </span>
           <LSwitch
             on={ui.autopilot.on}
-            label="Autopilot"
+            label={t('Autopilot')}
             disabled={Boolean(ui.autopilot.reason) || ui.autopilot.switching}
             title={ui.autopilot.reason}
             onToggle={() => void ui.autopilot.setAutopilot(!ui.autopilot.on)}
@@ -616,7 +618,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
             </span>
           )}
           <Pressable type="submit" disabled={Boolean(L.saveReason) || L.saving} title={L.saveReason}>
-            {L.saving ? 'Saving' : 'Save'}
+            {L.saving ? t('Saving') : t('Save')}
           </Pressable>
         </div>
       </form>
@@ -629,8 +631,8 @@ export function TradingLegacyError({ message }: { message: string }) {
   const router = useRouter();
   return (
     <div data-l="TradingLegacy" className="l-page">
-      <SlabTitle eyebrow={EYEBROW} title="Trading" meta="the trading store could not be read" />
-      <SlabCard title="The trading store is not reachable." i={1}>
+      <SlabTitle eyebrow={EYEBROW} title={t('Trading')} meta={t('the trading store could not be read')} />
+      <SlabCard title={t('The trading store is not reachable.')} i={1}>
         <LError message={message} onRetry={() => router.refresh()} />
       </SlabCard>
     </div>

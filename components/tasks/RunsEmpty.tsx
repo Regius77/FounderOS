@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SetupLink } from '@/components/SetupLink';
 import { rangeContaining, sinceText } from '@/lib/tasks-metrics';
+import { t } from '@/lib/i18n';
 
 /**
  * The honest empty state for a run chart on /tasks (S04 F-T8, H27).
@@ -25,11 +26,11 @@ export function RunsEmpty({
   if (!lastRunAt) {
     return (
       <>
-        <div className="text-[13px] text-os-muted">No agent runs recorded yet</div>
+        <div className="text-[13px] text-os-muted">{t('No agent runs recorded yet')}</div>
         <div className="max-w-[260px] text-[12px] leading-relaxed text-os-dim">
-          Success rate is measured from real runs.
+          {t('Success rate is measured from real runs.')}
         </div>
-        <SetupLink href="/agents" hint="Agents run on the host; bring one online to start recording runs." />
+        <SetupLink href="/agents" hint={t('Agents run on the host; bring one online to start recording runs.')} />
       </>
     );
   }
@@ -40,14 +41,14 @@ export function RunsEmpty({
   return (
     <>
       <div className="text-[13px] text-os-muted">
-        No runs in {windowLabel} · last run {sinceText(lastRunAt, now)}
+        {t('No runs in {windowLabel} · last run {sinceText}', { windowLabel, sinceText: sinceText(lastRunAt, now) })}
       </div>
       {offer && (
         <Link
           href={`/tasks?range=${offer.id}#outcomes`}
           className="text-[12px] text-[var(--accent)] underline-offset-2 hover:underline"
         >
-          Widen to {offer.days === 365 ? '12 months' : `${offer.days} days`}
+          {offer.days === 365 ? t('Widen to 12 months') : t('Widen to {n} days', { n: offer.days })}
         </Link>
       )}
     </>

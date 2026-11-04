@@ -192,7 +192,9 @@ function NextToMake({ v }: { v: TodayPageView }) {
 function Pipeline({ v }: { v: TodayPageView }) {
   const p = v.pipeline;
   const batch = useRunProgress(v.frame.run.activeBatch);
-  const [amount, cap] = p.spend.text.split(' of ');
+  // The builder hands the two parts over; the joined line is translated, so it is never split here.
+  const amount = p.spend.spentText ?? p.spend.text;
+  const cap = p.spend.capText ?? null;
   const stat = (m: typeof p.scraped, label: string) => (
     <span className="lab2-stat">
       <span className="lab2-stat-num" data-lab-ink="">{m.enough && m.text ? m.text : C.notEnough}</span>

@@ -97,7 +97,7 @@ export function useInboxWorkspace({
         ? saved ? t('Back in the inbox. Saved on this browser.') : t('Back in the inbox for this session.')
         : saved ? t('Marked done. Saved on this browser.') : t('Marked done for this session.'),
       tone: 'ok',
-      action: { label: t('Undo'), onClick: () => apply((s) => setDoneIn(s, key, wasDone)) },
+      action: { label: 'Undo', onClick: () => apply((s) => setDoneIn(s, key, wasDone)) },
       ms: 5000,
     });
   }, [selected, apply, toast]);

@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 /**
  * Trakyo link studio (FounderOS merge F6): the form and workspace shapes shared
  * by the GladOS and Classic cards. Pure; the network lives in the cards, which
@@ -22,8 +23,8 @@ export type LinksWorkspace = {
 export type LinkForm = { url: string; source: string; campaign: string; contentId: string; domain: string };
 export const EMPTY_LINK_FORM: LinkForm = { url: '', source: '', campaign: '', contentId: '', domain: '' };
 
-export const WRITES_OFF_REASON = 'Outbound writes are off on this instance. Set GLADOS_WRITES=1 to create links.';
-export const CONFIRM_TITLE = 'Create link in Trakyo?';
+export const WRITES_OFF_REASON = t('Outbound writes are off on this instance. Set GLADOS_WRITES=1 to create links.');
+export const CONFIRM_TITLE = t('Create link in Trakyo?');
 
 const httpUrl = (s: string) => {
   try {
@@ -36,16 +37,16 @@ const httpUrl = (s: string) => {
 
 /** First problem with the form, worded for the field, or null when it can be sent. */
 export function linkFormError(f: LinkForm): { field: keyof LinkForm; message: string } | null {
-  if (!httpUrl(f.url.trim())) return { field: 'url', message: 'Use a full http or https address.' };
+  if (!httpUrl(f.url.trim())) return { field: 'url', message: t('Use a full http or https address.') };
   const id = f.contentId.trim();
   if (id) {
-    if (!/^ci_[A-Za-z0-9_-]+$/.test(id)) return { field: 'contentId', message: 'A Trakyo content id starts with ci_.' };
+    if (!/^ci_[A-Za-z0-9_-]+$/.test(id)) return { field: 'contentId', message: t('A Trakyo content id starts with ci_.') };
     return null;
   }
   const source = f.source.trim();
-  if (!source) return { field: 'source', message: 'Name the source, for example Instagram, or give a content id.' };
-  if (/^(youtube|other|\d+)$/i.test(source)) return { field: 'source', message: 'Trakyo tracks YouTube itself. Use a custom source such as Instagram.' };
-  if (!f.campaign.trim()) return { field: 'campaign', message: 'Name the campaign or post this link belongs to.' };
+  if (!source) return { field: 'source', message: t('Name the source, for example Instagram, or give a content id.') };
+  if (/^(youtube|other|\d+)$/i.test(source)) return { field: 'source', message: t('Trakyo tracks YouTube itself. Use a custom source such as Instagram.') };
+  if (!f.campaign.trim()) return { field: 'campaign', message: t('Name the campaign or post this link belongs to.') };
   return null;
 }
 

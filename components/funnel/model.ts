@@ -8,26 +8,27 @@
 import { FUNNEL_STAGES, funnelSummary } from '@/lib/funnel';
 import type { FunnelJourney, FunnelStage } from '@/lib/schemas';
 import type { Compare, Lane, Period } from './state';
+import { t } from '@/lib/i18n';
 
 export const DAY = 86_400_000;
 export const PERIODS: { id: Period; label: string }[] = [
-  { id: 30, label: 'Last 30 days' },
-  { id: 90, label: 'Last 90 days' },
-  { id: 365, label: 'Last 12 months' },
-  { id: 0, label: 'All time' },
+  { id: 30, label: t('Last 30 days') },
+  { id: 90, label: t('Last 90 days') },
+  { id: 365, label: t('Last 12 months') },
+  { id: 0, label: t('All time') },
 ];
-export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-export const WEEKDAY_INITIALS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export const LANE_LABEL: Record<Lane, string> = { organic: 'Organic', ads: 'Ads', crm: 'CRM inbound' };
+export const WEEKDAYS = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t('Sun')];
+export const WEEKDAY_INITIALS = WEEKDAYS.map((d) => d.charAt(0));
+export const MONTHS = [t('Jan'), t('Feb'), t('Mar'), t('Apr'), t('May'), t('Jun'), t('Jul'), t('Aug'), t('Sep'), t('Oct'), t('Nov'), t('Dec')];
+export const LANE_LABEL: Record<Lane, string> = { organic: t('Organic'), ads: t('Ads'), crm: t('CRM inbound') };
 
 export const dateOf = (s: string) => new Date(`${s}T00:00:00Z`).getTime();
 export const firstAt = (j: FunnelJourney) => j.touches[0]?.at ?? j.createdAt;
-export const convertedAt = (j: FunnelJourney) => j.touches.find((t) => t.stage === 'converted')?.at ?? j.touches[j.touches.length - 1]?.at ?? j.createdAt;
+export const convertedAt = (j: FunnelJourney) => j.touches.find((tc) => tc.stage === 'converted')?.at ?? j.touches[j.touches.length - 1]?.at ?? j.createdAt;
 export const laneOf = (j: FunnelJourney): Lane => {
-  const t = j.touches[0];
-  if (t?.source === 'attio' || t?.source === 'ghl') return 'crm';
-  if (t?.channel === 'ads') return 'ads';
+  const first = j.touches[0];
+  if (first?.source === 'attio' || first?.source === 'ghl') return 'crm';
+  if (first?.channel === 'ads') return 'ads';
   return 'organic';
 };
 export const weekday = (s: string) => (new Date(`${s}T00:00:00Z`).getUTCDay() + 6) % 7;
@@ -36,7 +37,10 @@ export const fmtDay = (ms: number, withYear = false) => {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}${withYear ? ` ${d.getUTCFullYear()}` : ''}`;
 };
 export const fmtDate = (s: string) => fmtDay(dateOf(s), true);
-export const stageLabel = (id: FunnelStage) => FUNNEL_STAGES.find((s) => s.id === id)?.label ?? id;
+export const stageLabel = (id: FunnelStage) => {
+  const label = FUNNEL_STAGES.find((s) => s.id === id)?.label;
+  return label ? t(label) : id;
+};
 export const stageIndex = (id: FunnelStage) => FUNNEL_STAGES.findIndex((s) => s.id === id);
 
 export type PeriodStats = {
@@ -92,8 +96,8 @@ export function touchSeries(all: FunnelJourney[], now: Date, grain: 'monthly' | 
       const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - k, 1));
       buckets.push({ key: d.toISOString().slice(0, 7), label: MONTHS[d.getUTCMonth()], long: `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`, n: 0 });
     }
-    for (const t of touches) {
-      const b = buckets.find((x) => x.key === t.at.slice(0, 7));
+    for (const tc of touches) {
+      const b = buckets.find((x) => x.key === tc.at.slice(0, 7));
       if (b) b.n++;
     }
     return { series: buckets.map((b) => b.n), labels: buckets.map((b) => b.label), longLabels: buckets.map((b) => b.long) };
@@ -102,11 +106,11 @@ export function touchSeries(all: FunnelJourney[], now: Date, grain: 'monthly' | 
   const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + DAY;
   const series = Array.from({ length: weeks }, () => 0);
   const labels = Array.from({ length: weeks }, (_, i) => fmtDay(end - (weeks - i) * 7 * DAY));
-  for (const t of touches) {
-    const idx = weeks - 1 - Math.floor((end - 1 - dateOf(t.at)) / (7 * DAY));
+  for (const tc of touches) {
+    const idx = weeks - 1 - Math.floor((end - 1 - dateOf(tc.at)) / (7 * DAY));
     if (idx >= 0 && idx < weeks) series[idx]++;
   }
-  return { series, labels, longLabels: labels.map((l) => `Week of ${l}`) };
+  return { series, labels, longLabels: labels.map((l) => t('Week of {date}', { date: l })) };
 }
 
 /** The step with the biggest drop (the leak), or null. */

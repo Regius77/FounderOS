@@ -10,8 +10,9 @@
 
 import { useState, type CSSProperties } from 'react';
 import type { SpendCard } from '@/lib/spend-report';
+import { localeTag, t } from '@/lib/i18n';
 
-const usd = (n: number, cents = false) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
+const usd = (n: number, cents = false) => n.toLocaleString(localeTag(), { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
 const MASK: CSSProperties = { filter: 'blur(6px)', userSelect: 'none' };
 /** Stack colours: the data ramp, then two funnel hues (Classic tokens, every theme). */
 const COLORS = ['var(--ramp-1)', 'var(--ramp-3)', 'var(--ramp-4)', 'var(--ramp-2)', 'var(--funnel-s3)', 'var(--funnel-s5)'];
@@ -25,9 +26,9 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
   if (spend.state === 'none') {
     return (
       <div className={`${CARD} flex flex-col items-start gap-2 px-6 py-6`} data-feature="spending">
-        <h3 className="text-[15px] font-medium text-os-text">Spending</h3>
-        <p className="text-[13px] text-os-muted">Upload a statement to see spending.</p>
-        <a href="#statement-upload" className="c-btn">Upload a statement</a>
+        <h3 className="text-[15px] font-medium text-os-text">{t('Spending')}</h3>
+        <p className="text-[13px] text-os-muted">{t('Upload a statement to see spending.')}</p>
+        <a href="#statement-upload" className="c-btn">{t('Upload a statement')}</a>
       </div>
     );
   }
@@ -41,27 +42,30 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
   const max = Math.max(1, ...report.months.map(shownTotal));
   const mom = report.mom;
   const prevLabel = mom ? report.months.find((m) => m.month === mom.prevMonth)?.label ?? mom.prevMonth : '';
-  const txns = open ? report.txns.filter((t) => t.category === open) : [];
+  const txns = open ? report.txns.filter((x) => x.category === open) : [];
 
   return (
     <div className={`${CARD} p-6`} data-feature="spending">
       <div className="mb-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 className="text-[15px] font-medium text-os-text">Spending</h3>
+        <h3 className="text-[15px] font-medium text-os-text">{t('Spending')}</h3>
         <span className="text-[12.5px] text-os-muted" style={mask}>
-          Card statements · {first.label} to {last.label} · {usd(report.total)}
+          {t('Card statements · {from} to {to} · {total}', { from: first.label, to: last.label, total: usd(report.total) })}
         </span>
         {sample && (
-          <span data-sample-badge="" className="ml-auto rounded-full border border-os-border px-2 py-[1px] text-[11px] text-os-muted" title="Sample data: lib/spend-report.ts sampleSpendRows">
-            Sample
+          <span data-sample-badge="" className="ml-auto rounded-full border border-os-border px-2 py-[1px] text-[11px] text-os-muted" title={t('Sample data: lib/spend-report.ts sampleSpendRows')}>
+            {t('Sample')}
           </span>
         )}
       </div>
       <p className="mb-4 text-[12.5px] text-os-muted" style={mask}>
-        {usd(last.total)} in {last.label}
-        {mom && mom.deltaPct !== null && `, ${mom.deltaPct >= 0 ? 'up' : 'down'} ${Math.abs(mom.deltaPct)}% on ${prevLabel}`}
+        {mom && mom.deltaPct !== null
+          ? mom.deltaPct >= 0
+            ? t('{total} in {month}, up {pct}% on {prev}', { total: usd(last.total), month: last.label, pct: Math.abs(mom.deltaPct), prev: prevLabel })
+            : t('{total} in {month}, down {pct}% on {prev}', { total: usd(last.total), month: last.label, pct: Math.abs(mom.deltaPct), prev: prevLabel })
+          : t('{total} in {month}', { total: usd(last.total), month: last.label })}
       </p>
 
-      <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Show or hide a category">
+      <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label={t('Show or hide a category')}>
         {keys.map((k) => (
           <button
             key={k}
@@ -76,7 +80,7 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
         ))}
       </div>
 
-      <div className="mb-5 flex h-[170px] items-end gap-3" style={mask} role="group" aria-label="Spending per month by category">
+      <div className="mb-5 flex h-[170px] items-end gap-3" style={mask} role="group" aria-label={t('Spending per month by category')}>
         {report.months.map((m) => {
           const h = (shownTotal(m) / max) * 150;
           return (
@@ -94,7 +98,7 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <section>
-          <h4 className="mb-2 text-[12.5px] font-medium text-os-muted">Top categories</h4>
+          <h4 className="mb-2 text-[12.5px] font-medium text-os-muted">{t('Top categories')}</h4>
           <ul className="flex flex-col">
             {report.categories.slice(0, 6).map((c) => (
               <li key={c.category}>
@@ -103,7 +107,7 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
                   aria-expanded={open === c.category}
                   onClick={() => setOpen((o) => (o === c.category ? null : c.category))}
                   className="hoverable flex w-full items-baseline justify-between gap-3 border-t border-os-border py-2 text-left text-[13px]"
-                  title={`See the ${c.category} transactions`}
+                  title={t('See the {category} transactions', { category: c.category })}
                 >
                   <span className="text-os-text">
                     {c.category} <span className="text-[12px] text-os-muted">· {c.count} · {Math.round(c.share * 100)}%</span>
@@ -111,12 +115,12 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
                   <span className="tabular-nums text-os-text" style={mask}>{usd(c.total)}</span>
                 </button>
                 {open === c.category && (
-                  <ul className="mb-2 max-h-[220px] overflow-y-auto rounded-md-t bg-os-surface2 px-3 py-1" aria-label={`${c.category} transactions`}>
-                    {txns.map((t) => (
-                      <li key={`${t.date}|${t.description}|${t.usd}`} className="flex items-baseline justify-between gap-3 py-1 text-[12px]">
-                        <span className="font-mono text-os-muted">{t.date}</span>
-                        <span className="min-w-0 flex-1 truncate text-os-text" title={t.description}>{t.merchant}</span>
-                        <span className="tabular-nums text-os-text" style={mask}>{usd(t.usd, true)}</span>
+                  <ul className="mb-2 max-h-[220px] overflow-y-auto rounded-md-t bg-os-surface2 px-3 py-1" aria-label={t('{category} transactions', { category: c.category })}>
+                    {txns.map((x) => (
+                      <li key={`${x.date}|${x.description}|${x.usd}`} className="flex items-baseline justify-between gap-3 py-1 text-[12px]">
+                        <span className="font-mono text-os-muted">{x.date}</span>
+                        <span className="min-w-0 flex-1 truncate text-os-text" title={x.description}>{x.merchant}</span>
+                        <span className="tabular-nums text-os-text" style={mask}>{usd(x.usd, true)}</span>
                       </li>
                     ))}
                   </ul>
@@ -126,7 +130,7 @@ export function Spending({ spend, hide }: { spend: SpendCard; hide: boolean }) {
           </ul>
         </section>
         <section>
-          <h4 className="mb-2 text-[12.5px] font-medium text-os-muted">Top merchants</h4>
+          <h4 className="mb-2 text-[12.5px] font-medium text-os-muted">{t('Top merchants')}</h4>
           <ul className="flex flex-col">
             {report.merchants.map((m) => (
               <li key={m.merchant} className="flex items-baseline justify-between gap-3 border-t border-os-border py-2 text-[13px]">

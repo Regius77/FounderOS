@@ -1,5 +1,6 @@
 'use client';
 
+import { localeTag, t } from '@/lib/i18n';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, Search, X } from 'lucide-react';
 import type { Angle, Campaign, Depth, PoolAd } from '@/lib/creative-engine/schemas';
@@ -71,18 +72,18 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
   useEffect(() => { setArmed(false); }, [text, depth]);
   useEffect(() => {
     if (!armed) return;
-    const t = setTimeout(() => setArmed(false), 8000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setArmed(false), 8000);
+    return () => clearTimeout(timer);
   }, [armed]);
   const generate = async () => {
-    const t = text.trim();
-    if (t.length < 3 || busy || readOnly) return;
+    const idea = text.trim();
+    if (idea.length < 3 || busy || readOnly) return;
     if (!health.dry && !armed) { setArmed(true); return; }
     setArmed(false);
     setPhase({ kind: 'researching' });
     try {
       let c = campaign;
-      if (isNewConcept) c = (await api.createCampaign({ text: t, product, audience, goal })).campaign;
+      if (isNewConcept) c = (await api.createCampaign({ text: idea, product, audience, goal })).campaign;
       c = (await api.research(c!.id, depth)).campaign;
       onCampaign(c);
       setPhase({ kind: 'angling' });
@@ -90,7 +91,7 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
       setAdsWanted(null);
       setPhase({ kind: 'idle' });
     } catch (err) {
-      setPhase({ kind: 'error', message: err instanceof Error ? err.message : 'Generation failed.' });
+      setPhase({ kind: 'error', message: err instanceof Error ? err.message : t('Generation failed.') });
     }
   };
 
@@ -100,7 +101,7 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
     try {
       onCampaign((await api.patchCampaign(campaign.id, { selectedAngleIds: ids, ...(adsWanted !== null ? { adsWanted } : {}) })).campaign);
     } catch (err) {
-      setPhase({ kind: 'error', message: err instanceof Error ? err.message : 'Could not save the selection.' });
+      setPhase({ kind: 'error', message: err instanceof Error ? err.message : t('Could not save the selection.') });
     }
   };
 
@@ -119,17 +120,17 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
       <div className="ae-card-2 p-3">
         <div className="flex items-center gap-3">
           <Search className="ml-3 h-[18px] w-[18px] shrink-0 text-[var(--p-muted)]" strokeWidth={1.6} />
-          <Input ref={conceptRef} size="lg" value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && generate()} maxLength={300} placeholder="Describe the idea you want ads for" aria-label="Ad idea" aria-describedby={showHelp ? 'ae-concept-help' : undefined} className="!shadow-none !bg-transparent" />
-          <Btn tone="ink" onClick={generate} disabled={busy || text.trim().length < 3 || !foreplayOk || readOnly} title={readOnly ? 'Sample data: actions are off' : !foreplayOk ? 'Research needs the Foreplay key' : busy ? 'Working on the last request' : text.trim().length < 3 ? 'Type an idea of at least 3 characters' : armed ? `Spends up to ${DEPTH_BUDGET[depth].maxCalls} Foreplay credits. Click again to run.` : health.dry ? 'Research the library and propose angles (dry run, nothing is charged)' : `Research the library and propose angles. Spends up to ${DEPTH_BUDGET[depth].maxCalls} Foreplay credits; asks first.`}>{busy ? 'Working' : armed ? `Spend up to ${DEPTH_BUDGET[depth].maxCalls} Foreplay credits. Run` : 'Generate'}</Btn>
+          <Input ref={conceptRef} size="lg" value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && generate()} maxLength={300} placeholder={t('Describe the idea you want ads for')} aria-label={t('Ad idea')} aria-describedby={showHelp ? 'ae-concept-help' : undefined} className="!shadow-none !bg-transparent" />
+          <Btn tone="ink" onClick={generate} disabled={busy || text.trim().length < 3 || !foreplayOk || readOnly} title={readOnly ? t('Sample data: actions are off') : !foreplayOk ? t('Research needs the Foreplay key') : busy ? t('Working on the last request') : text.trim().length < 3 ? t('Type an idea of at least 3 characters') : armed ? t('Spends up to {n} Foreplay credits. Click again to run.', { n: DEPTH_BUDGET[depth].maxCalls }) : health.dry ? t('Research the library and propose angles (dry run, nothing is charged)') : t('Research the library and propose angles. Spends up to {n} Foreplay credits; asks first.', { n: DEPTH_BUDGET[depth].maxCalls })}>{busy ? t('Working') : armed ? t('Spend up to {n} Foreplay credits. Run', { n: DEPTH_BUDGET[depth].maxCalls }) : t('Generate')}</Btn>
         </div>
         {showHelp && (
-          <p id="ae-concept-help" className="ae-cap mt-1.5 px-2">One sentence about the outcome your customer wants. The engine turns it into searches.</p>
+          <p id="ae-concept-help" className="ae-cap mt-1.5 px-2">{t('One sentence about the outcome your customer wants. The engine turns it into searches.')}</p>
         )}
         <div className="mt-2 grid gap-2 px-2 pb-1 sm:grid-cols-[1fr_1fr_auto]">
-          <Input value={product} onChange={(e) => setProduct(e.target.value)} placeholder={products[0] ? `Product, for example ${products[0].label}` : 'Product'} aria-label="Product" list={products.length ? listId : undefined} />
-          <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Who it is for" aria-label="Audience" />
+          <Input value={product} onChange={(e) => setProduct(e.target.value)} placeholder={products[0] ? t('Product, for example {name}', { name: products[0].label }) : t('Product')} aria-label={t('Product')} list={products.length ? listId : undefined} />
+          <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder={t('Who it is for')} aria-label={t('Audience')} />
           <div className="flex flex-wrap items-center gap-1.5">
-            {(['unset', 'awareness', 'leads', 'sales', 'installs'] as const).map((g) => (<Chip key={g} active={goal === g} onClick={() => setGoal(g)}>{g === 'unset' ? 'Any goal' : g[0].toUpperCase() + g.slice(1)}</Chip>))}
+            {(['unset', 'awareness', 'leads', 'sales', 'installs'] as const).map((g) => (<Chip key={g} active={goal === g} onClick={() => setGoal(g)}>{g === 'unset' ? t('Any goal') : t(g[0].toUpperCase() + g.slice(1))}</Chip>))}
           </div>
         </div>
         {products.length > 0 && <datalist id={listId}>{products.map((p) => (<option key={p.label} value={p.label}>{p.detail}</option>))}</datalist>}
@@ -137,26 +138,26 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {(['light', 'standard', 'deep'] as const).map((d) => (<Chip key={d} active={depth === d} onClick={() => setDepth(d)} title={`${DEPTH_BUDGET[d].probes} searches, ${DEPTH_BUDGET[d].duplicates} duplicate checks`}>{d[0].toUpperCase() + d.slice(1)} · up to {DEPTH_BUDGET[d].maxCalls} credits</Chip>))}
+        {(['light', 'standard', 'deep'] as const).map((d) => (<Chip key={d} active={depth === d} onClick={() => setDepth(d)} title={t('{probes} searches, {dups} duplicate checks', { probes: DEPTH_BUDGET[d].probes, dups: DEPTH_BUDGET[d].duplicates })}>{t(d[0].toUpperCase() + d.slice(1))}{t(' · up to {n} credits', { n: DEPTH_BUDGET[d].maxCalls })}</Chip>))}
         <span className="ae-cap ml-auto">
           {/* S03 FR-18 / S04 B24: a Foreplay number only while Foreplay is configured; the Set up line below explains otherwise. */}
-          {[health.dry ? 'Dry run, nothing is charged' : health.foreplay.configured ? (health.foreplay.remaining !== null ? `${health.foreplay.remaining.toLocaleString()} Foreplay credits left` : 'Foreplay usage unknown') : null, claudeOk ? null : 'Claude absent, keyword search only'].filter(Boolean).join(' · ')}
+          {[health.dry ? t('Dry run, nothing is charged') : health.foreplay.configured ? (health.foreplay.remaining !== null ? t('{n} Foreplay credits left', { n: health.foreplay.remaining.toLocaleString(localeTag()) }) : t('Foreplay usage unknown')) : null, claudeOk ? null : t('Claude absent, keyword search only')].filter(Boolean).join(' · ')}
         </span>
       </div>
       {!foreplayOk && (
-        <div className="mt-3 flex items-center gap-3 text-[12.5px] text-[var(--p-muted)]">Research needs the Foreplay key. <SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" /></div>
+        <div className="mt-3 flex items-center gap-3 text-[12.5px] text-[var(--p-muted)]">{t('Research needs the Foreplay key.')} <SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" /></div>
       )}
 
       {campaigns.length > 1 && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="ae-cap mr-1">Campaigns</span>
+          <span className="ae-cap mr-1">{t('Campaigns')}</span>
           {campaigns.slice(0, 8).map((c) => (<Chip key={c.id} active={campaign?.id === c.id} onClick={() => { onSwitch(c.id); setText(c.concept.text); setProduct(c.concept.product); setAudience(c.concept.audience); setGoal(c.concept.goal); }}>{c.name.slice(0, 28)}</Chip>))}
         </div>
       )}
 
       {campaign?.research && phase.kind === 'idle' && (
         <div ref={researchRef} className="mt-4 scroll-mt-4">
-          <div className="ae-cap">Searched {ago(campaign.research.ranAt)} · {campaign.research.apiCalls} credits · {campaign.research.pool.length} proven ads, {campaign.research.minDays}+ days live</div>
+          <div className="ae-cap">{t('Searched {ago} · {calls} credits · {n} proven ads, {days}+ days live', { ago: ago(campaign.research.ranAt), calls: campaign.research.apiCalls, n: campaign.research.pool.length, days: campaign.research.minDays })}</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {campaign.research.probes.map((p) => (<span key={p.query} className="ae-tag" title={p.why}>“{p.query}”<b className="font-medium text-[var(--p-ink)]">{p.results}</b></span>))}
           </div>
@@ -164,33 +165,33 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
       )}
 
       <div className="mt-4 min-h-0 flex-1">
-        {phase.kind === 'researching' && <Progress text="Planning searches, reading the library, keeping only ads still running" />}
-        {phase.kind === 'angling' && <Progress text="Proposing angles from the proven ads" />}
-        {phase.kind === 'error' && (<div><ErrorLine text={phase.message} /><div className="text-center"><Btn size="sm" onClick={() => setPhase({ kind: 'idle' })}>Dismiss</Btn></div></div>)}
+        {phase.kind === 'researching' && <Progress text={t('Planning searches, reading the library, keeping only ads still running')} />}
+        {phase.kind === 'angling' && <Progress text={t('Proposing angles from the proven ads')} />}
+        {phase.kind === 'error' && (<div><ErrorLine text={phase.message} /><div className="text-center"><Btn size="sm" onClick={() => setPhase({ kind: 'idle' })}>{t('Dismiss')}</Btn></div></div>)}
         {phase.kind === 'idle' && (!campaign || campaign.angles.length === 0) && (
-          <Empty line1={campaign?.research ? 'Research is done, no angles yet.' : 'Describe an idea to research it.'} line2={campaign?.research ? 'Generate again to propose angles from the pooled ads.' : 'The engine decides what to search, the library answers, and longevity ranks the results. Every angle cites ads that are still running.'} />
+          <Empty line1={campaign?.research ? t('Research is done, no angles yet.') : t('Describe an idea to research it.')} line2={campaign?.research ? t('Generate again to propose angles from the pooled ads.') : t('The engine decides what to search, the library answers, and longevity ranks the results. Every angle cites ads that are still running.')} />
         )}
         {phase.kind === 'idle' && campaign && campaign.angles.length > 0 && (
           <div ref={anglesRef} className="scroll-mt-4">
             {proofOnly && (
               <div className="mb-3 flex flex-wrap items-center gap-2" data-proof-filter>
-                <Chip active onClick={() => setProofOnly(false)} title="Clear the filter and show every angle">Proven only <X className="h-3 w-3" strokeWidth={2} /></Chip>
-                <span className="ae-cap">{shownAngles.length} of {campaign.angles.length} angles cite only ads live {minDays}+ days.</span>
+                <Chip active onClick={() => setProofOnly(false)} title={t('Clear the filter and show every angle')}>{t('Proven only')} <X className="h-3 w-3" strokeWidth={2} /></Chip>
+                <span className="ae-cap">{t('{n} of {total} angles cite only ads live {days}+ days.', { n: shownAngles.length, total: campaign.angles.length, days: minDays })}</span>
               </div>
             )}
             <div className="grid gap-4 md:grid-cols-2">
               {shownAngles.map((a) => (<AngleCard key={a.id} angle={a} pool={pool} readOnly={readOnly} onToggle={() => toggleAngle(a)} onOpenAd={setDetail} />))}
             </div>
-            {shownAngles.length === 0 && <p className="ae-cap py-6 text-center">No angle cites only proven ads yet.</p>}
+            {shownAngles.length === 0 && <p className="ae-cap py-6 text-center">{t('No angle cites only proven ads yet.')}</p>}
           </div>
         )}
       </div>
 
       {campaign && campaign.angles.length > 0 && (
         <div className="ae-gen-footer">
-          <span className="text-[13.5px]">{selected.length} angle{selected.length === 1 ? '' : 's'} selected</span>
-          <label className="ae-cap flex items-center gap-2">Ads wanted <Input type="number" min={0} max={50} value={adsWanted ?? campaign.adsWanted ?? selected.length} onChange={(e) => setAdsWanted(Number(e.target.value))} className="w-[64px] text-center" cClassName="!py-1" /></label>
-          <Btn tone="ink" onClick={async () => { if (adsWanted !== null && !readOnly) onCampaign((await api.patchCampaign(campaign.id, { adsWanted })).campaign); onContinue(); }} disabled={selected.length === 0} disabledReason="Select at least one angle" className="ml-auto">Continue to scripts <ArrowRight className="h-4 w-4" strokeWidth={1.8} /></Btn>
+          <span className="text-[13.5px]">{selected.length === 1 ? t('{n} angle selected', { n: selected.length }) : t('{n} angles selected', { n: selected.length })}</span>
+          <label className="ae-cap flex items-center gap-2">{t('Ads wanted')} <Input type="number" min={0} max={50} value={adsWanted ?? campaign.adsWanted ?? selected.length} onChange={(e) => setAdsWanted(Number(e.target.value))} className="w-[64px] text-center" cClassName="!py-1" /></label>
+          <Btn tone="ink" onClick={async () => { if (adsWanted !== null && !readOnly) onCampaign((await api.patchCampaign(campaign.id, { adsWanted })).campaign); onContinue(); }} disabled={selected.length === 0} disabledReason={t('Select at least one angle')} className="ml-auto">{t('Continue to scripts')} <ArrowRight className="h-4 w-4" strokeWidth={1.8} /></Btn>
         </div>
       )}
 
@@ -214,11 +215,11 @@ function ProductChips({ products, value, readOnly, arcadsConfigured, arcadsSetup
   if (products.length === 0) {
     return (
       <div className="mt-2 flex flex-wrap items-center gap-2 px-2 pb-1" data-products="none">
-        <span className="ae-cap">No products yet.</span>
+        <span className="ae-cap">{t('No products yet.')}</span>
         {arcadsConfigured ? (
-          <Btn size="sm" onClick={onConnect} disabled={readOnly || !onConnect}>Choose an Arcads product</Btn>
+          <Btn size="sm" onClick={onConnect} disabled={readOnly || !onConnect}>{t('Choose an Arcads product')}</Btn>
         ) : (
-          <SetupLink href={arcadsSetupHref} hint="ARCADS_BASIC_AUTH" label="Set up Arcads" />
+          <SetupLink href={arcadsSetupHref} hint="ARCADS_BASIC_AUTH" label={t('Set up Arcads')} />
         )}
       </div>
     );
@@ -236,14 +237,14 @@ function ProductChips({ products, value, readOnly, arcadsConfigured, arcadsSetup
     chips[(i + (e.key === 'ArrowRight' ? 1 : -1) + chips.length) % chips.length]?.focus();
   };
   return (
-    <div ref={rowRef} className="mt-2 flex flex-wrap items-center gap-1.5 px-2 pb-1" role="group" aria-label="Your products" data-products="populated" onKeyDown={onKey}>
-      <span className="ae-cap mr-1">Your products</span>
+    <div ref={rowRef} className="mt-2 flex flex-wrap items-center gap-1.5 px-2 pb-1" role="group" aria-label={t('Your products')} data-products="populated" onKeyDown={onKey}>
+      <span className="ae-cap mr-1">{t('Your products')}</span>
       {shown.map((p) => (
-        <Chip key={p.label} active={p.label.toLowerCase() === current} disabled={readOnly} onClick={() => onPick(p.label)} title={readOnly ? 'Sample data: the product is fixed' : `${p.label} · ${p.detail}`}>
+        <Chip key={p.label} active={p.label.toLowerCase() === current} disabled={readOnly} onClick={() => onPick(p.label)} title={readOnly ? t('Sample data: the product is fixed') : `${p.label} · ${t(p.detail)}`}>
           {p.label.length > LABEL_MAX ? `${p.label.slice(0, LABEL_MAX - 1)}…` : p.label}
         </Chip>
       ))}
-      {extra > 0 && <Chip onClick={() => setAll(true)} title={`Show ${extra} more`}>+{extra}</Chip>}
+      {extra > 0 && <Chip onClick={() => setAll(true)} title={t('Show {n} more', { n: extra })}>+{extra}</Chip>}
     </div>
   );
 }
@@ -258,29 +259,29 @@ function AngleCard({ angle, pool, onToggle, onOpenAd, readOnly = false }: { angl
     const dups = known.length ? known.reduce((s, a) => s + (a.duplicates ?? 0), 0) : null;
     const sums = new Map<string, { t: number; n: number }>();
     for (const a of proof) for (const [k, v] of Object.entries(a.drivers)) { const c = sums.get(k) ?? { t: 0, n: 0 }; c.t += v; c.n += 1; sums.set(k, c); }
-    return { median, dups, drivers: Object.fromEntries([...sums.entries()].map(([k, { t, n }]) => [k, Math.round((t / n) * 10) / 10])) };
+    return { median, dups, drivers: Object.fromEntries([...sums.entries()].map(([k, { t: total, n }]) => [k, Math.round((total / n) * 10) / 10])) };
   }, [proof]);
 
   const g = useG();
   // Classic: the whole card is the checkbox. Kit: the card is a surface and the GCheck in its corner is the
   // control (the card still toggles on a click, as a larger target); thumbnails stay their own buttons.
-  const cardProps = readOnly ? { title: 'Sample data: selection is off' }
-    : g ? { title: angle.selected ? 'Selected for scripts; click to drop it' : 'Select this angle for scripts', onClick: onToggle }
-    : { role: 'checkbox', 'aria-checked': angle.selected, tabIndex: 0, title: angle.selected ? 'Selected for scripts; click to drop it' : 'Select this angle for scripts', onClick: onToggle, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onToggle(); } } };
+  const cardProps = readOnly ? { title: t('Sample data: selection is off') }
+    : g ? { title: angle.selected ? t('Selected for scripts; click to drop it') : t('Select this angle for scripts'), onClick: onToggle }
+    : { role: 'checkbox', 'aria-checked': angle.selected, tabIndex: 0, title: angle.selected ? t('Selected for scripts; click to drop it') : t('Select this angle for scripts'), onClick: onToggle, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onToggle(); } } };
   return (
     // In the sample the card is not a control (selection is off), so it does not pose as one; its proof thumbnails still open.
     <div {...cardProps} data-angle-id={angle.id} className={`ae-card-2 p-5 transition-shadow ${readOnly ? '' : 'cursor-pointer hover:shadow-[var(--p-shadow)]'}`} style={angle.selected ? { boxShadow: '0 0 0 1.5px var(--p-ink) inset, var(--p-shadow-sm)' } : undefined}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            {angle.confidence === 'strong' ? <Badge>Strong</Badge> : <Tag>Plausible</Tag>}
-            <span className="ae-faint">{stats.dups !== null ? `${stats.dups} copies running` : 'copies not checked'}</span>
+            {angle.confidence === 'strong' ? <Badge>{t('Strong')}</Badge> : <Tag>{t('Plausible')}</Tag>}
+            <span className="ae-faint">{stats.dups !== null ? t('{n} copies running', { n: stats.dups }) : t('copies not checked')}</span>
           </div>
           <div className="mt-2.5 text-[17px] font-light leading-tight">{angle.title}</div>
           <div className="ae-cap mt-1 line-clamp-2 text-[12.5px] leading-snug">{angle.thesis}</div>
         </div>
         {g && !readOnly ? (
-          <span onClick={(e) => e.stopPropagation()}><GCheck checked={angle.selected} onCheckedChange={onToggle} aria-label={`Select ${angle.title} for scripts`} /></span>
+          <span onClick={(e) => e.stopPropagation()}><GCheck checked={angle.selected} onCheckedChange={onToggle} aria-label={t('Select {title} for scripts', { title: angle.title })} /></span>
         ) : (
           <CheckMark on={angle.selected} className="shrink-0">{angle.selected && <Check className="h-3.5 w-3.5" strokeWidth={2.4} />}</CheckMark>
         )}
@@ -288,14 +289,14 @@ function AngleCard({ angle, pool, onToggle, onOpenAd, readOnly = false }: { angl
       {angle.hookPattern && <div className="mt-3 text-[13px]">{angle.hookPattern}</div>}
       <div className="mt-4 flex items-end gap-2">
         {proof.slice(0, 4).map((a) => (
-          <ThumbButton key={a.id} onClick={(e) => { e.stopPropagation(); onOpenAd(a); }} title={`${a.brand}, ${a.daysRunning} days live`}>
+          <ThumbButton key={a.id} onClick={(e) => { e.stopPropagation(); onOpenAd(a); }} title={t('{brand}, {n} days live', { brand: a.brand, n: a.daysRunning })}>
             {a.thumbnail ? <img src={a.thumbnail} alt="" /> : <span className="flex h-full w-full items-center justify-center text-[12px] text-[var(--p-muted)]" aria-label={a.brand}>{brandInitials(a.brand)}</span>}
             <b>{a.daysRunning}d</b>
           </ThumbButton>
         ))}
         <div className="ml-auto text-right">
-          <div className="text-[22px] font-light leading-none">{stats.median ?? '—'}<span className="ae-cap ml-1">days</span></div>
-          <div className="ae-faint">median, {proof.length} proof ad{proof.length === 1 ? '' : 's'}</div>
+          <div className="text-[22px] font-light leading-none">{stats.median ?? '—'}<span className="ae-cap ml-1">{t('days')}</span></div>
+          <div className="ae-faint">{proof.length === 1 ? t('median, {n} proof ad', { n: proof.length }) : t('median, {n} proof ads', { n: proof.length })}</div>
         </div>
       </div>
       <div className="mt-3"><ProofGauge value={stats.median} max={90} ticks={30} /></div>
@@ -307,18 +308,18 @@ function AngleCard({ angle, pool, onToggle, onOpenAd, readOnly = false }: { angl
 function AdDetail({ ad, onClose }: { ad: PoolAd; onClose: () => void }) {
   return (
     <Drawer title={ad.brand} onClose={onClose}>
-      <div className="ae-cap">{ad.format ?? 'ad'} · {ad.daysRunning} days {ad.live ? 'live' : 'paused'}{ad.duplicates != null ? ` · ${ad.duplicates} copies running` : ''}{ad.ctaType ? ` · ${ad.ctaType.toLowerCase().replaceAll('_', ' ')}` : ''}</div>
+      <div className="ae-cap">{ad.format ?? 'ad'} · {t('{n} days', { n: ad.daysRunning })} {ad.live ? t('live') : t('paused')}{ad.duplicates != null ? t(' · {n} copies running', { n: ad.duplicates }) : ''}{ad.ctaType ? ` · ${ad.ctaType.toLowerCase().replaceAll('_', ' ')}` : ''}</div>
       {ad.video ? <video src={ad.video} controls className="mt-3 w-full rounded-[16px] bg-black" /> : ad.image || ad.thumbnail ? <img src={ad.image ?? ad.thumbnail ?? ''} alt="" className="mt-3 w-full rounded-[16px]" /> : null}
       {ad.hook && <p className="mt-4 text-[17px] font-light leading-snug">“{ad.hook}”</p>}
       <div className="mt-4"><Drivers drivers={ad.drivers} top={3} /></div>
       {ad.transcript.length > 0 && (
         <div className="mt-5 space-y-1.5 text-[12.5px]">
-          <div className="ae-cap">Transcript</div>
+          <div className="ae-cap">{t('Transcript')}</div>
           {ad.transcript.map((l, i) => (<div key={i} className="flex gap-3"><span className="w-[32px] shrink-0 tabular-nums text-[var(--p-dim)]">{Math.round(l.t)}s</span><span>{l.s}</span></div>))}
         </div>
       )}
-      <div className="ae-faint mt-5">Found by {ad.probes.map((p) => `“${p}”`).join(', ') || 'the pool'}</div>
-      {ad.linkUrl && <Btn size="sm" href={ad.linkUrl} external className="mt-3">Open landing page</Btn>}
+      <div className="ae-faint mt-5">{t('Found by {probes}', { probes: ad.probes.map((p) => `“${p}”`).join(', ') || t('the pool') })}</div>
+      {ad.linkUrl && <Btn size="sm" href={ad.linkUrl} external className="mt-3">{t('Open landing page')}</Btn>}
     </Drawer>
   );
 }

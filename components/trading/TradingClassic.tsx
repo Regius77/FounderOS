@@ -19,12 +19,13 @@ import {
 import type { TradeActivity, TradingPosition } from '@/lib/schemas';
 import { useTrading, type TradingUi } from './use-trading';
 import type { TradingTreeProps } from './TradingG';
+import { localeTag, t } from '@/lib/i18n';
 
 const statusTone: Record<TradeActivity['status'], BadgeTone> = { filled: 'ok', pending: 'default', cancelled: 'default', rejected: 'err' };
-const statusLabel: Record<TradeActivity['status'], string> = { filled: 'Filled', pending: 'Pending', cancelled: 'Cancelled', rejected: 'Rejected' };
+const statusLabel: Record<TradeActivity['status'], string> = { filled: t('Filled'), pending: t('Pending'), cancelled: t('Cancelled'), rejected: t('Rejected') };
 const verdictTone = (v: string): BadgeTone => (/buy|enter|long|take/i.test(v) ? 'ok' : /sell|exit|trim/i.test(v) ? 'warn' : /watch|hold/i.test(v) ? 'accent' : 'default');
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const acctName = (id: string) => (id === 'agentic' ? 'Agentic' : cap(id));
+const acctName = (id: string) => (id === 'agentic' ? t('Agentic') : cap(id));
 
 function Pnl({ n, cents = true }: { n: number | null; cents?: boolean }) {
   if (n === null) return <span className="tabular-nums text-os-dim">—</span>;
@@ -69,8 +70,8 @@ export function TradingClassic({ model: m, pushPath, setup }: TradingTreeProps) 
   const right = (
     <div className="flex flex-wrap items-center justify-end gap-2">
       {m.fixture && (
-        <span data-sample-badge="" title={`Sample data: ${m.fixture}`}>
-          <Badge tone="warn">Sample</Badge>
+        <span data-sample-badge="" title={t('Sample data: {fixture}', { fixture: m.fixture })}>
+          <Badge tone="warn">{t('Sample')}</Badge>
         </span>
       )}
       {m.feedPill ? (
@@ -81,13 +82,13 @@ export function TradingClassic({ model: m, pushPath, setup }: TradingTreeProps) 
           </Badge>
         </span>
       ) : (
-        <SourceTag label="Robinhood feed" href={setup.robinhood} hint="Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN" />
+        <SourceTag label={t('Robinhood feed')} href={setup.robinhood} hint={t('Have the Markets agent push to /api/trading/snapshot with TRADING_PUSH_TOKEN')} />
       )}
-      {m.wallet === 'unconfigured' && <SourceTag label="Phantom wallet" href={setup.phantom} hint="Set PHANTOM_WALLET_ADDRESS (a public address, not a key)" />}
+      {m.wallet === 'unconfigured' && <SourceTag label={t('Phantom wallet')} href={setup.phantom} hint={t('Set PHANTOM_WALLET_ADDRESS (a public address, not a key)')} />}
       {!m.unconfigured && (
-        <button type="button" onClick={ui.refresh} disabled={ui.refreshing} className="c-btn" title="Reload from the store; the wallet read is cached 60 s">
+        <button type="button" onClick={ui.refresh} disabled={ui.refreshing} className="c-btn" title={t('Reload from the store; the wallet read is cached 60 s')}>
           <RefreshCw size={13} strokeWidth={1.7} aria-hidden className={ui.refreshing ? 'trd-c-spin' : undefined} />
-          Refresh
+          {t('Refresh')}
         </button>
       )}
     </div>
@@ -95,7 +96,7 @@ export function TradingClassic({ model: m, pushPath, setup }: TradingTreeProps) 
 
   return (
     <div className="trd-c">
-      <PageHeader title="Trading" eyebrow={m.subtitle ?? m.copy.subtitleEmpty} right={right} />
+      <PageHeader title={t('Trading')} eyebrow={m.subtitle ?? m.copy.subtitleEmpty} right={right} />
 
       {m.unconfigured ? (
         <ConnectCard ui={ui} setupHref={setup.robinhood} />
@@ -119,30 +120,30 @@ export function TradingClassic({ model: m, pushPath, setup }: TradingTreeProps) 
             </>
           )}
           <Limits m={m} ui={ui} />
-          <p className="trd-c-span-12 text-center text-[12px] text-os-dim">Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.</p>
+          <p className="trd-c-span-12 text-center text-[12px] text-os-dim">{t('Only the agentic sleeve can be traded by an agent. Wallet read from a public RPC.')}</p>
         </div>
       )}
 
       {ui.openTrade && <TradeDialog trade={ui.openTrade} onClose={() => ui.setOpenTrade(null)} />}
       {ui.positionsOpen && (
-        <Modal title="Positions" sub={`${p.positions.length} open · ${usd(m.investedUsd)} invested`} onClose={() => ui.setPositionsOpen(false)} wide>
+        <Modal title={t('Positions')} sub={t('{n} open · {amount} invested', { n: p.positions.length, amount: usd(m.investedUsd) })} onClose={() => ui.setPositionsOpen(false)} wide>
           <PositionsTable rows={p.positions} />
         </Modal>
       )}
       {ui.notesOpen && p.analysis && (
-        <Modal title="Agent reasoning" sub={`${p.analysis.agent} · ${stamp(p.analysis.at)}`} onClose={() => ui.setNotesOpen(false)}>
+        <Modal title={t('Agent reasoning')} sub={`${p.analysis.agent} · ${stamp(p.analysis.at)}`} onClose={() => ui.setNotesOpen(false)}>
           <p className="whitespace-pre-wrap px-5 pb-5 text-[13px] leading-relaxed text-os-text">{p.analysis.notes}</p>
         </Modal>
       )}
       {ui.autopilot.confirmOpen && (
-        <Modal title="Turn on autopilot?" onClose={() => ui.autopilot.setConfirmOpen(false)}>
+        <Modal title={t('Turn on autopilot?')} onClose={() => ui.autopilot.setConfirmOpen(false)}>
           <p className="px-5 text-[13px] leading-relaxed text-os-muted">{m.copy.autopilotBody}</p>
           <div className="flex justify-end gap-2 px-5 py-4">
             <button type="button" className="c-btn" onClick={() => ui.autopilot.setConfirmOpen(false)}>
-              Cancel
+              {t('Cancel')}
             </button>
             <button type="button" className="c-btn c-btn-primary" disabled={ui.autopilot.switching} onClick={() => void ui.autopilot.setAutopilot(true, true)}>
-              Turn on
+              {t('Turn on')}
             </button>
           </div>
         </Modal>
@@ -154,7 +155,7 @@ export function TradingClassic({ model: m, pushPath, setup }: TradingTreeProps) 
 function SourceTag({ label, href, hint }: { label: string; href: string; hint: string }) {
   return (
     <span className="inline-flex items-center gap-1.5" title={hint}>
-      <Badge ghost>{label} · Not configured</Badge>
+      <Badge ghost>{label} · {t('Not configured')}</Badge>
       <SetupLink href={href} hint={hint} />
     </span>
   );
@@ -162,19 +163,19 @@ function SourceTag({ label, href, hint }: { label: string; href: string; hint: s
 
 function ConnectCard({ ui, setupHref }: { ui: TradingUi; setupHref: string }) {
   return (
-    <section aria-label="Connect the Markets agent feed" className="trd-c-card items-center rounded-lg-t border border-os-border bg-os-surface px-5 py-8 text-center">
-      <Badge ghost>Not configured</Badge>
-      <p className="mt-3 text-[14px] text-os-text">Connect the Markets agent feed. Its first push fills this page.</p>
+    <section aria-label={t('Connect the Markets agent feed')} className="trd-c-card items-center rounded-lg-t border border-os-border bg-os-surface px-5 py-8 text-center">
+      <Badge ghost>{t('Not configured')}</Badge>
+      <p className="mt-3 text-[14px] text-os-text">{t('Connect the Markets agent feed. Its first push fills this page.')}</p>
       <p className="mx-auto mt-1 max-w-[460px] text-[12.5px] text-os-muted">
-        The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here.
+        {t('The agent posts account snapshots, positions and trades with its push token. The token stays in the agent; only the URL goes here.')}
       </p>
       <div className="mx-auto mt-4 flex w-full min-w-0 max-w-[520px] items-center gap-2 rounded-[8px] border border-os-border bg-os-bg2 py-1.5 pl-3 pr-1.5">
         <code className="min-w-0 flex-1 truncate text-left font-mono text-[12px] text-os-text" data-copy="">
           {ui.pushUrl}
         </code>
-        <button type="button" className="c-btn h-[28px] px-2.5 text-[12px]" onClick={ui.copyPushUrl} aria-label="Copy push URL">
+        <button type="button" className="c-btn h-[28px] px-2.5 text-[12px]" onClick={ui.copyPushUrl} aria-label={t('Copy push URL')}>
           <Copy size={12} strokeWidth={1.7} aria-hidden />
-          Copy
+          {t('Copy')}
         </button>
       </div>
       <div className="mt-4 flex justify-center">
@@ -200,7 +201,7 @@ function ValueChart({ points, label }: { points: Array<{ at: string; valueUsd: n
     const yOf = (v: number) => pad + (1 - (v - lo) / (hi - lo)) * (H - pad * 2);
     return { xs, yOf, line: seriesPaths(values, xs, yOf), area: areaPaths(values, xs, yOf, H) };
   }, [values]);
-  if (points.length < 2) return <Empty>{points.length === 1 ? 'One capture so far. The line starts with the next push.' : 'No captures for this account yet.'}</Empty>;
+  if (points.length < 2) return <Empty>{points.length === 1 ? t('One capture so far. The line starts with the next push.') : t('No captures for this account yet.')}</Empty>;
   const first = points[0];
   const last = points[points.length - 1];
   const change = last.valueUsd - first.valueUsd;
@@ -226,7 +227,7 @@ function ValueChart({ points, label }: { points: Array<{ at: string; valueUsd: n
       <div className="trd-c-chart-foot mt-2 font-mono text-[11px] text-os-dim">
         <span>{day(first.at)}</span>
         <span className="trd-c-pnl trd-c-chart-read" data-tone={toneOf(change)}>
-          {h ? `${stamp(h.at)} · ${usd(h.valueUsd, true)}` : `${signedUsd(change)} over ${points.length} captures`}
+          {h ? `${stamp(h.at)} · ${usd(h.valueUsd, true)}` : t('{amount} over {n} captures', { amount: signedUsd(change), n: points.length })}
         </span>
         <span className="text-right">{day(last.at)}</span>
       </div>
@@ -251,11 +252,11 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   return (
     <Card
       className="trd-c-span-8"
-      title="Agent sleeve"
-      sub={a.hasActed ? `${a.tradeCount} ${a.tradeCount === 1 ? 'trade' : 'trades'} · last ${a.lastTrade ? ago(a.lastTrade.at, m.now) : ''}` : 'The agent has not traded yet'}
+      title={t('Agent sleeve')}
+      sub={a.hasActed ? `${a.tradeCount === 1 ? t('{n} trade', { n: a.tradeCount }) : t('{n} trades', { n: a.tradeCount })} · ${t('last {ago}', { ago: a.lastTrade ? ago(a.lastTrade.at, m.now) : '' })}` : t('The agent has not traded yet')}
       right={
         m.series.length > 1 ? (
-          <div role="radiogroup" aria-label="Account shown in the chart" className="flex gap-1.5">
+          <div role="radiogroup" aria-label={t('Account shown in the chart')} className="flex gap-1.5">
             {m.series.map((x) => (
               <button
                 key={x.accountId}
@@ -273,17 +274,17 @@ function Sleeve({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       }
     >
       <div className="px-5">
-        <ValueChart points={s?.points ?? []} label={`${s?.label ?? 'Account'} value per capture`} />
+        <ValueChart points={s?.points ?? []} label={t('{account} value per capture', { account: s?.label ?? t('Account') })} />
       </div>
       {m.hasAgentic ? (
         <div className="trd-c-stats">
-          <Stat label="Deployed" value={usd(a.deployedUsd, true)} />
-          <Stat label="Idle cash" value={a.idleCashUsd === null ? '—' : usd(a.idleCashUsd, true)} />
-          <Stat label="Unrealized" value={signedUsd(a.unrealizedPnlUsd)} tone={toneOf(a.unrealizedPnlUsd)} />
-          <Stat label="Agent trades" value={a.tradeCount} />
+          <Stat label={t('Deployed')} value={usd(a.deployedUsd, true)} />
+          <Stat label={t('Idle cash')} value={a.idleCashUsd === null ? '—' : usd(a.idleCashUsd, true)} />
+          <Stat label={t('Unrealized')} value={signedUsd(a.unrealizedPnlUsd)} tone={toneOf(a.unrealizedPnlUsd)} />
+          <Stat label={t('Agent trades')} value={a.tradeCount} />
         </div>
       ) : (
-        <Empty sub="The agent's stats appear once a push carries the account with id agentic.">No agentic account in the feed.</Empty>
+        <Empty sub={t("The agent's stats appear once a push carries the account with id agentic.")}>{t('No agentic account in the feed.')}</Empty>
       )}
     </Card>
   );
@@ -293,12 +294,12 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
   const hasWallet = m.accounts.some((a) => a.kind === 'wallet');
   const brokerage = m.accounts.filter((a) => a.kind === 'brokerage');
   return (
-    <Card className="trd-c-span-4" title="Accounts" sub={`${m.accounts.length} ${m.accounts.length === 1 ? 'source' : 'sources'}`}>
+    <Card className="trd-c-span-4" title={t('Accounts')} sub={m.accounts.length === 1 ? t('{n} source', { n: m.accounts.length }) : t('{n} sources', { n: m.accounts.length })}>
       <div className="px-5 pb-5">
         <div className="text-[30px] font-normal leading-none tracking-[-0.01em] tabular-nums text-os-text">{m.totalUsd === null ? '—' : usd(m.totalUsd, true)}</div>
         {m.dayPnlUsd !== null && (
           <div className="mt-2 text-[12.5px] text-os-muted">
-            <Pnl n={m.dayPnlUsd} /> today · {usd(m.investedUsd)} in {m.payload.positions.length} {m.payload.positions.length === 1 ? 'position' : 'positions'}
+            <Pnl n={m.dayPnlUsd} /> {t('today')} · {t('{amount} in {positions}', { amount: usd(m.investedUsd), positions: m.payload.positions.length === 1 ? t('{n} position', { n: m.payload.positions.length }) : t('{n} positions', { n: m.payload.positions.length }) })}
           </div>
         )}
         <ul className="mt-5 space-y-4">
@@ -310,15 +311,15 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
                 </span>
                 <span className="shrink-0 tabular-nums text-os-text">{a.valueUsd === null ? '—' : usd(a.valueUsd, true)}</span>
               </div>
-              <div className="trd-c-meter mt-1.5" role="img" aria-label={`${a.label}: ${Math.round(a.frac * 100)}% of the total`}>
+              <div className="trd-c-meter mt-1.5" role="img" aria-label={`${a.label}: ${t('{pct}% of the total', { pct: Math.round(a.frac * 100) })}`}>
                 <i data-agent={a.agentMayTrade || undefined} style={{ width: `${Math.max(a.valueUsd === null ? 0 : 1.5, a.frac * 100)}%` }} />
               </div>
             </li>
           ))}
           {!hasWallet && (
             <li className="flex items-center justify-between gap-3 text-[12.5px]">
-              <span className="text-os-muted">Phantom · not configured</span>
-              <SetupLink href={setupPhantom} hint="Set PHANTOM_WALLET_ADDRESS" className="shrink-0 whitespace-nowrap" />
+              <span className="text-os-muted">Phantom · {t('not configured')}</span>
+              <SetupLink href={setupPhantom} hint={t('Set PHANTOM_WALLET_ADDRESS')} className="shrink-0 whitespace-nowrap" />
             </li>
           )}
         </ul>
@@ -326,8 +327,8 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
       {brokerage.length > 0 && (
         <dl className="mt-auto border-t border-[var(--hairline)] px-5 py-3 text-[12.5px]">
           {[
-            ['Cash', usd(brokerage.reduce((tr, a) => tr + (a.cashUsd ?? 0), 0), true)],
-            ['Buying power', usd(brokerage.reduce((tr, a) => tr + (a.buyingPowerUsd ?? 0), 0), true)],
+            [t('Cash'), usd(brokerage.reduce((tr, a) => tr + (a.cashUsd ?? 0), 0), true)],
+            [t('Buying power'), usd(brokerage.reduce((tr, a) => tr + (a.buyingPowerUsd ?? 0), 0), true)],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-3 py-0.5">
               <dt className="text-os-muted">{k}</dt>
@@ -335,7 +336,7 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
             </div>
           ))}
           <div className="flex justify-between gap-3 py-0.5">
-            <dt className="text-os-muted">Total P&amp;L</dt>
+            <dt className="text-os-muted">{t('Total P&L')}</dt>
             <dd>
               <Pnl n={m.payload.accounts.reduce((tr, a) => tr + a.totalPnlUsd, 0)} />
             </dd>
@@ -349,9 +350,9 @@ function Accounts({ m, setupPhantom }: { m: TradingModel; setupPhantom: string }
 function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const a = m.payload.analysis;
   return (
-    <Card className="trd-c-span-4" title="Agent reasoning" sub={a ? `Examined ${a.examined} · ${a.signals} ${a.signals === 1 ? 'signal' : 'signals'} · ${ago(a.at, m.now)}` : 'No run recorded'}>
+    <Card className="trd-c-span-4" title={t('Agent reasoning')} sub={a ? `${t('Examined {n}', { n: a.examined })} · ${a.signals === 1 ? t('{n} signal', { n: a.signals }) : t('{n} signals', { n: a.signals })} · ${ago(a.at, m.now)}` : t('No run recorded')}>
       {!a ? (
-        <Empty>No analysis pushed yet. The agent writes here every run, whether or not it trades.</Empty>
+        <Empty>{t('No analysis pushed yet.')} {t('The agent writes here every run, whether or not it trades.')}</Empty>
       ) : (
         <div className="pb-2">
           {a.notes && (
@@ -359,14 +360,14 @@ function Reasoning({ m, ui }: { m: TradingModel; ui: TradingUi }) {
               <p className="line-clamp-2 text-[12.5px] leading-relaxed text-os-muted">{a.notes}</p>
               {a.notes.length > 140 && (
                 <button type="button" className="mt-1 text-[12px] text-os-accent hover:underline" onClick={() => ui.setNotesOpen(true)}>
-                  More
+                  {t('More')}
                 </button>
               )}
             </div>
           )}
           <ul className="divide-y divide-[var(--hairline)] border-t border-[var(--hairline)]">
             {a.rows.slice(0, 6).map((r) => (
-              <li key={r.ticker} className="flex items-start gap-3 px-5 py-2.5" title={r.score === null ? 'Not scored' : `Score ${r.score.toFixed(2)}`}>
+              <li key={r.ticker} className="flex items-start gap-3 px-5 py-2.5" title={r.score === null ? t('Not scored') : t('Score {score}', { score: r.score.toFixed(2) })}>
                 <span className="w-14 shrink-0 font-mono text-[12px] text-os-text">{r.ticker}</span>
                 <span className="min-w-0 flex-1 text-[12px] text-os-muted">{r.reason}</span>
                 <Badge tone={verdictTone(r.verdict)}>{cap(r.verdict)}</Badge>
@@ -383,9 +384,9 @@ function PositionsTable({ rows }: { rows: TradingPosition[] }) {
   return (
     <div className="trd-c-table">
       <div className="trd-c-tr trd-c-th" role="row">
-        <span>Symbol</span>
-        <span className="text-right">Qty</span>
-        <span className="text-right">Value</span>
+        <span>{t('Symbol')}</span>
+        <span className="text-right">{t('Qty')}</span>
+        <span className="text-right">{t('Value')}</span>
         <span className="text-right">P&amp;L</span>
       </div>
       {rows.map((r) => (
@@ -412,18 +413,18 @@ function Positions({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   return (
     <Card
       className="trd-c-span-4"
-      title="Positions"
-      sub={pos.length ? `${pos.length} open · ${usd(m.investedUsd)} invested` : 'Nothing held'}
+      title={t('Positions')}
+      sub={pos.length ? t('{n} open · {amount} invested', { n: pos.length, amount: usd(m.investedUsd) }) : t('Nothing held')}
       right={
         pos.length > 5 ? (
           <button type="button" className="c-btn h-[28px] px-2.5 text-[12px]" onClick={() => ui.setPositionsOpen(true)}>
-            See all
+            {t('See all')}
           </button>
         ) : undefined
       }
     >
       {pos.length === 0 ? (
-        <Empty>No open positions.</Empty>
+        <Empty>{t('No open positions.')}</Empty>
       ) : (
         <>
           <div className="trd-c-buckets px-5 pb-4" role="img" aria-label={sizes.map((b) => `${b.label}: ${b.count}`).join(', ')}>
@@ -451,16 +452,16 @@ function NextMove({ m }: { m: TradingModel }) {
   return (
     <section aria-labelledby="trd-c-next" className="trd-c-span-4 trd-c-next rounded-lg-t border">
       <p id="trd-c-next" className="text-[12px] font-medium text-os-accent">
-        Agent · next move
+        {t('Agent · next move')}
       </p>
       <div className="mt-3 text-[40px] font-normal leading-none tabular-nums text-os-text">{a.tradeCount}</div>
-      <p className="mt-2 text-[13px] text-os-text">{a.tradeCount === 1 ? 'trade' : 'trades'} filled in the sleeve.</p>
+      <p className="mt-2 text-[13px] text-os-text">{a.tradeCount === 1 ? t('trade filled in the sleeve.') : t('trades filled in the sleeve.')}</p>
       <p className="mt-2 line-clamp-4 text-[12.5px] leading-relaxed text-os-muted">
-        {notes || (last ? `Last: ${last.action} ${tradeLine(last)}, ${ago(last.at, m.now)}. ${last.rationale}` : 'The agent has not reported a run yet.')}
+        {notes || (last ? t('Last: {action} {trade}, {ago}. {rationale}', { action: last.action, trade: tradeLine(last), ago: ago(last.at, m.now), rationale: last.rationale }) : t('The agent has not reported a run yet.'))}
       </p>
       {m.limits.saved && (
         <p className="mt-3 font-mono text-[11px] text-os-dim">
-          Autopilot {m.limits.saved.autopilot ? 'on' : 'off'} · {Math.round((a.deployedUsd / Math.max(1, m.limits.saved.maxDeployedCapitalUsd)) * 100)}% of the autonomy budget deployed
+          {m.limits.saved.autopilot ? t('Autopilot on') : t('Autopilot off')} · {t('{pct}% of the autonomy budget deployed', { pct: Math.round((a.deployedUsd / Math.max(1, m.limits.saved.maxDeployedCapitalUsd)) * 100) })}
         </p>
       )}
     </section>
@@ -470,22 +471,22 @@ function NextMove({ m }: { m: TradingModel }) {
 function OpenOrders({ m }: { m: TradingModel }) {
   const orders = m.payload.openOrders;
   return (
-    <Card className="trd-c-span-12" title="Open orders" sub={orders.length ? `${orders.length} working` : 'Nothing working'}>
+    <Card className="trd-c-span-12" title={t('Open orders')} sub={orders.length ? t('{n} working', { n: orders.length }) : t('Nothing working')}>
       {orders.length === 0 ? (
-        <Empty>No live orders at the broker.</Empty>
+        <Empty>{t('No live orders at the broker.')}</Empty>
       ) : (
         <ul className="divide-y divide-[var(--hairline)] border-t border-[var(--hairline)]">
           {orders.map((o) => (
             <li key={o.id} className="trd-c-row">
-              <Badge tone={o.side === 'buy' ? 'ok' : 'warn'}>{o.side === 'buy' ? 'Buy' : 'Sell'}</Badge>
+              <Badge tone={o.side === 'buy' ? 'ok' : 'warn'}>{o.side === 'buy' ? t('Buy') : t('Sell')}</Badge>
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] text-os-text">
                   <span className="font-mono">{o.symbol}</span>{' '}
                   {o.dollarAmountUsd !== null ? usd(o.dollarAmountUsd, true) : `${qty(o.quantity)}${o.limitPriceUsd !== null ? ` @ ${usd(o.limitPriceUsd, true)}` : ''}`}
                 </div>
                 <div className="text-[12px] text-os-muted">
-                  {cap(o.type)} · {o.filledQuantity ? `${qty(o.filledQuantity)} filled · ` : ''}
-                  {o.placedAgent || 'Unknown'}
+                  {cap(o.type)} · {o.filledQuantity ? `${t('{n} filled', { n: qty(o.filledQuantity) })} · ` : ''}
+                  {o.placedAgent || t('Unknown')}
                 </div>
               </div>
               <span className="c-chip">{cap(o.state)}</span>
@@ -502,19 +503,19 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const c = m.payload.view.activityCounts;
   const rows = logRows(m, ui.log);
   const filters: { value: ActivityFilter; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'agent', label: 'Agent' },
-    { value: 'you', label: 'You' },
-    { value: 'rejected', label: 'Rejected' },
+    { value: 'all', label: t('All') },
+    { value: 'agent', label: t('Agent') },
+    { value: 'you', label: t('You') },
+    { value: 'rejected', label: t('Rejected') },
   ];
   return (
     <Card
       className="trd-c-span-12"
-      title="Trade log"
-      sub={c.all ? `${rows.length} of ${c.all}` : undefined}
+      title={t('Trade log')}
+      sub={c.all ? t('{done} of {total}', { done: rows.length, total: c.all }) : undefined}
       right={
         c.all ? (
-          <div role="radiogroup" aria-label="Filter the trade log" className="trd-c-chips">
+          <div role="radiogroup" aria-label={t('Filter the trade log')} className="trd-c-chips">
             {filters.map((f) => (
               <button key={f.value} type="button" role="radio" aria-checked={ui.log === f.value} className="trd-c-chip c-chip" onClick={() => ui.setLog(f.value)}>
                 {f.label} <span className="tabular-nums text-os-dim">{c[f.value]}</span>
@@ -525,23 +526,23 @@ function TradeLog({ m, ui }: { m: TradingModel; ui: TradingUi }) {
       }
     >
       {c.all === 0 ? (
-        <Empty>No trades yet.</Empty>
+        <Empty>{t('No trades yet.')}</Empty>
       ) : rows.length === 0 ? (
-        <Empty>Nothing matches this filter.</Empty>
+        <Empty>{t('Nothing matches this filter.')}</Empty>
       ) : (
         <ul className="divide-y divide-[var(--hairline)] border-t border-[var(--hairline)]">
           {rows.map((tr) => (
             <li key={tr.id}>
               <button type="button" className="trd-c-row trd-c-row-btn hoverable" onClick={() => ui.setOpenTrade(tr)}>
                 <span className="trd-c-side text-[11.5px] font-medium" data-side={tr.action}>
-                  {tr.action === 'buy' ? 'Buy' : 'Sell'}
+                  {tr.action === 'buy' ? t('Buy') : t('Sell')}
                 </span>
                 <span className="min-w-0 flex-1 text-left">
                   <span className="flex flex-wrap items-center gap-2 text-[13px] text-os-text">
                     <span className="font-mono">{tradeLine(tr)}</span>
                     <Badge tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>
                   </span>
-                  <span className="mt-0.5 block truncate text-[12px] text-os-muted">{tr.rationale || 'No rationale given'}</span>
+                  <span className="mt-0.5 block truncate text-[12px] text-os-muted">{tr.rationale || t('No rationale given')}</span>
                 </span>
                 <span className="trd-c-when shrink-0 text-right text-[11.5px] text-os-muted">
                   {whoOf(tr)} · {acctName(tr.accountId)}
@@ -569,7 +570,7 @@ function Modal({ title, sub, onClose, children, wide = false }: { title: string;
             </h2>
             {sub && <p className="mt-0.5 font-mono text-[11.5px] text-os-dim">{sub}</p>}
           </div>
-          <button type="button" data-dialog-close onClick={onClose} aria-label="Close" className="rounded-[6px] p-1 text-os-muted hover:text-os-text">
+          <button type="button" data-dialog-close onClick={onClose} aria-label={t('Close')} className="rounded-[6px] p-1 text-os-muted hover:text-os-text">
             <X size={15} strokeWidth={1.7} aria-hidden />
           </button>
         </div>
@@ -581,14 +582,14 @@ function Modal({ title, sub, onClose, children, wide = false }: { title: string;
 
 function TradeDialog({ trade: tr, onClose }: { trade: TradeActivity; onClose: () => void }) {
   const rows: [string, ReactNode][] = [
-    ['Order', <span key="o" className="font-mono">{tradeLine(tr)}</span>],
-    ['Notional', usd(tr.quantity * tr.priceUsd, true)],
-    ['Status', <Badge key="s" tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>],
-    ['Who', whoOf(tr)],
-    ['Account', tr.accountId === 'agentic' ? 'Agentic sleeve' : acctName(tr.accountId)],
+    [t('Order'), <span key="o" className="font-mono">{tradeLine(tr)}</span>],
+    [t('Notional'), usd(tr.quantity * tr.priceUsd, true)],
+    [t('Status'), <Badge key="s" tone={statusTone[tr.status]}>{statusLabel[tr.status]}</Badge>],
+    [t('Who'), whoOf(tr)],
+    [t('Account'), tr.accountId === 'agentic' ? t('Agentic sleeve') : acctName(tr.accountId)],
   ];
   return (
-    <Modal title={`${tr.action === 'buy' ? 'Buy' : 'Sell'} ${tr.symbol}`} sub={stamp(tr.at)} onClose={onClose}>
+    <Modal title={`${tr.action === 'buy' ? t('Buy') : t('Sell')} ${tr.symbol}`} sub={stamp(tr.at)} onClose={onClose}>
       <dl className="px-5">
         {rows.map(([k, v]) => (
           <div key={k} className="flex items-center justify-between gap-3 border-b border-[var(--hairline)] py-2 text-[13px]">
@@ -597,7 +598,7 @@ function TradeDialog({ trade: tr, onClose }: { trade: TradeActivity; onClose: ()
           </div>
         ))}
       </dl>
-      <p className="m-5 rounded-[8px] border border-os-border bg-os-bg2 p-3 text-[13px] leading-relaxed text-os-text">{tr.rationale || 'No rationale given.'}</p>
+      <p className="m-5 rounded-[8px] border border-os-border bg-os-bg2 p-3 text-[13px] leading-relaxed text-os-text">{tr.rationale || t('No rationale given.')}</p>
     </Modal>
   );
 }
@@ -605,7 +606,7 @@ function TradeDialog({ trade: tr, onClose }: { trade: TradeActivity; onClose: ()
 function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
   const L = ui.limits;
   return (
-    <Card className="trd-c-span-12" title="Agent limits" sub={m.limits.savedLabel}>
+    <Card className="trd-c-span-12" title={t('Agent limits')} sub={m.limits.savedLabel}>
       <form
         noValidate
         onSubmit={(e) => {
@@ -630,10 +631,10 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
                     id={`trd-c-${f.key}`}
                     inputMode="decimal"
                     value={L.values[f.key] ?? ''}
-                    placeholder="Not set"
+                    placeholder={t('Not set')}
                     aria-invalid={Boolean(err)}
                     disabled={m.readOnly}
-                    title={m.readOnly ? (m.readOnlyReason ?? undefined) : `${f.min.toLocaleString('en-US')} to ${f.max.toLocaleString('en-US')}`}
+                    title={m.readOnly ? (m.readOnlyReason ?? undefined) : t('{from} to {to}', { from: f.min.toLocaleString(localeTag()), to: f.max.toLocaleString(localeTag()) })}
                     onChange={(e) => L.setValue(f.key, e.target.value)}
                     onBlur={() => L.blur(f.key)}
                     className="trd-c-input tabular-nums"
@@ -649,7 +650,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
             type="button"
             role="switch"
             aria-checked={ui.autopilot.on}
-            aria-label="Autopilot"
+            aria-label={t('Autopilot')}
             disabled={Boolean(ui.autopilot.reason) || ui.autopilot.switching}
             title={ui.autopilot.reason}
             onClick={() => void ui.autopilot.setAutopilot(!ui.autopilot.on)}
@@ -658,9 +659,9 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
             <i aria-hidden />
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] text-os-text">Autopilot</div>
+            <div className="text-[13px] text-os-text">{t('Autopilot')}</div>
             <div className="text-[11.5px] text-os-dim">
-              {ui.autopilot.on ? 'On: the Markets agent may place real orders inside these limits.' : 'Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.'}
+              {ui.autopilot.on ? t('On: the Markets agent may place real orders inside these limits.') : t('Off: the daily run proposes and logs every order as a dry run; nothing reaches the broker.')}
             </div>
           </div>
           {L.saveError && (
@@ -669,7 +670,7 @@ function Limits({ m, ui }: { m: TradingModel; ui: TradingUi }) {
             </span>
           )}
           <button type="submit" className="c-btn c-btn-primary" disabled={Boolean(L.saveReason) || L.saving} title={L.saveReason}>
-            {L.saving ? 'Saving' : 'Save'}
+            {L.saving ? t('Saving') : t('Save')}
           </button>
         </div>
       </form>

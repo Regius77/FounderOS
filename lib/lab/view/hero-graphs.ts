@@ -321,7 +321,7 @@ export function creatorNetwork(store: LabStore, now: Date, sample: boolean): Cre
     return { state: st, label: C.networkLabel, nodes: [], edges: [], maxBreakouts: 0, summary: C.noCreators };
   }
   const idx = new Map(creators.map((s, i) => [s.id, i]));
-  const t = now.getTime();
+  const nowMs = now.getTime();
   const measures = new Map(store.measures.all().map((m) => [m.postId, m]));
   const breakouts = creators.map(() => 0);
   const hot = creators.map(() => false);
@@ -331,7 +331,7 @@ export function creatorNetwork(store: LabStore, now: Date, sample: boolean): Cre
     if (i === undefined) continue;
     postSource.set(p.id, i);
     if (!p.postedAt || !measures.get(p.id)?.isBreakout) continue;
-    const age = t - Date.parse(p.postedAt);
+    const age = nowMs - Date.parse(p.postedAt);
     if (age < 0 || age > 30 * DAY) continue;
     breakouts[i]++;
     if (age <= 7 * DAY) hot[i] = true;
@@ -375,12 +375,12 @@ const hash = (s: string) => {
 
 export function breakoutChart(store: LabStore, now: Date, sample: boolean): BreakoutChartView {
   const C = HERO_GRAPH_COPY;
-  const t = now.getTime();
+  const nowMs = now.getTime();
   const sources = new Map(store.sources.all('tracked').filter((s) => s.status === 'active').map((s) => [s.id, s]));
   const pts: BreakoutPointView[] = [];
   for (const p of store.posts.all() as LabPost[]) {
     if (p.isOwned || !p.postedAt || !sources.has(p.sourceId)) continue;
-    const ageMs = t - Date.parse(p.postedAt);
+    const ageMs = nowMs - Date.parse(p.postedAt);
     if (ageMs < 0 || ageMs > 14 * DAY) continue;
     const m = (store.measures.get(p.id) ?? null) as LabMeasureV2 | null;
     const read = readOf(m, p, now);

@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useEffect, useRef, useState } from 'react';
 import { Play, RefreshCw } from 'lucide-react';
 import type { Campaign } from '@/lib/creative-engine/schemas';
@@ -40,7 +41,7 @@ export function UgcStudio({ campaign, health, readOnly = false, onCampaign, onRu
       setCatalog(c);
       if (!productId && c.products[0]) setProductId(c.products[0].id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load the catalog.');
+      setError(err instanceof Error ? err.message : t('Could not load the catalog.'));
     }
   };
   useEffect(() => { void load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
@@ -63,9 +64,9 @@ export function UgcStudio({ campaign, health, readOnly = false, onCampaign, onRu
   if (!health.arcads.configured) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <p className="text-[17px] font-light">Arcads is not connected.</p>
-        <p className="ae-cap max-w-md">Actors, voices and video generation need the Arcads key. Nothing here is shown as working until it is.</p>
-        <div className="flex items-center gap-2"><Btn tone="ink" onClick={onConnect}>Connect Arcads</Btn><SetupLink href={health.arcads.setupHref} hint="ARCADS_BASIC_AUTH" /></div>
+        <p className="text-[17px] font-light">{t('Arcads is not connected.')}</p>
+        <p className="ae-cap max-w-md">{t('Actors, voices and video generation need the Arcads key. Nothing here is shown as working until it is.')}</p>
+        <div className="flex items-center gap-2"><Btn tone="ink" onClick={onConnect}>{t('Connect Arcads')}</Btn><SetupLink href={health.arcads.setupHref} hint="ARCADS_BASIC_AUTH" /></div>
       </div>
     );
   }
@@ -77,12 +78,12 @@ export function UgcStudio({ campaign, health, readOnly = false, onCampaign, onRu
     setBusy(true); setError(null); setCapAsk(null); setConfirming(false);
     try {
       const res = await api.ugc({ campaignId: campaign.id, scriptId: script.id, situationId, voiceId, productId, override });
-      setNotice(`Submitted as run ${res.runId}. The video lands below when Arcads finishes; this page checks every 5 seconds.`);
+      setNotice(t('Submitted as run {id}. The video lands below when Arcads finishes; this page checks every 5 seconds.', { id: res.runId }));
       onRuns((await api.runs(campaign.id)).runs);
       onCampaign((await api.campaign(campaign.id)).campaign);
     } catch (err) {
       if (err instanceof ApiError && err.kind === 'cap') setCapAsk(err.message);
-      else setError(err instanceof Error ? err.message : 'Submit failed.');
+      else setError(err instanceof Error ? err.message : t('Submit failed.'));
     } finally {
       setBusy(false);
     }
@@ -95,90 +96,90 @@ export function UgcStudio({ campaign, health, readOnly = false, onCampaign, onRu
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_300px]">
       <section>
         <div className="flex items-center justify-between">
-          <span className="text-[15px] font-light">Actor</span>
+          <span className="text-[15px] font-light">{t('Actor')}</span>
           <span className="flex items-center gap-1.5">
-            {(['all', 'female', 'male'] as const).map((g) => (<Chip key={g} active={gender === g} onClick={() => setGender(g)}>{g[0].toUpperCase() + g.slice(1)}</Chip>))}
-            <Btn size="sm" onClick={() => load(true)} disabled={!!catalogOverride} title={catalogOverride ? 'Sample data: the catalog is fictional and offline' : 'Refresh the catalog'} aria-label="Refresh the catalog"><RefreshCw className="h-3 w-3" strokeWidth={1.8} /></Btn>
+            {(['all', 'female', 'male'] as const).map((g) => (<Chip key={g} active={gender === g} onClick={() => setGender(g)}>{t(g[0].toUpperCase() + g.slice(1))}</Chip>))}
+            <Btn size="sm" onClick={() => load(true)} disabled={!!catalogOverride} title={catalogOverride ? t('Sample data: the catalog is fictional and offline') : t('Refresh the catalog')} aria-label={t('Refresh the catalog')}><RefreshCw className="h-3 w-3" strokeWidth={1.8} /></Btn>
           </span>
         </div>
-        {!catalog ? <Progress text="Loading actors" /> : catalog.state === 'error' ? <ErrorLine text={catalog.detail} /> : actors.length === 0 ? <Empty line1="No actors returned." line2={catalog.detail} /> : (
+        {!catalog ? <Progress text={t('Loading actors')} /> : catalog.state === 'error' ? <ErrorLine text={catalog.detail} /> : actors.length === 0 ? <Empty line1={t('No actors returned.')} line2={catalog.detail} /> : (
           <div className="mt-3 grid max-h-[52vh] grid-cols-3 gap-3 overflow-y-auto pr-1">
             {actors.map((a) => (
               <TileButton key={a.id} onClick={() => { setActor(a); setSituationId(a.situations[0]?.id ?? null); }} aria-pressed={actor?.id === a.id} className="ae-card-2 overflow-hidden text-left" gClassName="!p-0 flex-col" style={actor?.id === a.id ? { boxShadow: '0 0 0 1.5px var(--p-ink) inset, var(--p-shadow-sm)' } : undefined}>
                 <ActorImage url={a.imageUrl} name={a.name} />
-                <div className="px-3 py-2 text-[12.5px]">{a.name}<span className="ae-faint ml-1">{a.situations.length} scene{a.situations.length === 1 ? '' : 's'}</span></div>
+                <div className="px-3 py-2 text-[12.5px]">{a.name}<span className="ae-faint ml-1">{a.situations.length === 1 ? t('{n} scene', { n: a.situations.length }) : t('{n} scenes', { n: a.situations.length })}</span></div>
               </TileButton>
             ))}
           </div>
         )}
         {actor && actor.situations.length > 1 && (
           <div className="mt-3">
-            <div className="ae-cap mb-1.5">Scenes for {actor.name}</div>
+            <div className="ae-cap mb-1.5">{t('Scenes for {name}', { name: actor.name })}</div>
             <div className="flex flex-wrap gap-1.5">{actor.situations.map((s) => (<Chip key={s.id} active={situationId === s.id} onClick={() => setSituationId(s.id)}>{s.tags.slice(0, 2).join(', ') || s.id.slice(0, 6)}</Chip>))}</div>
           </div>
         )}
       </section>
 
       <section>
-        <span className="text-[15px] font-light">Voice</span>
+        <span className="text-[15px] font-light">{t('Voice')}</span>
         <div className="mt-3 max-h-[26vh] space-y-2 overflow-y-auto pr-1">
-          <TileButton onClick={() => setVoiceId(null)} aria-pressed={voiceId === null} className="ae-card-2 flex w-full items-center justify-between px-4 py-3 text-left" gClassName="!px-4 !py-3" style={voiceId === null ? { boxShadow: '0 0 0 1.5px var(--p-ink) inset, var(--p-shadow-sm)' } : undefined}><span className="text-[13px]">Match the actor</span><span className="ae-faint">recommended</span></TileButton>
+          <TileButton onClick={() => setVoiceId(null)} aria-pressed={voiceId === null} className="ae-card-2 flex w-full items-center justify-between px-4 py-3 text-left" gClassName="!px-4 !py-3" style={voiceId === null ? { boxShadow: '0 0 0 1.5px var(--p-ink) inset, var(--p-shadow-sm)' } : undefined}><span className="text-[13px]">{t('Match the actor')}</span><span className="ae-faint">{t('recommended')}</span></TileButton>
           {voices.map((v) => (
             <div key={v.id} className="ae-card-2 flex items-center gap-2 px-4 py-3" style={voiceId === v.id ? { boxShadow: '0 0 0 1.5px var(--p-ink) inset, var(--p-shadow-sm)' } : undefined}>
               <TileButton onClick={() => setVoiceId(v.id)} aria-pressed={voiceId === v.id} className="min-w-0 flex-1 text-left" gClassName="ce-g-tile-flat !p-0 flex-col !items-start"><span className="text-[13px]">{v.name}</span><span className="ae-faint block truncate">{[v.gender, v.age, v.accent, v.descriptive].filter(Boolean).join(', ')}</span></TileButton>
-              {v.audioUrl && <Btn size="sm" onClick={() => preview(v.audioUrl)} title="Preview" aria-label={`Preview ${v.name}`}><Play className="h-3 w-3" strokeWidth={1.8} /></Btn>}
+              {v.audioUrl && <Btn size="sm" onClick={() => preview(v.audioUrl)} title={t('Preview')} aria-label={t('Preview {name}', { name: v.name })}><Play className="h-3 w-3" strokeWidth={1.8} /></Btn>}
             </div>
           ))}
         </div>
-        <div className="mt-5 text-[15px] font-light">Script</div>
+        <div className="mt-5 text-[15px] font-light">{t('Script')}</div>
         {approved.length === 0 ? (
-          <div className="mt-1 flex flex-wrap items-center gap-2"><p className="ae-cap">No approved script yet. Approve a version in the Ad scripter first.</p>{onScripter && <Btn size="sm" onClick={onScripter}>Open the Ad scripter</Btn>}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2"><p className="ae-cap">{t('No approved script yet. Approve a version in the Ad scripter first.')}</p>{onScripter && <Btn size="sm" onClick={onScripter}>{t('Open the Ad scripter')}</Btn>}</div>
         ) : (
           <div className="mt-2">
             <div className="flex flex-wrap gap-1.5">{approved.map((s) => (<Chip key={s.id} active={script?.id === s.id} onClick={() => setScriptId(s.id)} title={campaign?.angles.find((a) => a.id === s.angleId)?.title ?? s.id}>{clip(campaign?.angles.find((a) => a.id === s.angleId)?.title ?? s.id, 26)}</Chip>))}</div>
             {version && <p className="ae-card-2 mt-2 max-h-[20vh] overflow-y-auto p-4 text-[14px] font-light leading-snug">{version.fullScript}</p>}
-            {version && <div className="ae-faint mt-1">{version.wordCount} words, about {Math.ceil(version.wordCount / 2.5)} seconds · {angle?.title}</div>}
+            {version && <div className="ae-faint mt-1">{t('{n} words, about {s} seconds', { n: version.wordCount, s: Math.ceil(version.wordCount / 2.5) })} · {angle?.title}</div>}
           </div>
         )}
       </section>
 
       <section className="space-y-3">
         <div className="ae-card-2 p-5">
-          <div className="text-[15px] font-light">Before you generate</div>
+          <div className="text-[15px] font-light">{t('Before you generate')}</div>
           {catalog && catalog.products.length > 0 && (
-            <div className="mt-3"><Field label="Arcads product"><Select value={productId ?? ''} onChange={(e) => setProductId(e.target.value || null)}>{catalog.products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}</Select></Field></div>
+            <div className="mt-3"><Field label={t('Arcads product')}><Select value={productId ?? ''} onChange={(e) => setProductId(e.target.value || null)}>{catalog.products.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}</Select></Field></div>
           )}
           <div className="mt-3 space-y-1 text-[12.5px]">
-            <div className="flex justify-between"><span className="text-[var(--p-muted)]">Balance</span><span>{health.dry ? 'dry run' : health.arcads.balance?.creditsRemaining != null ? `${fmtCredits(health.arcads.balance.creditsRemaining)} credits` : 'not read yet'}</span></div>
-            <div className="flex justify-between"><span className="text-[var(--p-muted)]">This session</span><span>{fmtCredits(health.arcads.sessionSpent)} of {fmtCredits(health.arcads.sessionCap)} cap</span></div>
-            <div className="flex justify-between"><span className="text-[var(--p-muted)]">Path</span><span>{health.arcads.ugcPath === 'v2' ? 'talking actors v2' : 'script chain v1'}</span></div>
+            <div className="flex justify-between"><span className="text-[var(--p-muted)]">{t('Balance')}</span><span>{health.dry ? t('dry run') : health.arcads.balance?.creditsRemaining != null ? t('{n} credits', { n: fmtCredits(health.arcads.balance.creditsRemaining) }) : t('not read yet')}</span></div>
+            <div className="flex justify-between"><span className="text-[var(--p-muted)]">{t('This session')}</span><span>{t('{spent} of {cap} cap', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })}</span></div>
+            <div className="flex justify-between"><span className="text-[var(--p-muted)]">{t('Path')}</span><span>{health.arcads.ugcPath === 'v2' ? t('talking actors v2') : t('script chain v1')}</span></div>
           </div>
-          <p className="ae-faint mt-3 leading-snug">Arcads charges when you submit. A content-check rejection is not refunded.</p>
-          <Btn tone="ink" onClick={() => setConfirming(true)} disabled={busy || !script || !situationId || !campaign || readOnly || confirming} title={readOnly ? 'Sample data: actions are off' : !script ? 'Approve a script first' : !situationId ? 'Pick an actor first' : 'Asks before it spends'} className="mt-4 w-full" cClassName="ae-sending" data-busy={busy} busy={busy}>{busy ? 'Sending to Arcads' : 'Generate the video'}</Btn>
+          <p className="ae-faint mt-3 leading-snug">{t('Arcads charges when you submit. A content-check rejection is not refunded.')}</p>
+          <Btn tone="ink" onClick={() => setConfirming(true)} disabled={busy || !script || !situationId || !campaign || readOnly || confirming} title={readOnly ? t('Sample data: actions are off') : !script ? t('Approve a script first') : !situationId ? t('Pick an actor first') : t('Asks before it spends')} className="mt-4 w-full" cClassName="ae-sending" data-busy={busy} busy={busy}>{busy ? t('Sending to Arcads') : t('Generate the video')}</Btn>
           {confirming && !busy && (
-            <div className="ae-confirm text-[12.5px]" role="group" aria-label="Confirm the spend">
-              <span className="min-w-0 flex-1">{health.dry ? 'Dry run: a placeholder is delivered, nothing is charged.' : 'Spends Arcads credits on one UGC video, charged on submit.'}</span>
-              <Btn size="sm" tone="ink" onClick={() => void submit(false)} autoFocus>Generate</Btn>
-              <Btn size="sm" onClick={() => setConfirming(false)}>Cancel</Btn>
+            <div className="ae-confirm text-[12.5px]" role="group" aria-label={t('Confirm the spend')}>
+              <span className="min-w-0 flex-1">{health.dry ? t('Dry run: a placeholder is delivered, nothing is charged.') : t('Spends Arcads credits on one UGC video, charged on submit.')}</span>
+              <Btn size="sm" tone="ink" onClick={() => void submit(false)} autoFocus>{t('Generate')}</Btn>
+              <Btn size="sm" onClick={() => setConfirming(false)}>{t('Cancel')}</Btn>
             </div>
           )}
           {capAsk && (
             <div className="ae-card-3 ae-shake mt-2 p-3 text-[12.5px]">
               <div>{capAsk}</div>
-              <div className="mt-2 flex gap-2"><Btn size="sm" tone="ink" onClick={() => submit(true)}>Pass the cap once</Btn><Btn size="sm" onClick={() => setCapAsk(null)}>Cancel</Btn></div>
+              <div className="mt-2 flex gap-2"><Btn size="sm" tone="ink" onClick={() => submit(true)}>{t('Pass the cap once')}</Btn><Btn size="sm" onClick={() => setCapAsk(null)}>{t('Cancel')}</Btn></div>
             </div>
           )}
           {notice && <p className="ae-cap ae-toast mt-2">{notice}</p>}
           {error && <div className="ae-shake"><ErrorLine text={error} /></div>}
         </div>
         <div>
-          <div className="ae-cap mb-2">Delivered</div>
-          {ugcAssets.length === 0 ? <p className="ae-faint">Nothing delivered yet.</p> : (
+          <div className="ae-cap mb-2">{t('Delivered')}</div>
+          {ugcAssets.length === 0 ? <p className="ae-faint">{t('Nothing delivered yet.')}</p> : (
             <div ref={deliveredRef} className="space-y-2">
               {delivered.map((a) => (
                 <div key={a.id} className="ae-card-2 p-3" data-asset-id={a.id} data-highlight={a.id === highlightAssetId || undefined}>
-                  {a.path && !readOnly && !health.dry ? <video src={a.path} controls className="ae-arrive w-full rounded-[12px] bg-black" /> : <div className="ae-arrive rounded-[12px] bg-[var(--p-card)] px-3 py-6 text-center text-[11.5px] text-[var(--p-muted)]">{readOnly ? 'Sample asset' : health.dry && a.path ? `Dry run placeholder delivered: ${a.path.split('/').pop()}` : 'File missing'}</div>}
-                  <div className="ae-faint mt-2 flex justify-between"><span>{a.model} · {a.creditsCharged != null ? `${fmtCredits(a.creditsCharged)} ${a.creditsCharged === 1 ? 'credit' : 'credits'}` : 'charge not read'}</span>{a.path && <DownloadLink href={a.path} className="text-[var(--p-ink)]">Download</DownloadLink>}</div>
+                  {a.path && !readOnly && !health.dry ? <video src={a.path} controls className="ae-arrive w-full rounded-[12px] bg-black" /> : <div className="ae-arrive rounded-[12px] bg-[var(--p-card)] px-3 py-6 text-center text-[11.5px] text-[var(--p-muted)]">{readOnly ? t('Sample asset') : health.dry && a.path ? t('Dry run placeholder delivered: {file}', { file: a.path.split('/').pop() ?? '' }) : t('File missing')}</div>}
+                  <div className="ae-faint mt-2 flex justify-between"><span>{a.model} · {a.creditsCharged != null ? (a.creditsCharged === 1 ? t('{n} credit', { n: fmtCredits(a.creditsCharged) }) : t('{n} credits', { n: fmtCredits(a.creditsCharged) })) : t('charge not read')}</span>{a.path && <DownloadLink href={a.path} className="text-[var(--p-ink)]">{t('Download')}</DownloadLink>}</div>
                 </div>
               ))}
             </div>

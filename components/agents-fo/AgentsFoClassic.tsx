@@ -186,7 +186,7 @@ export function FailoverClassic({ agentId, agentName, model, options }: { agentI
         </button>
       </div>
       {confirming && (
-        <div role="alertdialog" aria-label={t('Confirm failover')} className="flex flex-wrap items-center gap-2 rounded-[8px] border border-os-border bg-os-bg p-2.5 text-[12.5px] text-os-text">
+        <div role="alertdialog" aria-label="Confirm failover" className="flex flex-wrap items-center gap-2 rounded-[8px] border border-os-border bg-os-bg p-2.5 text-[12.5px] text-os-text">
           <span className="min-w-0 flex-1">
             {t('Move {name} from {from} to {to}? Its next chat runs on it; logged to run history.', { name: agentName, from: fo.model || t('its default model'), to: choice })}
           </span>

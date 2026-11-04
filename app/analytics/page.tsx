@@ -104,7 +104,7 @@ function MetricCard({ tile, spark }: { tile: MetricTile; spark?: number[] }) {
   return (
     <div className="hoverable flex flex-col gap-3.5 rounded-lg-t border border-os-border bg-os-surface px-[18px] py-4">
       <div className="flex items-center justify-between gap-3">
-        <Label>{tile.label}</Label>
+        <Label>{t(tile.label)}</Label>
         <span className={`text-[12px] tabular-nums ${flat ? 'text-os-dim' : up ? 'text-os-ok' : 'text-os-err'}`}>
           {flat ? '' : up ? '▲ +' : '▼ '}
           {flat ? '' : tile.delta}
@@ -206,20 +206,20 @@ export default async function AnalyticsPage() {
   const inputs: MetricInput[] = [
     {
       id: 'audience',
-      label: t('Total audience'),
+      label: 'Total audience',
       unit: 'followers',
       source: t('7d · Zernio + email'),
       value: totalAudience || null,
       delta: audience7d != null ? Math.round(audience7d * 10) / 10 : 0,
       deltaPct: audience7d != null,
     },
-    { id: 'subscribers', label: t('Subscribers'), unit: t('subs'), source: 'Beehiiv', value: subs },
-    { id: 'pipeline', label: t('Open Pipeline'), unit: t('deals'), source: 'Attio', value: pipelineDeals },
-    { id: 'stripe', label: t('Stripe Available'), unit: 'usd', source: 'Stripe', value: stripeAvail },
-    { id: 'agent-runs', label: t('Agent Runs'), unit: t('runs'), source: t('all time'), value: runs.length || null, delta: runs7d },
-    { id: 'unread', label: t('Unread · all inboxes'), unit: t('emails'), source: 'Email', value: emailUnread },
-    { id: 'brain', label: t('Brain-store Pages'), unit: t('pages'), source: 'Optimal Engine', value: brainPages },
-    { id: 'dictations', label: t('Dictations'), unit: t('dictations'), source: 'Wispr Flow', value: dictations },
+    { id: 'subscribers', label: 'Subscribers', unit: t('subs'), source: 'Beehiiv', value: subs },
+    { id: 'pipeline', label: 'Open Pipeline', unit: t('deals'), source: 'Attio', value: pipelineDeals },
+    { id: 'stripe', label: 'Stripe Available', unit: 'usd', source: 'Stripe', value: stripeAvail },
+    { id: 'agent-runs', label: 'Agent Runs', unit: t('runs'), source: t('all time'), value: runs.length || null, delta: runs7d },
+    { id: 'unread', label: 'Unread · all inboxes', unit: t('emails'), source: 'Email', value: emailUnread },
+    { id: 'brain', label: 'Brain-store Pages', unit: t('pages'), source: 'Optimal Engine', value: brainPages },
+    { id: 'dictations', label: 'Dictations', unit: t('dictations'), source: 'Wispr Flow', value: dictations },
   ];
   const { live, pending } = splitMetrics(inputs);
   const sparks: Record<string, number[]> = {
@@ -268,7 +268,7 @@ export default async function AnalyticsPage() {
     const aud7 = channelsNetChange(audience.channels.map((c) => c.points), 7, today);
     const runCount = db.agentRuns.count();
     const tiles: AnalyticsTileG[] = live.map((tile) => {
-      const base = { id: tile.id, label: tile.label, source: tile.source, spark: sparks[tile.id] };
+      const base = { id: tile.id, label: t(tile.label), source: tile.source, spark: sparks[tile.id] };
       if (tile.id === 'audience') {
         return { ...base, value: formatFull(tile.value), unit: '', change: aud7 ? { cur: aud7.current, prev: aud7.baseline, window: t('7 days') } : null, href: '/social' };
       }
@@ -303,7 +303,7 @@ export default async function AnalyticsPage() {
           windowRuns,
           lastRunAt,
         }}
-        pending={pending.map((m) => ({ id: m.id, label: m.label, source: m.source, setupHref: setupHrefFor(PENDING_CONNECTOR[m.id] ?? '') }))}
+        pending={pending.map((m) => ({ id: m.id, label: t(m.label), source: m.source, setupHref: setupHrefFor(PENDING_CONNECTOR[m.id] ?? '') }))}
         platforms={dash.platforms.map((pl) => ({
           platform: pl.platform,
           label: PLATFORM_LABELS[pl.platform],
@@ -386,7 +386,7 @@ export default async function AnalyticsPage() {
               <span className="text-[13px] text-os-muted">
                 {runs.length === 0 ? t('No agent runs recorded yet') : t('No runs in the last 14 days')}
               </span>
-              {lastRunAt && <span className="text-[12px] text-os-dim">{t('Last run {date}', { date: fmtShort(lastRunAt.slice(0, 10)) })}</span>}
+              {lastRunAt && <span className="text-[12px] text-os-dim">Last run {fmtShort(lastRunAt.slice(0, 10))}</span>}
             </div>
           ) : (
             <>
@@ -417,7 +417,7 @@ export default async function AnalyticsPage() {
                 >
                   <span className="dot off" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13.5px] font-medium text-os-muted">{m.label}</div>
+                    <div className="truncate text-[13.5px] font-medium text-os-muted">{t(m.label)}</div>
                     <div className="mt-0.5 text-[11.5px] text-os-dim">{m.source}</div>
                   </div>
                   <SetupLink href={setupHrefFor(PENDING_CONNECTOR[m.id] ?? '')} className="shrink-0" />

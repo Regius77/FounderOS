@@ -68,16 +68,16 @@ import { t } from '@/lib/i18n';
 /* ── tabs, states ─────────────────────────────────────────────────────── */
 
 export const LAB_TABS = [
-  { id: 'today', label: 'Today' },
-  { id: 'breakouts', label: 'Breakouts' },
-  { id: 'profile', label: 'Viral profile' },
-  { id: 'trends', label: 'Trends' },
-  { id: 'ideas', label: 'Ideas' },
-  { id: 'scripts', label: 'Scripts' },
-  { id: 'sources', label: 'Sources' },
+  { id: 'today', label: t('Today') },
+  { id: 'breakouts', label: t('Breakouts') },
+  { id: 'profile', label: t('Viral profile') },
+  { id: 'trends', label: t('Trends') },
+  { id: 'ideas', label: t('Ideas') },
+  { id: 'scripts', label: t('Scripts') },
+  { id: 'sources', label: t('Sources') },
 ] as const;
 export type LabTab = (typeof LAB_TABS)[number]['id'];
-export const isLabTab = (v: unknown): v is LabTab => typeof v === 'string' && LAB_TABS.some((t) => t.id === v);
+export const isLabTab = (v: unknown): v is LabTab => typeof v === 'string' && LAB_TABS.some((tab) => tab.id === v);
 
 /**
  * not_configured: no Apify token (and not sample/Filming) → the frame and ONE empty card
@@ -482,7 +482,7 @@ export const humanize = (v: string): string => {
 };
 export const beatToken = (t: LabBeatType): string => `--lab-beat-${t}`;
 /** A beat's display label ("CTA" stays an acronym; the rest are sentence case). */
-export const beatLabel = (t: LabBeatType): string => (t === 'cta' ? 'CTA' : humanize(t));
+export const beatLabel = (beat: LabBeatType): string => (beat === 'cta' ? 'CTA' : humanize(beat));
 export const PLATFORM_LABEL: Record<string, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn', twitter: 'X', hn: 'Hacker News', reddit: 'Reddit', producthunt: 'Product Hunt', google_trends: 'Google Trends', changelog: 'Changelogs', keyword_search: 'Keyword search' };
 export const QUADRANT_LABEL: Record<LabQuadrant, string> = { ideal: t('Ideal'), loyal: t('Loyal'), clickbait: t('Clickbait'), dud: t('Dud') };
 export const familyLabel = (f: string) => (FORMAT_LABEL as Record<string, string>)[f] ?? humanize(f);
@@ -512,7 +512,7 @@ export function ladderView(m: Pick<LabMeasure, 'breakout' | 'breakoutLo' | 'brea
     ratio: ok ? ratio : null,
     text: ok ? fmtRatio(ratio) : null,
     rung,
-    label: ok ? `${fmtRatio(ratio)} · ${rung}` : 'not enough yet',
+    label: ok ? `${fmtRatio(ratio)} · ${rung}` : t('not enough yet'),
     index,
     token: index ? `--lab-ladder-${index}` : '--lab-dim',
     lo: ok ? (m?.breakoutLo ?? null) : null,
@@ -554,10 +554,10 @@ export function context(store: LabStore, now: Date, since: Date): Ctx {
     sources: new Map(store.sources.all().map((s) => [s.id, s])),
     measures: new Map(store.measures.all().map((m) => [m.postId, m])),
     dissections: new Map(store.dissections.all().map((d) => [d.postId, d])),
-    transcripts: new Map(store.transcripts.all().map((t) => [t.postId, t])),
+    transcripts: new Map(store.transcripts.all().map((tr) => [tr.postId, tr])),
     latest: store.metrics.latest(),
     clusters: new Map(store.clusters.all().map((c) => [c.id, c.label])),
-    primaryCluster: new Map(store.topics.all().filter((t) => t.isPrimary).map((t) => [t.postId, t.clusterId])),
+    primaryCluster: new Map(store.topics.all().filter((tp) => tp.isPrimary).map((tp) => [tp.postId, tp.clusterId])),
   };
 }
 
@@ -567,7 +567,7 @@ function creatorRef(c: Ctx, p: LabPost): CreatorRef {
 }
 
 function metricsView(m: LabPostMetrics | undefined, depth: number | null): MetricsView {
-  return { views: m?.views ?? null, likes: m?.likes ?? null, comments: m?.comments ?? null, shares: m?.shares ?? null, saves: m?.saves ?? null, depth, depthText: depth === null ? null : `${pct1(depth)} deep`, capturedAt: m?.capturedAt ?? null };
+  return { views: m?.views ?? null, likes: m?.likes ?? null, comments: m?.comments ?? null, shares: m?.shares ?? null, saves: m?.saves ?? null, depth, depthText: depth === null ? null : t('{pct} deep', { pct: pct1(depth) }), capturedAt: m?.capturedAt ?? null };
 }
 
 export function specimen(c: Ctx, p: LabPost): SpecimenCard {
@@ -672,10 +672,10 @@ export function profileView(c: Ctx, p: LabProfile, all: LabProfile[]): ProfileVi
   const hpv = (hp?.value as { lift?: number | null } | null)?.lift;
   const hookPrior = hp?.supersedesDefault && typeof hpv === 'number' ? { lift: hpv, n: hp.n } : null;
   const yoursVsNiche: ProfileView['yoursVsNiche'] = [
-    { key: 'breakout_rate', label: 'Breakout rate', yours: measured(ownRows.length ? ownBreakouts / ownRows.length : null, ownRows.length, pct1), niche: measured(p.postsN ? p.breakoutsN / p.postsN : null, p.postsN, pct1), source: 'measured' },
-    { key: 'wpm', label: 'Pace', yours: priorWpm !== null ? measured(priorWpm, prior!.n, (v) => `${Math.round(v)} wpm`) : measured(median(ownWpm), ownWpm.length, (v) => `${Math.round(v)} wpm`), niche: measured(nicheWpm, p.breakoutsN, (v) => `${Math.round(v)} wpm`), source: priorWpm !== null ? 'prior' : 'measured' },
-    { key: 'duration', label: 'Duration', yours: durPrior ? measured(durPrior.value, durPrior.n, (v) => `${Math.round(v)} s`) : measured(median(ownDur), ownDur.length, (v) => `${Math.round(v)} s`), niche: measured(p.stats.durationS ? (p.stats.durationS[0] + p.stats.durationS[1]) / 2 : null, p.breakoutsN, (v) => `${Math.round(v)} s`), source: durPrior ? 'prior' : 'measured' },
-    ...(hookPrior && topHook ? [{ key: `hook_lift:${topHook.value}`, label: `${humanize(topHook.value)} hook lift`, yours: measured(hookPrior.lift, hookPrior.n, (v) => fmtRatio(v)!), niche: measured(topHook.lift, topHook.n, (v) => fmtRatio(v)!), source: 'prior' as const }] : []),
+    { key: 'breakout_rate', label: t('Breakout rate'), yours: measured(ownRows.length ? ownBreakouts / ownRows.length : null, ownRows.length, pct1), niche: measured(p.postsN ? p.breakoutsN / p.postsN : null, p.postsN, pct1), source: 'measured' },
+    { key: 'wpm', label: t('Pace'), yours: priorWpm !== null ? measured(priorWpm, prior!.n, (v) => `${Math.round(v)} wpm`) : measured(median(ownWpm), ownWpm.length, (v) => `${Math.round(v)} wpm`), niche: measured(nicheWpm, p.breakoutsN, (v) => `${Math.round(v)} wpm`), source: priorWpm !== null ? 'prior' : 'measured' },
+    { key: 'duration', label: t('Duration'), yours: durPrior ? measured(durPrior.value, durPrior.n, (v) => `${Math.round(v)} s`) : measured(median(ownDur), ownDur.length, (v) => `${Math.round(v)} s`), niche: measured(p.stats.durationS ? (p.stats.durationS[0] + p.stats.durationS[1]) / 2 : null, p.breakoutsN, (v) => `${Math.round(v)} s`), source: durPrior ? 'prior' : 'measured' },
+    ...(hookPrior && topHook ? [{ key: `hook_lift:${topHook.value}`, label: t('{hook} hook lift', { hook: humanize(topHook.value) }), yours: measured(hookPrior.lift, hookPrior.n, (v) => fmtRatio(v)!), niche: measured(topHook.lift, topHook.n, (v) => fmtRatio(v)!), source: 'prior' as const }] : []),
   ];
   return {
     id: p.id,
@@ -721,11 +721,11 @@ export function dnaView(c: Ctx): DnaView {
     contrast: d.contrast ? `${d.contrast.text.charAt(0).toUpperCase()}${d.contrast.text.slice(1)}.` : null,
     voice: {
       wpm: measured(v.wpm.median, v.wpm.n, (x) => `${Math.round(x)} wpm`),
-      sentenceMean: measured(v.sentence.mean, v.sentence.n, (x) => `${x} words a sentence`),
-      sentenceSpread: enough(v.sentence.n) && v.sentence.p10 !== null && v.sentence.p90 !== null ? `${v.sentence.p10} to ${v.sentence.p90} words (p10 to p90)` : null,
+      sentenceMean: measured(v.sentence.mean, v.sentence.n, (x) => t('{n} words a sentence', { n: x })),
+      sentenceSpread: enough(v.sentence.n) && v.sentence.p10 !== null && v.sentence.p90 !== null ? t('{lo} to {hi} words (p10 to p90)', { lo: v.sentence.p10, hi: v.sentence.p90 }) : null,
       openers: enough(v.sentence.n) ? v.openers.map((o) => ({ word: o.word, shareText: pctText(o.share), n: o.n })) : [],
-      transitions: enough(v.transcripts) ? v.transitions.map((t) => ({ phrase: t.phrase, per1kText: `${t.per1k} per 1,000 words`, n: t.n })) : [],
-      fillerRate: measured(v.fillerRate, v.transcripts, (x) => `${x} per 100 words`),
+      transitions: enough(v.transcripts) ? v.transitions.map((tr) => ({ phrase: tr.phrase, per1kText: t('{n} per 1,000 words', { n: tr.per1k }), n: tr.n })) : [],
+      fillerRate: measured(v.fillerRate, v.transcripts, (x) => t('{n} per 100 words', { n: x })),
       transcripts: v.transcripts,
     },
     gaps: d.gaps.slice(0, 8).map((g) => ({ family: g.family, familyLabel: familyLabel(g.family), feature: g.feature, label: `${FEATURE_LABEL[g.feature] ?? humanize(g.feature)}: ${valueLabel(c, g.feature, g.value).toLowerCase()}`, nicheLift: g.nicheLift, nicheLiftText: fmtRatio(g.nicheLift)!, n: g.n, yourShare: g.yourShare, yourShareText: pctText(g.yourShare), yourN: g.yourN })),
@@ -774,7 +774,7 @@ export function trendsView(c: Ctx, ideas: LabIdea[]): TrendsView {
     weeks,
     series,
     rows,
-    feedItems: c.store.trendItems.all().slice(0, 10).map((t) => ({ id: t.id, feed: t.feed, title: t.title, url: t.url, score: t.score, seenAt: t.seenAt, clusterLabel: t.clusterId ? (c.clusters.get(t.clusterId) ?? null) : null })),
+    feedItems: c.store.trendItems.all().slice(0, 10).map((it) => ({ id: it.id, feed: it.feed, title: it.title, url: it.url, score: it.score, seenAt: it.seenAt, clusterLabel: it.clusterId ? (c.clusters.get(it.clusterId) ?? null) : null })),
   };
 }
 
@@ -866,7 +866,7 @@ function scriptSheet(c: Ctx, id: string, scriptByIdea: Map<string, string>): Scr
     publishCandidates: s.status === 'draft'
       ? publishCandidates(c.store, id, 6).flatMap((x) => {
           const p = c.postById.get(x.postId);
-          return p ? [{ ...specimen(c, p), similarity: x.similarity, similarityText: x.similarity === null ? null : `${Math.round(x.similarity * 100)}% match` }] : [];
+          return p ? [{ ...specimen(c, p), similarity: x.similarity, similarityText: x.similarity === null ? null : t('{pct}% match', { pct: Math.round(x.similarity * 100) }) }] : [];
         })
       : [],
   };
@@ -878,29 +878,29 @@ export function specimenSheet(c: Ctx, postId: string): SpecimenSheet | null {
   const card = specimen(c, p);
   const d = c.dissections.get(p.id) ?? null;
   const m = c.measures.get(p.id) ?? null;
-  const t = c.transcripts.get(p.id) ?? null;
+  const tx = c.transcripts.get(p.id) ?? null;
   const snaps = c.store.metrics.forPost(p.id);
   const profile = d ? c.store.profiles.latest().find((x) => x.formatFamily === d.format) ?? null : null;
   let why: WhyLift[] = [];
   if (profile && d && m) {
-    const rowFeatures = featuresOf({ post: p, dissection: d, measure: m, transcript: t, clusterId: c.primaryCluster.get(p.id) ?? null });
+    const rowFeatures = featuresOf({ post: p, dissection: d, measure: m, transcript: tx, clusterId: c.primaryCluster.get(p.id) ?? null });
     why = profile.features
       .filter((f) => f.shown && f.lift !== null && f.lift > 1 && rowFeatures[f.feature] === f.value)
       .sort((a, b) => b.lift! - a.lift!)
       .map((f) => ({ feature: f.feature, featureLabel: FEATURE_LABEL[f.feature] ?? humanize(f.feature), value: f.value, valueLabel: valueLabel(c, f.feature, f.value), lift: f.lift!, liftText: fmtRatio(f.lift)!, n: f.n, lo: f.lo, hi: f.hi }));
   }
-  const segments = t && t.status === 'done' && d?.beats.length ? cutTranscript(t.text, d.beats) : [];
+  const segments = tx && tx.status === 'done' && d?.beats.length ? cutTranscript(tx.text, d.beats) : [];
   const followersN = c.store.creatorSnapshots.forSource(p.sourceId).filter((s) => s.followers !== null).length;
   return {
     ...card,
     caption: p.caption,
     dissection: d ? { hookForm: d.hookForm, hookFormLabel: humanize(d.hookForm), trigger: d.emotionalTrigger, triggerLabel: humanize(d.emotionalTrigger), channel: d.hookChannel, structure: d.structureType, structureLabel: humanize(d.structureType), pacing: d.pacing, pillar: d.pillar, cta: d.ctaType, firstFrameText: d.firstFrameText, tension: d.tension, confidences: d.confidences, modelId: d.modelId, promptVersion: d.promptVersion } : null,
     topics: c.store.topics.forPost(p.id).map((x) => ({ topic: x.topic, angle: x.angle, isPrimary: x.isPrimary, clusterId: x.clusterId, clusterLabel: x.clusterId ? (c.clusters.get(x.clusterId) ?? null) : null })),
-    transcript: t ? { status: t.status, text: t.text, wordCount: t.wordCount, wpm: t.wpm, provider: t.provider, segments } : null,
+    transcript: tx ? { status: tx.status, text: tx.text, wordCount: tx.wordCount, wpm: tx.wpm, provider: tx.provider, segments } : null,
     snapshots: snaps.map((s) => ({ capturedAt: s.capturedAt, hoursSincePost: p.postedAt ? Math.round(hoursBetween(p.postedAt, s.capturedAt) * 10) / 10 : null, views: s.views, likes: s.likes, comments: s.comments, shares: s.shares, saves: s.saves })),
     // reach and velocity are single-post ratios: "enough" means the denominator is real (a follower read / a launch read)
-    reach: measured(m?.reach ?? null, m?.reach != null ? Math.max(MIN_N, followersN) : 0, (v) => `${fmtRatio(v)} their audience`),
-    velocity: measured(m?.velocity ?? null, m?.velocity != null ? MIN_N : 0, (v) => `${fmtRatio(v)} the ${PLATFORM_LABEL[p.platform]} pace`),
+    reach: measured(m?.reach ?? null, m?.reach != null ? Math.max(MIN_N, followersN) : 0, (v) => t('{ratio} their audience', { ratio: String(fmtRatio(v)) })),
+    velocity: measured(m?.velocity ?? null, m?.velocity != null ? MIN_N : 0, (v) => t('{ratio} the {platform} pace', { ratio: String(fmtRatio(v)), platform: PLATFORM_LABEL[p.platform] })),
     baseline: { n: m?.baselineN ?? 0, confidence: m?.baselineConfidence ?? 'low', median: m?.breakout ? (c.latest.get(p.id)?.views ?? 0) / m.breakout : null, ownWeight: m ? Math.min(1, m.baselineN / 10) : null, enough: enough(m?.baselineN ?? 0) },
     why,
     profileId: profile?.id ?? null,
@@ -1040,13 +1040,13 @@ export function buildLabView(db: LabStore | { lab: LabStore }, opts: BuildOpts):
     fixtureName: opts.fixtureName ?? null,
     defaultTab: state === 'empty' ? 'sources' : 'today',
   };
-  const header = { title: 'Content Lab', subtitle: "What's breaking out in your formats, and what to make next.", lastSyncAt: null as string | null, source: 'Apify' as const, agent: { id: 'content-lab' as const, name: opts.agentName ?? 'Content Lab' } };
+  const header = { title: 'Content Lab', subtitle: t("What's breaking out in your formats, and what to make next."), lastSyncAt: null as string | null, source: 'Apify' as const, agent: { id: 'content-lab' as const, name: opts.agentName ?? 'Content Lab' } };
 
   const base: LabView = {
     generatedAt: now.toISOString(),
     mode,
     header,
-    tabs: LAB_TABS.map((t) => ({ id: t.id, label: t.label, count: null })),
+    tabs: LAB_TABS.map((tab) => ({ id: tab.id, label: tab.label, count: null })),
     tab,
     runStrip: null,
     focus: { post: null, idea: null, script: null },

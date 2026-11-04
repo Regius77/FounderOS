@@ -26,12 +26,13 @@ import type { BusinessSeries } from '@/lib/bank-statements';
 import { processorPeriodLabel, processorSetupHref, type ExpensesSource } from '@/lib/finances';
 import type { SpendCard } from '@/lib/spend-report';
 import { Spending } from './Spending';
+import { localeTag, t } from '@/lib/i18n';
 
 const HIDE_VALUES_KEY = 'finances:hide-values';
 const MASK_STYLE: React.CSSProperties = { filter: 'blur(6px)', userSelect: 'none' };
 
 const usd = (n: number, cents = false) =>
-  n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
+  n.toLocaleString(localeTag(), { style: 'currency', currency: 'USD', maximumFractionDigits: cents ? 2 : 0 });
 
 function ago(unix: number): string {
   const mins = Math.round((Date.now() - unix * 1000) / 60_000);
@@ -145,7 +146,7 @@ export function FinancesClient({
         label: c.label,
         value: c.usd,
         usd: c.usd,
-        note: `${categoryTotal > 0 ? Math.round((c.usd / categoryTotal) * 100) : 0}% of ${headlinePeriod} revenue`,
+        note: t('{pct}% of {period} revenue', { pct: categoryTotal > 0 ? Math.round((c.usd / categoryTotal) * 100) : 0, period: headlinePeriod }),
         dim: activeQuery && !matchesQuery({ payee: c.label, category: c.label, amountUsd: c.usd }, query),
       })),
     [categories, categoryTotal, headlinePeriod, activeQuery, query],
@@ -160,9 +161,9 @@ export function FinancesClient({
   );
   const filteredWise = useMemo(
     () =>
-      (wiseOut ?? []).filter((t) =>
+      (wiseOut ?? []).filter((w) =>
         matchesQuery(
-          { payee: t.reference ?? t.status, description: t.reference ?? t.status, amountUsd: t.amountCents / 100 },
+          { payee: w.reference ?? w.status, description: w.reference ?? w.status, amountUsd: w.amountCents / 100 },
           query,
         ),
       ),
@@ -183,30 +184,30 @@ export function FinancesClient({
   return (
     <div>
       <PageHeader
-        eyebrow="Every processor, one view"
-        title="Finances"
+        eyebrow={t('Every processor, one view')}
+        title={t('Finances')}
         right={
           <div className="flex flex-col items-end gap-2">
             <button
               type="button"
               onClick={() => setHideValues((v) => !v)}
               aria-pressed={hideValues}
-              aria-label={hideValues ? 'Show values' : 'Hide values'}
+              aria-label={hideValues ? t('Show values') : t('Hide values')}
               className="inline-flex items-center gap-1.5 rounded-full border border-os-border px-2.5 py-1 text-[11.5px] text-os-muted transition-colors hover:border-os-border-strong hover:text-os-text"
             >
               {hideValues ? <EyeOff size={13} strokeWidth={1.7} /> : <Eye size={13} strokeWidth={1.7} />}
-              {hideValues ? 'Hidden' : 'Visible'}
+              {hideValues ? t('Hidden') : t('Visible')}
             </button>
             <div className="flex items-baseline gap-2">
               <span className="text-[28px] font-normal leading-none tracking-[-0.01em] tabular-nums text-os-text">
                 <Money hide={hideValues}>{usd(headlineTotal)}</Money>
               </span>
-              <span className="text-[12px] text-os-dim">Revenue · {headlinePeriod}</span>
+              <span className="text-[12px] text-os-dim">{t('Revenue')} · {headlinePeriod}</span>
             </div>
             <Badge tone={netMonthly >= 0 ? 'ok' : 'err'}>
               <Money hide={hideValues}>
                 {netMonthly >= 0 ? '+' : '−'}
-                {usd(Math.abs(netMonthly))} net {headlinePeriod}
+                {t('{amount} net {period}', { amount: usd(Math.abs(netMonthly)), period: headlinePeriod })}
               </Money>
             </Badge>
           </div>
@@ -218,9 +219,9 @@ export function FinancesClient({
       <section className="mb-6">
         <div className="rounded-[12px] border border-os-border bg-os-surface pb-4">
           <div className="flex items-center justify-between px-6 pt-5">
-            <h2 className="text-[19px] font-semibold tracking-[-0.01em]">Income by category</h2>
+            <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{t('Income by category')}</h2>
             <span className="text-[12.5px] text-os-dim">
-              {headlinePeriod} · {categories.length} categories
+              {headlinePeriod} · {t('{n} categories', { n: categories.length })}
             </span>
           </div>
           {categoryTotal > 0 ? (
@@ -228,7 +229,7 @@ export function FinancesClient({
               stages={heroStages}
               active={heroActive}
               onSelect={(_, i) => setHeroActive(i)}
-              formatValue={(v) => Math.round(v).toLocaleString('en-US')}
+              formatValue={(v) => Math.round(v).toLocaleString(localeTag())}
               responsive
               compactValue={formatCompact}
               compactUsd={formatUsdCompact}
@@ -239,21 +240,21 @@ export function FinancesClient({
                 <>
                   <div className="mb-2 flex items-center gap-2 px-1 text-[13px] text-os-muted">
                     <Sparkles size={14} strokeWidth={1.7} className="text-os-accent" />
-                    What are you looking for?
+                    {t('What are you looking for?')}
                   </div>
                   <label className="flex items-center gap-2 rounded-[12px] border border-os-border bg-os-bg px-3.5 py-2.5">
                     <SearchIcon size={14} strokeWidth={1.7} className="shrink-0 text-os-dim" />
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search transactions"
+                      placeholder={t('Search transactions')}
                       className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-os-dim"
                     />
                     {query && (
                       <button
                         type="button"
                         onClick={() => setQuery('')}
-                        aria-label="Clear search"
+                        aria-label={t('Clear search')}
                         className="shrink-0 text-os-dim transition-colors hover:text-os-text"
                       >
                         <X size={13} strokeWidth={1.8} />
@@ -269,8 +270,8 @@ export function FinancesClient({
             // to chart — an honest connect state instead of a faked or
             // all-zero graph.
             <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-              <p className="text-[13px] text-os-muted">No processor income configured yet.</p>
-              <SetupLink href="/integrations" hint="connect a payment processor to see income by category" />
+              <p className="text-[13px] text-os-muted">{t('No processor income configured yet.')}</p>
+              <SetupLink href="/integrations" hint={t('connect a payment processor to see income by category')} />
             </div>
           )}
         </div>
@@ -280,7 +281,7 @@ export function FinancesClient({
       <section className="mb-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         <div className="flex flex-col gap-2 rounded-lg-t border border-os-border bg-os-surface px-4 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            <Label>Income · {headlinePeriod}</Label>
+            <Label>{t('Income')} · {headlinePeriod}</Label>
             <ArrowDownLeft className="h-3.5 w-3.5 text-os-dim" strokeWidth={1.6} />
           </div>
           <div className="flex items-baseline justify-between gap-3">
@@ -288,14 +289,14 @@ export function FinancesClient({
               <Money hide={hideValues}>{usd(incomeMtd)}</Money>
             </span>
             <span className="min-w-0 truncate text-[12.5px] text-os-muted">
-              {liveCount}/{accounts.length} live
+              {t('{n}/{total} live', { n: liveCount, total: accounts.length })}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2 rounded-lg-t border border-os-border bg-os-surface px-4 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            <Label>Expenses · /mo</Label>
+            <Label>{t('Expenses · /mo')}</Label>
             <ArrowUpRight className="h-3.5 w-3.5 text-os-dim" strokeWidth={1.6} />
           </div>
           <div className="flex items-baseline justify-between gap-3">
@@ -306,15 +307,15 @@ export function FinancesClient({
               <a
                 href="#statement-upload"
                 data-expenses-empty
-                title="Upload a card or bank statement below to see monthly spend"
+                title={t('Upload a card or bank statement below to see monthly spend')}
                 className="min-w-0 truncate text-[12.5px] text-os-accent hover:underline"
               >
-                No statements yet
+                {t('No statements yet')}
               </a>
             ) : (
               <span className="flex min-w-0 items-center gap-2 truncate text-[12.5px] text-os-muted">
                 {expensesSource === 'uploaded' && <span className="dot ok" />}
-                {expensesSource === 'uploaded' ? (monthLabel ? `Uploaded · ${monthLabel}` : 'Uploaded') : 'per month'}
+                {expensesSource === 'uploaded' ? (monthLabel ? `${t('Uploaded')} · ${monthLabel}` : t('Uploaded')) : t('per month')}
               </span>
             )}
           </div>
@@ -322,7 +323,7 @@ export function FinancesClient({
 
         <div className="flex flex-col gap-2 rounded-lg-t border border-os-border bg-os-surface px-4 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            <Label>Net · {headlinePeriod}</Label>
+            <Label>{t('Net')} · {headlinePeriod}</Label>
             <Scale className="h-3.5 w-3.5 text-os-dim" strokeWidth={1.6} />
           </div>
           <div className="flex items-baseline justify-between gap-3">
@@ -333,14 +334,14 @@ export function FinancesClient({
               </Money>
             </span>
             <span className="min-w-0 truncate text-[12.5px] text-os-muted">
-              {expensesSource === 'none' ? 'no expenses uploaded' : 'in − out'}
+              {expensesSource === 'none' ? t('no expenses uploaded') : t('in − out')}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2 rounded-lg-t border border-os-border bg-os-surface px-4 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            <Label>Stripe balance</Label>
+            <Label>{t('Stripe balance')}</Label>
             <Landmark className="h-3.5 w-3.5 text-os-dim" strokeWidth={1.6} />
           </div>
           <div className="flex items-baseline justify-between gap-3">
@@ -349,9 +350,9 @@ export function FinancesClient({
             </span>
             <span className="min-w-0 truncate text-[12.5px] text-os-muted">
               {stripeLive ? (
-                <Money hide={hideValues}>{usd(pending, true)} pending</Money>
+                <Money hide={hideValues}>{t('{amount} pending', { amount: usd(pending, true) })}</Money>
               ) : (
-                <SetupLink href={processorSetupHref('stripe')} label="Connect Stripe" hint="STRIPE_SECRET_KEY" />
+                <SetupLink href={processorSetupHref('stripe')} label={t('Connect Stripe')} hint="STRIPE_SECRET_KEY" />
               )}
             </span>
           </div>
@@ -361,7 +362,7 @@ export function FinancesClient({
       {/* Income by business — from uploaded bank statements */}
       {bankSeries.length > 0 && (
         <section className="mb-5">
-          <SectionHead label="Income · by business" count="bank deposits" />
+          <SectionHead label={t('Income · by business')} count={t('bank deposits')} />
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2" style={hideValues ? MASK_STYLE : undefined}>
             {bankSeries.map((s) => (
               <BusinessIncomeChart key={s.business} series={s} />
@@ -373,13 +374,13 @@ export function FinancesClient({
       {/* Monthly expenses by category */}
       <section className="mb-5">
         <SectionHead
-          label="Monthly expenses · by category"
+          label={t('Monthly expenses · by category')}
           count={
             expensesSource === 'none'
-              ? 'none uploaded'
+              ? t('none uploaded')
               : expensesSource === 'uploaded' && monthLabel
                 ? `${usd(expenses)} · ${monthLabel}`
-                : `${usd(expenses)} /mo`
+                : t('{amount} /mo', { amount: usd(expenses) })
           }
         />
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[1.15fr_1fr_0.85fr]">
@@ -390,9 +391,9 @@ export function FinancesClient({
               data-expenses-empty
               className="flex flex-col items-center justify-center gap-2 rounded-lg-t border border-os-border bg-os-surface px-6 py-10 text-center lg:col-span-2"
             >
-              <p className="text-[14px] text-os-text">Upload a card CSV to see spend by category</p>
+              <p className="text-[14px] text-os-text">{t('Upload a card CSV to see spend by category')}</p>
               <p className="max-w-[380px] text-[12.5px] text-os-muted">
-                Nothing has been uploaded yet, so there are no expense figures on this page.
+                {t('Nothing has been uploaded yet, so there are no expense figures on this page.')}
               </p>
             </div>
           ) : (
@@ -401,10 +402,10 @@ export function FinancesClient({
             <SharePie
               items={byCategory.map((c) => ({ key: c.category, label: c.category, value: Math.round(c.total * 100) }))}
               total={Math.round(expenses * 100)}
-              centerLabel={expensesSource === 'uploaded' && monthLabel ? monthLabel : 'per month'}
+              centerLabel={expensesSource === 'uploaded' && monthLabel ? monthLabel : t('per month')}
               format={(cents) => usd(cents / 100)}
               donutPx={190}
-              ariaLabel="Monthly expenses by category"
+              ariaLabel={t('Monthly expenses by category')}
             />
           </div>
 
@@ -430,7 +431,7 @@ export function FinancesClient({
                 );
               })}
               {byCategory.length === 0 && (
-                <p className="py-4 text-center text-[12.5px] text-os-dim">Nothing matches that filter.</p>
+                <p className="py-4 text-center text-[12.5px] text-os-dim">{t('Nothing matches that filter.')}</p>
               )}
             </div>
           </div>
@@ -452,7 +453,7 @@ export function FinancesClient({
       )}
 
       <section className="mb-5">
-        <SectionHead label="Income · by processor" count={`${liveCount}/${accounts.length} live`} />
+        <SectionHead label={t('Income · by processor')} count={t('{n}/{total} live', { n: liveCount, total: accounts.length })} />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {accounts.map((a) => {
             const dim = activeQuery && !matchesQuery(accountSearchable(a), query);
@@ -469,14 +470,14 @@ export function FinancesClient({
                   </div>
                   {a.live ? (
                     <Badge>
-                      <span className="dot ok pulse" /> Live
+                      <span className="dot ok pulse" /> {t('Live')}
                     </Badge>
                   ) : a.configured ? (
                     <Badge>
-                      <span className="dot warn" /> Key set
+                      <span className="dot warn" /> {t('Key set')}
                     </Badge>
                   ) : (
-                    <SetupLink href={processorSetupHref(a.id)} label="Connect" hint={`connect ${a.processor} to pull its income`} />
+                    <SetupLink href={processorSetupHref(a.id)} label={t('Connect')} hint={t('connect {processor} to pull its income', { processor: a.processor })} />
                   )}
                 </div>
                 <div className="mt-3 flex items-baseline gap-2.5">
@@ -505,26 +506,26 @@ export function FinancesClient({
       {/* Outgoing transfers — Wise (hidden entirely until a Wise key lands) */}
       {wiseOut && (
         <section className="mb-5">
-          <SectionHead label="Outgoing · Wise" count={`${filteredWise.length} transfer${filteredWise.length === 1 ? '' : 's'}`} />
+          <SectionHead label={t('Outgoing · Wise')} count={filteredWise.length === 1 ? t('{n} transfer', { n: filteredWise.length }) : t('{n} transfers', { n: filteredWise.length })} />
           {filteredWise.length === 0 ? (
             <div className="rounded-lg-t border border-os-border bg-os-surface px-5 py-3 text-[12.5px] text-os-muted">
-              {activeQuery ? 'Nothing matches that search.' : 'Wise connected · no recent outgoing transfers'}
+              {activeQuery ? t('Nothing matches that search.') : t('Wise connected · no recent outgoing transfers')}
             </div>
           ) : (
             <ul className="space-y-2.5">
-              {filteredWise.map((t, i) => (
+              {filteredWise.map((w, i) => (
                 <li
-                  key={`${t.created}-${i}`}
+                  key={`${w.created}-${i}`}
                   className="hoverable flex items-center gap-5 rounded-lg-t border border-os-border bg-os-surface px-5 py-3"
                 >
                   <Send className="h-[15px] w-[15px] shrink-0 text-os-dim" strokeWidth={1.6} />
                   <span className="text-[15px] tabular-nums text-os-err">
                     <Money hide={hideValues}>
-                      −{(t.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: t.currency })}
+                      −{(w.amountCents / 100).toLocaleString(localeTag(), { style: 'currency', currency: w.currency })}
                     </Money>
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-os-muted">{t.reference ?? t.status}</span>
-                  <span className="shrink-0 text-[12.5px] text-os-dim">{t.status}</span>
+                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-os-muted">{w.reference ?? w.status}</span>
+                  <span className="shrink-0 text-[12.5px] text-os-dim">{w.status}</span>
                 </li>
               ))}
             </ul>
@@ -535,10 +536,10 @@ export function FinancesClient({
       {/* Recent income — real Stripe charges */}
       {stripeLive && recent.length > 0 && (
         <section>
-          <SectionHead label="Recent income" count="Stripe · live" />
+          <SectionHead label={t('Recent income')} count={t('Stripe · live')} />
           {filteredRecent.length === 0 ? (
             <div className="rounded-lg-t border border-os-border bg-os-surface px-5 py-3 text-[12.5px] text-os-muted">
-              Nothing matches that search.
+              {t('Nothing matches that search.')}
             </div>
           ) : (
             <ul className="space-y-2.5">

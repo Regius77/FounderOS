@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
@@ -31,8 +32,8 @@ export function useNow(active: boolean, initial?: number): number {
   useEffect(() => {
     setNow(Date.now());
     if (!active) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, [active]);
   return now;
 }
@@ -104,20 +105,20 @@ function KitRunStrip({ runs, now, onOpen, onEmpty, onRunsDrawer }: ScrubberProps
     else if (dir === 'wider') onRunsDrawer(runs.filter((r) => !order.includes(r)).map((r) => r.id));
   };
 
-  const line1 = current ? runHeadline(current) : runs.length ? `Nothing in the last ${rangeSpec(range).label}` : 'Nothing has run yet';
-  const line2 = current ? runSubline(current, now) : runs.length ? `${placement.earlier} earlier` : 'type a concept to begin';
+  const line1 = current ? runHeadline(current) : runs.length ? t('Nothing in the last {range}', { range: t(rangeSpec(range).label) }) : t('Nothing has run yet');
+  const line2 = current ? runSubline(current, now) : runs.length ? t('{n} earlier', { n: placement.earlier }) : t('type a concept to begin');
   const pillLeft = thumbX === null ? '50%' : `${Math.max(0, Math.min(100, (thumbX / W) * 100))}%`;
   // Keep the centred pill inside the strip: a run near either edge would push half of it off
   // the page (390px: scrollWidth 463). Measured after layout, since the pill's width follows its text.
   const thumb = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const t = thumb.current;
+    const pill = thumb.current;
     const el = wrap.current;
-    if (!t || !el) return;
+    if (!pill || !el) return;
     const full = el.clientWidth;
-    const half = t.offsetWidth / 2;
+    const half = pill.offsetWidth / 2;
     const centre = (parseFloat(pillLeft) / 100) * full;
-    t.style.left = `${Math.max(half, Math.min(full - half, centre))}px`;
+    pill.style.left = `${Math.max(half, Math.min(full - half, centre))}px`;
   });
 
   return (
@@ -125,7 +126,7 @@ function KitRunStrip({ runs, now, onOpen, onEmpty, onRunsDrawer }: ScrubberProps
       <GTimelineStrip
         events={events}
         spanMs={rangeSpec(range).ms}
-        agoLabel={rangeSpec(range).ago}
+        agoLabel={t(rangeSpec(range).ago)}
         now={now}
         readOnly
         statusColor={STATUS_TONE}
@@ -133,17 +134,17 @@ function KitRunStrip({ runs, now, onOpen, onEmpty, onRunsDrawer }: ScrubberProps
         onDot={(id) => setSelectedId(id)}
         onCluster={onCluster}
         onRangeStep={onRangeStep}
-        rangeControl={<GSegmented label="Timeline range" size="sm" value={range} onChange={chooseRange} options={TIMELINE_RANGES.map((r) => ({ value: r.key, label: r.label }))} />}
-        emptyText={runs.length ? `Nothing in the last ${rangeSpec(range).label}` : 'Nothing has run yet'}
-        label="Runs on the timeline"
+        rangeControl={<GSegmented label={t('Timeline range')} size="sm" value={range} onChange={chooseRange} options={TIMELINE_RANGES.map((r) => ({ value: r.key, label: t(r.label) }))} />}
+        emptyText={runs.length ? t('Nothing in the last {range}', { range: t(rangeSpec(range).label) }) : t('Nothing has run yet')}
+        label={t('Runs on the timeline')}
       />
       <div ref={thumb} className="ce-g-tl-thumb" style={{ left: pillLeft }}>
         <GButton
           size="sm"
           onClick={() => (current ? onOpen(current) : runs.length === 0 ? onEmpty() : undefined)}
           disabled={!current && runs.length > 0}
-          disabledReason={`Nothing in the last ${rangeSpec(range).label}`}
-          title={current ? `Open: ${line1}` : 'Open the Creative generator'}
+          disabledReason={t('Nothing in the last {range}', { range: t(rangeSpec(range).label) })}
+          title={current ? t('Open: {what}', { what: line1 }) : t('Open the Creative generator')}
           className="ce-g-tl-pill"
         >
           <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden />
@@ -162,7 +163,7 @@ export function RenderTrack({ runs, now }: { runs: ResolvedRun[]; now: number })
   const recentFail = running.length ? null : runs.find((r) => (r.status === 'failed' || r.status === 'stale') && r.finishedAt && now - Date.parse(r.finishedAt) < 10 * 60_000) ?? null;
   if (running.length === 0) {
     return (
-      <div className="ae-rtrack" style={{ '--pct': 0, '--typ': TYPICAL_AT } as React.CSSProperties} data-phase={recentFail ? 'failed' : 'idle'} role="img" aria-label={recentFail ? `${kindNoun(recentFail.kind)} failed` : 'Nothing rendering'} title={recentFail ? recentFail.error ?? 'Failed' : 'Nothing is rendering'}>
+      <div className="ae-rtrack" style={{ '--pct': 0, '--typ': TYPICAL_AT } as React.CSSProperties} data-phase={recentFail ? 'failed' : 'idle'} role="img" aria-label={recentFail ? t('{kind} failed', { kind: t(kindNoun(recentFail.kind)) }) : t('Nothing rendering')} title={recentFail ? recentFail.error ?? t('Failed') : t('Nothing is rendering')}>
         <span className="ae-rt-line" />
         <span className="ae-rt-tick" />
         <span className="ae-rt-ring" />
@@ -176,7 +177,7 @@ export function RenderTrack({ runs, now }: { runs: ResolvedRun[]; now: number })
       {running.slice(0, 3).map((r, i) => {
         const p = progressFor(r, now);
         return (
-          <div key={r.id} className="ae-rtrack" style={{ '--pct': p.pct, '--typ': p.tick } as React.CSSProperties} data-mini={i > 0 || undefined} data-phase={p.phase} role="img" aria-label={`${kindNoun(r.kind)} ${fmtElapsed(p.elapsedMs)} elapsed. ${progressTitle(r)}`} title={progressTitle(r)}>
+          <div key={r.id} className="ae-rtrack" style={{ '--pct': p.pct, '--typ': p.tick } as React.CSSProperties} data-mini={i > 0 || undefined} data-phase={p.phase} role="img" aria-label={`${t('{kind} {elapsed} elapsed.', { kind: t(kindNoun(r.kind)), elapsed: fmtElapsed(p.elapsedMs) })} ${progressTitle(r)}`} title={progressTitle(r)}>
             <span className="ae-rt-line" />
             <span className="ae-rt-fill" />
             <span className="ae-rt-tick" />
@@ -204,11 +205,11 @@ export function BriefStatusControl(props: { status: BriefStatus; disabled?: bool
   const { status, disabled = false, disabledReason, onChange } = props;
   return (
     <GSegmented
-      label="Brief status"
+      label={t('Brief status')}
       size="sm"
       value={status}
       onChange={(s) => { if (!disabled && s !== status) onChange(s); }}
-      options={BRIEF_STATUSES.map((s) => ({ value: s, label: briefStopLabel(s), disabled: disabled && s !== status, title: disabled ? disabledReason : 'Brief status: draft, ready, or sent to a creator' }))}
+      options={BRIEF_STATUSES.map((s) => ({ value: s, label: t(briefStopLabel(s)), disabled: disabled && s !== status, title: disabled ? disabledReason : t('Brief status: draft, ready, or sent to a creator') }))}
       className="ce-g-bstat"
     />
   );

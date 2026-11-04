@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
@@ -97,8 +98,8 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
   }, [runs]);
   useEffect(() => {
     if (!pulseId) return;
-    const t = setTimeout(() => setPulseId(null), 1400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setPulseId(null), 1400);
+    return () => clearTimeout(timer);
   }, [pulseId]);
 
   useLayoutEffect(() => {
@@ -171,8 +172,8 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
   };
 
   // Pill text (F12, F13).
-  const line1 = current ? runHeadline(current) : runs.length ? `Nothing in the last ${rangeSpec(range).label}` : 'Nothing has run yet';
-  const line2 = current ? runSubline(current, now) : runs.length ? `${placement.earlier} earlier` : 'type a concept to begin';
+  const line1 = current ? runHeadline(current) : runs.length ? t('Nothing in the last {range}', { range: t(rangeSpec(range).label) }) : t('Nothing has run yet');
+  const line2 = current ? runSubline(current, now) : runs.length ? t('{n} earlier', { n: placement.earlier }) : t('type a concept to begin');
   const half = pillW / 2;
   const W = width || 600;
   const pillLeft = thumbX === null ? W / 2 : Math.max(half + 4, Math.min(W - half - 4, thumbX));
@@ -183,7 +184,7 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
     <div className="ae-tl mt-6" data-docked={runs.length > 0 || undefined}>
       <div className="ae-tl-head">
         {placement.earlier > 0 ? (
-          <button type="button" className="ae-tl-earlier" onClick={onEarlier} title={widerRange(range) ? `Show the last ${rangeSpec(widerRange(range)!).label}` : 'Open these runs in the Runs drawer'}>+{placement.earlier} earlier</button>
+          <button type="button" className="ae-tl-earlier" onClick={onEarlier} title={widerRange(range) ? t('Show the last {range}', { range: t(rangeSpec(widerRange(range)!).label) }) : t('Open these runs in the Runs drawer')}>{t('+{n} earlier', { n: placement.earlier })}</button>
         ) : <span />}
         <RangeToggle value={range} onChange={chooseRange} />
       </div>
@@ -191,12 +192,12 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
         <div aria-hidden="true" className="ae-tl-texture">
           {Array.from({ length: 28 }, (_, i) => (<span key={i} className="ae-dot" style={{ left: `${3 + i * 3.4}%`, top: `${i % 3 === 0 ? 70 : i % 3 === 1 ? 58 : 46}%`, width: 3, height: 3, background: 'var(--p-dim)', opacity: 0.6 }} />))}
         </div>
-        {!compact && <span className="ae-tl-label" style={{ left: 16 }}>{rangeSpec(range).ago}</span>}
-        {!compact && <span className="ae-tl-label" style={{ right: 16 }}>now</span>}
+        {!compact && <span className="ae-tl-label" style={{ left: 16 }}>{t(rangeSpec(range).ago)}</span>}
+        {!compact && <span className="ae-tl-label" style={{ right: 16 }}>{t('now')}</span>}
         {placement.items.map((it) => {
           const run = it.kind === 'dot' ? runsById.get(it.id) : null;
           const sel = current ? it.runIds.includes(current.id) : false;
-          const label = it.kind === 'dot' && run ? runAriaLabel(run, now) : `${it.runIds.length} runs`;
+          const label = it.kind === 'dot' && run ? runAriaLabel(run, now) : t('{n} runs', { n: it.runIds.length });
           return (
             <button
               key={it.id}
@@ -221,7 +222,7 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
         {thumbX !== null && <span aria-hidden="true" className="ae-tl-caret" data-dragging={dragging || undefined} style={{ left: thumbX }} />}
         {hover && <DotTip item={hover} runs={runsById} now={now} width={W} />}
         {runs.length === 0 ? (
-          <button type="button" ref={pillRef as unknown as React.Ref<HTMLButtonElement>} className="ae-float ae-tl-thumb" style={{ left: pillLeft }} onClick={onEmpty} title="Open the Creative generator">
+          <button type="button" ref={pillRef as unknown as React.Ref<HTMLButtonElement>} className="ae-float ae-tl-thumb" style={{ left: pillLeft }} onClick={onEmpty} title={t('Open the Creative generator')}>
             <PillText line1={line1} line2={line2} />
           </button>
         ) : (
@@ -229,12 +230,12 @@ export function ClassicRunScrubber({ runs, now, onOpen, onEmpty, onRunsDrawer }:
             ref={pillRef}
             role="slider"
             tabIndex={0}
-            aria-label="Run on the timeline"
+            aria-label={t('Run on the timeline')}
             aria-valuemin={0}
             aria-valuemax={Math.max(0, order.length - 1)}
             aria-valuenow={Math.max(0, index)}
             aria-valuetext={`${line1}, ${line2}`}
-            title={current ? 'Drag to pick a run, click to open it. Arrow keys step, Page Up and Page Down change the range.' : undefined}
+            title={current ? t('Drag to pick a run, click to open it. Arrow keys step, Page Up and Page Down change the range.') : undefined}
             className="ae-float ae-tl-thumb"
             data-docked=""
             data-dragging={dragging || undefined}
@@ -273,9 +274,9 @@ function RangeToggle({ value, onChange }: { value: RangeKey; onChange: (k: Range
     requestAnimationFrame(() => ref.current?.querySelector<HTMLButtonElement>(`[data-range='${next}']`)?.focus());
   };
   return (
-    <div ref={ref} role="radiogroup" aria-label="Timeline range" className="ae-tl-range" onKeyDown={onKey}>
+    <div ref={ref} role="radiogroup" aria-label={t('Timeline range')} className="ae-tl-range" onKeyDown={onKey}>
       {TIMELINE_RANGES.map((r) => (
-        <button key={r.key} type="button" role="radio" aria-checked={value === r.key} tabIndex={value === r.key ? 0 : -1} data-range={r.key} data-on={value === r.key} className="ae-tl-range-opt" onClick={() => onChange(r.key)}>{r.label}</button>
+        <button key={r.key} type="button" role="radio" aria-checked={value === r.key} tabIndex={value === r.key ? 0 : -1} data-range={r.key} data-on={value === r.key} className="ae-tl-range-opt" onClick={() => onChange(r.key)}>{t(r.label)}</button>
       ))}
     </div>
   );
@@ -288,11 +289,11 @@ function DotTip({ item, runs, now, width }: { item: Placed; runs: Map<string, Re
     <div className="ae-card-2 ae-tl-tip" role="tooltip" style={{ left }}>
       {item.kind === 'cluster' ? (
         <>
-          <div className="text-[var(--p-ink)]">{members.length} runs here</div>
+          <div className="text-[var(--p-ink)]">{t('{n} runs here', { n: members.length })}</div>
           <ul className="mt-1 space-y-0.5">
             {members.slice(-5).reverse().map((r) => (<li key={r.id} className="truncate text-[var(--p-muted)]">{runHeadline(r)} · {agoText(r.startedAt, now)}</li>))}
           </ul>
-          <div className="ae-faint mt-1">Click to zoom in or list them.</div>
+          <div className="ae-faint mt-1">{t('Click to zoom in or list them.')}</div>
         </>
       ) : members[0] ? (
         <TipRun run={members[0]} now={now} />
@@ -307,7 +308,7 @@ function TipRun({ run, now }: { run: ResolvedRun; now: number }) {
     <>
       <div className="truncate text-[var(--p-ink)]">{run.title}</div>
       <div className="text-[var(--p-muted)]">{kindNoun(run.kind)} · {run.status}</div>
-      <div className="text-[var(--p-muted)]">Started {agoText(run.startedAt, now)} · {fmtElapsed(elapsedAt(run, now))}{credits != null ? ` · ${fmtCredits(credits)} credits` : ''}</div>
+      <div className="text-[var(--p-muted)]">{t('Started {ago}', { ago: agoText(run.startedAt, now) })} · {fmtElapsed(elapsedAt(run, now))}{credits != null ? t(' · {n} credits', { n: fmtCredits(credits) }) : ''}</div>
     </>
   );
 }
@@ -343,9 +344,9 @@ export function ClassicBriefStatusControl({ status, disabled = false, disabledRe
     <div
       ref={ref}
       role="radiogroup"
-      aria-label="Brief status"
+      aria-label={t('Brief status')}
       aria-disabled={disabled || undefined}
-      title={disabled ? disabledReason : 'Brief status: draft, ready, or sent to a creator'}
+      title={disabled ? disabledReason : t('Brief status: draft, ready, or sent to a creator')}
       className="ae-bstat"
       data-open={open || undefined}
       data-wide={wide || undefined}
@@ -368,7 +369,7 @@ export function ClassicBriefStatusControl({ status, disabled = false, disabledRe
           className={s === status ? 'ae-badge-lime ae-bstat-stop' : 'ae-tag ae-bstat-stop'}
           onClick={() => (s === status ? setOpen((o) => !o) : set(s))}
         >
-          {s === status && !open ? briefStatusLabel(s) : briefStopLabel(s)}
+          {s === status && !open ? t(briefStatusLabel(s)) : t(briefStopLabel(s))}
         </button>
       ))}
     </div>

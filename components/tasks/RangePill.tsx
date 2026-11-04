@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronDown, Download } from 'lucide-react';
 import { TASK_RANGES, type RangeId } from '@/lib/tasks-metrics';
+import { t } from '@/lib/i18n';
 
 /**
  * The reference's "Last 30 days" pill and black Export button
@@ -44,7 +45,7 @@ export function RangePill({ range }: { range: RangeId }) {
           aria-expanded={open}
         >
           <Calendar className="h-3.5 w-3.5" strokeWidth={1.6} />
-          {current.label}
+          {t(current.label)}
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={1.6} />
         </button>
         {open && (
@@ -57,7 +58,7 @@ export function RangePill({ range }: { range: RangeId }) {
                   r.id === range ? 'text-[var(--accent)]' : 'text-os-muted'
                 }`}
               >
-                {r.label}
+                {t(r.label)}
               </button>
             ))}
           </div>
@@ -70,7 +71,7 @@ export function RangePill({ range }: { range: RangeId }) {
         download
       >
         <Download className="h-3.5 w-3.5" strokeWidth={1.8} />
-        Export
+        {t('Export')}
       </a>
     </div>
   );

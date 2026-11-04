@@ -48,8 +48,8 @@ export function groundingTextOf(data: IdeaSheetView): string {
   const g = data.grounding;
   const b = g?.exemplars?.length ?? 0;
   const d = g?.duds?.length ?? 0;
-  if (!b && !d) return data.evidence.length ? fill(L.grounding, { b: data.evidence.length, bWord: data.evidence.length === 1 ? 'breakout' : 'breakouts', d: 0, dWord: 'duds' }) : L.groundingNone;
-  return fill(L.grounding, { b, bWord: b === 1 ? 'breakout' : 'breakouts', d, dWord: d === 1 ? 'dud' : 'duds' });
+  if (!b && !d) return data.evidence.length ? fill(L.grounding, { b: data.evidence.length, bWord: data.evidence.length === 1 ? t('breakout') : t('breakouts'), d: 0, dWord: t('duds') }) : L.groundingNone;
+  return fill(L.grounding, { b, bWord: b === 1 ? t('breakout') : t('breakouts'), d, dWord: d === 1 ? t('dud') : t('duds') });
 }
 
 export function buildIdeaSheet(store: LabStore, id: string, now: Date, env: LabLayerEnv): IdeaSheetUi | null {

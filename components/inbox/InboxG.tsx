@@ -62,10 +62,10 @@ import { t, localeTag } from '@/lib/i18n';
  */
 type CommsTab = 'threads' | 'recordings' | 'clients' | 'week';
 const COMMS_TABS: { value: CommsTab; label: string }[] = [
-  { value: 'threads', label: t('Threads') },
-  { value: 'recordings', label: t('Recordings') },
-  { value: 'clients', label: t('Clients') },
-  { value: 'week', label: t('Week') },
+  { value: 'threads', label: 'Threads' },
+  { value: 'recordings', label: 'Recordings' },
+  { value: 'clients', label: 'Clients' },
+  { value: 'week', label: 'Week' },
 ];
 function readTab(): CommsTab {
   if (typeof window === 'undefined') return 'threads';
@@ -223,7 +223,7 @@ export function InboxG({
         }
       />
       {extras && (
-        <GTabs className="wg-cf-tabs" label={t('Comms view')} param="tab" value={tab} onChange={(v) => setTab(v as CommsTab)} tabs={COMMS_TABS.map((th) => ({ ...t, controls: 'wg-cf-panel' }))} />
+        <GTabs className="wg-cf-tabs" label={t('Comms view')} param="tab" value={tab} onChange={(v) => setTab(v as CommsTab)} tabs={COMMS_TABS.map((th) => ({ ...th, label: t(th.label), controls: 'wg-cf-panel' }))} />
       )}
       {extras && tab !== 'threads' ? (
         <div id="wg-cf-panel" role="tabpanel" className="wg-cf-panel">
@@ -237,7 +237,7 @@ export function InboxG({
 
       <div className="wg-ib-report">
         {allDown ? (
-          <GHeroCard variant="a" size="sm" caption={t('Connect a channel')} setupHref="/integrations" setupHint={t('No inbox channel is connected yet')} />
+          <GHeroCard variant="a" size="sm" caption="Connect a channel" setupHref="/integrations" setupHint={t('No inbox channel is connected yet')} />
         ) : (
           <GHeroCard
             variant="a"

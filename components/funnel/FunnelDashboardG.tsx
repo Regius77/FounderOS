@@ -26,9 +26,10 @@ import {
   DAY, LANE_LABEL, PAGE_ROWS, PERIODS, WEEKDAYS, WEEKDAY_INITIALS, defaultStage as leakStage, fmtDate, fmtDay, laneOf, periodStats, stageIndex, stageLabel,
   touchSeries as buildTouchSeries, worstStep as findWorstStep,
 } from './model';
+import { localeTag, t } from '@/lib/i18n';
 
-const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
-const num = (n: number) => n.toLocaleString('en-US');
+const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
+const num = (n: number) => n.toLocaleString(localeTag());
 const LANE_COLOR = { organic: 'series-1', ads: 'series-2', crm: 'series-3' } as const;
 
 type Command = { token: string; hint: string; run: () => void };
@@ -99,12 +100,12 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   };
 
   const commands: Command[] = [
-    ...FUNNEL_STAGES.map((s) => ({ token: `/${s.id.replace('_', '-')}`, hint: `${s.label} segment`, run: () => goJourneys(s.id, lane) })),
-    ...LANES.map((l) => ({ token: `/${l}`, hint: `${LANE_LABEL[l]} entries`, run: () => goJourneys(segment, l) })),
-    { token: '/push', hint: 'Hot and moving', run: () => setView('push') },
-    { token: '/save', hint: 'Fading toward the archive', run: () => setView('save') },
-    { token: '/archive', hint: `Decayed past ${DECAY_DAYS} d`, run: () => setView('archive') },
-    { token: '/overview', hint: 'Back to the board', run: () => setView('overview') },
+    ...FUNNEL_STAGES.map((s) => ({ token: `/${s.id.replace('_', '-')}`, hint: t('{stage} segment', { stage: t(s.label) }), run: () => goJourneys(s.id, lane) })),
+    ...LANES.map((l) => ({ token: `/${l}`, hint: t('{lane} entries', { lane: LANE_LABEL[l] }), run: () => goJourneys(segment, l) })),
+    { token: '/push', hint: t('Hot and moving'), run: () => setView('push') },
+    { token: '/save', hint: t('Fading toward the archive'), run: () => setView('save') },
+    { token: '/archive', hint: t('Decayed past {n} d', { n: DECAY_DAYS }), run: () => setView('archive') },
+    { token: '/overview', hint: t('Back to the board'), run: () => setView('overview') },
   ];
   const slash = explore.match(/\/([\w-]*)$/);
   const matching = slash ? commands.filter((c) => c.token.slice(1).startsWith(slash[1].toLowerCase())) : [];
@@ -112,7 +113,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const submitExplore = (line: string) => {
     const hit = commands.find((c) => line.toLowerCase().includes(c.token));
     if (hit) runCommand(hit);
-    else setNote('No token in that line. Type / to see where this bar can jump.');
+    else setNote(t('No token in that line. Type / to see where this bar can jump.'));
   };
 
   const copyLink = async () => {
@@ -121,7 +122,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      window.prompt('Copy this link', window.location.href);
+      window.prompt(t('Copy this link'), window.location.href);
     }
   };
 
@@ -129,24 +130,24 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const crmHref = crm ? (crm.id === 'ghl' ? 'https://app.gohighlevel.com' : 'https://app.attio.com') : undefined;
   const attioHref = connectors.find((c) => c.id === 'attio')?.href ?? '/integrations';
   const cmpLabel = stats.cmp ? `${fmtDay(stats.cmp[0], compare === 'year')} – ${fmtDay(stats.cmp[1] - DAY, compare === 'year')}` : null;
-  const vsLabel = compare === 'year' ? 'vs last year' : 'vs previous period';
-  const periodWindow = PERIODS.find((p) => p.id === period)?.label ?? 'Selected period';
+  const vsLabel = compare === 'year' ? t('vs last year') : t('vs previous period');
+  const periodWindow = PERIODS.find((p) => p.id === period)?.label ?? t('Selected period');
   const compareOptions: { id: Compare; label: string }[] = [
-    { id: 'previous', label: compare === 'previous' && cmpLabel ? cmpLabel : 'Previous period' },
-    { id: 'year', label: compare === 'year' && cmpLabel ? cmpLabel : 'Same period last year' },
-    { id: 'none', label: 'No comparison' },
+    { id: 'previous', label: compare === 'previous' && cmpLabel ? cmpLabel : t('Previous period') },
+    { id: 'year', label: compare === 'year' && cmpLabel ? cmpLabel : t('Same period last year') },
+    { id: 'none', label: t('No comparison') },
   ];
 
   const NAV: { id: View; label: string; n?: number }[] = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'push', label: 'Push now', n: pushList.length },
-    { id: 'save', label: 'Save now', n: saveList.length },
-    { id: 'journeys', label: 'Journeys', n: journeys.length },
-    { id: 'archive', label: 'Archive', n: archived.length },
+    { id: 'overview', label: t('Overview') },
+    { id: 'push', label: t('Push now'), n: pushList.length },
+    { id: 'save', label: t('Save now'), n: saveList.length },
+    { id: 'journeys', label: t('Journeys'), n: journeys.length },
+    { id: 'archive', label: t('Archive'), n: archived.length },
   ];
 
   const seeJourneys = (label: string, run: () => void) => (
-    <GButton variant="icon" size="sm" aria-label={`See these journeys: ${label}`} title="See these journeys" onClick={run}>
+    <GButton variant="icon" size="sm" aria-label={t('See these journeys: {label}', { label })} title={t('See these journeys')} onClick={run}>
       <ArrowUpRight size={15} strokeWidth={1.75} aria-hidden />
     </GButton>
   );
@@ -154,7 +155,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const countDelta = (cur: number, prev: number) => {
     const d = cur - prev;
     return (
-      <GTag tone={d > 0 ? 'ok' : d < 0 ? 'err' : 'neutral'} title={`${num(prev)} ${vsLabel.replace('vs ', 'in the ')}`}>
+      <GTag tone={d > 0 ? 'ok' : d < 0 ? 'err' : 'neutral'} title={compare === 'year' ? t('{n} in the last year', { n: num(prev) }) : t('{n} in the previous period', { n: num(prev) })}>
         {d >= 0 ? '+' : '−'}{num(Math.abs(d))} {vsLabel}
       </GTag>
     );
@@ -166,28 +167,28 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
       <GSectionHeader
         id="fn-g-touches"
         size={22}
-        title="Touches"
-        caption={grain === 'monthly' ? 'Last 6 months' : 'Last 12 weeks'}
-        action={seeJourneys('Touches', () => goJourneys())}
+        title={t('Touches')}
+        caption={grain === 'monthly' ? t('Last 6 months') : t('Last 12 weeks')}
+        action={seeJourneys(t('Touches'), () => goJourneys())}
       />
       <div className="fn-g-grain">
-        <GSegmented<Grain> label="Touches chart grain" value={grain} onChange={setGrain} options={[{ value: 'monthly', label: 'Monthly' }, { value: 'weekly', label: 'Weekly' }]} />
+        <GSegmented<Grain> label="Touches chart grain" value={grain} onChange={setGrain} options={[{ value: 'monthly', label: t('Monthly') }, { value: 'weekly', label: t('Weekly') }]} />
       </div>
       {touches.series.every((v) => v === 0) ? (
-        <GEmpty inline title={`No touches in the last ${grain === 'monthly' ? '6 months' : '12 weeks'}`} />
+        <GEmpty inline title={grain === 'monthly' ? t('No touches in the last 6 months') : t('No touches in the last 12 weeks')} />
       ) : (
         <GLineChart
           variant="step"
           height={170}
           labels={touches.longLabels}
           axisLabels={touches.labels}
-          series={[{ id: 'touches', label: 'Touches', values: touches.series, color: 'accent' }]}
-          peakLabel={(i, v) => `${num(v)} touches · ${touches.labels[i]}`}
+          series={[{ id: 'touches', label: t('Touches'), values: touches.series, color: 'accent' }]}
+          peakLabel={(i, v) => t('{n} touches · {label}', { n: num(v), label: touches.labels[i] })}
           tip={(i) => {
             const total = touches.series.reduce((a, b) => a + b, 0);
-            return { title: touches.longLabels[i], lines: [`${num(touches.series[i])} touches`, `${total > 0 ? Math.round((touches.series[i] / total) * 100) : 0}% of the ${grain === 'monthly' ? '6 months' : '12 weeks'}`] };
+            return { title: touches.longLabels[i], lines: [t('{n} touches', { n: num(touches.series[i]) }), grain === 'monthly' ? t('{pct}% of the 6 months', { pct: total > 0 ? Math.round((touches.series[i] / total) * 100) : 0 }) : t('{pct}% of the 12 weeks', { pct: total > 0 ? Math.round((touches.series[i] / total) * 100) : 0 })] };
           }}
-          label={`Touches per ${grain === 'monthly' ? 'month' : 'week'}, active and archived journeys`}
+          label={grain === 'monthly' ? t('Touches per month, active and archived journeys') : t('Touches per week, active and archived journeys')}
         />
       )}
     </GCard>
@@ -198,28 +199,28 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
     const n = leads ? stats.leadsIn.length : stats.convIn.length;
     const cols = leads ? stats.leadCols : stats.convCols;
     const peak = leads ? stats.leadPeak : stats.convPeak;
-    const noun = leads ? 'leads' : 'conversions';
+    const noun = leads ? t('leads') : t('conversions');
     return (
       <GCard p={20} className="fn-g-sub" aria-labelledby={`fn-g-${kind}`}>
         <GSectionHeader
           id={`fn-g-${kind}`}
           size={22}
-          title={leads ? 'New leads' : 'Converted'}
+          title={leads ? t('New leads') : t('Converted')}
           caption={periodWindow}
-          action={seeJourneys(leads ? 'New leads' : 'Converted', () => goJourneys(leads ? 'first_touch' : 'converted'))}
+          action={seeJourneys(leads ? t('New leads') : t('Converted'), () => goJourneys(leads ? 'first_touch' : 'converted'))}
         />
         <div className="fn-g-stat">
           <GDotNumber value={num(n)} size={5} label={`${n} ${noun}, ${periodWindow.toLowerCase()}`} />
           <div className="fn-g-dots">
             <GDotMatrix
-              columns={cols.map((v, i) => ({ id: WEEKDAYS[i], label: WEEKDAY_INITIALS[i], value: v, title: `${WEEKDAYS[i]}s · ${num(v)} ${noun}` }))}
+              columns={cols.map((v, i) => ({ id: WEEKDAYS[i], label: WEEKDAY_INITIALS[i], value: v, title: t('{day} · {n} {noun}', { day: WEEKDAYS[i], n: num(v), noun }) }))}
               rows={6}
               color={leads ? 'accent' : 'accent-2'}
-              label={`${leads ? 'New leads' : 'Conversions'} by weekday, ${periodWindow.toLowerCase()}`}
+              label={leads ? t('New leads by weekday, {period}', { period: periodWindow.toLowerCase() }) : t('Conversions by weekday, {period}', { period: periodWindow.toLowerCase() })}
             />
           </div>
           <div className="fn-g-stat-side">
-            {peak && <GTag>Peak {peak}</GTag>}
+            {peak && <GTag>{t('Peak {day}', { day: peak })}</GTag>}
             {stats.cmp && countDelta(n, leads ? stats.leadsPrev.length : stats.convPrev.length)}
           </div>
         </div>
@@ -230,35 +231,35 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const laneMax = Math.max(1, ...Object.values(stats.byLane));
   const revenueCard = (
     <GCard p={24} className="fn-g-revenue" aria-labelledby="fn-g-revenue">
-      <GSectionHeader id="fn-g-revenue" size={22} title="Revenue" caption={periodWindow} action={seeJourneys('Revenue', () => goJourneys('converted'))} />
+      <GSectionHeader id="fn-g-revenue" size={22} title={t('Revenue')} caption={periodWindow} action={seeJourneys(t('Revenue'), () => goJourneys('converted'))} />
       <div className="fn-g-rev-num">
-        <GBigNumber value={usd(stats.revenue)} title={`Revenue from deals converted in the ${periodWindow.toLowerCase()}`} />
+        <GBigNumber value={usd(stats.revenue)} title={t('Revenue from deals converted in the {period}', { period: periodWindow.toLowerCase() })} />
         {stats.cmp && (stats.revenue > 0 || stats.revenuePrev > 0) && <GDelta cur={stats.revenue} prev={stats.revenuePrev} money window={vsLabel} />}
       </div>
       <GDriverBars
         labelWidth={88}
         max={laneMax}
-        label="Revenue by entry lane"
+        label={t('Revenue by entry lane')}
         rows={LANES.map((l) => ({
           id: l,
           label: LANE_LABEL[l],
           value: stats.byLane[l],
           display: usd(stats.byLane[l]),
           tone: LANE_COLOR[l],
-          title: `See the ${LANE_LABEL[l].toLowerCase()} deals that closed: ${usd(stats.byLane[l])}`,
+          title: t('See the {lane} deals that closed: {usd}', { lane: LANE_LABEL[l].toLowerCase(), usd: usd(stats.byLane[l]) }),
           onClick: () => goJourneys('converted', l),
         }))}
       />
-      <p className="fn-g-cap">{stats.convIn.length} closed in the period, split by how each deal entered.</p>
+      <p className="fn-g-cap">{t('{n} closed in the period, split by how each deal entered.', { n: stats.convIn.length })}</p>
     </GCard>
   );
 
   const pipelineCard = (
     <GCard p={24} className="fn-g-pipeline" aria-labelledby="fn-g-pipeline">
-      <GSectionHeader id="fn-g-pipeline" size={22} title="Pipeline" caption="All active journeys" action={seeJourneys('Pipeline', () => goJourneys(stage))} />
+      <GSectionHeader id="fn-g-pipeline" size={22} title="Pipeline" caption={t('All active journeys')} action={seeJourneys('Pipeline', () => goJourneys(stage))} />
       <div className="fn-g-chart">
         {summary.clients === 0 ? (
-          <GEmpty kind="unconfigured" title="No journeys yet." body="Connect a CRM and the funnel fills itself." setupHref={attioHref} setupHint="Key Attio or GoHighLevel and the board reads the live pipeline" />
+          <GEmpty kind="unconfigured" title={t('No journeys yet.')} body={t('Connect a CRM and the funnel fills itself.')} setupHref={attioHref} setupHint={t('Key Attio or GoHighLevel and the board reads the live pipeline')} />
         ) : (
           <GFunnelStep
             stages={summary.stages.map((s, i) => {
@@ -272,24 +273,24 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
                 tip: {
                   title: `${stageLabel(s.stage)} · ${num(s.total)}`,
                   lines: [
-                    `Organic ${num(s.organic)} · Ads ${num(s.ads)}`,
-                    ...(conv !== null && i > 0 ? [`Drop-off ${Math.round(100 - conv)}% from ${stageLabel(summary.stages[i - 1].stage)}`] : []),
-                    ...(value > 0 ? [`Open value ${usd(value)}`] : []),
+                    t('Organic {organic} · Ads {ads}', { organic: num(s.organic), ads: num(s.ads) }),
+                    ...(conv !== null && i > 0 ? [t('Drop-off {pct}% from {stage}', { pct: Math.round(100 - conv), stage: stageLabel(summary.stages[i - 1].stage) })] : []),
+                    ...(value > 0 ? [t('Open value {usd}', { usd: usd(value) })] : []),
                   ],
                 },
               };
             })}
             selected={stage}
             onSelect={(id) => setStage(id as FunnelStage)}
-            countNoun={['journey', 'journeys']}
-            tipHint="Click to focus this stage"
-            label="Pipeline by stage, every active journey"
+            countNoun={[t('journey'), t('journeys')]}
+            tipHint={t('Click to focus this stage')}
+            label={t('Pipeline by stage, every active journey')}
           />
         )}
       </div>
-      <GAsk mode="filter" value={explore} onValueChange={(v) => { setExplore(v); setNote(null); }} onSubmit={submitExplore} label="Jump to a stage or a view with a slash token" placeholder="Type / to jump to a stage or a view" className="fn-g-ask" />
+      <GAsk mode="filter" value={explore} onValueChange={(v) => { setExplore(v); setNote(null); }} onSubmit={submitExplore} label={t('Jump to a stage or a view with a slash token')} placeholder={t('Type / to jump to a stage or a view')} className="fn-g-ask" />
       {(matching.length > 0 || explore === '/') && (
-        <div className="fn-g-slash" role="group" aria-label="Slash tokens">
+        <div className="fn-g-slash" role="group" aria-label={t('Slash tokens')}>
           {(matching.length > 0 ? matching : commands).map((c) => (
             <GButton key={c.token} size="sm" title={c.hint} onClick={() => runCommand(c)}>{c.token}</GButton>
           ))}
@@ -303,28 +304,30 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
     <GHeroCard
       variant="a"
       className="fn-g-insights"
-      caption="Converted, all active journeys"
+      caption={t('Converted, all active journeys')}
       value={summary.clients === 0 ? null : `${conversion}%`}
-      label={summary.clients === 0 ? 'Nothing to read yet' : `${conversion}% converted`}
-      status={summary.clients === 0 ? 'Nothing to read yet' : `${summary.converted} of ${summary.clients} leads converted`}
-      title="Converted journeys over every active journey"
+      label={summary.clients === 0 ? t('Nothing to read yet') : t('{pct}% converted', { pct: conversion })}
+      status={summary.clients === 0 ? t('Nothing to read yet') : t('{n} of {total} leads converted', { n: summary.converted, total: summary.clients })}
+      title={t('Converted journeys over every active journey')}
       strip={
         <div className="fn-g-ins">
           <p className="fn-g-ins-head">
             {summary.clients === 0
-              ? 'Connect Attio or GHL and this card starts reading the pipeline.'
+              ? t('Connect Attio or GHL and this card starts reading the pipeline.')
               : leak
-                ? `The leak is ${stageLabel(leak.from)} → ${stageLabel(leak.to)}, ${leak.drop}% drop at that step.`
-                : 'No step stands out as the leak.'}
+                ? t('The leak is {from} → {to}, {pct}% drop at that step.', { from: stageLabel(leak.from), to: stageLabel(leak.to), pct: leak.drop })
+                : t('No step stands out as the leak.')}
           </p>
           {summary.clients > 0 && (
             <p className="fn-g-cap">
-              {pushList.length} hot lead{pushList.length === 1 ? '' : 's'} in motion, {saveList.length} fading toward the archive, {archived.length} already there.
+              {pushList.length === 1
+                ? t('{n} hot lead in motion, {save} fading toward the archive, {archived} already there.', { n: pushList.length, save: saveList.length, archived: archived.length })
+                : t('{n} hot leads in motion, {save} fading toward the archive, {archived} already there.', { n: pushList.length, save: saveList.length, archived: archived.length })}
             </p>
           )}
           <div className="fn-g-actions">
-            {leak && <GButton size="sm" onClick={() => goJourneys(leak.from)}>Who is stuck at {stageLabel(leak.from).toLowerCase()}</GButton>}
-            {saveList.length > 0 && <GButton size="sm" onClick={() => setView('save')}>Save the {saveList.length} fading</GButton>}
+            {leak && <GButton size="sm" onClick={() => goJourneys(leak.from)}>{t('Who is stuck at {stage}', { stage: stageLabel(leak.from).toLowerCase() })}</GButton>}
+            {saveList.length > 0 && <GButton size="sm" onClick={() => setView('save')}>{t('Save the {n} fading', { n: saveList.length })}</GButton>}
           </div>
         </div>
       }
@@ -340,11 +343,11 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   const quietTitle = (j: FunnelJourney) => {
     const meta = journeyMeta(j, now);
     const d = decayFactor(meta.daysSinceLastTouch, j.status);
-    return d > 0 ? `Fading: ${Math.round(d * 100)}% of the way to the archive` : meta.state === 'stalled' ? 'Stalled: quiet past a week before converting' : 'Days since the last touch';
+    return d > 0 ? t('Fading: {pct}% of the way to the archive', { pct: Math.round(d * 100) }) : meta.state === 'stalled' ? t('Stalled: quiet past a week before converting') : t('Days since the last touch');
   };
   const leadCol: GColumn<FunnelJourney> = {
     key: 'lead',
-    label: 'Lead',
+    label: t('Lead'),
     sortValue: (j) => j.person ?? j.name,
     render: (j) => (
       <span className="fn-g-lead">
@@ -353,18 +356,18 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
       </span>
     ),
   };
-  const stageCol: GColumn<FunnelJourney> = { key: 'stage', label: 'Stage', sortValue: (j) => stageIndex(j.status), render: (j) => <span className="fn-g-muted">{stageLabel(j.status)}</span> };
+  const stageCol: GColumn<FunnelJourney> = { key: 'stage', label: t('Stage'), sortValue: (j) => stageIndex(j.status), render: (j) => <span className="fn-g-muted">{stageLabel(j.status)}</span> };
   const quietCol: GColumn<FunnelJourney> = {
     key: 'quiet',
-    label: 'Quiet',
+    label: t('Quiet'),
     numeric: true,
     sortValue: (j) => journeyMeta(j, now).daysSinceLastTouch,
-    title: 'Days since the last touch',
-    render: (j) => <GTag tone={quietTone(j)} title={quietTitle(j)}>{journeyMeta(j, now).daysSinceLastTouch} d</GTag>,
+    title: t('Days since the last touch'),
+    render: (j) => <GTag tone={quietTone(j)} title={quietTitle(j)}>{t('{n} d', { n: journeyMeta(j, now).daysSinceLastTouch })}</GTag>,
   };
   const likelyCol: GColumn<FunnelJourney> = {
     key: 'likelihood',
-    label: 'Likelihood',
+    label: t('Likelihood'),
     numeric: true,
     sortValue: (j) => j.likelihood,
     render: (j) => (
@@ -376,27 +379,27 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
   };
   const valueCol: GColumn<FunnelJourney> = {
     key: 'value',
-    label: 'Value',
+    label: t('Value'),
     numeric: true,
     sortValue: (j) => j.amountUsd ?? 0,
-    render: (j) => ((j.amountUsd ?? 0) > 0 ? <span className={j.status === 'converted' ? undefined : 'fn-g-muted'}>{usd(j.amountUsd ?? 0)}{j.status === 'converted' ? '' : ' open'}</span> : <span className="fn-g-muted">—</span>),
+    render: (j) => ((j.amountUsd ?? 0) > 0 ? <span className={j.status === 'converted' ? undefined : 'fn-g-muted'}>{usd(j.amountUsd ?? 0)}{j.status === 'converted' ? '' : t(' open')}</span> : <span className="fn-g-muted">—</span>),
   };
-  const contactCol: GColumn<FunnelJourney> = { key: 'contact', label: 'Contact', render: (j) => <Contact j={j} /> };
+  const contactCol: GColumn<FunnelJourney> = { key: 'contact', label: t('Contact'), render: (j) => <Contact j={j} /> };
   const lastTouchCol: GColumn<FunnelJourney> = {
     key: 'last',
     label: 'Last touch',
     render: (j) => {
-      const t = j.touches[j.touches.length - 1];
-      return t ? (
-        <span className="fn-g-last" title={`${stageLabel(t.stage)} · via ${t.source} · ${t.at}`}>
-          <span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[t.channel] ?? '·'}</span>
-          <span className="fn-g-last-text">{t.label}</span>
-          <span className="fn-g-cap">{fmtDay(Date.parse(`${t.at}T00:00:00Z`))} · {j.touches.length} touch{j.touches.length === 1 ? '' : 'es'}</span>
+      const last = j.touches[j.touches.length - 1];
+      return last ? (
+        <span className="fn-g-last" title={t('{stage} · via {source} · {at}', { stage: stageLabel(last.stage), source: last.source, at: last.at })}>
+          <span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[last.channel] ?? '·'}</span>
+          <span className="fn-g-last-text">{last.label}</span>
+          <span className="fn-g-cap">{fmtDay(Date.parse(`${last.at}T00:00:00Z`))} · {j.touches.length === 1 ? t('{n} touch', { n: j.touches.length }) : t('{n} touches', { n: j.touches.length })}</span>
         </span>
       ) : <span className="fn-g-muted">—</span>;
     },
   };
-  const entryCol: GColumn<FunnelJourney> = { key: 'entry', label: 'Entry', sortValue: (j) => laneOf(j), render: (j) => <span className="fn-g-muted">{LANE_LABEL[laneOf(j)]}</span> };
+  const entryCol: GColumn<FunnelJourney> = { key: 'entry', label: t('Entry'), sortValue: (j) => laneOf(j), render: (j) => <span className="fn-g-muted">{LANE_LABEL[laneOf(j)]}</span> };
 
   const table = (rows: FunnelJourney[], cols: GColumn<FunnelJourney>[], caption: string, empty: string) => (
     <GTable
@@ -405,7 +408,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
       rows={rows}
       rowKey={(j) => j.id}
       onRowClick={(j) => setSelected(j.id)}
-      rowLabel={(j) => `Open ${j.person ?? j.name}`}
+      rowLabel={(j) => t('Open {name}', { name: j.person ?? j.name })}
       selectedKey={selected ?? null}
       empty={empty}
       sticky={false}
@@ -417,7 +420,7 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
     <GPage className="fn-g">
       <div className="fn-g-top">
         <GSegmented<View>
-          label="Funnel views"
+          label={t('Funnel views')}
           size="md"
           value={view}
           onChange={setView}
@@ -425,15 +428,15 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
           className="fn-g-nav"
         />
         <div className="fn-g-top-actions">
-          <GButton variant="icon" aria-label="Refresh from the sources" title="Re-read the CRM and local journeys" busy={refreshing} onClick={() => startRefresh(() => router.refresh())}>
+          <GButton variant="icon" aria-label={t('Refresh from the sources')} title={t('Re-read the CRM and local journeys')} busy={refreshing} onClick={() => startRefresh(() => router.refresh())}>
             <RefreshCw size={15} strokeWidth={1.75} aria-hidden />
           </GButton>
           {crmHref ? (
-            <GButton href={crmHref} external title={`Open ${crm?.name} in a new tab`}>
-              <ExternalLink size={13} strokeWidth={1.75} aria-hidden /> Open {crm?.name}
+            <GButton href={crmHref} external title={t('Open {name} in a new tab', { name: crm?.name ?? '' })}>
+              <ExternalLink size={13} strokeWidth={1.75} aria-hidden /> {t('Open {name}', { name: crm?.name ?? '' })}
             </GButton>
           ) : (
-            <GButton size="sm" href={attioHref} title="Key Attio or GoHighLevel and the board reads the live pipeline">Connect a CRM</GButton>
+            <GButton size="sm" href={attioHref} title={t('Key Attio or GoHighLevel and the board reads the live pipeline')}>{t('Connect a CRM')}</GButton>
           )}
         </div>
       </div>
@@ -441,33 +444,33 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
       <div className="fn-g-title">
         <div className="fn-g-title-l">
           <GDisplay>Funnel</GDisplay>
-          <GButton variant="icon" size="sm" onClick={copyLink} title="Copy a link to exactly this view" aria-label="Copy a link to this view">
+          <GButton variant="icon" size="sm" onClick={copyLink} title={t('Copy a link to exactly this view')} aria-label={t('Copy a link to this view')}>
             {copied ? <Check size={14} strokeWidth={1.75} aria-hidden /> : <Link2 size={14} strokeWidth={1.75} aria-hidden />}
           </GButton>
-          {copied && <span className="fn-g-cap" role="status">Link copied</span>}
+          {copied && <span className="fn-g-cap" role="status">{t('Link copied')}</span>}
           {source.kind === 'sample' && <GSampleBadge fixture="components/funnel/sample.ts" />}
         </div>
         <div className="fn-g-filters">
           <GMenu
-            label="Period"
+            label={t('Period')}
             align="start"
             items={PERIODS.map((p) => ({ id: String(p.id), label: p.label, icon: p.id === period ? <Check size={13} aria-hidden /> : undefined, onSelect: () => setPeriod(p.id) }))}
-            trigger={(t) => (
-              <GButton {...t} aria-label={`Period: ${periodWindow}`}>
+            trigger={(trg) => (
+              <GButton {...trg} aria-label={t('Period: {period}', { period: periodWindow })}>
                 <Calendar size={13} strokeWidth={1.75} aria-hidden /> {periodWindow} <ChevronDown size={13} strokeWidth={1.75} aria-hidden />
               </GButton>
             )}
           />
-          <span className="fn-g-cap">compared to</span>
+          <span className="fn-g-cap">{t('compared to')}</span>
           {period === 0 ? (
-            <span className="fn-g-cap" title="All time has no earlier window to compare against">nothing</span>
+            <span className="fn-g-cap" title={t('All time has no earlier window to compare against')}>{t('nothing')}</span>
           ) : (
             <GMenu
-              label="Comparison window"
+              label={t('Comparison window')}
               align="end"
               items={compareOptions.map((o) => ({ id: o.id, label: o.label, icon: o.id === compare ? <Check size={13} aria-hidden /> : undefined, onSelect: () => setCompare(o.id) }))}
-              trigger={(t) => (
-                <GButton {...t} aria-label={`Comparison window: ${compareOptions.find((o) => o.id === compare)?.label}`}>
+              trigger={(trg) => (
+                <GButton {...trg} aria-label={t('Comparison window: {label}', { label: compareOptions.find((o) => o.id === compare)?.label ?? '' })}>
                   <Calendar size={13} strokeWidth={1.75} aria-hidden /> {compareOptions.find((o) => o.id === compare)?.label} <ChevronDown size={13} strokeWidth={1.75} aria-hidden />
                 </GButton>
               )}
@@ -492,8 +495,8 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
         <div className="fn-g-two">
           {(
             [
-              { id: 'push', title: 'Push now', sub: 'Hot and moving. Close them.', tone: 'ok', list: pushList, empty: 'No hot leads in motion right now' },
-              { id: 'save', title: 'Save now', sub: 'Fading toward the archive, highest likelihood first', tone: 'err', list: saveList, empty: 'Nothing fading. Every lead is fresh.' },
+              { id: 'push', title: t('Push now'), sub: t('Hot and moving. Close them.'), tone: 'ok', list: pushList, empty: t('No hot leads in motion right now') },
+              { id: 'save', title: t('Save now'), sub: t('Fading toward the archive, highest likelihood first'), tone: 'err', list: saveList, empty: t('Nothing fading. Every lead is fresh.') },
             ] as const
           ).map((q) => (
             <GCard key={q.id} p={24} className="fn-g-panel" data-quiet={view !== q.id || undefined} aria-labelledby={`fn-g-${q.id}`}>
@@ -506,26 +509,26 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
 
       {view === 'journeys' && (
         <GCard p={24} className="fn-g-panel" aria-labelledby="fn-g-journeys">
-          <GSectionHeader id="fn-g-journeys" size={22} title="Journeys" caption={`${tableJourneys.length} of ${journeys.length} leads · click a row for the dossier`} />
+          <GSectionHeader id="fn-g-journeys" size={22} title={t('Journeys')} caption={t('{n} of {total} leads · click a row for the dossier', { n: tableJourneys.length, total: journeys.length })} />
           <div className="fn-g-segs">
             <GSegmented<string>
-              label="Stage"
+              label={t('Stage')}
               value={segment ?? 'all'}
               onChange={(v) => { if (v === 'all') setSegment(undefined); else { setSegment(v as FunnelStage); setStage(v as FunnelStage); } }}
-              options={[{ value: 'all', label: `All stages ${journeys.length}` }, ...FUNNEL_STAGES.map((s) => ({ value: s.id, label: `${s.label} ${stageCounts.get(s.id) ?? 0}` }))]}
+              options={[{ value: 'all', label: t('All stages {n}', { n: journeys.length }) }, ...FUNNEL_STAGES.map((s) => ({ value: s.id, label: `${t(s.label)} ${stageCounts.get(s.id) ?? 0}` }))]}
             />
             <GSegmented<string>
-              label="Entry"
+              label={t('Entry')}
               value={lane ?? 'any'}
               onChange={(v) => setLane(v === 'any' ? undefined : (v as Lane))}
-              options={[{ value: 'any', label: 'Any entry' }, ...LANES.map((l) => ({ value: l, label: `${LANE_LABEL[l]} ${laneCounts[l]}` }))]}
+              options={[{ value: 'any', label: t('Any entry') }, ...LANES.map((l) => ({ value: l, label: `${LANE_LABEL[l]} ${laneCounts[l]}` }))]}
             />
           </div>
-          {table(tableJourneys.slice(0, shown), [leadCol, stageCol, quietCol, likelyCol, entryCol, valueCol, lastTouchCol, contactCol], 'Journey data', 'No leads match those filters.')}
+          {table(tableJourneys.slice(0, shown), [leadCol, stageCol, quietCol, likelyCol, entryCol, valueCol, lastTouchCol, contactCol], t('Journey data'), t('No leads match those filters.'))}
           {tableJourneys.length > shown && (
             <div className="fn-g-more">
               <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>Show {Math.min(PAGE_ROWS, tableJourneys.length - shown)} more</GButton>
-              <span className="fn-g-cap">{shown} of {tableJourneys.length} shown</span>
+              <span className="fn-g-cap">{t('{n} of {total} shown', { n: shown, total: tableJourneys.length })}</span>
             </div>
           )}
         </GCard>
@@ -533,8 +536,8 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
 
       {view === 'archive' && (
         <GCard p={24} className="fn-g-panel" aria-labelledby="fn-g-archive">
-          <GSectionHeader id="fn-g-archive" size={22} title="Archive" caption={`Quiet past ${DECAY_DAYS} days · click a row for the dossier`} />
-          {table(archived.slice(0, shown), [leadCol, { ...stageCol, label: 'Reached' }, quietCol, likelyCol, lastTouchCol, contactCol], 'Archived journeys', `Nothing decayed. No lead has sat quiet past ${DECAY_DAYS} days.`)}
+          <GSectionHeader id="fn-g-archive" size={22} title={t('Archive')} caption={t('Quiet past {n} days · click a row for the dossier', { n: DECAY_DAYS })} />
+          {table(archived.slice(0, shown), [leadCol, { ...stageCol, label: t('Reached') }, quietCol, likelyCol, lastTouchCol, contactCol], t('Archived journeys'), t('Nothing decayed. No lead has sat quiet past {n} days.', { n: DECAY_DAYS }))}
           {archived.length > shown && (
             <div className="fn-g-more">
               <GButton size="sm" onClick={() => setShown((n) => n + PAGE_ROWS)}>Show {Math.min(PAGE_ROWS, archived.length - shown)} more</GButton>
@@ -545,21 +548,21 @@ export function FunnelDashboardG({ journeys, archived, nowIso, source, connector
 
       <div className="fn-g-sources">
         {source.kind === 'live' ? (
-          <GTag tone="ok" dot>Live · {source.label}</GTag>
+          <GTag tone="ok" dot>{t('Live · {source}', { source: source.label })}</GTag>
         ) : source.kind === 'db' ? (
-          <GTag tone="warn" dot>Local snapshot · CRM not keyed</GTag>
+          <GTag tone="warn" dot>{t('Local snapshot · CRM not keyed')}</GTag>
         ) : (
-          <GTag tone="warn" dot>Sample data · CRM not keyed and no journeys stored</GTag>
+          <GTag tone="warn" dot>{t('Sample data · CRM not keyed and no journeys stored')}</GTag>
         )}
-        {source.kind !== 'live' && <GButton size="sm" href={attioHref} title="Key Attio or GHL to replace this with the live pipeline">Set up</GButton>}
-        {sampleOffer && <GButton size="sm" href="/funnel?sample=1" title="See the page on a badged sample set; nothing is stored">Preview with sample data</GButton>}
-        {source.kind === 'sample' && <GButton size="sm" href="/funnel" title="Back to the empty, honest state">Leave sample data</GButton>}
+        {source.kind !== 'live' && <GButton size="sm" href={attioHref} title={t('Key Attio or GHL to replace this with the live pipeline')}>{t('Set up')}</GButton>}
+        {sampleOffer && <GButton size="sm" href="/funnel?sample=1" title={t('See the page on a badged sample set; nothing is stored')}>{t('Preview with sample data')}</GButton>}
+        {source.kind === 'sample' && <GButton size="sm" href="/funnel" title={t('Back to the empty, honest state')}>{t('Leave sample data')}</GButton>}
         <span className="fn-g-sep" aria-hidden />
         {connectors.map((c) =>
           c.ok ? (
             <GTag key={c.id} tone="ok" dot title={c.detail}>{c.name}{c.count != null ? ` ${c.count}` : ''}</GTag>
           ) : (
-            <GButton key={c.id} size="sm" href={c.href} title={`${c.detail} · set up`}>
+            <GButton key={c.id} size="sm" href={c.href} title={t('{detail} · set up', { detail: c.detail })}>
               <span className="fn-g-off" aria-hidden /> {c.name}
             </GButton>
           ),
@@ -589,12 +592,12 @@ function Contact({ j, full = false }: { j: FunnelJourney; full?: boolean }) {
   const isGhl = j.url?.includes('gohighlevel');
   const crm = isGhl ? 'GoHighLevel' : 'Attio';
   const links: { href: string; label: string; ext?: boolean; title?: string }[] = [];
-  if (j.email) links.push({ href: `mailto:${j.email}`, label: full ? j.email : 'Email', title: j.email });
+  if (j.email) links.push({ href: `mailto:${j.email}`, label: full ? j.email : t('Email'), title: j.email });
   if (digits) links.push({ href: `https://wa.me/${digits}`, label: full ? `WhatsApp ${j.phone}` : 'WhatsApp', ext: true, title: j.phone ?? undefined });
   if (j.phone && full) links.push({ href: `sms:${j.phone}`, label: 'SMS' });
-  if (j.url) links.push({ href: j.url, label: full ? `Open in ${crm}` : crm, ext: true });
+  if (j.url) links.push({ href: j.url, label: full ? t('Open in {crm}', { crm }) : crm, ext: true });
   if (j.linkedin && full) links.push({ href: j.linkedin, label: 'LinkedIn', ext: true });
-  if (links.length === 0) return <span className="fn-g-muted">{full ? 'No contact channel on record' : '—'}</span>;
+  if (links.length === 0) return <span className="fn-g-muted">{full ? t('No contact channel on record') : '—'}</span>;
   return (
     <ul className="fn-g-contact" data-full={full || undefined}>
       {links.map((l) => (
@@ -612,53 +615,53 @@ function LeadDrawerG({ j, now, archived, onClose, onStage }: { j: FunnelJourney;
   const reached = stageIndex(j.status);
   const lane = laneOf(j);
   const status = archived
-    ? `Archived · quiet ${meta.daysSinceLastTouch} d, past the ${DECAY_DAYS}-day line`
+    ? t('Archived · quiet {n} d, past the {days}-day line', { n: meta.daysSinceLastTouch, days: DECAY_DAYS })
     : meta.state === 'converted'
-      ? 'Converted'
+      ? t('Converted')
       : meta.state === 'stalled'
-        ? `Stalled · quiet ${meta.daysSinceLastTouch} d`
+        ? t('Stalled · quiet {n} d', { n: meta.daysSinceLastTouch })
         : decay > 0
-          ? `Fading · quiet ${meta.daysSinceLastTouch} d, ${Math.round(decay * 100)}% of the way to the archive`
-          : `Active · quiet ${meta.daysSinceLastTouch} d`;
+          ? t('Fading · quiet {n} d, {pct}% of the way to the archive', { n: meta.daysSinceLastTouch, pct: Math.round(decay * 100) })
+          : t('Active · quiet {n} d', { n: meta.daysSinceLastTouch });
   return (
     <GDrawer open onClose={onClose} title={j.person ?? j.name} width={460} className="fn-g-drawer">
       <p className="fn-g-cap fn-g-dsub">{[j.company, j.role].filter(Boolean).join(' · ') || j.name}</p>
-      <div className="fn-g-reached" role="img" aria-label={`Reached ${stageLabel(j.status)}`}>
-        {FUNNEL_STAGES.map((s, i) => <i key={s.id} data-on={i <= reached || undefined} title={s.label} />)}
+      <div className="fn-g-reached" role="img" aria-label={t('Reached {stage}', { stage: stageLabel(j.status) })}>
+        {FUNNEL_STAGES.map((s, i) => <i key={s.id} data-on={i <= reached || undefined} title={t(s.label)} />)}
       </div>
       <div className="fn-g-dsec">
         <GSegmented<string>
-          label="Focus a stage on the board"
+          label={t('Focus a stage on the board')}
           value={j.status}
           onChange={(v) => onStage(v as FunnelStage)}
-          options={FUNNEL_STAGES.map((s) => ({ value: s.id, label: s.label, title: `${s.label}: focus this stage on the board` }))}
+          options={FUNNEL_STAGES.map((s) => ({ value: s.id, label: t(s.label), title: t('{stage}: focus this stage on the board', { stage: t(s.label) }) }))}
         />
       </div>
       <GKeyValue
         className="fn-g-facts"
         items={[
-          { label: 'Status', value: status },
-          { label: 'Relationship', value: <span className="fn-g-cap-ink">{j.relationship}</span> },
-          { label: 'Likelihood', value: `${j.likelihood}%` },
-          { label: 'Entry', value: LANE_LABEL[lane] },
-          { label: 'Value', value: `${(j.amountUsd ?? 0) > 0 ? usd(j.amountUsd ?? 0) : '—'}${j.product ? ` · ${j.product}` : ''}${j.status !== 'converted' && (j.amountUsd ?? 0) > 0 ? ' (open)' : ''}` },
-          { label: 'First seen', value: fmtDate(j.touches[0]?.at ?? j.createdAt) },
-          { label: 'Deal', value: j.name },
+          { label: t('Status'), value: status },
+          { label: t('Relationship'), value: <span className="fn-g-cap-ink">{j.relationship}</span> },
+          { label: t('Likelihood'), value: `${j.likelihood}%` },
+          { label: t('Entry'), value: LANE_LABEL[lane] },
+          { label: t('Value'), value: `${(j.amountUsd ?? 0) > 0 ? usd(j.amountUsd ?? 0) : '—'}${j.product ? ` · ${j.product}` : ''}${j.status !== 'converted' && (j.amountUsd ?? 0) > 0 ? t(' (open)') : ''}` },
+          { label: t('First seen'), value: fmtDate(j.touches[0]?.at ?? j.createdAt) },
+          { label: t('Deal'), value: j.name },
         ]}
       />
-      <h3 className="fn-g-dlabel">Contact</h3>
+      <h3 className="fn-g-dlabel">{t('Contact')}</h3>
       <Contact j={j} full />
-      <h3 className="fn-g-dlabel">Journey · {j.touches.length} touches</h3>
+      <h3 className="fn-g-dlabel">{t('Journey · {n} touches', { n: j.touches.length })}</h3>
       <ol className="fn-g-rail">
-        {j.touches.map((t) => (
-          <li key={t.id}>
+        {j.touches.map((tc) => (
+          <li key={tc.id}>
             <span className="fn-g-rail-dot" aria-hidden />
-            <span className="fn-g-rail-when">{fmtDate(t.at)}</span>
-            <span className="fn-g-rail-what"><span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[t.channel] ?? '·'}</span> {t.label}</span>
-            <span className="fn-g-cap">{stageLabel(t.stage)} · {t.source}</span>
+            <span className="fn-g-rail-when">{fmtDate(tc.at)}</span>
+            <span className="fn-g-rail-what"><span className="fn-g-glyph" aria-hidden>{CHANNEL_GLYPHS[tc.channel] ?? '·'}</span> {tc.label}</span>
+            <span className="fn-g-cap">{stageLabel(tc.stage)} · {tc.source}</span>
           </li>
         ))}
-        {j.status !== 'converted' && <li data-next=""><span className="fn-g-rail-dot" aria-hidden /><span className="fn-g-cap">Next touch is yours</span></li>}
+        {j.status !== 'converted' && <li data-next=""><span className="fn-g-rail-dot" aria-hidden /><span className="fn-g-cap">{t('Next touch is yours')}</span></li>}
       </ol>
     </GDrawer>
   );

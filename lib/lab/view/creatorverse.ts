@@ -236,8 +236,8 @@ export function layoutBySize(n: number, links: readonly { a: number; b: number; 
   }
   const ticks = 220;
   const rep = 260 * Math.min(1, 40 / n);
-  for (let t = 0; t < ticks; t++) {
-    const alpha = 1 - t / ticks;
+  for (let tk = 0; tk < ticks; tk++) {
+    const alpha = 1 - tk / ticks;
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         const dx = px[j] - px[i], dy = py[j] - py[i], dz = pz[j] - pz[i];
@@ -271,8 +271,8 @@ export function layoutBySize(n: number, links: readonly { a: number; b: number; 
 /** The shell a size rank sits on: the biggest near the centre, the unsized at the very edge. */
 export function shellFor(rank: number, n: number, sized: boolean): number {
   if (!sized) return 1;
-  const t = n <= 1 ? 0 : rank / (n - 1);
-  return 0.1 + 0.8 * Math.pow(t, 0.6);
+  const r = n <= 1 ? 0 : rank / (n - 1);
+  return 0.1 + 0.8 * Math.pow(r, 0.6);
 }
 
 /* ── builder ─────────────────────────────────────────────────────────── */
@@ -293,7 +293,7 @@ export function creatorverse(store: LabStore, now: Date, sample: boolean, select
 
   // Posts, 30-day breakouts and, for creators with no follower count, median views.
   const ids = new Set(creators.map((s) => s.id));
-  const t = now.getTime();
+  const nowMs = now.getTime();
   const measures = new Map(store.measures.all().map((m) => [m.postId, m]));
   const postsBy = new Map<string, string[]>();
   const breakouts = new Map<string, number>();
@@ -304,7 +304,7 @@ export function creatorverse(store: LabStore, now: Date, sample: boolean, select
     list.push(p.id);
     postsBy.set(p.sourceId, list);
     if (!p.postedAt || !measures.get(p.id)?.isBreakout) continue;
-    const age = t - Date.parse(p.postedAt);
+    const age = nowMs - Date.parse(p.postedAt);
     if (age < 0 || age > 30 * DAY) continue;
     breakouts.set(p.sourceId, (breakouts.get(p.sourceId) ?? 0) + 1);
     if (age <= 7 * DAY) hot.add(p.sourceId);
