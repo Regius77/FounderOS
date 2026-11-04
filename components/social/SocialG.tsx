@@ -31,7 +31,7 @@ import { DmInboxSheetG } from './DmInboxG';
 import { PostComposerG } from './PostComposerG';
 import { ContentCrewG } from './ContentCrew';
 import type { ContentCrew } from '@/lib/social-crew';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /** "over 30 days" / "all time" (lib/social-view rangePhrase, translated). */
 const rangePhrase = (r: SocialRange): string => (r === 'all' ? t('all time') : t('over {n} days', { n: r }));
@@ -198,7 +198,7 @@ export function SocialG(props: SocialGProps) {
                 label={t('Conversations by reply state')}
                 segments={[
                   { id: 'reply', label: t('To reply'), value: unreplied, title: t('{n} to reply', { n: unreplied }) },
-                  { id: 'done', label: t('Replied'), value: dmThreads.length - unreplied, title: t('{n} replied', { n: dmThreads.length - unreplied }) },
+                  { id: 'done', label: tc('count', 'Replied'), value: dmThreads.length - unreplied, title: t('{n} replied', { n: dmThreads.length - unreplied }) },
                 ]}
               />
             ) : undefined}

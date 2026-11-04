@@ -17,7 +17,7 @@ import { SetupLink } from '@/components/SetupLink';
 import { formatUsdCompact } from '@/lib/format-number';
 import { chainDepthColumns, pollStatus, stageBars, type DealFilter } from '@/lib/brand-deals-view';
 import type { BrandDealsSnapshot, Deal, DealEvent, DealOutcome } from '@/lib/brand-deals';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 function fmtUsd(n: number): string {
   return `$${Math.round(n).toLocaleString(localeTag())}`;
@@ -52,7 +52,7 @@ const STAGE_WORD: Record<string, string> = {
   won: t('won'),
   lost: t('lost'),
   skipped: t('skipped'),
-  approve: t('approve'),
+  approve: tc('status', 'approve'),
   approval: t('approval'),
   sent: t('sent'),
   closed: t('closed'),

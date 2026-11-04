@@ -6,6 +6,7 @@ import type { LabEval, LabPlatform } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
 import { predictorDef, type PredictorDef, type PredictorKind } from '@/lib/lab/ledger/predictors';
 import { typicalFactor } from '@/lib/lab/ledger/metrics';
+import { t } from '@/lib/i18n';
 
 export type Verdict = 'beats' | 'at_chance' | 'worse' | 'not_enough';
 
@@ -74,18 +75,18 @@ const dec2 = (x: number) => x.toFixed(2);
 /** 06 8.3 copy for a hidden predictor (pure). */
 export function hideReasonFor(def: PredictorDef, e: LabEval | null, verdict: Verdict | null, kind: PredictorKind): string {
   const label = def.label;
-  if (!e || verdict === null) return `Hidden: ${label} has not been graded yet.`;
+  if (!e || verdict === null) return t('Hidden: {label} has not been graded yet.', { label });
   const n = e.nPosts;
-  if (verdict === 'not_enough') return `Hidden: ${label} has ${n} graded posts. It shows once it beats your normal on 20.`;
-  if (verdict === 'worse') return `Hidden: ${label} has done worse than your normal (n ${n}).`;
+  if (verdict === 'not_enough') return t('Hidden: {label} has {n} graded posts. It shows once it beats your normal on 20.', { label, n });
+  if (verdict === 'worse') return t('Hidden: {label} has done worse than your normal (n {n}).', { label, n });
   if (kind === 'forecast') {
     const model = e.logMae !== null ? typicalFactor(e.logMae).toFixed(1) : '?';
     const base = e.logMaeBaseline !== null ? typicalFactor(e.logMaeBaseline).toFixed(1) : '?';
-    return `Hidden: ${label} is not yet better than your normal (off by x${model} vs x${base}, n ${n}).`;
+    return t('Hidden: {label} is not yet better than your normal (off by x{model} vs x{base}, n {n}).', { label, model, base, n });
   }
-  if (kind === 'ranking') return `Hidden: ${label} picks the better post ${pct(e.pairwise ?? 0.5)}% of the time, which is chance so far (n ${n}).`;
-  if (kind === 'classifier') return `Hidden: ${label} finds breakouts no better than chance yet (${dec2(e.prAuc ?? 0)} vs ${dec2(e.baseRate ?? 0)}, n ${n}).`;
-  return `Hidden: ${label} picked the test winner ${Math.round((e.pairwise ?? 0) * n)} of ${n} times, which is chance so far.`;
+  if (kind === 'ranking') return t('Hidden: {label} picks the better post {pct}% of the time, which is chance so far (n {n}).', { label, pct: pct(e.pairwise ?? 0.5), n });
+  if (kind === 'classifier') return t('Hidden: {label} finds breakouts no better than chance yet ({auc} vs {base}, n {n}).', { label, auc: dec2(e.prAuc ?? 0), base: dec2(e.baseRate ?? 0), n });
+  return t('Hidden: {label} picked the test winner {k} of {n} times, which is chance so far.', { label, k: Math.round((e.pairwise ?? 0) * n), n });
 }
 
 /** The single reason line that replaces a hidden predictor's number (06 8.3), or null when shown. */
@@ -100,17 +101,17 @@ export function hideReason(store: LabStore, predictor: string, platform: LabPlat
 
 /** 06 8.4 record line (pure); 'not enough yet' under n 5. */
 export function recordLineFor(def: PredictorDef, e: LabEval | null, kind: PredictorKind): string {
-  if (!e || e.nPosts < 5) return 'not enough yet';
+  if (!e || e.nPosts < 5) return t('not enough yet');
   const n = e.nPosts;
   if (kind === 'forecast') {
     const x = e.logMae !== null ? typicalFactor(e.logMae).toFixed(1) : '?';
     const m = e.coverageN;
     const k = e.coverage !== null ? Math.round(e.coverage * m) : 0;
-    return m ? `${def.label}: typically off by x${x} on ${n} posts, 80% range held ${k} of ${m}.` : `${def.label}: typically off by x${x} on ${n} posts.`;
+    return m ? t('{label}: typically off by x{x} on {n} posts, 80% range held {k} of {m}.', { label: def.label, x, n, k, m }) : t('{label}: typically off by x{x} on {n} posts.', { label: def.label, x, n });
   }
-  if (kind === 'ranking') return `${def.label}: picked the better post ${pct(e.pairwise ?? 0.5)}% of the time (${n} posts, ${e.windowWeeks} weeks).`;
-  if (kind === 'classifier') return `${def.label}: finds breakouts at ${dec2(e.prAuc ?? 0)} against ${dec2(e.baseRate ?? 0)} by chance (${n} posts).`;
-  return `${def.label}: picked the test winner ${Math.round((e.pairwise ?? 0) * n)} of ${n} times.`;
+  if (kind === 'ranking') return t('{label}: picked the better post {pct}% of the time ({n} posts, {weeks} weeks).', { label: def.label, pct: pct(e.pairwise ?? 0.5), n, weeks: e.windowWeeks });
+  if (kind === 'classifier') return t('{label}: finds breakouts at {auc} against {base} by chance ({n} posts).', { label: def.label, auc: dec2(e.prAuc ?? 0), base: dec2(e.baseRate ?? 0), n });
+  return t('{label}: picked the test winner {k} of {n} times.', { label: def.label, k: Math.round((e.pairwise ?? 0) * n), n });
 }
 
 /** 06 8.4 record line for every place a shown prediction appears (06 writes recordLine(predictor, platform)). */

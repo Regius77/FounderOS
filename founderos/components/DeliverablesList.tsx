@@ -15,7 +15,7 @@ import { Label } from '@/founderos/components/terminal';
 import type { DeliverableGroup, DeliverableItem } from '@/founderos/lib/board-deliverables';
 import type { UnseenState } from '@/founderos/lib/deliverables-opened';
 import { DELIVERABLES_COLLAPSED_KEY, parseCollapsed } from '@/founderos/lib/deliverables-seen';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * The Deliverables tab on /agents: every file the
@@ -215,7 +215,7 @@ export function DeliverablesList({
                             data-lens="c"
                             className="pressable is-dark flex shrink-0 items-center gap-1.5 rounded-full border border-os-border-strong bg-os-surface2 px-3 py-1.5 font-mono text-[10px] text-os-text"
                           >
-                            <ExternalLink className="h-3 w-3" /> {t('open')}
+                            <ExternalLink className="h-3 w-3" /> {tc('button', 'open')}
                           </a>
                         ) : (
                           <a

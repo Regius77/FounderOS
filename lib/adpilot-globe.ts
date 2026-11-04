@@ -1,4 +1,5 @@
 import type { Campaign, GeoPoint } from '@/lib/adpilot';
+import { t } from '@/lib/i18n';
 
 /**
  * Globe data helpers (SPEC S11 §7): the City card breakdown, the chip
@@ -123,12 +124,12 @@ export function placeLabels(candidates: LabelCandidate[], obstacles: Rect[], bou
 }
 
 /** The canvas's accessible name (S11 F-G6, F-G7). */
-export function globeLabel(geo: GeoPoint[], emptyLabel = 'No lead locations yet'): string {
+export function globeLabel(geo: GeoPoint[], emptyLabel = t('No lead locations yet')): string {
   if (geo.length === 0) return emptyLabel;
   const top = [...geo]
     .sort((a, b) => b.leads - a.leads)
     .slice(0, 3)
     .map((g) => `${g.city} ${g.leads}`)
     .join(', ');
-  return `Leads by city: ${geo.length} ${geo.length === 1 ? 'city' : 'cities'}. Top: ${top}.`;
+  return geo.length === 1 ? t('Leads by city: {n} city. Top: {top}.', { n: geo.length, top }) : t('Leads by city: {n} cities. Top: {top}.', { n: geo.length, top });
 }

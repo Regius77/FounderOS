@@ -8,6 +8,7 @@
  */
 import type { LabSpendLine } from '@/lib/schemas';
 import type { LabHealthId } from '@/lib/lab/setup/health';
+import { t } from '@/lib/i18n';
 
 export type LabKeyId = 'apify' | 'openai' | 'youtube' | 'instagram' | 'producthunt' | 'github' | 'xwatch' | 'claude_cli';
 
@@ -70,70 +71,70 @@ const oa = (env: string, label: string, secret = true): LabKeyField => ({ env, l
 /** 08.2.1, in row order. Row copy is exact. */
 export const LAB_KEYS: readonly LabKeySpec[] = [
   {
-    id: 'apify', title: 'Apify', required: true, fields: [op('APIFY_API_TOKEN', 'API token')],
-    unlocks: ['Your posts and their numbers at age. Tracked creators and breakouts. Discovery. The X watch list, TikTok Creative Center and Product Hunt on Radar.'],
+    id: 'apify', title: 'Apify', required: true, fields: [op('APIFY_API_TOKEN', t('API token'))],
+    unlocks: [t('Your posts and their numbers at age. Tracked creators and breakouts. Discovery. The X watch list, TikTok Creative Center and Product Hunt on Radar.')],
     costLines: ['apify.sync', 'apify.snapshots', 'apify.x', 'apify.verify', 'apify.radar_x', 'apify.radar_tiktok', 'apify.radar_producthunt', 'comments', 'downloads'],
     health: ['apify.auth'], docsHref: 'https://console.apify.com/settings/integrations',
   },
   {
-    id: 'openai', title: 'OpenAI (speech to text)', required: false, fields: [op('OPENAI_API_KEY', 'API key')],
-    unlocks: ['Transcripts for posts without captions. Without it, captions only.'],
+    id: 'openai', title: t('OpenAI (speech to text)'), required: false, fields: [op('OPENAI_API_KEY', t('API key'))],
+    unlocks: [t('Transcripts for posts without captions. Without it, captions only.')],
     costLines: ['stt', 'stt.controls', 'embed'], health: ['openai.auth'], docsHref: 'https://platform.openai.com/api-keys',
   },
   {
-    id: 'youtube', title: 'YouTube Analytics', required: false,
-    fields: [op('LAB_YT_CLIENT_ID', 'Client ID', false), op('LAB_YT_CLIENT_SECRET', 'Client secret'), oa('LAB_YT_REFRESH_TOKEN', 'Refresh token'), oa('LAB_YT_CHANNEL_ID', 'Channel', false), oa('LAB_YT_CONNECTED_AT', 'Connected at', false), op('LAB_YT_REDIRECT_URI', 'Redirect URI (optional)', false)],
-    unlocks: ['Retention curves for your own YouTube videos, laid on the beat strand. Test & Compare results stay manual.'],
+    id: 'youtube', title: t('YouTube Analytics'), required: false,
+    fields: [op('LAB_YT_CLIENT_ID', t('Client ID'), false), op('LAB_YT_CLIENT_SECRET', t('Client secret')), oa('LAB_YT_REFRESH_TOKEN', t('Refresh token')), oa('LAB_YT_CHANNEL_ID', t('Channel'), false), oa('LAB_YT_CONNECTED_AT', t('Connected at'), false), op('LAB_YT_REDIRECT_URI', t('Redirect URI (optional)'), false)],
+    unlocks: [t('Retention curves for your own YouTube videos, laid on the beat strand. Test & Compare results stay manual.')],
     costLines: [], health: ['youtube.token'], docsHref: 'https://console.cloud.google.com/apis/credentials',
   },
   {
-    id: 'instagram', title: 'Instagram insights', required: false,
-    fields: [op('LAB_IG_APP_ID', 'App ID', false), op('LAB_IG_APP_SECRET', 'App secret'), oa('LAB_IG_ACCESS_TOKEN', 'Access token'), oa('LAB_IG_TOKEN_EXPIRES_AT', 'Expires at', false), oa('LAB_IG_USER_ID', 'User ID', false), op('LAB_IG_REDIRECT_URI', 'Redirect URI (optional)', false)],
-    unlocks: ['Skip rate, average watch time, saves and shares for your own Reels. Reach for Trial Reels you log in Ledger.'],
+    id: 'instagram', title: t('Instagram insights'), required: false,
+    fields: [op('LAB_IG_APP_ID', t('App ID'), false), op('LAB_IG_APP_SECRET', t('App secret')), oa('LAB_IG_ACCESS_TOKEN', t('Access token')), oa('LAB_IG_TOKEN_EXPIRES_AT', t('Expires at'), false), oa('LAB_IG_USER_ID', t('User ID'), false), op('LAB_IG_REDIRECT_URI', t('Redirect URI (optional)'), false)],
+    unlocks: [t('Skip rate, average watch time, saves and shares for your own Reels. Reach for Trial Reels you log in Ledger.')],
     costLines: [], health: ['instagram.token'], docsHref: 'https://developers.facebook.com/apps/',
   },
   {
-    id: 'producthunt', title: 'Product Hunt', required: false, fields: [op('PRODUCTHUNT_TOKEN', 'Developer token')],
-    unlocks: ["Product Hunt launches as a Radar source, at low weight. Personal use only under Product Hunt's API terms."],
+    id: 'producthunt', title: 'Product Hunt', required: false, fields: [op('PRODUCTHUNT_TOKEN', t('Developer token'))],
+    unlocks: [t("Product Hunt launches as a Radar source, at low weight. Personal use only under Product Hunt's API terms.")],
     costLines: [], health: ['producthunt.auth'], docsHref: 'https://www.producthunt.com/v2/oauth/applications',
   },
   {
-    id: 'github', title: 'GitHub', required: false, fields: [op('GITHUB_TOKEN', 'Fine-grained token')],
-    unlocks: ['Turns on the fake-star filter for GitHub launches on Radar and raises the search limit. Fine-grained token, no scopes.'],
+    id: 'github', title: 'GitHub', required: false, fields: [op('GITHUB_TOKEN', t('Fine-grained token'))],
+    unlocks: [t('Turns on the fake-star filter for GitHub launches on Radar and raises the search limit. Fine-grained token, no scopes.')],
     costLines: [], health: ['github.auth'], docsHref: 'https://github.com/settings/personal-access-tokens',
   },
   {
-    id: 'xwatch', title: 'X watch list', required: false, fields: [],
-    unlocks: ['First reactions and launch posts on Radar, read every 2 hours through Apify in one combined query.'],
+    id: 'xwatch', title: t('X watch list'), required: false, fields: [],
+    unlocks: [t('First reactions and launch posts on Radar, read every 2 hours through Apify in one combined query.')],
     costLines: ['apify.radar_x'], health: ['radar.x'], docsHref: 'https://x.com',
   },
   {
-    id: 'claude_cli', title: 'Local claude CLI', required: false, fields: [],
-    unlocks: ["Dissection, ideas and scripts. No key; runs on this machine's Claude login."],
+    id: 'claude_cli', title: t('Local claude CLI'), required: false, fields: [],
+    unlocks: [t("Dissection, ideas and scripts. No key; runs on this machine's Claude login.")],
     costLines: ['llm'], health: ['claude.cli'], docsHref: 'https://docs.anthropic.com/en/docs/claude-code',
   },
 ];
 
 /** 08.2.1 Lab settings rows. */
 export const LAB_SETTINGS: readonly LabSettingSpec[] = [
-  { id: 'lexicon', title: 'Concreteness lexicon', control: 'action', env: null, health: ['lexicon.file'] },
-  { id: 'frames', title: 'Frame contact sheets', control: 'toggle', env: 'LAB_FRAMES', health: ['ffmpeg.bin'] },
-  { id: 'tiktok_download_price', title: 'TikTok download price override (USD per video)', control: 'number', env: 'LAB_TIKTOK_DOWNLOAD_PRICE_USD', health: [] },
-  { id: 'embed_provider', title: 'Embeddings for Ask the Lab', control: 'select', env: 'LAB_EMBED_PROVIDER', health: ['openai.auth'] },
-  { id: 'judge', title: 'Pairwise hook judge', control: 'toggle', env: 'LAB_JUDGE', health: ['claude.cli'] },
-  { id: 'judge_model', title: 'Judge model', control: 'text', env: 'LAB_JUDGE_MODEL', health: [] },
-  { id: 'grounding_control', title: 'Control arm share', control: 'number', env: 'LAB_GROUNDING_CONTROL', health: [] },
+  { id: 'lexicon', title: t('Concreteness lexicon'), control: 'action', env: null, health: ['lexicon.file'] },
+  { id: 'frames', title: t('Frame contact sheets'), control: 'toggle', env: 'LAB_FRAMES', health: ['ffmpeg.bin'] },
+  { id: 'tiktok_download_price', title: t('TikTok download price override (USD per video)'), control: 'number', env: 'LAB_TIKTOK_DOWNLOAD_PRICE_USD', health: [] },
+  { id: 'embed_provider', title: t('Embeddings for Ask the Lab'), control: 'select', env: 'LAB_EMBED_PROVIDER', health: ['openai.auth'] },
+  { id: 'judge', title: t('Pairwise hook judge'), control: 'toggle', env: 'LAB_JUDGE', health: ['claude.cli'] },
+  { id: 'judge_model', title: t('Judge model'), control: 'text', env: 'LAB_JUDGE_MODEL', health: [] },
+  { id: 'grounding_control', title: t('Control arm share'), control: 'number', env: 'LAB_GROUNDING_CONTROL', health: [] },
 ];
 
 /** Row copy of the Lab settings (08.2.1). The TikTok price line is built from the price book. */
 export const LAB_SETTING_COPY: Record<LabSettingId, string> = {
-  lexicon: 'Scores how concrete your hooks are. Downloaded once, never committed.',
-  frames: 'Six frames per video for dissection. Needs ffmpeg and ffprobe on this machine.',
-  tiktok_download_price: "Using Apify's published price, ${price} per video.",
-  embed_provider: 'Local is free and runs here. OpenAI costs about $0.05 for a full backfill and needs a cap above $0 on Embeddings.',
-  judge: 'Judge disabled in Setup.',
-  judge_model: "Leave blank to use the claude CLI's default model.",
-  grounding_control: 'Share of new script drafts written without evidence, to measure what grounding adds. 0 is off.',
+  lexicon: t('Scores how concrete your hooks are. Downloaded once, never committed.'),
+  frames: t('Six frames per video for dissection. Needs ffmpeg and ffprobe on this machine.'),
+  tiktok_download_price: t("Using Apify's published price, ${price} per video."),
+  embed_provider: t('Local is free and runs here. OpenAI costs about $0.05 for a full backfill and needs a cap above $0 on Embeddings.'),
+  judge: t('Judge disabled in Setup.'),
+  judge_model: t("Leave blank to use the claude CLI's default model."),
+  grounding_control: t('Share of new script drafts written without evidence, to measure what grounding adds. 0 is off.'),
 };
 
 /* ── the paste endpoint allowlist and value rules (08.2.3, 08.6.2, AC-08-26) ── */

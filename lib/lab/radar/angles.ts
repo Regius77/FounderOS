@@ -10,6 +10,7 @@
 import { z } from 'zod';
 import { LAUNCH_ANGLES, LaunchAngleSchema, type LabEvent, type LabEventCoverage, type LabWindowState, type LaunchAngle } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
+import { t, tc } from '@/lib/i18n';
 
 export { LAUNCH_ANGLES, LaunchAngleSchema } from '@/lib/schemas';
 export type { LaunchAngle } from '@/lib/schemas';
@@ -61,8 +62,8 @@ export const ANGLE_PRIOR_ORDER: readonly AngleId[] = ['real_examples', 'first_lo
 
 export type AngleOwnStats = Partial<Record<LaunchAngle, { median: number; n: number }>>;
 
-const RECOMMEND_COPY = (a: AngleId) => `Recommended: ${ANGLE_LABEL[a]}. No tracked creator has used it yet.`;
-export const ALL_TAKEN_COPY = 'Every angle is taken. A depth play (a full course) is the late move that still broke out.';
+const RECOMMEND_COPY = (a: AngleId) => t('Recommended: {angle}. No tracked creator has used it yet.', { angle: tc('angle', ANGLE_LABEL[a]) });
+export const ALL_TAKEN_COPY = t('Every angle is taken. A depth play (a full course) is the late move that still broke out.');
 
 /**
  * 05 12.4, rules in order (pure, no store access). Never returns `other` and never null.

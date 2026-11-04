@@ -26,6 +26,7 @@ import { forecastRecord, gateAdjust, type ForecastRecord } from '@/lib/lab/setup
 import { planInputs } from '@/lib/lab/setup/planner';
 import { isPrivateInstance } from '@/lib/lab/setup/instance';
 import { LAB_JOBS, jobState } from '@/lib/lab/setup/jobs';
+import { t } from '@/lib/i18n';
 
 /** A source row in Setup > Sources: v1's SourceRow (08.3.1 calls it LabSourceRow). */
 export type LabSourceRow = SourceRow;
@@ -108,63 +109,63 @@ export type SetupViewOpts = { now?: Date; dry?: boolean; dryLabel?: string | nul
 
 /* ── labels (08.6.5, 09.5.2) ──────────────────────────────────────────────── */
 
-export const PROVIDER_LABEL: Record<LabSpendProvider, string> = { apify: 'Apify', stt: 'Speech to text', comments: 'Comments', downloads: 'Video downloads', embed: 'Embeddings', llm: 'Local claude CLI' };
+export const PROVIDER_LABEL: Record<LabSpendProvider, string> = { apify: t('Apify'), stt: t('Speech to text'), comments: t('Comments'), downloads: t('Video downloads'), embed: t('Embeddings'), llm: t('Local claude CLI') };
 export const LINE_LABEL: Record<LabSpendLine, string> = {
-  'apify.sync': 'Daily sync',
-  'apify.snapshots': 'Your posts at fixed ages',
-  'apify.x': 'Your X posts',
-  'apify.verify': 'Actor checks',
-  'apify.radar_x': 'Radar: X watch list',
-  'apify.radar_tiktok': 'Radar: TikTok Creative Center',
-  'apify.radar_producthunt': 'Radar: Product Hunt',
-  stt: 'Your posts and breakouts',
-  'stt.controls': 'Comparison posts',
-  comments: 'Comments',
-  downloads: 'Video downloads',
-  embed: 'Embeddings',
-  llm: 'Local claude CLI',
+  'apify.sync': t('Daily sync'),
+  'apify.snapshots': t('Your posts at fixed ages'),
+  'apify.x': t('Your X posts'),
+  'apify.verify': t('Actor checks'),
+  'apify.radar_x': t('Radar: X watch list'),
+  'apify.radar_tiktok': t('Radar: TikTok Creative Center'),
+  'apify.radar_producthunt': t('Radar: Product Hunt'),
+  stt: t('Your posts and breakouts'),
+  'stt.controls': t('Comparison posts'),
+  comments: t('Comments'),
+  downloads: t('Video downloads'),
+  embed: t('Embeddings'),
+  llm: t('Local claude CLI'),
 };
 const PRICE_NOTE: Record<LabSpendLine, string> = {
-  'apify.sync': "Priced from Apify's published event prices for your plan.",
-  'apify.snapshots': "Priced from Apify's published event prices for your plan.",
-  'apify.x': '$0.40 per 1,000 tweets, 50 at least per query.',
-  'apify.verify': 'About $0.40 once.',
-  'apify.radar_x': '$0.40 per 1,000 tweets, one combined query per poll.',
-  'apify.radar_tiktok': '$1.00 per 1,000 hashtags plus $0.025 a start.',
-  'apify.radar_producthunt': '$0.00075 a row plus $0.002 a run, only without a Product Hunt token.',
-  stt: 'from the published price',
-  'stt.controls': 'from the published price',
-  comments: "Priced from the comment actors' published prices.",
-  downloads: "Priced from TikTok's published video-download price.",
-  embed: 'from the published price',
-  llm: '$0, runs on this machine',
+  'apify.sync': t("Priced from Apify's published event prices for your plan."),
+  'apify.snapshots': t("Priced from Apify's published event prices for your plan."),
+  'apify.x': t('$0.40 per 1,000 tweets, 50 at least per query.'),
+  'apify.verify': t('About $0.40 once.'),
+  'apify.radar_x': t('$0.40 per 1,000 tweets, one combined query per poll.'),
+  'apify.radar_tiktok': t('$1.00 per 1,000 hashtags plus $0.025 a start.'),
+  'apify.radar_producthunt': t('$0.00075 a row plus $0.002 a run, only without a Product Hunt token.'),
+  stt: t('from the published price'),
+  'stt.controls': t('from the published price'),
+  comments: t("Priced from the comment actors' published prices."),
+  downloads: t("Priced from TikTok's published video-download price."),
+  embed: t('from the published price'),
+  llm: t('$0, runs on this machine'),
 };
 
 export const JOB_LABEL: Record<LabJobId, { label: string; what: string }> = {
-  advance: { label: 'Finish running scrapes', what: 'Reads finished Apify runs and saves their posts.' },
-  'measure.verdicts': { label: 'Measures and verdicts', what: 'Recomputes ratios and picks comparison posts after new reads.' },
-  health: { label: 'Health checks', what: 'Checks every key and refreshes Apify prices, every 6 hours.' },
-  'radar.vendor': { label: 'Radar: vendor feeds', what: 'AI vendor blogs and changelogs, every 15 minutes.' },
-  'radar.hn': { label: 'Radar: Hacker News', what: 'Launch posts on Hacker News, every 30 minutes.' },
-  'radar.hf_models': { label: 'Radar: Hugging Face models', what: 'Trending models, hourly.' },
-  'radar.hf_spaces': { label: 'Radar: Hugging Face Spaces', what: 'Trending Spaces, hourly.' },
-  'radar.github': { label: 'Radar: GitHub', what: 'New repositories gaining stars, hourly.' },
-  'radar.x': { label: 'Radar: X watch list', what: 'X watch list, one combined query' },
-  'radar.producthunt': { label: 'Radar: Product Hunt', what: 'Product Hunt launches (actor path only)' },
-  'radar.tiktok_cc': { label: 'Radar: TikTok Creative Center', what: 'TikTok Creative Center trends' },
-  'radar.wikipedia': { label: 'Radar: Wikipedia', what: 'Page views for launch names, daily.' },
-  'radar.events': { label: 'Radar: events', what: 'Groups signals into launches and windows, every tick.' },
-  brief: { label: 'Morning brief', what: 'Composes the brief at 07:30.' },
-  snapshots: { label: 'Your posts at fixed ages', what: 'Your new posts every 2 h, then reads at fixed ages' },
-  'ledger.early': { label: 'Early forecasts', what: 'Freezes early forecasts for your newest posts.' },
-  sync: { label: 'Daily sync', what: 'Your accounts each slot, tracked creators once a day, 15 newest posts each (50 the first time)' },
-  analyse: { label: 'Transcribe and dissect', what: 'Transcribes and dissects new posts after a scrape.' },
-  'gen.embed': { label: 'Embeddings', what: 'Indexes transcripts, ideas and comments for Ask the Lab.' },
-  'gen.frames': { label: 'Frame contact sheets', what: 'Six frames per video for dissection.' },
-  'gen.comments': { label: 'Comments', what: 'Comments on selected posts' },
-  intel: { label: 'Intel', what: 'Profiles, topics and ideas after new dissections.' },
-  discover: { label: 'Discovery', what: 'Keyword and hashtag search for new creators' },
-  ledger: { label: 'Ledger', what: 'Grades predictions and refreshes tokens at 03:30.' },
+  advance: { label: t('Finish running scrapes'), what: t('Reads finished Apify runs and saves their posts.') },
+  'measure.verdicts': { label: t('Measures and verdicts'), what: t('Recomputes ratios and picks comparison posts after new reads.') },
+  health: { label: t('Health checks'), what: t('Checks every key and refreshes Apify prices, every 6 hours.') },
+  'radar.vendor': { label: t('Radar: vendor feeds'), what: t('AI vendor blogs and changelogs, every 15 minutes.') },
+  'radar.hn': { label: t('Radar: Hacker News'), what: t('Launch posts on Hacker News, every 30 minutes.') },
+  'radar.hf_models': { label: t('Radar: Hugging Face models'), what: t('Trending models, hourly.') },
+  'radar.hf_spaces': { label: t('Radar: Hugging Face Spaces'), what: t('Trending Spaces, hourly.') },
+  'radar.github': { label: t('Radar: GitHub'), what: t('New repositories gaining stars, hourly.') },
+  'radar.x': { label: t('Radar: X watch list'), what: t('X watch list, one combined query') },
+  'radar.producthunt': { label: t('Radar: Product Hunt'), what: t('Product Hunt launches (actor path only)') },
+  'radar.tiktok_cc': { label: t('Radar: TikTok Creative Center'), what: t('TikTok Creative Center trends') },
+  'radar.wikipedia': { label: t('Radar: Wikipedia'), what: t('Page views for launch names, daily.') },
+  'radar.events': { label: t('Radar: events'), what: t('Groups signals into launches and windows, every tick.') },
+  brief: { label: t('Morning brief'), what: t('Composes the brief at 07:30.') },
+  snapshots: { label: t('Your posts at fixed ages'), what: t('Your new posts every 2 h, then reads at fixed ages') },
+  'ledger.early': { label: t('Early forecasts'), what: t('Freezes early forecasts for your newest posts.') },
+  sync: { label: t('Daily sync'), what: t('Your accounts each slot, tracked creators once a day, 15 newest posts each (50 the first time)') },
+  analyse: { label: t('Transcribe and dissect'), what: t('Transcribes and dissects new posts after a scrape.') },
+  'gen.embed': { label: t('Embeddings'), what: t('Indexes transcripts, ideas and comments for Ask the Lab.') },
+  'gen.frames': { label: t('Frame contact sheets'), what: t('Six frames per video for dissection.') },
+  'gen.comments': { label: t('Comments'), what: t('Comments on selected posts') },
+  intel: { label: t('Intel'), what: t('Profiles, topics and ideas after new dissections.') },
+  discover: { label: t('Discovery'), what: t('Keyword and hashtag search for new creators') },
+  ledger: { label: t('Ledger'), what: t('Grades predictions and refreshes tokens at 03:30.') },
 };
 
 const r4 = (x: number) => Math.round(x * 10_000) / 10_000;
@@ -213,13 +214,13 @@ export function spendView(store: LabStore, now: Date, opts: { dry: boolean; env?
     const pr = rows.filter((r) => r.provider === provider);
     const cap = capFor(provider, env);
     const flag = PROVIDER_FLAGS[provider];
-    const offReason = flag && !flag.on(env[flag.env]) ? `Off. Turn on with ${flag.env} and a cap above $0.` : cap === 0 ? `Off. Turn on with ${capEnvFor(provider)} above $0.` : null;
+    const offReason = flag && !flag.on(env[flag.env]) ? t('Off. Turn on with {env} and a cap above $0.', { env: flag.env }) : cap === 0 ? t('Off. Turn on with {env} above $0.', { env: capEnvFor(provider) ?? '' }) : null;
     const spent = sum(pr, settledUsd);
     const reserved = sum(pr, pendingUsd);
     const subLines = linesOf(provider).filter((l) => !isGeneralLine(l));
     const lineCaps = subLines.map((l) => lineCapFor(l, env)).filter((x): x is number => x !== null);
     const lineCapSum = lineCaps.length ? r4(lineCaps.reduce((a, b) => a + b, 0)) : null;
-    const capWarning = cap !== null && lineCapSum !== null && cap < lineCapSum ? `Line caps add to ${usd(lineCapSum)} but the ${PROVIDER_LABEL[provider]} cap is ${usd(cap)}. Lines stop when the ${PROVIDER_LABEL[provider]} cap is reached.` : null;
+    const capWarning = cap !== null && lineCapSum !== null && cap < lineCapSum ? t('Line caps add to {sum} but the {provider} cap is {cap}. Lines stop when the {provider} cap is reached.', { sum: usd(lineCapSum), provider: PROVIDER_LABEL[provider], cap: usd(cap) }) : null;
     const showLines = linesOf(provider).length > 1 ? linesOf(provider) : [];
     const lines = showLines.map((line) => {
       const lr = pr.filter((r) => (r.line ?? (provider === 'apify' ? 'apify.sync' : provider)) === line);
@@ -246,7 +247,7 @@ export function spendView(store: LabStore, now: Date, opts: { dry: boolean; env?
     month: since.slice(0, 7),
     dry: opts.dry,
     providers,
-    blocked: blockedRun ? { runId: blockedRun.id, line: blockedRun.line ?? 'apify.sync', scope: blockedRun.error && blockedRun.line && blockedRun.error.startsWith(blockedRun.line) ? 'line' : 'provider', message: blockedRun.error ?? 'Stopped by a cap.', at: blockedRun.startedAt } : null,
+    blocked: blockedRun ? { runId: blockedRun.id, line: blockedRun.line ?? 'apify.sync', scope: blockedRun.error && blockedRun.line && blockedRun.error.startsWith(blockedRun.line) ? 'line' : 'provider', message: blockedRun.error ?? t('Stopped by a cap.'), at: blockedRun.startedAt } : null,
     runs,
     monthTotal: r4(providers.reduce((a, p) => a + p.spent + p.reserved, 0)),
   };
@@ -280,14 +281,14 @@ function scheduleView(store: LabStore, now: Date, ctx: { health: LabHealthResult
     const needs = j.needs({ store, now, scheduled: true, dry: ctx.dry });
     let state: ScheduleJobRow['state'] = 'on';
     let stateText = st.lastDetail || '';
-    if (ctx.sample) [state, stateText] = ['sample', 'Sample data. Nothing runs here.'];
-    else if (client && heartbeat.state !== 'ok') [state, stateText] = ['client', 'Runs when lab-sync tick is called. Call it every 15 minutes from cron or launchd.'];
-    else if (cfg.paused) [state, stateText] = ['paused', 'Paused. Run now still works.'];
+    if (ctx.sample) [state, stateText] = ['sample', t('Sample data. Nothing runs here.')];
+    else if (client && heartbeat.state !== 'ok') [state, stateText] = ['client', t('Runs when lab-sync tick is called. Call it every 15 minutes from cron or launchd.')];
+    else if (cfg.paused) [state, stateText] = ['paused', t('Paused. Run now still works.')];
     else if (off && !ctx.dry) [state, stateText] = ['off', off];
-    else if (line && blockedLines.has(line)) [state, stateText] = ['blocked', `${LINE_LABEL[line]}: stopped by its cap this month. Pass the cap once, or raise it.`];
-    else if (st.skippedReason === 'Waiting for the other X run to finish') [state, stateText] = ['deferred', st.skippedReason];
+    else if (line && blockedLines.has(line)) [state, stateText] = ['blocked', t('{line}: stopped by its cap this month. Pass the cap once, or raise it.', { line: LINE_LABEL[line] })];
+    else if (st.skippedReason === 'Waiting for the other X run to finish') [state, stateText] = ['deferred', t(st.skippedReason)];
     else if (needs) [state, stateText] = ['needs', needs];
-    else if (!installed && !client) [state, stateText] = ['not_scheduled', 'Saved. Nothing runs on its own until the schedule is installed.'];
+    else if (!installed && !client) [state, stateText] = ['not_scheduled', t('Saved. Nothing runs on its own until the schedule is installed.')];
     return {
       id: j.id,
       label: JOB_LABEL[j.id].label,
@@ -307,7 +308,7 @@ function scheduleView(store: LabStore, now: Date, ctx: { health: LabHealthResult
   });
   return {
     installed,
-    label: installed ? sched?.label ?? TICK_LABEL : client ? 'Runs when lab-sync tick is called. Call it every 15 minutes from cron or launchd.' : 'Not scheduled yet',
+    label: installed ? sched?.label ?? TICK_LABEL : client ? t('Runs when lab-sync tick is called. Call it every 15 minutes from cron or launchd.') : t('Not scheduled yet'),
     agentLabel: client ? null : LAB_AGENT_LABEL,
     heartbeat,
     paused: { by: by ? (client ? path.basename(by) : by) : null, scope: by ? (path.basename(by) === 'PAUSED' ? 'all' : 'lab') : null },
@@ -331,7 +332,7 @@ export function setupView(store: LabStore, opts: SetupViewOpts = {}): SetupView 
   const recorded = dry || sample || filming;
   const health = healthResults(store, { now, env });
   const planner = planInputs(store, now, { recorded, env });
-  const checklist = checklistView(store, { health, dry: recorded, dryLabel: sample ? 'sample data' : opts.dryLabel ?? null, now });
+  const checklist = checklistView(store, { health, dry: recorded, dryLabel: sample ? t('sample data') : opts.dryLabel ?? null, now });
   const keys = sample
     ? keyRows(store, { health, dry: false, now }).map((k) => sampleRow(k, health))
     : keyRows(store, { health, dry, now });
@@ -352,8 +353,8 @@ export function setupView(store: LabStore, opts: SetupViewOpts = {}): SetupView 
     forecastRecord: forecastRecord(store),
     focus,
     notes: {
-      brainInDry: dry && !filming ? `Brain docs from dry runs go to ${labBrainRoot()}.` : null,
-      checklistComplete: checklist.complete ? 'Setup done. The Lab runs on its own now.' : null,
+      brainInDry: dry && !filming ? t('Brain docs from dry runs go to {path}.', { path: labBrainRoot() }) : null,
+      checklistComplete: checklist.complete ? t('Setup done. The Lab runs on its own now.') : null,
       ownedHeader: recorded ? priceLabel(planner, { sample: true }) : null,
     },
   };
@@ -368,6 +369,6 @@ function sampleRow(k: LabKeyRow, health: LabHealthResult[]): LabKeyRow {
   const warn = h.find((x) => x.state === 'warn' && /^Expires in/.test(x.detail));
   if (fail) return { ...k, fields, state: 'error', detail: fail.detail, action: { kind: 'none', label: '' } };
   if (warn) return { ...k, fields, state: 'expiring', detail: warn.detail, action: { kind: 'none', label: '' } };
-  return { ...k, fields, state: 'connected', detail: 'Sample connection.', action: { kind: 'none', label: '' } };
+  return { ...k, fields, state: 'connected', detail: t('Sample connection.'), action: { kind: 'none', label: '' } };
 }
 

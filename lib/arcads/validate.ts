@@ -1,5 +1,6 @@
 import type { ConsoleControls, VideoModel } from '@/lib/creative-engine/schemas';
 import { DURATION_RULES } from '@/lib/creative-engine/duration';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * Per-model request rules for POST /v2/videos/generate, encoded from the
@@ -68,7 +69,7 @@ export type ValidationLint = { level: 'warn' | 'error'; field: keyof ConsoleCont
 export type RefCheck = { exists: boolean; kind: 'image' | 'video' | 'audio' | null };
 
 type RefField = 'referenceImages' | 'referenceVideos' | 'referenceAudios' | 'startFrame' | 'endFrame';
-const REF_LABEL: Record<RefField, string> = { referenceImages: 'reference images', referenceVideos: 'reference video', referenceAudios: 'reference audio', startFrame: 'start frame', endFrame: 'end frame' };
+const REF_LABEL: Record<RefField, string> = { referenceImages: t('reference images'), referenceVideos: t('reference video'), referenceAudios: t('reference audio'), startFrame: t('start frame'), endFrame: t('end frame') };
 const REF_KIND: Record<RefField, RefCheck['kind']> = { referenceImages: 'image', referenceVideos: 'video', referenceAudios: 'audio', startFrame: 'image', endFrame: 'image' };
 
 /**
@@ -113,41 +114,44 @@ export function referencePaths(c: Pick<ConsoleControls, RefField>): { field: Ref
  * the console passes what it has checked so far, and a missing file or a file
  * of the wrong kind becomes an error before any credit is charged.
  */
+/** A found media kind, as words. */
+const tKind = (k: string): string => (k === 'image' || k === 'video' || k === 'audio' ? tc('media', k) : k);
+
 export function validateRequest(input: ConsoleControls, checks?: Record<string, RefCheck | undefined>): ValidationLint[] {
   const out: ValidationLint[] = [];
-  for (const f of ignoredRefs(input)) out.push({ level: 'warn', field: f, message: `${REF_LABEL[f]} ignored by ${input.model}: kept for another model, not sent` });
+  for (const f of ignoredRefs(input)) out.push({ level: 'warn', field: f, message: t('{ref} ignored by {model}: kept for another model, not sent', { ref: REF_LABEL[f], model: input.model }) });
   const c = stripIgnoredRefs(input);
   const rule = MODEL_RULES[c.model];
   if (checks) {
     for (const r of referencePaths(c)) {
       const k = checks[r.path];
       if (!k) continue;
-      if (!k.exists) out.push({ level: 'error', field: r.field, message: `reference file not found: ${r.path}` });
-      else if (k.kind !== r.kind) out.push({ level: 'error', field: r.field, message: `${r.path} is ${k.kind ?? 'not a known media type'}; ${REF_LABEL[r.field]} must be ${r.kind === 'image' ? 'an image' : r.kind === 'audio' ? 'audio' : 'a video'}` });
+      if (!k.exists) out.push({ level: 'error', field: r.field, message: t('reference file not found: {path}', { path: r.path }) });
+      else if (k.kind !== r.kind) out.push({ level: 'error', field: r.field, message: t('{path} is {found}; {ref} must be {want}', { path: r.path, found: k.kind ? tKind(k.kind) : t('not a known media type'), ref: REF_LABEL[r.field], want: r.kind === 'image' ? t('an image') : r.kind === 'audio' ? tc('media', 'audio') : t('a video') }) });
     }
   }
-  if (!rule.aspects.includes(c.aspectRatio)) out.push({ level: 'error', field: 'aspectRatio', message: `${c.model} does not accept ${c.aspectRatio} (allowed: ${rule.aspects.join(', ')})` });
-  if (rule.resolutions.length && !rule.resolutions.includes(c.resolution)) out.push({ level: 'error', field: 'resolution', message: `${c.model} does not accept ${c.resolution} (allowed: ${rule.resolutions.join(', ')})` });
+  if (!rule.aspects.includes(c.aspectRatio)) out.push({ level: 'error', field: 'aspectRatio', message: t('{model} does not accept {value} (allowed: {allowed})', { model: c.model, value: c.aspectRatio, allowed: rule.aspects.join(', ') }) });
+  if (rule.resolutions.length && !rule.resolutions.includes(c.resolution)) out.push({ level: 'error', field: 'resolution', message: t('{model} does not accept {value} (allowed: {allowed})', { model: c.model, value: c.resolution, allowed: rule.resolutions.join(', ') }) });
 
   const d = DURATION_RULES[c.model];
-  if (d.kind === 'enum' && !d.values.includes(c.duration)) out.push({ level: 'error', field: 'duration', message: `${c.model} duration must be one of ${d.values.join('/')}` });
-  if (d.kind === 'range' && (c.duration < d.min || c.duration > d.max)) out.push({ level: 'error', field: 'duration', message: `${c.model} duration must be ${d.min}–${d.max}s` });
+  if (d.kind === 'enum' && !d.values.includes(c.duration)) out.push({ level: 'error', field: 'duration', message: t('{model} duration must be one of {values}', { model: c.model, values: d.values.join('/') }) });
+  if (d.kind === 'range' && (c.duration < d.min || c.duration > d.max)) out.push({ level: 'error', field: 'duration', message: t('{model} duration must be {min}–{max}s', { model: c.model, min: d.min, max: d.max }) });
 
-  if (c.referenceImages.length > rule.maxReferenceImages) out.push({ level: 'error', field: 'referenceImages', message: rule.maxReferenceImages === 0 ? `${c.model} takes no reference images` : `${c.model} takes at most ${rule.maxReferenceImages} reference image(s)` });
-  if (c.referenceVideos.length > rule.maxReferenceVideos) out.push({ level: 'error', field: 'referenceVideos', message: rule.maxReferenceVideos === 0 ? `${c.model} takes no reference video` : `${c.model} takes at most ${rule.maxReferenceVideos} reference video(s)` });
-  if (c.referenceAudios.length > rule.maxReferenceAudios) out.push({ level: 'error', field: 'referenceAudios', message: rule.maxReferenceAudios === 0 ? `${c.model} takes no reference audio` : `${c.model} takes at most ${rule.maxReferenceAudios} reference audio file(s)` });
+  if (c.referenceImages.length > rule.maxReferenceImages) out.push({ level: 'error', field: 'referenceImages', message: rule.maxReferenceImages === 0 ? t('{model} takes no reference images', { model: c.model }) : t('{model} takes at most {n} reference image(s)', { model: c.model, n: rule.maxReferenceImages }) });
+  if (c.referenceVideos.length > rule.maxReferenceVideos) out.push({ level: 'error', field: 'referenceVideos', message: rule.maxReferenceVideos === 0 ? t('{model} takes no reference video', { model: c.model }) : t('{model} takes at most {n} reference video(s)', { model: c.model, n: rule.maxReferenceVideos }) });
+  if (c.referenceAudios.length > rule.maxReferenceAudios) out.push({ level: 'error', field: 'referenceAudios', message: rule.maxReferenceAudios === 0 ? t('{model} takes no reference audio', { model: c.model }) : t('{model} takes at most {n} reference audio file(s)', { model: c.model, n: rule.maxReferenceAudios }) });
   const refs = c.referenceImages.length + c.referenceVideos.length + c.referenceAudios.length;
-  if ((c.model === 'minimax-h3' || c.model === 'minimax-h3-max') && refs > 12) out.push({ level: 'error', field: 'request', message: `${c.model} takes 12 reference files combined` });
-  if (c.startFrame && !rule.startFrame) out.push({ level: 'error', field: 'startFrame', message: `${c.model} has no start frame` });
-  if (c.endFrame && !rule.endFrame) out.push({ level: 'error', field: 'endFrame', message: `${c.model} has no end frame` });
-  if (c.model === 'seedance-2.5' && c.endFrame && !c.startFrame) out.push({ level: 'error', field: 'endFrame', message: 'seedance-2.5 end frame requires a start frame' });
-  if (rule.framesXorRefs && (c.startFrame || c.endFrame) && refs > 0) out.push({ level: 'error', field: 'request', message: `${c.model} takes either start/end frames or reference media per generation, not both` });
-  if (c.model === 'kling-3.0' && c.endFrame && !c.startFrame) out.push({ level: 'error', field: 'endFrame', message: 'kling-3.0 end frame alone: accepted, charged, then fails (observed). Add a start frame or remove it' });
-  if (c.model === 'seedance-2.5' && c.startFrame) out.push({ level: 'warn', field: 'aspectRatio', message: 'seedance-2.5 takes the start frame\'s shape; the aspect sent is ignored' });
-  if (c.variations > 1) out.push({ level: 'warn', field: 'variations', message: `${c.variations} separate requests, each charged, each with its own reference upload` });
-  if (c.enhance) out.push({ level: 'warn', field: 'enhance', message: 'prompt enhancement costs 8 extra credits per request' });
-  if (!rule.speaks && c.dialogue.trim() && !c.omitDialogue) out.push({ level: 'warn', field: 'dialogue', message: `${c.model} is silent; dialogue is ignored` });
-  if (UNVERIFIED_MODELS.includes(c.model)) out.push({ level: 'warn', field: 'request', message: `${c.model}: the document does not list all of its limits; this row inherits a sibling's. A probe is the truth` });
+  if ((c.model === 'minimax-h3' || c.model === 'minimax-h3-max') && refs > 12) out.push({ level: 'error', field: 'request', message: t('{model} takes 12 reference files combined', { model: c.model }) });
+  if (c.startFrame && !rule.startFrame) out.push({ level: 'error', field: 'startFrame', message: t('{model} has no start frame', { model: c.model }) });
+  if (c.endFrame && !rule.endFrame) out.push({ level: 'error', field: 'endFrame', message: t('{model} has no end frame', { model: c.model }) });
+  if (c.model === 'seedance-2.5' && c.endFrame && !c.startFrame) out.push({ level: 'error', field: 'endFrame', message: t('seedance-2.5 end frame requires a start frame') });
+  if (rule.framesXorRefs && (c.startFrame || c.endFrame) && refs > 0) out.push({ level: 'error', field: 'request', message: t('{model} takes either start/end frames or reference media per generation, not both', { model: c.model }) });
+  if (c.model === 'kling-3.0' && c.endFrame && !c.startFrame) out.push({ level: 'error', field: 'endFrame', message: t('kling-3.0 end frame alone: accepted, charged, then fails (observed). Add a start frame or remove it') });
+  if (c.model === 'seedance-2.5' && c.startFrame) out.push({ level: 'warn', field: 'aspectRatio', message: t("seedance-2.5 takes the start frame's shape; the aspect sent is ignored") });
+  if (c.variations > 1) out.push({ level: 'warn', field: 'variations', message: t('{n} separate requests, each charged, each with its own reference upload', { n: c.variations }) });
+  if (c.enhance) out.push({ level: 'warn', field: 'enhance', message: t('prompt enhancement costs 8 extra credits per request') });
+  if (!rule.speaks && c.dialogue.trim() && !c.omitDialogue) out.push({ level: 'warn', field: 'dialogue', message: t('{model} is silent; dialogue is ignored', { model: c.model }) });
+  if (UNVERIFIED_MODELS.includes(c.model)) out.push({ level: 'warn', field: 'request', message: t("{model}: the document does not list all of its limits; this row inherits a sibling's. A probe is the truth", { model: c.model }) });
   return out;
 }
 

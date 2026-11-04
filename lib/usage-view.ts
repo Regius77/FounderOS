@@ -10,12 +10,14 @@ import { formatCompact } from '@/lib/format-number';
 import type { UsagePlan } from '@/lib/schemas';
 import type { LaneBurn, UsageOn, UsagePayload } from '@/lib/usage-payload';
 import type { OfficialWindow, PlanSummary } from '@/lib/usage';
+import { localeTag, t, tc } from '@/lib/i18n';
+import { WEEKDAYS_SHORT } from '@/lib/locale-names';
 
-export const USAGE_TITLE = 'Usage';
-export const USAGE_SUBTITLE = 'Claude · ChatGPT / Codex · Ollama · local files only · no paid calls';
+export const USAGE_TITLE = t('Usage');
+export const USAGE_SUBTITLE = t('Claude · ChatGPT / Codex · Ollama · local files only · no paid calls');
 export const USAGE_POLL_MS = 10_000;
-export const NOT_REPORTED = 'Not reported';
-export const NO_GAUGE = 'No provider reported an official gauge.';
+export const NOT_REPORTED = t('Not reported');
+export const NO_GAUGE = t('No provider reported an official gauge.');
 export const PLAN_ORDER: UsagePlan[] = ['claude', 'codex', 'ollama'];
 /** Plan colour slot (GladOS series-n, Classic --cat-n). */
 export const PLAN_SLOT: Record<UsagePlan, 1 | 2 | 3> = {
@@ -31,15 +33,15 @@ const MIN = 60_000;
 /** "just now", "4 min ago", "3 h ago", "2 d ago". */
 export function ago(iso: string, now: number): string {
   const ms = Math.max(0, now - Date.parse(iso));
-  if (!Number.isFinite(ms) || ms < MIN) return 'just now';
+  if (!Number.isFinite(ms) || ms < MIN) return t('just now');
   const m = Math.floor(ms / MIN);
-  if (m < 60) return `${m} min ago`;
+  if (m < 60) return t('{n} min ago', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 48) return `${h} h ago`;
-  return `${Math.floor(h / 24)} d ago`;
+  if (h < 48) return t('{n} h ago', { n: h });
+  return t('{n} d ago', { n: Math.floor(h / 24) });
 }
 
-const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOW = WEEKDAYS_SHORT;
 /** Bucket label: weekday for 7 days, day of month for 30. */
 function dayLabel(day: string, range: 7 | 30): string {
   const [y, m, d] = day.split('-').map(Number);
@@ -47,7 +49,7 @@ function dayLabel(day: string, range: 7 | 30): string {
 }
 function dayLong(day: string): string {
   const [y, m, d] = day.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+  return new Date(y, m - 1, d).toLocaleDateString(localeTag(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -173,7 +175,7 @@ function laneRows(lanes: LaneBurn[] | null): LaneRow[] | null {
   const total = lanes.reduce((a, l) => a + l.burn, 0);
   return lanes.map((l) => ({
     id: l.lane,
-    label: l.label,
+    label: t(l.label),
     burn: l.burn,
     display: fmtTokens(l.burn),
     share: total > 0 ? l.burn / total : 0,
@@ -184,18 +186,18 @@ function windowsOf(o: PlanSummary['official'], now: number): GaugeView[] {
   if (!o) return [];
   const one = (id: string, w: OfficialWindow | null, label: string): GaugeView | null => {
     if (!w) return null;
-    const resets = w.resetsAt ? `resets ${new Date(w.resetsAt).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : null;
+    const resets = w.resetsAt ? t('resets {when}', { when: new Date(w.resetsAt).toLocaleString(localeTag(), { weekday: 'short', hour: 'numeric', minute: '2-digit' }) }) : null;
     const hrs = Math.round(w.windowMinutes / 60);
     return {
       id,
       label,
       used: Math.max(0, Math.min(100, w.usedPercent)),
-      caption: `${Math.round(w.usedPercent)}% of the ${hrs >= 24 ? `${Math.round(hrs / 24)}-day` : `${hrs}-hour`} window`,
+      caption: hrs >= 24 ? t('{pct}% of the {n}-day window', { pct: Math.round(w.usedPercent), n: Math.round(hrs / 24) }) : t('{pct}% of the {n}-hour window', { pct: Math.round(w.usedPercent), n: hrs }),
       resets,
-      title: `Reported by the provider ${ago(o.at, now)}`,
+      title: t('Reported by the provider {ago}', { ago: ago(o.at, now) }),
     };
   };
-  return [one('session', o.session, 'Session window'), one('weekly', o.weekly, 'Weekly window')].filter((g): g is GaugeView => g != null);
+  return [one('session', o.session, t('Session window')), one('weekly', o.weekly, t('Weekly window'))].filter((g): g is GaugeView => g != null);
 }
 
 function planCard(p: PlanSummary, data: UsageOn, now: number): PlanCardView {
@@ -203,11 +205,11 @@ function planCard(p: PlanSummary, data: UsageOn, now: number): PlanCardView {
   const machines: MachineRow[] = p.machines.map((m) => ({
     machine: m.machine,
     source: m.source,
-    sourceLabel: m.source === 'local' ? 'This machine' : m.stale ? 'Push is stale' : 'Pushed',
+    sourceLabel: m.source === 'local' ? t('This machine') : m.stale ? t('Push is stale') : t('Pushed'),
     burn: fmtTokens(m.burn),
     age: ago(m.lastAt, now),
     stale: m.stale,
-    title: m.source === 'local' ? `Read from this machine's transcripts ${ago(m.lastAt, now)}` : `Last push ${ago(m.lastAt, now)}${m.stale ? '; older than 15 minutes' : ''}`,
+    title: m.source === 'local' ? t("Read from this machine's transcripts {ago}", { ago: ago(m.lastAt, now) }) : m.stale ? t('Last push {ago}; older than 15 minutes', { ago: ago(m.lastAt, now) }) : t('Last push {ago}', { ago: ago(m.lastAt, now) }),
   }));
   const freshest = p.machines.reduce<string | null>((a, m) => (!a || m.lastAt > a ? m.lastAt : a), null);
   let status: PlanCardView['status'] = null;
@@ -216,15 +218,15 @@ function planCard(p: PlanSummary, data: UsageOn, now: number): PlanCardView {
       data.ollama.state === 'up'
         ? {
             tone: 'ok',
-            text: data.ollama.models.length ? `Running ${data.ollama.models.length}` : 'Answering',
+            text: data.ollama.models.length ? t('Running {n}', { n: data.ollama.models.length }) : t('Answering'),
           }
-        : { tone: 'err', text: 'Ollama not answering' };
-  else if (p.machines.some((m) => m.stale)) status = { tone: 'warn', text: 'Stale push' };
+        : { tone: 'err', text: t('Ollama not answering') };
+  else if (p.machines.some((m) => m.stale)) status = { tone: 'warn', text: t('Stale push') };
   const meta = p.reported
-    ? `${machines.length} ${machines.length === 1 ? 'machine' : 'machines'}${freshest ? ` · updated ${ago(freshest, now)}` : ''}`
+    ? `${machines.length === 1 ? t('{n} machine', { n: machines.length }) : t('{n} machines', { n: machines.length })}${freshest ? t(' · updated {ago}', { ago: ago(freshest, now) }) : ''}`
     : p.plan === 'ollama'
-      ? 'Ollama has no usage log; a machine can push its readings'
-      : 'No machine reported this plan in the window';
+      ? t('Ollama has no usage log; a machine can push its readings')
+      : t('No machine reported this plan in the window');
   return {
     plan: p.plan,
     label: p.label,
@@ -239,10 +241,10 @@ function planCard(p: PlanSummary, data: UsageOn, now: number): PlanCardView {
       lanes: p.plan === 'ollama' ? null : lanes,
       lanesNote:
         p.plan === 'ollama'
-          ? 'Ollama runs are not split by lane.'
+          ? t('Ollama runs are not split by lane.')
           : lanes
-            ? `Lanes are read on ${data.machine} only; pushes carry totals.`
-            : 'No transcript folder on this machine, so lanes are not reported.',
+            ? t('Lanes are read on {machine} only; pushes carry totals.', { machine: data.machine })
+            : t('No transcript folder on this machine, so lanes are not reported.'),
       machines,
       days: p.days
         ? p.days.map((d) => ({
@@ -268,49 +270,49 @@ export function buildUsageView(data: UsagePayload, nowMs: number = Date.now()): 
     const filming = data.reason === 'filming mode';
     return {
       kind: 'off',
-      title: data.message,
+      title: t(data.message),
       body: filming
-        ? 'Filming mode is on. Usage reads private model transcripts, so it stays off while filming.'
-        : 'This is a demo instance. Usage reads private model transcripts, so it is off here.',
+        ? t('Filming mode is on. Usage reads private model transcripts, so it stays off while filming.')
+        : t('This is a demo instance. Usage reads private model transcripts, so it is off here.'),
       filming,
     };
   }
   const ollama = {
     up: data.ollama.state === 'up',
     text:
-      data.ollama.state === 'up' ? (data.ollama.models.length ? `Ollama running ${data.ollama.models.join(', ')}` : 'Ollama answering, no model loaded') : 'Ollama not answering',
+      data.ollama.state === 'up' ? (data.ollama.models.length ? t('Ollama running {models}', { models: data.ollama.models.join(', ') }) : t('Ollama answering, no model loaded')) : t('Ollama not answering'),
     models: data.ollama.models,
   };
   if (!data.configured) {
     return {
       kind: 'unconfigured',
-      title: 'No usage source found on this machine.',
-      body: 'Usage reads Claude Code and Codex transcripts on this machine, and readings other machines push here. Neither exists yet.',
+      title: t('No usage source found on this machine.'),
+      body: t('Usage reads Claude Code and Codex transcripts on this machine, and readings other machines push here. Neither exists yet.'),
       checks: [
         {
-          label: 'Claude Code transcripts',
-          value: data.sources.claude ? 'Found' : 'Not found in ~/.claude/projects',
+          label: t('Claude Code transcripts'),
+          value: data.sources.claude ? t('Found') : t('Not found in ~/.claude/projects'),
           ok: data.sources.claude,
         },
         {
-          label: 'Codex sessions',
-          value: data.sources.codex ? 'Found' : 'Not found in ~/.codex/sessions',
+          label: t('Codex sessions'),
+          value: data.sources.codex ? t('Found') : t('Not found in ~/.codex/sessions'),
           ok: data.sources.codex,
         },
         {
-          label: 'Push token',
-          value: data.push.tokenSet ? 'Set' : 'USAGE_PUSH_TOKEN not set',
+          label: t('Push token'),
+          value: data.push.tokenSet ? tc('token', 'Set') : t('USAGE_PUSH_TOKEN not set'),
           ok: data.push.tokenSet,
         },
       ],
       push: data.push,
       ollama,
-      setupHint: 'Run Claude Code or Codex on this machine, or set USAGE_PUSH_TOKEN and push from another machine to /api/usage/push',
+      setupHint: t('Run Claude Code or Codex on this machine, or set USAGE_PUSH_TOKEN and push from another machine to /api/usage/push'),
     };
   }
 
   const range = data.range;
-  const rangeLabel = range === 7 ? 'last 7 days' : 'last 30 days';
+  const rangeLabel = range === 7 ? t('last 7 days') : t('last 30 days');
   const plans = PLAN_ORDER.map((id) => data.plans.find((p) => p.plan === id)).filter((p): p is PlanSummary => p != null);
   const cards = plans.map((p) => planCard(p, data, nowMs));
   const dayIds = plans.find((p) => p.days)?.days?.map((d) => d.day) ?? [];
@@ -358,19 +360,19 @@ export function buildUsageView(data: UsagePayload, nowMs: number = Date.now()): 
     rangeLabel,
     empty: data.totalBurn === 0,
     hero: {
-      caption: `Tokens burned · ${rangeLabel}`,
+      caption: t('Tokens burned · {range}', { range: rangeLabel }),
       value: fmtTokens(data.totalBurn),
-      label: `${data.totalBurn.toLocaleString('en-US')} tokens burned, ${rangeLabel}`,
-      status: `${fmtTokens(today)} today · ${machines.size} ${machines.size === 1 ? 'machine' : 'machines'} reporting`,
-      title: `Burn across ${reportedPlans.join(', ') || 'no plan'}, ${rangeLabel}. ${data.footnote}`,
+      label: t('{n} tokens burned, {range}', { n: data.totalBurn.toLocaleString(localeTag()), range: rangeLabel }),
+      status: machines.size === 1 ? t('{today} today · {n} machine reporting', { today: fmtTokens(today), n: machines.size }) : t('{today} today · {n} machines reporting', { today: fmtTokens(today), n: machines.size }),
+      title: t('Burn across {plans}, {range}. {footnote}', { plans: reportedPlans.join(', ') || t('no plan'), range: rangeLabel, footnote: t(data.footnote) }),
     },
     lanes: {
       rows: lanes,
-      note: lanes ? `Lanes on ${data.machine}` : 'Lanes not reported: no transcript folder on this machine',
+      note: lanes ? t('Lanes on {machine}', { machine: data.machine }) : t('Lanes not reported: no transcript folder on this machine'),
       machine: data.machine,
     },
     burnChart: {
-      caption: `${reportedPlans.join(' + ') || 'No plan'} · ${rangeLabel}`,
+      caption: `${reportedPlans.join(' + ') || t('No plan')} · ${rangeLabel}`,
       keys: charted.map((p) => ({
         id: p.plan,
         label: p.label,
@@ -382,7 +384,7 @@ export function buildUsageView(data: UsagePayload, nowMs: number = Date.now()): 
     models: { rows: models, caption: rangeLabel },
     limits: {
       gauges,
-      note: gauges.length ? 'Official gauges only, as the provider reported them' : NO_GAUGE,
+      note: gauges.length ? t('Official gauges only, as the provider reported them') : NO_GAUGE,
     },
     topBurner: top
       ? {
@@ -390,7 +392,7 @@ export function buildUsageView(data: UsagePayload, nowMs: number = Date.now()): 
           planLabel: plans.find((p) => p.plan === top.plan)?.label ?? top.plan,
           value: fmtTokens(top.burn),
           share: data.totalBurn > 0 ? `${Math.round((top.burn / data.totalBurn) * 100)}%` : '0%',
-          caption: `of all burn, ${rangeLabel}`,
+          caption: t('of all burn, {range}', { range: rangeLabel }),
         }
       : null,
     plans: cards,
@@ -398,7 +400,7 @@ export function buildUsageView(data: UsagePayload, nowMs: number = Date.now()): 
     todayBurn: fmtTokens(today),
     machinesReporting: machines.size,
     readAgo: ago(data.readAt, nowMs),
-    footnote: data.footnote,
+    footnote: t(data.footnote),
     push: data.push,
   };
 }

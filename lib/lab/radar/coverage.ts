@@ -8,6 +8,7 @@ import { angleByRule } from '@/lib/lab/radar/angles';
 import { textTokens } from '@/lib/lab/radar/events';
 import { keyTokens, splitKey, versionTokens } from '@/lib/lab/radar/names';
 import { DAY, HOUR } from '@/lib/lab/radar/util';
+import { t } from '@/lib/i18n';
 
 export const COVERAGE_BEFORE_H = 24;
 export const COVERAGE_AFTER_D = 30;
@@ -29,7 +30,7 @@ export const counts = (c: Pick<LabEventCoverage, 'confidence' | 'confirmed'>): b
 /** coverageShare = distinct tracked creators with a counting covering post / activeTrackedCount. */
 export function coverageShare(rows: readonly LabEventCoverage[], active: number): { creators: number; active: number; share: number | null; label: string } {
   const creators = new Set(rows.filter((c) => !c.isOwned && counts(c)).map((c) => c.sourceId)).size;
-  return { creators, active, share: active > 0 ? creators / active : null, label: `${creators} of ${active} creators` };
+  return { creators, active, share: active > 0 ? creators / active : null, label: t('{k} of {n} creators', { k: creators, n: active }) };
 }
 
 /** 11.1 C2: every non-version token and every version token of the key within 40 characters of each other. */

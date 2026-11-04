@@ -17,7 +17,7 @@ import { formatUsdCompact } from '@/lib/format-number';
 import { CHAIN_DEPTH_BUCKETS, chainDepthBucket, sendRangeFor, sendSpanMs, SEND_RANGES, stageBars, type ChainDepthBucket, type DealFilter, type SendRange } from '@/lib/brand-deals-view';
 import type { BrandDealsSnapshot, Deal, DealOutcome } from '@/lib/brand-deals';
 import { parseDealQuery, useDealBoard } from './use-deal-board';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
 const frac = (a: number, b: number) => (b > 0 ? Math.max(0, Math.min(1, a / b)) : 0);
@@ -47,7 +47,7 @@ function stageTag(d: Deal): { text: string; tone: GTagTone } {
   if (d.outcome === 'won') return { text: t('Won'), tone: 'ok' };
   if (d.outcome === 'lost') return { text: t('Lost'), tone: 'err' };
   if (d.outcome === 'skipped' || d.stage === 'skipped') return { text: t('Skipped'), tone: 'neutral' };
-  if (d.stage === 'approval') return { text: t('Approve'), tone: 'warn' };
+  if (d.stage === 'approval') return { text: tc('status', 'Approve'), tone: 'warn' };
   if (d.stage === 'sent') return { text: t('Sent'), tone: 'accent' };
   return { text: t('Closed'), tone: 'neutral' };
 }
@@ -236,7 +236,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
           <GSectionHeader id="bd-g-sends" size={22} title={t('Send activity')} />
           <div className="bd-g-stat">
             <GDotNumber value={String(sendsInRange)} size={4} label={t('{n} sends in range', { n: sendsInRange })} />
-            <span className="bd-g-stat-cap">{sendsInRange === 1 ? t('send') : t('sends')} · {t(r.long)}</span>
+            <span className="bd-g-stat-cap">{sendsInRange === 1 ? tc('noun', 'send') : tc('noun', 'sends')} · {t(r.long)}</span>
           </div>
           <GTimelineStrip
             readOnly

@@ -5,7 +5,7 @@ import { CheckCircle2, ChevronDown, CircleDashed, ExternalLink, UserRound } from
 import { GButton, GCard, GHeroCard, GRuler, GSectionHeader, GTag } from '@/components/g';
 import { KeyInputG, ManualCheckG } from './SetupControlsG';
 import type { SystemPhase, SystemSetup, SystemStep } from '@/lib/system-setup';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * /setup under the GladOS style (SPEC S05 F05.90 to F05.95). Same data and
@@ -61,7 +61,7 @@ export function BringUpHero({ totals, firstOpen }: { totals: SystemSetup['totals
 }
 
 function StepIcon({ status }: { status: SystemStep['status'] }) {
-  if (status === 'open') return <CircleDashed size={16} strokeWidth={1.7} className="kg-step-icon" data-status="open" aria-label={t('Open')} />;
+  if (status === 'open') return <CircleDashed size={16} strokeWidth={1.7} className="kg-step-icon" data-status="open" aria-label={tc('status', 'Open')} />;
   return <CheckCircle2 size={16} strokeWidth={1.7} className="kg-step-icon" data-status={status} aria-label={status === 'verified' ? t('Verified') : t('Marked done')} />;
 }
 

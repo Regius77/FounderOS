@@ -3,6 +3,7 @@
  * env and file checks: a render makes no network call (AC-08-9).
  */
 import fs from 'node:fs';
+import { t } from '@/lib/i18n';
 import { LabJobStateSchema } from '@/lib/schemas';
 import type { JobState } from '@/lib/lab/setup/jobs';
 import { labTz } from '@/lib/lab/setup/tz';
@@ -125,7 +126,7 @@ export type EventSheetView = EventRow & {
 };
 
 export type WindowCardView =
-  | { kind: 'open' | 'closing'; eventId: string; sentence: string; progress: number; action: { label: 'Make this'; href: string } }
+  | { kind: 'open' | 'closing'; eventId: string; sentence: string; progress: number; action: { label: string; href: string } }
   /** 'No open windows. Next check 14:30.' */
   | { kind: 'none'; sentence: string }
   | { kind: 'never_run'; sentence: string; setupHref: string };
@@ -134,19 +135,19 @@ export type RadarTile = { eventId: string; name: string; ageLabel: string; cover
 
 /* ── builders (05 17.1, 17.2) ─────────────────────────────────────────── */
 
-export const NEVER_RUN_SENTENCE = 'Radar has not run yet.';
+export const NEVER_RUN_SENTENCE = t('Radar has not run yet.');
 export const RADAR_COPY = {
-  neverRun: 'Radar has not run yet. It needs no keys for HN, Hugging Face, GitHub, vendor posts and Wikipedia.',
-  noEvents: 'No launches detected in the last 14 days.',
-  watching: (n: number) => `Watching ${n}: seen in one source so far.`,
-  xNotConfigured: 'X watch list: Not configured',
-  apifyNotConfigured: 'Apify: Not configured',
-  githubNoToken: 'GitHub token: Not configured. The fake-star filter is off; only established owners count.',
-  phNotConfigured: 'Product Hunt token or Apify: Not configured',
-  namingPaused: 'Naming paused: claude CLI not found',
-  paused: 'Paused by PAUSED-radar',
-  notEnough: 'not enough yet',
-  waveLiftPrior: 'Prior: 1.94x vs 0.99x (n 19 vs 9, one launch, YouTube long-form)',
+  neverRun: t('Radar has not run yet. It needs no keys for HN, Hugging Face, GitHub, vendor posts and Wikipedia.'),
+  noEvents: t('No launches detected in the last 14 days.'),
+  watching: (n: number) => t('Watching {n}: seen in one source so far.', { n }),
+  xNotConfigured: t('X watch list: Not configured'),
+  apifyNotConfigured: t('Apify: Not configured'),
+  githubNoToken: t('GitHub token: Not configured. The fake-star filter is off; only established owners count.'),
+  phNotConfigured: t('Product Hunt token or Apify: Not configured'),
+  namingPaused: t('Naming paused: claude CLI not found'),
+  paused: t('Paused by PAUSED-radar'),
+  notEnough: t('not enough yet'),
+  waveLiftPrior: t('Prior: 1.94x vs 0.99x (n 19 vs 9, one launch, YouTube long-form)'),
 } as const;
 
 export type RadarViewOpts = {
@@ -224,11 +225,11 @@ function sourceHealth(store: LabStore, now: Date, o: Resolved): RadarSourceHealt
     else if (source === 'tiktok_cc' && !o.apifyConfigured) [status, setupHref, note] = ['not_configured', setupHrefFor('apify'), RADAR_COPY.apifyNotConfigured];
     else if (source === 'producthunt' && !o.phToken && !o.apifyConfigured) [status, setupHref, note] = ['not_configured', '/lab?setup=keys', RADAR_COPY.phNotConfigured];
     else if (source === 'github' && !o.githubToken) [setupHref, note] = ['/lab?setup=keys', RADAR_COPY.githubNoToken];
-    if (disabled.has(source)) [status, note] = ['paused', 'Turned off in Setup'];
+    if (disabled.has(source)) [status, note] = ['paused', t('Turned off in Setup')];
     if (o.paused) [status, note] = ['paused', RADAR_COPY.paused];
     return {
       source,
-      label: SOURCE_LABEL[source],
+      label: t(SOURCE_LABEL[source]),
       status,
       lastRunAt: st?.lastAt ?? null,
       lastError: st && st.fails > 0 ? st.lastDetail : null,
@@ -271,9 +272,9 @@ function eventRow(c: Ctx, e: LabEvent): EventRow {
     vendor: e.vendor,
     status: e.status,
     novelty: e.novelty,
-    noveltyLabel: e.novelty ? NOVELTY_LABEL[e.novelty] : 'Not tagged yet',
+    noveltyLabel: e.novelty ? t(NOVELTY_LABEL[e.novelty]) : t('Not tagged yet'),
     class: e.class,
-    classLabel: CLASS_LABEL[e.class],
+    classLabel: t(CLASS_LABEL[e.class]),
     t0: e.t0,
     ageLabel: ageLabel(e.t0 ?? e.firstSeenAt, c.now),
     window: e.windowState && e.windowClosesAt ? { state: e.windowState, progress: Math.round(progressOf(e, c.now) * 1000) / 1000, reason: e.windowReason, closesAt: e.windowClosesAt } : null,
@@ -319,7 +320,7 @@ export function morningBriefFor(store: LabStore, day: string | null, now: Date, 
   const o = resolveOpts(opts);
   const d = day ?? localParts(now, o.tz).day;
   const b = store.morningBrief.get(d);
-  if (!b) return { day: d, header: `Morning brief, ${d}. 0 items.`, items: [], sent: null, sendError: null, telegramOn: telegramOn(o.env) };
+  if (!b) return { day: d, header: t('Morning brief, {day}. 0 items.', { day: d }), items: [], sent: null, sendError: null, telegramOn: telegramOn(o.env) };
   return { day: b.day, header: briefHeader(new Date(b.composedAt), o.tz, b.items.length), items: b.items, sent: b.sentAt ? { at: b.sentAt, via: 'wizard' } : null, sendError: b.sendError, telegramOn: telegramOn(o.env) };
 }
 
@@ -334,7 +335,7 @@ function waveLift(store: LabStore): RadarView['waveLift'] {
     firstN: first.length,
     followMedian: lm === null ? null : Math.round(lm * 10) / 10,
     followN: follow.length,
-    label: fm !== null && lm !== null ? `First wave ${r1(fm)}x (n ${first.length}) vs later ${r1(lm)}x (n ${follow.length})` : RADAR_COPY.notEnough,
+    label: fm !== null && lm !== null ? t('First wave {a}x (n {an}) vs later {b}x (n {bn})', { a: r1(fm), an: first.length, b: r1(lm), bn: follow.length }) : RADAR_COPY.notEnough,
     prior: RADAR_COPY.waveLiftPrior,
   };
 }
@@ -343,7 +344,7 @@ function classRecord(store: LabStore): string {
   const seed = backtestSeed();
   const own = store.events.all({ status: ['confirmed'] }).filter((e) => e.classInfo.classCorrect !== null);
   const k = own.filter((e) => e.classInfo.classCorrect).length;
-  return `Class rule: ${seed.correct} of ${seed.n} on seed events, ${own.length >= 5 ? `${k} of ${own.length}` : RADAR_COPY.notEnough} on your events`;
+  return t('Class rule: {k} of {n} on seed events, {own} on your events', { k: seed.correct, n: seed.n, own: own.length >= 5 ? t('{k} of {n}', { k, n: own.length }) : RADAR_COPY.notEnough });
 }
 
 export function radarView(store: LabStore, now: Date, opts: RadarViewOpts = {}): RadarView {
@@ -395,9 +396,9 @@ function ownNovelty(store: LabStore, novelty: LabNovelty | null): { median: numb
 }
 
 export function ratioLabel(ratio: number | null, ageH: number | null, postAgeH: number): string {
-  if (postAgeH < 6) return 'too new';
-  if (ratio === null) return 'not rated yet';
-  return `${r1(ratio)}x at ${Math.round(ageH ?? postAgeH)}h`;
+  if (postAgeH < 6) return t('too new');
+  if (ratio === null) return t('not rated yet');
+  return t('{ratio}x at {h}h', { ratio: r1(ratio), h: Math.round(ageH ?? postAgeH) });
 }
 
 export function eventSheetView(store: LabStore, id: string, now: Date, opts: RadarViewOpts = {}): EventSheetView | null {
@@ -413,9 +414,9 @@ export function eventSheetView(store: LabStore, id: string, now: Date, opts: Rad
   const toGo = e.t0 ? Math.max(0, Math.ceil(96 - (now.getTime() - Date.parse(e.t0)) / HOUR_MS)) : 96;
   return {
     ...row,
-    classLabel: e.class === 'unknown' ? `Class decided at 96h (${toGo}h to go).` : row.classLabel,
+    classLabel: e.class === 'unknown' ? t('Class decided at 96h ({h}h to go).', { h: toGo }) : row.classLabel,
     aliases: e.aliases,
-    t0Rule: e.t0Rule ?? 'not confirmed',
+    t0Rule: e.t0Rule ?? t('not confirmed'),
     t0RevisedAt: e.t0RevisedAt,
     pings: store.eventPings.forEvent(e.id).map((p) => ({ family: p.family, source: p.source, title: p.title, url: p.url, at: p.sourceTime ?? p.firstSeenAt, reason: p.qualifyReason ?? '', qualifies: p.qualifies })),
     attention: e.attention,
@@ -433,7 +434,7 @@ export function eventSheetView(store: LabStore, id: string, now: Date, opts: Rad
         const hook = (store.dissections.get(x.postId)?.hookText || p?.caption || '').replace(/\s+/g, ' ').trim().slice(0, 80);
         const postAgeH = (now.getTime() - Date.parse(x.postedAt)) / HOUR_MS;
         return {
-          postId: x.postId, creator: x.isOwned ? 'You' : (s?.displayName || s?.handle || 'A tracked creator'), platform: x.platform, hook, hoursSinceT0: x.hoursSinceT0, wavePosition: x.wavePosition,
+          postId: x.postId, creator: x.isOwned ? t('You') : (s?.displayName || s?.handle || t('A tracked creator')), platform: x.platform, hook, hoursSinceT0: x.hoursSinceT0, wavePosition: x.wavePosition,
           rank: x.creatorRank, angle: x.angle, ratio: x.ratio, ratioLabel: ratioLabel(x.ratio, x.ratioAgeH, postAgeH), confidence: x.confidence, isOwned: x.isOwned, confirmed: x.confirmed,
         };
       }),
@@ -454,14 +455,14 @@ export function windowCardView(store: LabStore, now: Date, opts: RadarViewOpts =
   if (!o.sample && !o.dry && !hasRun(store)) return { kind: 'never_run', sentence: NEVER_RUN_SENTENCE, setupHref: '/lab?setup=sources' };
   const c = baseCtx(store, now, o);
   const e = shownEvents(c).find((x) => x.windowState === 'open' || x.windowState === 'closing');
-  if (!e) return { kind: 'none', sentence: `No open windows. Next check ${clock(nextCheck(store, now, o), o.tz)}.` };
+  if (!e) return { kind: 'none', sentence: t('No open windows. Next check {time}.', { time: clock(nextCheck(store, now, o), o.tz) }) };
   const share = coverageShare(store.eventCoverage.forEvent(e.id), c.active);
   const age = ageLabel(e.t0, now);
   const sentence =
     e.windowState === 'open'
-      ? `${e.name} shipped ${age} ago. ${share.creators} of ${share.active} creators have covered it. Window open.`
-      : `${e.name} is ${age} old. ${share.creators} of ${share.active} creators are in. Window closing.`;
-  return { kind: e.windowState as 'open' | 'closing', eventId: e.id, sentence, progress: Math.round(progressOf(e, now) * 1000) / 1000, action: { label: 'Make this', href: `/lab/radar?event=${e.id}` } };
+      ? t('{name} shipped {age} ago. {k} of {n} creators have covered it. Window open.', { name: e.name, age, k: share.creators, n: share.active })
+      : t('{name} is {age} old. {k} of {n} creators are in. Window closing.', { name: e.name, age, k: share.creators, n: share.active });
+  return { kind: e.windowState as 'open' | 'closing', eventId: e.id, sentence, progress: Math.round(progressOf(e, now) * 1000) / 1000, action: { label: t('Make this'), href: `/lab/radar?event=${e.id}` } };
 }
 
 export function radarTiles(store: LabStore, now: Date, opts: RadarViewOpts = {}): RadarTile[] {

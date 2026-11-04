@@ -14,7 +14,7 @@ import type { WorkflowInput } from '@/app/api/workflows/shared';
 import type { AgentRun, BrandDealRules, Workflow } from '@/lib/schemas';
 import { mountWorkflowEditor, type EditorApi, type RulesState } from './workflow-canvas/engine';
 import './workflow-canvas/canvas.css';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
@@ -182,9 +182,9 @@ export function WorkflowCanvas(props: {
               <p className="muted" id="execSummary" />
             </div>
             <div className="list-actions">
-              <button className="tb-btn" data-exec-filter="all">{t('All')}</button>
+              <button className="tb-btn" data-exec-filter="all">{tc('runs', 'All')}</button>
               <button className="tb-btn" data-exec-filter="success">{t('Ok')}</button>
-              <button className="tb-btn" data-exec-filter="failed">{t('Failed')}</button>
+              <button className="tb-btn" data-exec-filter="failed">{tc('runs', 'Failed')}</button>
             </div>
           </div>
           <div className="table" id="execTable" />

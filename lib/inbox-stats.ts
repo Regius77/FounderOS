@@ -1,5 +1,7 @@
 import type { InboxSource, InboxThread } from '@/lib/inbox';
 import { SOURCES } from '@/lib/inbox';
+import { t, tc } from '@/lib/i18n';
+import { WEEKDAYS_SHORT } from '@/lib/locale-names';
 
 /**
  * The numbers behind the /inbox report row. Everything here is counted from
@@ -46,10 +48,10 @@ export function unreadBars(threads: InboxThread[], max = 22): Bar[] {
     .filter((t) => t.unread > 0)
     .sort((a, b) => b.unread - a.unread)
     .slice(0, max)
-    .map((t) => ({ value: t.unread, label: `${t.sender}: ${t.unread} unread` }));
+    .map((th) => ({ value: th.unread, label: t('{sender}: {n} unread', { sender: th.sender, n: th.unread }) }));
 }
 
-const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAY = WEEKDAYS_SHORT;
 
 /** Messages per day over the trailing 7 days, oldest first. */
 export function perDay(threads: InboxThread[], now: Date = new Date(), days = 7): Bar[] {
@@ -63,7 +65,7 @@ export function perDay(threads: InboxThread[], now: Date = new Date(), days = 7)
   }
   return counts.map((value, i) => {
     const d = new Date(start - (days - 1 - i) * DAY);
-    return { value, label: `${WEEKDAY[d.getDay()]}: ${value} message${value === 1 ? '' : 's'}` };
+    return { value, label: value === 1 ? t('{day}: {n} message', { day: WEEKDAY[d.getDay()], n: value }) : t('{day}: {n} messages', { day: WEEKDAY[d.getDay()], n: value }) };
   });
 }
 
@@ -72,14 +74,14 @@ export function replyByChannel(threads: InboxThread[]): Bar[] {
   const reply = threads.filter((t) => t.triage === 'reply');
   return SOURCES.map((s) => {
     const value = reply.filter((t) => t.source === s.id).length;
-    return { value, label: `${s.label}: ${value} waiting` };
+    return { value, label: t('{source}: {n} waiting', { source: s.label, n: value }) };
   });
 }
 
 function pct(now: number, before: number): { text: string; dir: 'up' | 'down' | 'flat' } {
-  if (before <= 0) return { text: now > 0 ? 'new' : 'flat', dir: now > 0 ? 'up' : 'flat' };
+  if (before <= 0) return { text: now > 0 ? tc('trend', 'new') : tc('trend', 'flat'), dir: now > 0 ? 'up' : 'flat' };
   const change = Math.round(((now - before) / before) * 100);
-  if (change === 0) return { text: 'flat', dir: 'flat' };
+  if (change === 0) return { text: tc('trend', 'flat'), dir: 'flat' };
   return { text: `${change > 0 ? '+' : ''}${change}%`, dir: change > 0 ? 'up' : 'down' };
 }
 
@@ -100,42 +102,42 @@ export function buildStatCards(
   return [
     {
       id: 'unread',
-      label: 'Unread',
+      label: t('Unread'),
       value: String(unread),
-      sub: conversations === 1 ? 'in 1 conversation' : `across ${conversations} conversations`,
+      sub: conversations === 1 ? t('in 1 conversation') : t('across {n} conversations', { n: conversations }),
       chart: {
         kind: 'bars',
         bars,
         tone: 'accent',
-        caption: bars.length ? 'one bar per conversation, busiest first' : 'nothing unread',
+        caption: bars.length ? t('one bar per conversation, busiest first') : t('nothing unread'),
       },
     },
     {
       id: 'reply',
-      label: 'Needs reply',
+      label: t('Needs reply'),
       value: String(reply),
-      sub: reply ? 'questions asked of you, and unread threads' : 'you are caught up',
-      chart: { kind: 'bars', bars: byChannel, tone: 'err', caption: 'by channel' },
+      sub: reply ? t('questions asked of you, and unread threads') : t('you are caught up'),
+      chart: { kind: 'bars', bars: byChannel, tone: 'err', caption: t('by channel') },
     },
     {
       id: 'messages',
-      label: 'Messages this week',
+      label: t('Messages this week'),
       value: String(weekly ? weekly.thisWeek : days.reduce((a, b) => a + b.value, 0)),
-      delta: weekly ? { ...pct(weekly.thisWeek, weekly.lastWeek), note: 'vs. last week' } : undefined,
-      sub: weekly ? undefined : 'in the threads on this page',
-      chart: { kind: 'bars', bars: days, tone: 'accent', caption: 'one bar per day, last seven' },
+      delta: weekly ? { ...pct(weekly.thisWeek, weekly.lastWeek), note: t('vs. last week') } : undefined,
+      sub: weekly ? undefined : t('in the threads on this page'),
+      chart: { kind: 'bars', bars: days, tone: 'accent', caption: t('one bar per day, last seven') },
     },
     {
       id: 'channels',
-      label: 'Channels live',
+      label: t('Channels live'),
       value: String(live.length),
-      unit: `of ${SOURCES.length}`,
-      sub: live.length ? live.map((s) => s.label).join(', ') : 'none connected yet',
+      unit: t('of {n}', { n: SOURCES.length }),
+      sub: live.length ? live.map((s) => s.label).join(', ') : t('none connected yet'),
       chart: {
         kind: 'cells',
-        cells: SOURCES.map((s) => ({ on: connected[s.id], label: `${s.label}: ${connected[s.id] ? 'connected' : 'not configured'}` })),
+        cells: SOURCES.map((s) => ({ on: connected[s.id], label: `${s.label}: ${connected[s.id] ? t('connected') : t('not configured')}` })),
         tone: live.length === SOURCES.length ? 'accent' : 'warn',
-        caption: 'one block per channel',
+        caption: t('one block per channel'),
       },
     },
   ];

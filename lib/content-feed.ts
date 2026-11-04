@@ -1,4 +1,5 @@
 import { findModel } from '@/lib/higgsfield/catalog';
+import { localeTag, t } from '@/lib/i18n';
 import type { ContentToolKey, MediaAsset, ProductionTask, TaskSpec, TaskType } from '@/lib/content-schema';
 
 /**
@@ -143,17 +144,17 @@ export type DeliveredGroup = {
 };
 
 const TYPE_LABEL: Record<TaskType, string> = {
-  thumbnail: 'Thumbnails',
-  clips: 'Clips',
-  upscale: 'Upscales',
-  'ad-variants': 'Ad variants',
-  'bg-removal': 'Background removals',
-  image: 'Images',
-  video: 'Videos',
-  avatar: 'Avatars',
-  enhance: 'Enhancements',
-  speak: 'Voiceovers',
-  ads: 'Ad variants',
+  thumbnail: t('Thumbnails'),
+  clips: t('Clips'),
+  upscale: t('Upscales'),
+  'ad-variants': t('Ad variants'),
+  'bg-removal': t('Background removals'),
+  image: t('Images'),
+  video: t('Videos'),
+  avatar: t('Avatars'),
+  enhance: t('Enhancements'),
+  speak: t('Voiceovers'),
+  ads: t('Ad variants'),
 };
 
 function dayKey(iso: string): string {
@@ -164,7 +165,7 @@ function dayKey(iso: string): string {
 function dayLabel(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function latestTimestamp(tasks: ProductionTask[]): number {

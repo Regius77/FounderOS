@@ -25,6 +25,8 @@ import { openEvents } from '@/lib/lab/gen/events';
 import { OPEN_CAP } from '@/lib/lab/ideas';
 import { askSummary, handleMap, matchLabel, parseAsk, searchAsk, type AskFilters } from '@/lib/lab/gen/ask';
 import { MIN_N, NOT_ENOUGH, x1 } from '@/lib/lab/gen/format';
+import { t } from '@/lib/i18n';
+import { MONTHS_SHORT } from '@/lib/locale-names';
 import type { Embedder } from '@/lib/lab/gen/embed';
 
 export type { JudgeRecord, JudgeVerdict } from '@/lib/lab/gen/judge';
@@ -104,22 +106,22 @@ export type GenViewOpts = { now?: Date; dry?: boolean; sample?: boolean; readOnl
 /* ── copy (7.3.7, 7.3.8, 7.8) ─────────────────────────────────────────── */
 
 export const GEN_COPY = {
-  ready: 'Writes 24, keeps the 10 most different. Local model, no cost.',
-  noMaterial: 'Generate needs scraped posts first. Run a sync.',
-  full: `${OPEN_CAP} open ideas. Use or dismiss some first.`,
-  dry: 'Dry run: no model is called.',
-  readOnly: 'Sample data is a read-only preview. Connect Apify to work on real data.',
-  cliMissing: 'The claude CLI is not on this host. Generate needs it.',
+  ready: t('Writes 24, keeps the 10 most different. Local model, no cost.'),
+  noMaterial: t('Generate needs scraped posts first. Run a sync.'),
+  full: t('{n} open ideas. Use or dismiss some first.', { n: OPEN_CAP }),
+  dry: t('Dry run: no model is called.'),
+  readOnly: t('Sample data is a read-only preview. Connect Apify to work on real data.'),
+  cliMissing: t('The claude CLI is not on this host. Generate needs it.'),
   /** 01 / 07 7.8: the one freeze seal template (LAB_COPY.frozenAt in lane V's copy.ts) */
-  frozenAt: 'Frozen {d MMM}, {HH:mm}',
+  frozenAt: t('Frozen {d MMM}, {HH:mm}'),
 } as const;
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = MONTHS_SHORT;
 
 /** 'Frozen 11 Oct, 14:02' in the Lab's local time zone. */
 export function frozenText(iso: string, tz: string = labTz()): string {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(iso));
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
   const hh = get('hour') === '24' ? '00' : get('hour');
   return GEN_COPY.frozenAt.replace('{d MMM}', `${Number(get('day'))} ${MONTHS[Number(get('month')) - 1]}`).replace('{HH:mm}', `${hh.padStart(2, '0')}:${get('minute').padStart(2, '0')}`);
 }
@@ -135,10 +137,10 @@ export function diversityLine(store: LabStore): { text: string; n: number; mean:
     return v ? [v] : [];
   });
   const n = open.length;
-  if (n < MIN_N) return { text: `Spread: ${NOT_ENOUGH} (n ${n}).`, n, mean: null };
+  if (n < MIN_N) return { text: t('Spread: {thin} (n {n}).', { thin: t(NOT_ENOUGH), n }), n, mean: null };
   const mean = meanPairwiseCos(vecs);
-  if (mean === null) return { text: `Spread: ${NOT_ENOUGH} (n ${n}).`, n, mean: null };
-  return { text: `Spread: ideas are ${Math.round(100 * mean)}% alike on average (n ${n}).`, n, mean };
+  if (mean === null) return { text: t('Spread: {thin} (n {n}).', { thin: t(NOT_ENOUGH), n }), n, mean: null };
+  return { text: t('Spread: ideas are {pct}% alike on average (n {n}).', { pct: Math.round(100 * mean), n }), n, mean };
 }
 
 /** 7.3.8 material: a cluster with 2 or more competitor posts, or an open event. */
@@ -190,7 +192,7 @@ function variantsFor(store: LabStore, idea: LabIdea): IdeaSheetView['variants'] 
     .slice(0, 6);
   const items = sibs.map((i) => {
     const g = i.grounding ?? emptyGrounding;
-    return { id: i.id, hook: i.title, hookForm: hookFormOf(i), angle: i.angle, whyText: g.exemplars.length ? `Grounded in ${g.exemplars.length} ${g.exemplars.length === 1 ? 'breakout' : 'breakouts'}` : 'No grounding examples' };
+    return { id: i.id, hook: i.title, hookForm: hookFormOf(i), angle: i.angle, whyText: g.exemplars.length ? (g.exemplars.length === 1 ? t('Grounded in {n} breakout', { n: g.exemplars.length }) : t('Grounded in {n} breakouts', { n: g.exemplars.length })) : t('No grounding examples') };
   });
   return { state: items.length ? 'ready' : 'empty', items };
 }
@@ -254,7 +256,7 @@ export function scriptSheetView(store: LabStore, id: string, opts: GenViewOpts &
     version: v.version,
     versions: all.map((x) => ({ version: x.version, createdAt: x.createdAt, passed: x.gate.passed, edit: Boolean(x.editDiff), frozen: prediction.frozenVersion === x.version })),
     body,
-    plan: { durationS: body.durationS, durationSource: 'this version', wpm: body.wpm, wpmSource: 'this version', words: wordBudget(body.durationS, body.wpm) },
+    plan: { durationS: body.durationS, durationSource: t('this version'), wpm: body.wpm, wpmSource: t('this version'), words: wordBudget(body.durationS, body.wpm) },
     strand: (idea?.strand.length ? idea.strand : body.sections).map((s) => ({ type: s.type, label: beatLabel(s.type), startPct: s.startPct, endPct: s.endPct })),
     sections: body.sections.map((s, index) => {
       const b = budgets[index];

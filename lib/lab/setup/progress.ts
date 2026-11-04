@@ -14,6 +14,7 @@ import { resolveApifyToken } from '@/lib/connectors/apify';
 import { runCostForecast } from '@/lib/lab/setup/forecast-rows';
 import { RECORDED_PRICES } from '@/lib/lab/setup/pricing-book';
 import { labFetch } from '@/lib/lab/net';
+import { t } from '@/lib/i18n';
 
 export type RunStage = 'scrape' | 'ingest' | 'transcribe' | 'dissect' | 'measure';
 
@@ -61,16 +62,16 @@ const TERMINAL = new Set(['succeeded', 'failed', 'aborted', 'timed_out', 'blocke
 export const isTerminalRun = (r: Pick<LabRun, 'status'>): boolean => TERMINAL.has(r.status);
 
 const ACTOR_LABEL: Record<string, string> = {
-  'apify/instagram-post-scraper': 'Instagram posts',
-  'apify/instagram-profile-scraper': 'Instagram profiles',
+  'apify/instagram-post-scraper': t('Instagram posts'),
+  'apify/instagram-profile-scraper': t('Instagram profiles'),
   'clockworks/tiktok-scraper': 'TikTok',
   'streamers/youtube-scraper': 'YouTube',
   'harvestapi/linkedin-profile-posts': 'LinkedIn',
   'apidojo/tweet-scraper': 'X',
-  'apify/instagram-hashtag-scraper': 'Instagram search',
-  'apify/instagram-comment-scraper': 'Instagram comments',
-  'clockworks/tiktok-comments-scraper': 'TikTok comments',
-  'streamers/youtube-comments-scraper': 'YouTube comments',
+  'apify/instagram-hashtag-scraper': t('Instagram search'),
+  'apify/instagram-comment-scraper': t('Instagram comments'),
+  'clockworks/tiktok-comments-scraper': t('TikTok comments'),
+  'streamers/youtube-comments-scraper': t('YouTube comments'),
 };
 const PLATFORM_OF: Record<string, LabPlatform> = {
   'apify/instagram-post-scraper': 'instagram',
@@ -163,8 +164,8 @@ export function batchProgress(store: LabStore, batchId: string, now: Date): Batc
   const followOn = (done: number, total: number | null, ran: boolean) => (!allTerminal ? 'waiting' : ran ? 'done' : 'waiting');
   const stages: BatchProgress['stages'] = [
     { stage: 'ingest', state: allTerminal ? 'done' : ingested > 0 ? 'running' : 'waiting', done: ingested, total: null, note: '' },
-    { stage: 'transcribe', state: followOn(transcribed, posts.length, transcribed >= posts.length && posts.length > 0), done: transcribed, total: posts.length || null, note: waitingTick ? 'Waiting for the running tick to finish' : '' },
-    { stage: 'dissect', state: followOn(dissected, posts.length, dissected >= posts.length && posts.length > 0), done: dissected, total: posts.length || null, note: waitingTick ? 'Waiting for the running tick to finish' : '' },
+    { stage: 'transcribe', state: followOn(transcribed, posts.length, transcribed >= posts.length && posts.length > 0), done: transcribed, total: posts.length || null, note: waitingTick ? t('Waiting for the running tick to finish') : '' },
+    { stage: 'dissect', state: followOn(dissected, posts.length, dissected >= posts.length && posts.length > 0), done: dissected, total: posts.length || null, note: waitingTick ? t('Waiting for the running tick to finish') : '' },
     { stage: 'measure', state: !allTerminal ? 'waiting' : measured ? 'done' : 'waiting', done: measured ? 1 : 0, total: 1, note: '' },
   ];
   const dry = runs.every((r) => r.dry);

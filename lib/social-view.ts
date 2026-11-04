@@ -5,12 +5,13 @@
  */
 import { bucketPostingByDay, dateAxis, forwardFillCarried, platformsPresent, type PostDay } from '@/lib/posting-activity';
 import { channelsNetChange, rangeWindow, type NetChange, type RangePoint, type SocialRange } from '@/lib/social-range';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 export const RANGE_OPTIONS: { value: string; label: string; range: SocialRange }[] = [
-  { value: '7', label: '7d', range: 7 },
-  { value: '30', label: '30d', range: 30 },
-  { value: '60', label: '60d', range: 60 },
-  { value: 'all', label: 'All', range: 'all' },
+  { value: '7', label: t('{n}d', { n: 7 }), range: 7 },
+  { value: '30', label: t('{n}d', { n: 30 }), range: 30 },
+  { value: '60', label: t('{n}d', { n: 60 }), range: 60 },
+  { value: 'all', label: tc('range', 'All'), range: 'all' },
 ];
 
 /** `?range=` → a SocialRange; anything else is the default 30 days. */
@@ -23,14 +24,14 @@ export const rangeParam = (r: SocialRange): string => String(r);
 
 /** "over 30 days" / "all time". */
 export function rangePhrase(r: SocialRange): string {
-  return r === 'all' ? 'all time' : `over ${r} days`;
+  return r === 'all' ? t('all time') : t('over {n} days', { n: r });
 }
 
 /** At most this many marks per chart (edge 7): longer windows bucket by week. */
 export const MAX_MARKS = 120;
 
 export function fmtDay(d: string): string {
-  return new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return new Date(`${d}T00:00:00Z`).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 export type AudienceChartModel = {
@@ -87,7 +88,7 @@ export function audienceChartModel(input: {
     const labels = axis.map(fmtDay);
     return {
       labels,
-      axisLabels: axis.map((d, i) => (i === axis.length - 1 && d === today ? 'today' : fmtDay(d))),
+      axisLabels: axis.map((d, i) => (i === axis.length - 1 && d === today ? tc('axis', 'today') : fmtDay(d))),
       values: filled.values,
       carried: filled.carried,
       from: filled.from,
@@ -102,6 +103,7 @@ export function audienceChartModel(input: {
   }
   // Weeks counted back from the axis end, so the newest mark is a full week.
   const labels: string[] = [];
+  const weekAxis: string[] = [];
   const values: (number | null)[] = [];
   const carried: boolean[] = [];
   const from: (string | null)[] = [];
@@ -111,7 +113,8 @@ export function audienceChartModel(input: {
     const lo = Math.max(0, s);
     const hi = s + 6;
     const last = hi;
-    labels.push(`Week of ${fmtDay(axis[lo])}`);
+    labels.push(t('Week of {date}', { date: fmtDay(axis[lo]) }));
+    weekAxis.push(fmtDay(axis[lo]));
     values.push(filled.values[last]);
     carried.push(filled.carried[last]);
     from.push(filled.from[last]);
@@ -121,7 +124,7 @@ export function audienceChartModel(input: {
   }
   return {
     labels,
-    axisLabels: labels.map((l) => l.replace('Week of ', '')),
+    axisLabels: weekAxis,
     values,
     carried,
     from,
@@ -152,7 +155,7 @@ export function stripValues(audience: RangePoint[], range: SocialRange, today: s
     const v = filled.values[end];
     if (v == null) continue;
     values.unshift(v);
-    titles.unshift(`${fmtDay(axis[end])} · ${v.toLocaleString('en-US')}`);
+    titles.unshift(`${fmtDay(axis[end])} · ${v.toLocaleString(localeTag())}`);
   }
   return { values, titles };
 }

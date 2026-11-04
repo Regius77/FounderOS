@@ -24,7 +24,7 @@ import type { ObservatoryData, ObservatoryPage } from '@/lib/gbrain-observatory'
 import { useGBrainThoughts } from '@/components/gbrain-live';
 import { SetupLink } from '@/components/SetupLink';
 import { usePalette } from '@/lib/use-palette';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 const MINT = 'var(--accent)';
 const TEXT = 'var(--gbr-text)';
@@ -1092,7 +1092,7 @@ function ExpandedView({
             data-fresh={page.days != null && page.days <= 30 ? '' : undefined}
             style={{ borderColor: `color-mix(in srgb, ${freshColor(page.days)} 40%, transparent)`, color: freshColor(page.days) }}
           >
-            {page.days != null && page.days <= 30 ? t('Fresh') : page.days != null && page.days >= 90 ? t('Stale') : t('Tracked')}
+            {page.days != null && page.days <= 30 ? t('Fresh') : page.days != null && page.days >= 90 ? t('Stale') : tc('page', 'Tracked')}
           </span>
           <span className="flex-1 text-[10.5px] leading-snug" style={{ color: 'var(--text-2)' }}>
             {modified ? t('last modified {date}', { date: modified }) : t('no modification date on file')}

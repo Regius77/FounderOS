@@ -5,6 +5,7 @@
  */
 
 import type { BrandDealsSnapshot, Deal } from '@/lib/brand-deals';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 /** Stage filter keys the board understands (chips, chart columns, slash tokens). */
 export type DealFilter = 'all' | 'approval' | 'sent' | 'unique' | 'won' | 'lost' | 'closed';
@@ -32,17 +33,17 @@ export function stageBars(snap: Pick<BrandDealsSnapshot, 'deals' | 'counts' | 'v
   const { deals, counts, volume } = snap;
   const quotedAll = deals.reduce((n, d) => n + (d.quotedUsd ?? 0), 0);
   return [
-    { key: 'all', label: 'Announced', usd: quotedAll, count: deals.length },
-    { key: 'sent', label: 'Awaiting brand', usd: volume.awaitingUsd, count: counts.sent },
-    { key: 'approval', label: 'Needs approval', usd: volume.approvalUsd, count: counts.approval },
+    { key: 'all', label: t('Announced'), usd: quotedAll, count: deals.length },
+    { key: 'sent', label: t('Awaiting brand'), usd: volume.awaitingUsd, count: counts.sent },
+    { key: 'approval', label: t('Needs approval'), usd: volume.approvalUsd, count: counts.approval },
     {
       key: 'closed',
-      label: 'Closed',
+      label: tc('deal', 'Closed'),
       usd: volume.wonUsd + volume.lostUsd,
       count: counts.won + counts.lost,
       segments: [
-        { key: 'won', label: 'Won', usd: volume.wonUsd, count: counts.won },
-        { key: 'lost', label: 'Lost', usd: volume.lostUsd, count: counts.lost },
+        { key: 'won', label: tc('deal', 'Won'), usd: volume.wonUsd, count: counts.won },
+        { key: 'lost', label: tc('deal', 'Lost'), usd: volume.lostUsd, count: counts.lost },
       ],
     },
   ];
@@ -85,18 +86,18 @@ export type PollStatus = { text: string; tone: 'ok' | 'warn'; title: string };
  * first client tick (`lastOkAt` null) it says nothing it cannot back up.
  */
 export function pollStatus(lastOkAt: number | null, now: number, lastError: boolean): PollStatus {
-  const exact = lastOkAt != null ? new Date(lastOkAt).toLocaleString('en-US') : null;
+  const exact = lastOkAt != null ? new Date(lastOkAt).toLocaleString(localeTag()) : null;
   if (lastError) {
     return {
-      text: 'Last update failed · retrying',
+      text: t('Last update failed · retrying'),
       tone: 'warn',
-      title: exact ? `Last successful update ${exact}. Retrying every 30 s.` : 'No successful update yet. Retrying every 30 s.',
+      title: exact ? t('Last successful update {when}. Retrying every 30 s.', { when: exact }) : t('No successful update yet. Retrying every 30 s.'),
     };
   }
-  if (lastOkAt == null) return { text: 'Updating…', tone: 'ok', title: 'Waiting for the first update' };
+  if (lastOkAt == null) return { text: t('Updating…'), tone: 'ok', title: t('Waiting for the first update') };
   const s = Math.max(0, Math.round((now - lastOkAt) / 1000));
   const age = s < 60 ? `${s} s` : s < 3600 ? `${Math.floor(s / 60)} min` : `${Math.floor(s / 3600)} h`;
-  return { text: `Updated ${age} ago`, tone: 'ok', title: `Last update ${exact}. Refreshes every 30 s.` };
+  return { text: t('Updated {age} ago', { age }), tone: 'ok', title: t('Last update {when}. Refreshes every 30 s.', { when: exact ?? '' }) };
 }
 
 /* ---------------------------------------------------------- send activity */
@@ -109,10 +110,10 @@ export type SendRange = '24h' | '7d' | '30d' | 'all';
  * of an empty track (spanMs null = computed from the events).
  */
 export const SEND_RANGES: Record<SendRange, { label: string; long: string; ago: string; spanMs: number | null }> = {
-  '24h': { label: '24 h', long: 'last 24 hours', ago: '24 h ago', spanMs: 24 * 3600_000 },
-  '7d': { label: '7 d', long: 'last 7 days', ago: '7 d ago', spanMs: 7 * 24 * 3600_000 },
-  '30d': { label: '30 d', long: 'last 30 days', ago: '30 d ago', spanMs: 30 * 24 * 3600_000 },
-  all: { label: 'All', long: 'everything recorded', ago: '', spanMs: null },
+  '24h': { label: '24 h', long: t('last 24 hours'), ago: t('24 h ago'), spanMs: 24 * 3600_000 },
+  '7d': { label: t('7 d'), long: t('last 7 days'), ago: t('7 d ago'), spanMs: 7 * 24 * 3600_000 },
+  '30d': { label: t('30 d'), long: t('last 30 days'), ago: t('30 d ago'), spanMs: 30 * 24 * 3600_000 },
+  all: { label: tc('range', 'All'), long: t('everything recorded'), ago: '', spanMs: null },
 };
 
 /** The smallest range that holds at least one event (CE rangeFor rule); `all` when none of the fixed ones do. */

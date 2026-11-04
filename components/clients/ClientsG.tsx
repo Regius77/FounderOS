@@ -16,7 +16,7 @@ import {
 import { launchBlockedReason, writeBlockedReason, type ClientRosterRow, type ClientWorkRow, type ClientsView } from '@/lib/clients-view';
 import type { ClientWorkStatus } from '@/lib/schemas';
 import { BRIEF_PLACEHOLDER, LAUNCH_DIALOG_BODY, LAUNCH_DIALOG_TITLE, useClients } from './use-clients';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 export type ClientsSetup = { attio: string; superset: string };
 
@@ -103,10 +103,10 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
           value={String(view.volume.open)}
           label={t('{n} open requests', { n: view.volume.open })}
           title={t('Drafts, queued and running requests across every confirmed client')}
-          status={`${view.volume.thisMonth === 1 ? t('{n} request this month', { n: view.volume.thisMonth }) : t('{n} requests this month', { n: view.volume.thisMonth })} · ${t('{n} done', { n: view.volume.doneThisMonth })}`}
+          status={`${view.volume.thisMonth === 1 ? t('{n} request this month', { n: view.volume.thisMonth }) : t('{n} requests this month', { n: view.volume.thisMonth })} · ${tc('request', '{n} done', { n: view.volume.doneThisMonth })}`}
           strip={
             view.volume.thisMonth > 0 ? (
-              <GDotCloud total={view.volume.thisMonth} lit={view.volume.doneThisMonth} onHero label={`${t('{n} requests this month', { n: view.volume.thisMonth })} · ${t('{n} done', { n: view.volume.doneThisMonth })}`} />
+              <GDotCloud total={view.volume.thisMonth} lit={view.volume.doneThisMonth} onHero label={`${t('{n} requests this month', { n: view.volume.thisMonth })} · ${tc('request', '{n} done', { n: view.volume.doneThisMonth })}`} />
             ) : undefined
           }
         />
@@ -269,7 +269,7 @@ export function ClientsG({ view, setup }: { view: ClientsView; setup: ClientsSet
 }
 
 function rosterMeta(r: ClientRosterRow): string {
-  const parts = [r.company && r.company !== r.name ? r.company : null, r.openRequests ? t('{n} open', { n: r.openRequests }) : null, r.lastRequestAge ? t('last request {age} ago', { age: r.lastRequestAge }) : t('no requests yet')];
+  const parts = [r.company && r.company !== r.name ? r.company : null, r.openRequests ? tc('request', '{n} open', { n: r.openRequests }) : null, r.lastRequestAge ? t('last request {age} ago', { age: r.lastRequestAge }) : t('no requests yet')];
   return parts.filter(Boolean).join(' · ');
 }
 
@@ -473,7 +473,7 @@ function ClientDrawer({ view, r, c, onClose }: { view: ClientsView; r: ClientRos
           items={[
             { label: t('Source'), value: r.source === 'attio' ? t('Attio deal') : t('Added by hand') },
             { label: t('Confirmed'), value: new Date(r.confirmedAt).toLocaleDateString(localeTag()) },
-            { label: t('Requests'), value: r.openRequests ? t('{n} open', { n: r.openRequests }) : t('None open') },
+            { label: t('Requests'), value: r.openRequests ? tc('request', '{n} open', { n: r.openRequests }) : t('None open') },
           ]}
         />
         <GButton size="sm" onClick={() => { c.selectClient(r.clientId); onClose(); }}>{t("Show this client's requests")}</GButton>

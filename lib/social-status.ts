@@ -4,6 +4,7 @@
  * Never a hard-coded "live". Pure, so both UI styles render the same data.
  */
 import type { ConnectorState } from '@/lib/connectors/types';
+import { t } from '@/lib/i18n';
 
 export type StatusTone = 'ok' | 'warn' | 'err' | 'off';
 
@@ -24,8 +25,8 @@ function daysBetween(from: string, to: string): number {
 }
 
 function syncedText(days: number): string {
-  if (days <= 0) return 'synced today';
-  return `synced ${days}d ago`;
+  if (days <= 0) return t('synced today');
+  return t('synced {n}d ago', { n: days });
 }
 
 export function zernioStatusPill(input: {
@@ -39,21 +40,21 @@ export function zernioStatusPill(input: {
   setupHref: string;
 }): SocialStatusPill {
   const { state, detail, newestSnapshot, today, filming, setupHref } = input;
-  const sample = filming ? ' · sample data' : '';
+  const sample = filming ? t(' · sample data') : '';
   if (state === 'not_configured') {
-    return { text: `Zernio not configured${sample}`, tone: 'off', title: detail, setupHref };
+    return { text: `${t('Zernio not configured')}${sample}`, tone: 'off', title: detail, setupHref };
   }
   if (state === 'error') {
-    return { text: `Zernio check failed${sample}`, tone: 'err', title: detail, setupHref };
+    return { text: `${t('Zernio check failed')}${sample}`, tone: 'err', title: detail, setupHref };
   }
   if (!newestSnapshot) {
-    return { text: `Zernio · no snapshots yet${sample}`, tone: 'warn', title: detail, setupHref: null };
+    return { text: `${t('Zernio · no snapshots yet')}${sample}`, tone: 'warn', title: detail, setupHref: null };
   }
   const days = Math.max(0, daysBetween(newestSnapshot, today));
   return {
     text: `Zernio · ${syncedText(days)}${sample}`,
     tone: days < STALE_DAYS ? 'ok' : 'warn',
-    title: `Newest follower snapshot ${newestSnapshot}${days >= STALE_DAYS ? ' (stale)' : ''}`,
+    title: `${t('Newest follower snapshot {date}', { date: newestSnapshot })}${days >= STALE_DAYS ? t(' (stale)') : ''}`,
     setupHref: null,
   };
 }

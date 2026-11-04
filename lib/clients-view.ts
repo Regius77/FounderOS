@@ -9,17 +9,20 @@
  */
 import type { ClientsPayload } from '@/lib/clients-data';
 import type { ClientWorkStatus } from '@/lib/schemas';
+import { locale, t, tc } from '@/lib/i18n';
+import { MONTHS_SHORT } from '@/lib/locale-names';
 
 const DAY = 86_400_000;
-export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** Monday-first short weekday names (the rhythm bars' ids and labels). */
+export const WEEKDAYS: readonly string[] = locale() === 'it' ? ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = MONTHS_SHORT;
 
 export const STATUS_LABEL: Record<ClientWorkStatus, string> = {
-  draft: 'Draft',
-  queued: 'Queued',
-  running: 'Running',
-  done: 'Done',
-  failed: 'Failed',
+  draft: tc('clientwork', 'Draft'),
+  queued: tc('clientwork', 'Queued'),
+  running: tc('clientwork', 'Running'),
+  done: tc('clientwork', 'Done'),
+  failed: tc('clientwork', 'Failed'),
 };
 
 export type ClientRosterRow = {
@@ -82,12 +85,12 @@ const ymdLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pad
 /** "3 min", "5 h", "2 d", "6 w": compact age for a table cell. */
 export function ageLabel(iso: string, now: Date): string {
   const mins = Math.max(0, Math.round((now.getTime() - Date.parse(iso)) / 60_000));
-  if (mins < 60) return `${mins} min`;
+  if (mins < 60) return t('{n} min', { n: mins });
   const hours = Math.round(mins / 60);
-  if (hours < 48) return `${hours} h`;
+  if (hours < 48) return t('{n} h', { n: hours });
   const days = Math.round(hours / 24);
-  if (days < 21) return `${days} d`;
-  return `${Math.round(days / 7)} w`;
+  if (days < 21) return t('{n} d', { n: days });
+  return t('{n} w', { n: Math.round(days / 7) });
 }
 
 /** A Slack channel id (C…/G…) links through Slack's redirect; a plain name stays text. */
@@ -99,8 +102,8 @@ export function slackHrefFor(channel: string | null): string | null {
 
 export function briefLine(brief: string): string {
   const first = brief.split(/\r?\n/).find((l) => l.trim()) ?? '';
-  const t = first.trim();
-  return t.length > 120 ? `${t.slice(0, 117)}…` : t;
+  const line = first.trim();
+  return line.length > 120 ? `${line.slice(0, 117)}…` : line;
 }
 
 const OPEN: ClientWorkStatus[] = ['draft', 'queued', 'running'];
@@ -161,7 +164,7 @@ export function buildClientsView(p: ClientsPayload, opts: { now?: Date; selected
   const work: ClientWorkRow[] = p.work.map((w) => ({
     id: w.id,
     clientId: w.clientId,
-    clientName: names.get(w.clientId) ?? 'Unconfirmed client',
+    clientName: names.get(w.clientId) ?? t('Unconfirmed client'),
     brief: w.brief,
     briefLine: briefLine(w.brief),
     status: w.status,
@@ -178,8 +181,8 @@ export function buildClientsView(p: ClientsPayload, opts: { now?: Date; selected
   const selected = opts.selected && names.has(opts.selected) ? opts.selected : null;
 
   return {
-    title: 'Clients',
-    subtitle: 'Client work · draft first',
+    title: t('Clients'),
+    subtitle: t('Client work · draft first'),
     roster,
     work,
     activity: {
@@ -205,15 +208,15 @@ export function buildClientsView(p: ClientsPayload, opts: { now?: Date; selected
 
 /** Why "Start draft in Superset" is disabled, or null when it may be pressed (CL-3). */
 export function launchBlockedReason(v: Pick<ClientsView, 'writes' | 'mode' | 'supersetState'>, row?: Pick<ClientWorkRow, 'launchable' | 'sample' | 'statusLabel'>): string | null {
-  if (v.mode === 'filming') return 'Filming mode: read only';
-  if (row?.sample) return 'Sample data: nothing to launch';
-  if (!v.writes) return 'Launching is off on this instance (GLADOS_WRITES)';
-  if (v.supersetState !== 'connected') return 'Superset is not configured';
-  if (row && !row.launchable) return `Already ${row.statusLabel.toLowerCase()}`;
+  if (v.mode === 'filming') return t('Filming mode: read only');
+  if (row?.sample) return t('Sample data: nothing to launch');
+  if (!v.writes) return t('Launching is off on this instance (GLADOS_WRITES)');
+  if (v.supersetState !== 'connected') return t('Superset is not configured');
+  if (row && !row.launchable) return t('Already {status}', { status: row.statusLabel.toLowerCase() });
   return null;
 }
 
 /** Why local writes (confirm, save draft, status) are disabled, or null. */
 export function writeBlockedReason(v: Pick<ClientsView, 'mode'>): string | null {
-  return v.mode === 'filming' ? 'Filming mode: read only' : null;
+  return v.mode === 'filming' ? t('Filming mode: read only') : null;
 }

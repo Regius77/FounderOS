@@ -11,6 +11,8 @@ import { RECORDED_PRICES, RECORDED_PRICES_DATE, TIER_PLAN_LABEL, priceOf, type A
 import type { ActorCalibration } from '@/lib/lab/setup/calibration';
 import type { GateRates } from '@/lib/lab/setup/gates';
 import { DEFAULT_JOB_CONFIG, runsIn30Days } from '@/lib/lab/setup/schedule';
+import { t } from '@/lib/i18n';
+import { MONTHS_SHORT } from '@/lib/locale-names';
 
 export type RunSpec = {
   actorId: string;
@@ -275,16 +277,16 @@ export function capFit(monthPoint: number, cap: number | null, opts: { spentOthe
 
 /** The price label of 09.8 for the plan panel and the run confirm. */
 export function priceLabel(inputs: Pick<PlanInputs, 'tier' | 'books'>, opts: { sample?: boolean } = {}): string {
-  if (opts.sample) return 'Sample prices. Nothing runs or spends here.';
-  if (inputs.tier.source === 'assumed') return "Free-plan prices. Paste your Apify key to use your plan's prices.";
+  if (opts.sample) return t('Sample prices. Nothing runs or spends here.');
+  if (inputs.tier.source === 'assumed') return t("Free-plan prices. Paste your Apify key to use your plan's prices.");
   const books = Object.values(inputs.books);
-  if (books.length && books.every((b) => b.source === 'recorded')) return `Prices recorded on ${fmtDay(RECORDED_PRICES_DATE, true)}.`;
+  if (books.length && books.every((b) => b.source === 'recorded')) return t('Prices recorded on {date}.', { date: fmtDay(RECORDED_PRICES_DATE, true) });
   const cached = books.filter((b) => b.source === 'cached' && b.fetchedAt).map((b) => b.fetchedAt!).sort()[0];
-  if (cached) return `Prices from ${fmtDay(cached, false)}; Apify did not answer since.`;
-  return `Live prices for your ${TIER_PLAN_LABEL[inputs.tier.tier]} plan`;
+  if (cached) return t('Prices from {date}; Apify did not answer since.', { date: fmtDay(cached, false) });
+  return t('Live prices for your {plan} plan', { plan: TIER_PLAN_LABEL[inputs.tier.tier] });
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = MONTHS_SHORT;
 /** 'd MMM' or 'd MMM yyyy' of an ISO date (UTC calendar date). */
 export function fmtDay(iso: string, year: boolean): string {
   const d = new Date(iso.length === 10 ? `${iso}T00:00:00.000Z` : iso);

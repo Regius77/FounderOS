@@ -1,5 +1,6 @@
 import type { ZodError } from 'zod';
 import { CONSOLE_LIMITS, type ConsoleControls } from '@/lib/creative-engine/schemas';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * Pure helpers for the Motion console (S05a §7). Nothing here touches React,
@@ -25,20 +26,20 @@ const LIST_MAX: Record<ListField, number> = { referenceImages: 30, referenceVide
 
 /** Human names for console fields, used in limit messages. */
 export const FIELD_LABEL: Partial<Record<keyof ConsoleControls, string>> = {
-  subject: 'Subject',
-  action: 'Action',
-  dialogue: 'Dialogue',
-  onScreenText: 'Overlay text',
-  duration: 'Duration',
-  variations: 'Variations',
-  intensity: 'Motion intensity',
-  imperfection: 'Imperfection',
-  skinRealism: 'Skin realism',
-  motionCues: 'Motion cues',
-  lensMm: 'Lens feel',
-  referenceImages: 'Reference images',
-  referenceVideos: 'Reference videos',
-  referenceAudios: 'Reference audio',
+  subject: t('Subject'),
+  action: t('Action'),
+  dialogue: t('Dialogue'),
+  onScreenText: t('Overlay text'),
+  duration: t('Duration'),
+  variations: t('Variations'),
+  intensity: t('Motion intensity'),
+  imperfection: t('Imperfection'),
+  skinRealism: t('Skin realism'),
+  motionCues: t('Motion cues'),
+  lensMm: t('Lens feel'),
+  referenceImages: t('Reference images'),
+  referenceVideos: t('Reference videos'),
+  referenceAudios: t('Reference audio'),
 };
 
 export type Trim = { field: TextField; from: number; to: number };
@@ -82,13 +83,13 @@ export function clampControls(partial: Partial<ConsoleControls>): Partial<Consol
 /** One line for the first schema issue, naming the field: "Overlay text is 80 characters max". */
 export function controlsIssue(error: ZodError): string {
   const issue = error.issues[0];
-  if (!issue) return 'That value is not allowed.';
+  if (!issue) return t('That value is not allowed.');
   const key = String(issue.path[0] ?? '');
-  const label = FIELD_LABEL[key as keyof ConsoleControls] ?? (key || 'That value');
-  if (issue.code === 'too_big' && issue.type === 'string') return `${label} is ${String(issue.maximum)} characters max`;
-  if (issue.code === 'too_big' && issue.type === 'array') return `${label}: ${String(issue.maximum)} max`;
-  if (issue.code === 'too_big') return `${label} is ${String(issue.maximum)} max`;
-  if (issue.code === 'too_small' && issue.type !== 'string' && issue.type !== 'array') return `${label} is ${String(issue.minimum)} min`;
+  const label = FIELD_LABEL[key as keyof ConsoleControls] ?? (key || t('That value'));
+  if (issue.code === 'too_big' && issue.type === 'string') return t('{label} is {n} characters max', { label, n: String(issue.maximum) });
+  if (issue.code === 'too_big' && issue.type === 'array') return t('{label}: {n} max', { label, n: String(issue.maximum) });
+  if (issue.code === 'too_big') return t('{label} is {n} max', { label, n: String(issue.maximum) });
+  if (issue.code === 'too_small' && issue.type !== 'string' && issue.type !== 'array') return t('{label} is {n} min', { label, n: String(issue.minimum) });
   return `${label}: ${issue.message}`;
 }
 
@@ -96,10 +97,10 @@ export function controlsIssue(error: ZodError): string {
 export function trimNotice(trimmed: Trim[]): string | null {
   if (!trimmed.length) return null;
   return trimmed
-    .map((t) => {
-      const label = FIELD_LABEL[t.field] ?? t.field;
-      if (t.field === 'dialogue') return `Script is ${t.from} characters; dialogue trimmed to ${t.to}. Pick a beat to send it in parts.`;
-      return `${label} is ${t.from} characters; trimmed to ${t.to}.`;
+    .map((tr) => {
+      const label = FIELD_LABEL[tr.field] ?? tr.field;
+      if (tr.field === 'dialogue') return t('Script is {from} characters; dialogue trimmed to {to}. Pick a beat to send it in parts.', { from: tr.from, to: tr.to });
+      return t('{label} is {from} characters; trimmed to {to}.', { label, from: tr.from, to: tr.to });
     })
     .join(' ');
 }
@@ -116,11 +117,11 @@ export type BlockReason = { text: string; action: BlockAction };
  * person has to do (connect, then a campaign), then the request itself.
  */
 export function generateBlockReason(s: { campaign: boolean; readOnly: boolean; connected: boolean; blocking: number; busy: boolean }): BlockReason | null {
-  if (s.readOnly) return { text: 'Sample data: actions are off', action: null };
-  if (!s.connected) return { text: 'Connect Arcads first', action: 'connect' };
-  if (!s.campaign) return { text: 'Open or create a campaign first', action: 'campaign' };
-  if (s.blocking > 0) return { text: `Fix ${s.blocking} lint error${s.blocking === 1 ? '' : 's'}`, action: 'lints' };
-  if (s.busy) return { text: 'Sending the last request', action: null };
+  if (s.readOnly) return { text: t('Sample data: actions are off'), action: null };
+  if (!s.connected) return { text: t('Connect Arcads first'), action: 'connect' };
+  if (!s.campaign) return { text: t('Open or create a campaign first'), action: 'campaign' };
+  if (s.blocking > 0) return { text: s.blocking === 1 ? t('Fix {n} lint error', { n: s.blocking }) : t('Fix {n} lint errors', { n: s.blocking }), action: 'lints' };
+  if (s.busy) return { text: t('Sending the last request'), action: null };
   return null;
 }
 
@@ -133,8 +134,8 @@ export function chipWidths(spent: number, cap: number): { used: number; left: nu
 
 /** "pending" -> "Pending", "in_progress" -> "In progress". */
 export function titleCaseStatus(s: string | null | undefined): string {
-  const t = (s ?? '').replace(/[_-]+/g, ' ').trim();
-  return t ? t[0].toUpperCase() + t.slice(1).toLowerCase() : '';
+  const w = (s ?? '').replace(/[_-]+/g, ' ').trim();
+  return w ? tc('jobstatus', w[0].toUpperCase() + w.slice(1).toLowerCase()) : '';
 }
 
 /** Whether any key the preset sets differs from the controls (S05a FR-6). Keys the preset leaves alone never count. */
@@ -213,13 +214,13 @@ export function parseDraft(raw: string | null | undefined, schema: ControlsParse
 
 /** Keyboard shortcuts of the console (S05a FR-3), shown in the shortcuts sheet. */
 export const CONSOLE_SHORTCUTS: { keys: string; what: string }[] = [
-  { keys: 'Esc', what: 'Close the top layer: menu, dialog, builder layer, stage sheet, then the console' },
-  { keys: '[  ]', what: 'Previous and next motion asset' },
-  { keys: 'G', what: 'Generate: opens the cost preview, nothing is sent without Confirm' },
-  { keys: 'P', what: 'Composed prompt' },
-  { keys: 'L', what: 'Lints' },
-  { keys: 'D', what: 'Dialogue' },
-  { keys: '/', what: 'Describe it' },
+  { keys: 'Esc', what: t('Close the top layer: menu, dialog, builder layer, stage sheet, then the console') },
+  { keys: '[  ]', what: t('Previous and next motion asset') },
+  { keys: 'G', what: t('Generate: opens the cost preview, nothing is sent without Confirm') },
+  { keys: 'P', what: t('Composed prompt') },
+  { keys: 'L', what: t('Lints') },
+  { keys: 'D', what: t('Dialogue') },
+  { keys: '/', what: t('Describe it') },
 ];
 
 export type ShortcutAction = 'prev' | 'next' | 'generate' | 'prompt' | 'lints' | 'dialogue' | 'describe';

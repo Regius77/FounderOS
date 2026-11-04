@@ -17,6 +17,7 @@
  */
 import type { KIEdge, KIEntity, EdgeKind } from '@/lib/knowledge-index';
 import type { NodeMetrics } from '@/lib/knowledge-metrics';
+import { t } from '@/lib/i18n';
 
 export type Placed = KIEntity & {
   x: number;
@@ -481,18 +482,18 @@ export function interpret(e: KIEntity, m: NodeMetrics, ctx: { sortedPr: number[]
   const band = authorityBand(m.pagerank, ctx.sortedPr);
   const parts: string[] = [];
   if (m.authoredDegree === 0)
-    parts.push('Nothing an author wrote points here — it is reachable only by search.');
+    parts.push(t('Nothing an author wrote points here — it is reachable only by search.'));
   else if (band === 'a1')
-    parts.push(`In the top 5% by authority: ${m.degree} records connect to it, and the rest of the graph leans on it.`);
-  else if (band === 'a2') parts.push(`Well connected — ${m.degree} records touch it, above the median of ${ctx.medianDegree}.`);
-  else parts.push(`${m.degree} connections, ${m.authoredDegree} of them written rather than inferred.`);
+    parts.push(t('In the top 5% by authority: {n} records connect to it, and the rest of the graph leans on it.', { n: m.degree }));
+  else if (band === 'a2') parts.push(t('Well connected — {n} records touch it, above the median of {median}.', { n: m.degree, median: ctx.medianDegree }));
+  else parts.push(t('{n} connections, {k} of them written rather than inferred.', { n: m.degree, k: m.authoredDegree }));
 
   if (m.articulation)
-    parts.push('It is also the only bridge between two parts of the graph: if it goes, they stop reaching each other.');
+    parts.push(t('It is also the only bridge between two parts of the graph: if it goes, they stop reaching each other.'));
   else if (m.betweenness > 0 && m.degree > 0 && m.betweenness / Math.max(1, m.degree) > 60)
-    parts.push('It brokers far more paths than its connection count suggests — a quiet dependency.');
+    parts.push(t('It brokers far more paths than its connection count suggests — a quiet dependency.'));
 
   if (e.days !== null && e.days > 180 && band !== 'a4')
-    parts.push(`Last edited ${e.days} days ago while still being depended on.`);
+    parts.push(t('Last edited {n} days ago while still being depended on.', { n: e.days }));
   return parts.join(' ');
 }

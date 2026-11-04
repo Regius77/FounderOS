@@ -1,6 +1,7 @@
 import { RUN_TIMEOUT_MS, RUN_TYPICAL_MS, type Brief, type Campaign, type RunKind, type RunStatus } from '@/lib/creative-engine/schemas';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
 import { eventMs, placeEvents, type PlaceOptions as PlaceEventOptions } from '@/lib/timeline-place';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * The Creative Engine run timeline (SPEC S07 F8 to F22, §5 C20). Pure, no
@@ -19,9 +20,9 @@ import { eventMs, placeEvents, type PlaceOptions as PlaceEventOptions } from '@/
 /* ── ranges ── */
 
 export const TIMELINE_RANGES = [
-  { key: '24h', label: '24 h', ago: '24 h ago', ms: 24 * 3600_000 },
-  { key: '7d', label: '7 d', ago: '7 d ago', ms: 7 * 24 * 3600_000 },
-  { key: '30d', label: '30 d', ago: '30 d ago', ms: 30 * 24 * 3600_000 },
+  { key: '24h', label: '24 h', ago: t('24 h ago'), ms: 24 * 3600_000 },
+  { key: '7d', label: t('7 d'), ago: t('7 d ago'), ms: 7 * 24 * 3600_000 },
+  { key: '30d', label: t('30 d'), ago: t('30 d ago'), ms: 30 * 24 * 3600_000 },
 ] as const;
 export type RangeKey = (typeof TIMELINE_RANGES)[number]['key'];
 export const RANGE_STORAGE_KEY = 'ae-timeline-range';
@@ -134,26 +135,26 @@ export function defaultRunId(runs: ResolvedRun[], now = Date.now()): string | nu
 /* ── words ── */
 
 const KIND_NOUN: Record<RunKind, string> = {
-  research: 'Research',
-  angles: 'Angles',
-  script: 'Script',
-  brief: 'Brief',
-  ugc: 'UGC video',
-  motion: 'Motion video',
-  image: 'Image',
-  health: 'Health check',
-  workflow: 'Workflow',
+  research: t('Research'),
+  angles: tc('creative', 'Angles'),
+  script: t('Script'),
+  brief: t('Brief'),
+  ugc: t('UGC video'),
+  motion: t('Motion video'),
+  image: t('Image'),
+  health: t('Health check'),
+  workflow: t('Workflow'),
 };
 const DELIVERED: Record<RunKind, string> = {
-  research: 'Research done',
-  angles: 'Angles proposed',
-  script: 'Script written',
-  brief: 'Brief ready',
-  ugc: 'UGC video delivered',
-  motion: 'Motion video delivered',
-  image: 'Image delivered',
-  health: 'Health probed',
-  workflow: 'Workflow delivered',
+  research: t('Research done'),
+  angles: t('Angles proposed'),
+  script: t('Script written'),
+  brief: t('Brief ready'),
+  ugc: t('UGC video delivered'),
+  motion: t('Motion video delivered'),
+  image: t('Image delivered'),
+  health: t('Health probed'),
+  workflow: t('Workflow delivered'),
 };
 
 export function kindNoun(kind: RunKind): string {
@@ -164,12 +165,12 @@ export function kindNoun(kind: RunKind): string {
 export function runHeadline(run: Pick<ResolvedRun, 'kind' | 'status'>): string {
   const noun = kindNoun(run.kind);
   switch (run.status) {
-    case 'delivered': return DELIVERED[run.kind] ?? `${noun} delivered`;
-    case 'running': return `${noun} generating`;
-    case 'queued': return `${noun} queued`;
-    case 'failed': return `${noun} failed`;
-    case 'stale': return `${noun} stalled`;
-    case 'abandoned': return `${noun} abandoned`;
+    case 'delivered': return DELIVERED[run.kind] ?? t('{noun} delivered', { noun });
+    case 'running': return t('{noun} generating', { noun });
+    case 'queued': return t('{noun} queued', { noun });
+    case 'failed': return t('{noun} failed', { noun });
+    case 'stale': return t('{noun} stalled', { noun });
+    case 'abandoned': return t('{noun} abandoned', { noun });
   }
 }
 
@@ -189,18 +190,18 @@ export function fmtElapsed(ms: number): string {
 }
 
 export function agoText(iso: string | null, now = Date.now()): string {
-  if (!iso) return 'never';
+  if (!iso) return t('never');
   const mins = Math.max(0, Math.round((now - Date.parse(iso)) / 60000));
-  if (!Number.isFinite(mins)) return 'never';
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} min ago`;
-  if (mins < 60 * 36) return `${Math.round(mins / 60)} h ago`;
-  return `${Math.round(mins / 1440)} d ago`;
+  if (!Number.isFinite(mins)) return t('never');
+  if (mins < 1) return t('just now');
+  if (mins < 60) return t('{n} min ago', { n: mins });
+  if (mins < 60 * 36) return t('{n} h ago', { n: Math.round(mins / 60) });
+  return t('{n} d ago', { n: Math.round(mins / 1440) });
 }
 
 /** Pill line 2 (F12): elapsed while running, age otherwise. */
 export function runSubline(run: ResolvedRun, now = Date.now()): string {
-  if (run.status === 'running') return `${fmtElapsed(elapsedAt(run, now))} elapsed`;
+  if (run.status === 'running') return t('{time} elapsed', { time: fmtElapsed(elapsedAt(run, now)) });
   return agoText(run.finishedAt ?? run.startedAt, now);
 }
 
@@ -210,7 +211,7 @@ export function runAriaLabel(run: ResolvedRun, now = Date.now()): string {
   const head = run.title.split('·')[0].trim().toLowerCase();
   const repeat = head !== '' && kindNoun(run.kind).toLowerCase().startsWith(head.split(' ')[0]);
   const title = (repeat ? run.title.slice(run.title.indexOf('·') + 1).trim() : run.title) || run.title;
-  const when = run.status === 'running' ? `running, ${fmtElapsed(elapsedAt(run, now))} elapsed` : `${run.status} ${agoText(run.finishedAt ?? run.startedAt, now)}`;
+  const when = run.status === 'running' ? t('running, {time} elapsed', { time: fmtElapsed(elapsedAt(run, now)) }) : `${tc('runstatus', run.status)} ${agoText(run.finishedAt ?? run.startedAt, now)}`;
   return `${kindNoun(run.kind)} · ${title} · ${when}`;
 }
 
@@ -324,7 +325,7 @@ const LINK_ID_FIELD: Record<LinkIdKind, 'briefId' | 'runId' | 'angleId' | 'asset
  * dropped, so the page can say so in a toast and the address bar stops carrying it.
  */
 export function resolveLinkIds(
-  t: SheetTarget,
+  tgt: SheetTarget,
   campaign: Pick<Campaign, 'briefs' | 'angles' | 'assets'> | null,
   runs: Pick<ResolvedRun, 'id'>[],
 ): { target: SheetTarget; dropped: LinkIdKind[] } {
@@ -334,7 +335,7 @@ export function resolveLinkIds(
     asset: (id) => !!campaign?.assets.some((a) => a.id === id),
     run: (id) => runs.some((r) => r.id === id),
   };
-  const target = { ...t };
+  const target = { ...tgt };
   const dropped: LinkIdKind[] = [];
   for (const k of Object.keys(LINK_ID_FIELD) as LinkIdKind[]) {
     const f = LINK_ID_FIELD[k];
@@ -346,8 +347,9 @@ export function resolveLinkIds(
 
 /** The toast for ids a link named that are not here. */
 export function droppedLinkText(dropped: LinkIdKind[]): string {
-  const noun = dropped.length === 1 ? `That ${dropped[0]} is` : `Those ${dropped.join(' and ')} links are`;
-  return `${noun} not in this campaign. Opened the sheet without it.`;
+  return dropped.length === 1
+    ? t('That {kind} is not in this campaign. Opened the sheet without it.', { kind: tc('link', dropped[0]) })
+    : t('Those {kinds} links are not in this campaign. Opened the sheet without it.', { kinds: dropped.map((k) => tc('link', k)).join(t(' and ')) });
 }
 
 /** The query string for a target, keeping every other param (sample, mode). Null target clears the link. */
@@ -391,15 +393,15 @@ export function fmtMinutes(ms: number): string {
 /** "Typical for seedance-2.0: about 3 min. Marked stale after 25 min." (F20) */
 export function progressTitle(run: Pick<ResolvedRun, 'kind' | 'arcads'>): string {
   const what = run.arcads?.model ?? kindNoun(run.kind).toLowerCase();
-  return `Typical for ${what}: about ${fmtMinutes(RUN_TYPICAL_MS[run.kind])}. Marked stale after ${fmtMinutes(RUN_TIMEOUT_MS[run.kind])}.`;
+  return t('Typical for {what}: about {typical}. Marked stale after {timeout}.', { what, typical: fmtMinutes(RUN_TYPICAL_MS[run.kind]), timeout: fmtMinutes(RUN_TIMEOUT_MS[run.kind]) });
 }
 
 /* ── brief status (F23 to F26) ── */
 
 export const BRIEF_STATUSES = ['draft', 'ready', 'sent'] as const;
 export type BriefStatus = (typeof BRIEF_STATUSES)[number];
-const BRIEF_LABEL: Record<BriefStatus, string> = { draft: 'Draft', ready: 'Brief ready', sent: 'Sent' };
-const BRIEF_STOP: Record<BriefStatus, string> = { draft: 'Draft', ready: 'Ready', sent: 'Sent' };
+const BRIEF_LABEL: Record<BriefStatus, string> = { draft: t('Draft'), ready: t('Brief ready'), sent: t('Sent') };
+const BRIEF_STOP: Record<BriefStatus, string> = { draft: t('Draft'), ready: t('Ready'), sent: t('Sent') };
 
 export function briefStatusLabel(s: BriefStatus): string {
   return BRIEF_LABEL[s];

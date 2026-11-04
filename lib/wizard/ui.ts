@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { WizardProject } from './store';
+import { t, tc } from '@/lib/i18n';
 
 /** Client-safe helpers for the Wizard surfaces (no fs, no Date.now() implicit). */
 
@@ -56,10 +57,10 @@ export function projectOwners(project: Pick<WizardProject, 'tasks'>): OwnerChip[
 /** The card's second line: the newest open task, else the last message. */
 export function projectSubline(project: Pick<WizardProject, 'tasks' | 'messages'>): { label: string; text: string } {
   const open = [...project.tasks].reverse().find((t) => t.state === 'open');
-  if (open) return { label: 'Task', text: open.title };
+  if (open) return { label: t('Task'), text: open.title };
   const last = project.messages[project.messages.length - 1];
-  if (last) return { label: last.role === 'user' ? 'You' : 'Wizard', text: last.text.replace(/\s+/g, ' ').slice(0, 90) };
-  return { label: 'New', text: 'No messages yet' };
+  if (last) return { label: last.role === 'user' ? t('You') : 'Wizard', text: last.text.replace(/\s+/g, ' ').slice(0, 90) };
+  return { label: tc('project', 'New'), text: t('No messages yet') };
 }
 
 export function percent(fraction: number | null): string {

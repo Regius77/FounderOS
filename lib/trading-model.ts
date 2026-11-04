@@ -7,6 +7,7 @@
  */
 import { AGENTIC_ID, filterActivity, isHumanTrade, LIMIT_FIELDS, LIMIT_LABELS, LIMIT_RANGES, type ActivityFilter, type TradingPayload } from '@/lib/trading-view';
 import type { TradeActivity, TradingAccountSnapshot, TradingLimitsRow } from '@/lib/schemas';
+import { locale, localeTag, t } from '@/lib/i18n';
 
 // ── formatting (shared by every tree) ──────────────────────────────────────
 
@@ -43,23 +44,26 @@ export function qty(n: number): string {
 export function ago(iso: string, now: number): string {
   const ms = Math.max(0, now - Date.parse(iso));
   const m = Math.floor(ms / 60_000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m} min ago`;
+  if (m < 1) return t('just now');
+  if (m < 60) return t('{n} min ago', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 48) return `${h} h ago`;
-  return `${Math.floor(h / 24)} d ago`;
+  if (h < 48) return t('{n} h ago', { n: h });
+  return t('{n} d ago', { n: Math.floor(h / 24) });
 }
 
 /** "Oct 12, 2:04 PM" for chart tooltips and the trade sheet. */
 export function stamp(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleString(localeTag(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
 /** "Oct 12" for chart axes. */
 export function day(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric' });
 }
+
+/** "12 min ago" without its "ago": the live pill's age. */
+const bareAgo = (a: string) => (locale() === 'it' ? a.replace(/ fa$/, '') : a.replace(' ago', ''));
 
 // ── the model ──────────────────────────────────────────────────────────────
 
@@ -170,7 +174,7 @@ export function parseLog(v: string | null | undefined): ActivityFilter {
 }
 
 export function tradingModel(payload: TradingPayload, opts: { now?: number; acct?: string | null; log?: string | null; brandName?: string } = {}): TradingModel {
-  const brand = opts.brandName ?? 'This app';
+  const brand = opts.brandName ?? t('This app');
   const now = opts.now ?? Date.parse(payload.at);
   const { accounts, view, phantom, phantomStatus } = payload;
   const feed: FeedState = view.freshness.state;
@@ -186,12 +190,12 @@ export function tradingModel(payload: TradingPayload, opts: { now?: number; acct
     feed === 'none'
       ? null
       : feed === 'stale'
-        ? { tone: 'warn', text: view.freshness.label, title: `Newest capture ${freshest ? stamp(freshest.capturedAt) : ''}. The Markets agent has stopped pushing.` }
-        : { tone: 'ok', text: `Feed live · ${freshest ? ago(freshest.capturedAt, now).replace(' ago', '') : ''}`, title: `Newest capture ${freshest ? stamp(freshest.capturedAt) : ''}` };
+        ? { tone: 'warn', text: view.freshness.label, title: t('Newest capture {when}. The Markets agent has stopped pushing.', { when: freshest ? stamp(freshest.capturedAt) : '' }) }
+        : { tone: 'ok', text: t('Feed live · {age}', { age: freshest ? bareAgo(ago(freshest.capturedAt, now)) : '' }), title: t('Newest capture {when}', { when: freshest ? stamp(freshest.capturedAt) : '' }) };
 
-  const updated = freshest ? (feed === 'stale' ? view.freshness.label.toLowerCase() : `updated ${ago(freshest.capturedAt, now)}`) : null;
+  const updated = freshest ? (feed === 'stale' ? view.freshness.label.toLowerCase() : t('updated {ago}', { ago: ago(freshest.capturedAt, now) })) : null;
   const subtitle =
-    totalUsd === null ? null : `${usd(totalUsd)} across ${countAccounts} ${countAccounts === 1 ? 'account' : 'accounts'}${updated ? ` · ${updated}` : ''}`;
+    totalUsd === null ? null : `${countAccounts === 1 ? t('{usd} across {n} account', { usd: usd(totalUsd), n: countAccounts }) : t('{usd} across {n} accounts', { usd: usd(totalUsd), n: countAccounts })}${updated ? ` · ${updated}` : ''}`;
 
   const total = totalUsd ?? 0;
   const share = (n: number) => (total > 0 ? Math.max(0, Math.min(1, n / total)) : 0);
@@ -203,7 +207,7 @@ export function tradingModel(payload: TradingPayload, opts: { now?: number; acct
     dayPnlUsd: a.dayPnlUsd,
     cashUsd: a.cashUsd,
     buyingPowerUsd: a.buyingPowerUsd,
-    note: a.accountId === AGENTIC_ID ? 'Agent may trade' : 'Read-only to agents',
+    note: a.accountId === AGENTIC_ID ? t('Agent may trade') : t('Read-only to agents'),
     kind: 'brokerage',
     agentMayTrade: a.accountId === AGENTIC_ID,
   }));
@@ -216,7 +220,7 @@ export function tradingModel(payload: TradingPayload, opts: { now?: number; acct
       dayPnlUsd: null,
       cashUsd: null,
       buyingPowerUsd: null,
-      note: phantom ? `${phantom.sol.toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL` : 'Wallet not reachable',
+      note: phantom ? `${phantom.sol.toLocaleString(localeTag(), { maximumFractionDigits: 4 })} SOL` : t('Wallet not reachable'),
       kind: 'wallet',
       agentMayTrade: false,
       error: phantom ? undefined : phantomStatus.detail,
@@ -266,14 +270,14 @@ export function tradingModel(payload: TradingPayload, opts: { now?: number; acct
     initialAcct,
     initialLog: parseLog(opts.log),
     hasAgentic,
-    limits: { saved, fields, savedLabel: saved ? `Saved ${ago(saved.updatedAt, now)}` : 'No limits saved' },
+    limits: { saved, fields, savedLabel: saved ? t('Saved {ago}', { ago: ago(saved.updatedAt, now) }) : t('No limits saved') },
     lastAgentTrade: agentTrades[0] ?? null,
     readOnly: sample,
-    readOnlyReason: sample ? 'Sample data: limits are read only here' : null,
-    fixture: sample ? (payload.mode === 'filming' ? 'Filming fixture, trading' : 'trading sample (?sample=1)') : null,
+    readOnlyReason: sample ? t('Sample data: limits are read only here') : null,
+    fixture: sample ? (payload.mode === 'filming' ? t('Filming fixture, trading') : t('trading sample (?sample=1)')) : null,
     copy: {
-      subtitleEmpty: `Brokerage and wallet monitor. ${brand} never places an order.`,
-      autopilotBody: `The Markets agent will place real orders inside these limits. ${brand} does not place orders itself.`,
+      subtitleEmpty: t('Brokerage and wallet monitor. {brand} never places an order.', { brand }),
+      autopilotBody: t('The Markets agent will place real orders inside these limits. {brand} does not place orders itself.', { brand }),
     },
   };
 }
@@ -283,7 +287,7 @@ export const logRows = (m: TradingModel, f: ActivityFilter) => filterActivity(m.
 export { isHumanTrade, AGENTIC_ID, type ActivityFilter };
 
 /** "Markets agent" / "You" for the trade log's who column. */
-export const whoOf = (a: Pick<TradeActivity, 'agent'>) => (isHumanTrade(a) ? 'You' : a.agent);
+export const whoOf = (a: Pick<TradeActivity, 'agent'>) => (isHumanTrade(a) ? t('You') : a.agent);
 
 /** One-line order summary: "Buy SPY 1 @ $601.40". */
 export function tradeLine(a: Pick<TradeActivity, 'action' | 'symbol' | 'quantity' | 'priceUsd'>): string {
@@ -292,12 +296,12 @@ export function tradeLine(a: Pick<TradeActivity, 'action' | 'symbol' | 'quantity
 
 /** Validate one limit input; returns the number or an error sentence. */
 export function checkLimit(f: Pick<LimitField, 'label' | 'min' | 'max' | 'integer'>, raw: string): { value: number | null; error: string | null } {
-  const t = raw.trim().replace(/[$,%\s]/g, '');
-  if (t === '') return { value: null, error: 'Required' };
-  const n = Number(t);
-  if (!Number.isFinite(n)) return { value: null, error: 'Enter a number' };
-  if (f.integer && !Number.isInteger(n)) return { value: null, error: 'Whole number only' };
-  if (n < f.min) return { value: null, error: `At least ${f.min.toLocaleString('en-US')}` };
-  if (n > f.max) return { value: null, error: `At most ${f.max.toLocaleString('en-US')}` };
+  const text = raw.trim().replace(/[$,%\s]/g, '');
+  if (text === '') return { value: null, error: t('Required') };
+  const n = Number(text);
+  if (!Number.isFinite(n)) return { value: null, error: t('Enter a number') };
+  if (f.integer && !Number.isInteger(n)) return { value: null, error: t('Whole number only') };
+  if (n < f.min) return { value: null, error: t('At least {n}', { n: f.min.toLocaleString(localeTag()) }) };
+  if (n > f.max) return { value: null, error: t('At most {n}', { n: f.max.toLocaleString(localeTag()) }) };
   return { value: n, error: null };
 }

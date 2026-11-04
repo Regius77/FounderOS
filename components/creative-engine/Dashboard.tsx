@@ -1,6 +1,6 @@
 'use client';
 
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Clapperboard, FileText, Gauge as GaugeIcon, Library, MoreHorizontal, PenLine, Plus, Sparkles, Trash2, UserRound } from 'lucide-react';
 import type { Campaign, PoolAd } from '@/lib/creative-engine/schemas';
@@ -463,8 +463,8 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
               <div className="ae-stats" aria-busy={loading || undefined} data-loading={loading || undefined}>
                 <Stat value={campaign?.research?.pooled ?? 0} badge={t('Pooled')} lime tip={t('Ads the research pulled from the library for this concept.')} unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go({ sheet: 'generator', focus: campaign?.research ? 'research' : 'concept' })} />
                 <Stat value={campaign?.research ? proven.length : 0} badge={t('Proven {n}+ d', { n: minDays })} tip={t('Pooled ads still live after {n} or more days. Longevity is the only spend proxy.', { n: minDays })} unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go(campaign?.research ? { sheet: 'generator', focus: 'angles', proofOnly: true } : { sheet: 'generator', focus: 'concept' })} />
-                <Stat value={campaign?.angles.length ?? 0} badge={t('Angles')} tip={t('Angles proposed from the pooled ads.')} onOpen={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
-                <Stat value={selected.length} badge={t('Selected')} tip={t('Angles you picked to script.')} onOpen={() => void go(selected[0] ? { sheet: 'scripter', angleId: selected[0].id } : { sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
+                <Stat value={campaign?.angles.length ?? 0} badge={tc('creative', 'Angles')} tip={t('Angles proposed from the pooled ads.')} onOpen={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
+                <Stat value={selected.length} badge={tc('count', 'Selected')} tip={t('Angles you picked to script.')} onOpen={() => void go(selected[0] ? { sheet: 'scripter', angleId: selected[0].id } : { sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
                 {loadError && <span className="ae-stat-err" role="status" title={t('Could not refresh. Retrying on the next tick.')} aria-label={t('Could not refresh. Retrying on the next tick.')} />}
               </div>
 
@@ -523,7 +523,7 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
               {/* snapshot row */}
               <div className="mt-9 flex items-end justify-between">
                 <div>
-                  <h2 className="ae-section flex flex-wrap items-center gap-3">{t('Angles')}{dryCampaign && <Tag>{DRY_CAMPAIGN_TAG}</Tag>}</h2>
+                  <h2 className="ae-section flex flex-wrap items-center gap-3">{tc('creative', 'Angles')}{dryCampaign && <Tag>{DRY_CAMPAIGN_TAG}</Tag>}</h2>
                   <div className="text-[13px] text-[var(--p-muted)]">{t('A snapshot of what is proven in the library.')}</div>
                 </div>
                 <Btn onClick={() => setSheet('generator')}>{t('See all')}</Btn>

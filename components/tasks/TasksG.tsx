@@ -51,7 +51,7 @@ import type { AgentRun, AgentTask } from '@/lib/schemas';
 import { AgentSheetHost } from '@/components/agents/AgentSheet';
 import { openAgentSheet } from '@/components/agents/agent-param';
 import { TimeGrid } from './TimeGrid';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 /**
  * /tasks under the GladOS style (glados-ui SPEC S04 §4.3, X5). Same data and
@@ -449,7 +449,7 @@ function Workload({ rows }: { rows: WorkloadRow[] }) {
       ),
     },
     { key: 'assigned', label: t('Assigned'), numeric: true, sortValue: (r) => r.assigned, render: (r) => r.assigned },
-    { key: 'done', label: t('Done'), numeric: true, sortValue: (r) => r.completed, render: (r) => r.completed },
+    { key: 'done', label: tc('tasks', 'Done'), numeric: true, sortValue: (r) => r.completed, render: (r) => r.completed },
     { key: 'doing', label: t('In progress'), numeric: true, sortValue: (r) => r.ongoing, render: (r) => r.ongoing },
     { key: 'pending', label: t('Pending'), numeric: true, sortValue: (r) => r.pending, render: (r) => r.pending },
     {
@@ -547,8 +547,8 @@ function Outcomes({
           label={t('Runs succeeded and failed per day · {range}', { range: rangeLabel })}
           labels={trend.points.map((p) => p.label)}
           series={[
-            { id: 'ok', label: t('Succeeded'), values: trend.points.map((p) => p.succeeded), color: 'accent' },
-            { id: 'fail', label: t('Failed'), values: trend.points.map((p) => p.failed), color: 'err' },
+            { id: 'ok', label: tc('runs', 'Succeeded'), values: trend.points.map((p) => p.succeeded), color: 'accent' },
+            { id: 'fail', label: tc('runs', 'Failed'), values: trend.points.map((p) => p.failed), color: 'err' },
           ]}
           height={120}
           className="wg-chart"

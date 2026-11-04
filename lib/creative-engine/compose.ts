@@ -8,6 +8,7 @@ import {
   type Tone,
 } from '@/lib/creative-engine/schemas';
 import { countWords } from '@/lib/creative-engine/duration';
+import { t } from '@/lib/i18n';
 
 /**
  * Prompt composer for the Motion Console. Every "composed" control writes a
@@ -160,21 +161,21 @@ export function composePrompt(input: Partial<ConsoleControls>): Composed {
 
   const lower = prompt.toLowerCase();
   for (const w of FORBIDDEN_WORDS) {
-    if (new RegExp(`\\b${w}\\b`).test(lower)) lints.push({ level: 'error', message: `"${w}" is on the Seedance forbidden list; it produces staged output` });
+    if (new RegExp(`\\b${w}\\b`).test(lower)) lints.push({ level: 'error', message: t('"{word}" is on the Seedance forbidden list; it produces staged output', { word: w }) });
   }
   const window = c.model === 'veo31' ? { min: 75, max: 125 } : { min: 100, max: 260 };
-  if (wordCount < window.min) lints.push({ level: 'warn', message: `${wordCount} words is under the ${window.min}-word floor for ${c.model}: the model will guess the gaps` });
-  if (wordCount > window.max) lints.push({ level: 'warn', message: `${wordCount} words is over the ${window.max}-word ceiling for ${c.model}: it loses focus` });
-  if (omit.size) lints.push({ level: 'warn', message: `${[...omit].join(', ')} hidden from the prompt by the scene tree` });
-  if (c.motionCues < 3 && !omit.has('action')) lints.push({ level: 'error', message: 'fewer than 3 human motion cues reads as a mannequin' });
-  if (/\b(acne|pimples?|breakouts?|blemish(es)?|rosacea)\b/.test(lower)) lints.push({ level: 'error', message: 'dermatology words are banned: real is not dermatological' });
+  if (wordCount < window.min) lints.push({ level: 'warn', message: t('{n} words is under the {min}-word floor for {model}: the model will guess the gaps', { n: wordCount, min: window.min, model: c.model }) });
+  if (wordCount > window.max) lints.push({ level: 'warn', message: t('{n} words is over the {max}-word ceiling for {model}: it loses focus', { n: wordCount, max: window.max, model: c.model }) });
+  if (omit.size) lints.push({ level: 'warn', message: t('{parts} hidden from the prompt by the scene tree', { parts: [...omit].join(', ') }) });
+  if (c.motionCues < 3 && !omit.has('action')) lints.push({ level: 'error', message: t('fewer than 3 human motion cues reads as a mannequin') });
+  if (/\b(acne|pimples?|breakouts?|blemish(es)?|rosacea)\b/.test(lower)) lints.push({ level: 'error', message: t('dermatology words are banned: real is not dermatological') });
   if (spoken) {
     const words = countWords(spoken);
     const budget = Math.floor(c.duration * 2.5);
-    if (words > budget) lints.push({ level: 'error', message: `${words} spoken words do not fit ${c.duration}s (budget ${budget})` });
+    if (words > budget) lints.push({ level: 'error', message: t('{n} spoken words do not fit {duration}s (budget {budget})', { n: words, duration: c.duration, budget }) });
   }
   if (c.model !== 'seedance-2.0' && c.model !== 'veo31' && !c.model.startsWith('sora') && spoken) {
-    lints.push({ level: 'warn', message: `${c.model} is silent: dialogue will not be spoken` });
+    lints.push({ level: 'warn', message: t('{model} is silent: dialogue will not be spoken', { model: c.model }) });
   }
 
   return { prompt, wordCount, lints, parts: { subject, action, camera, style, constraints } };

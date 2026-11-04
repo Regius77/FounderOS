@@ -7,7 +7,7 @@ import { Avatar, Mono, SourcePill, TriagePill, sourceLabel } from './bits';
 import { MediaBlock } from './Media';
 import { SetupLink } from '@/components/SetupLink';
 import { setupHrefFor } from '@/lib/integrations-catalog';
-import { t, localeTag } from '@/lib/i18n';
+import { t, localeTag, tc } from '@/lib/i18n';
 
 export type ReaderHandle = { focusReply: () => void };
 
@@ -87,7 +87,7 @@ export const InboxReader = forwardRef<
         <div>
           <p className="ib-empty-title">{t('Pick a thread')}</p>
           <p className="ib-empty-sub">
-            <kbd>j</kbd> <kbd>k</kbd> {t('move')} · <kbd>r</kbd> {t('reply')} · <kbd>e</kbd> {t('done')} · <kbd>/</kbd> {t('search')}
+            <kbd>j</kbd> <kbd>k</kbd> {t('move')} · <kbd>r</kbd> {t('reply')} · <kbd>e</kbd> {tc('button', 'done')} · <kbd>/</kbd> {t('search')}
           </p>
         </div>
       </section>
@@ -110,7 +110,7 @@ export const InboxReader = forwardRef<
         body: JSON.stringify({ source: 'slack', channel: th.context.replace(/^#/, ''), text }),
       }).catch(() => null);
       const body = res ? await res.json().catch(() => ({})) : {};
-      setStatus(body.detail ?? (res?.ok ? t('sent') : t('failed')));
+      setStatus(body.detail ?? (res?.ok ? t('sent') : tc('send', 'failed')));
       if (res?.ok) setDraft('');
       return;
     }
@@ -201,7 +201,7 @@ export const InboxReader = forwardRef<
             </button>
           )}
           <button className={`ib-btn ${done ? 'is-on' : ''}`} onClick={onDone} title={t('Mark done (e)')}>
-            <Archive strokeWidth={1.8} /> {done ? t('Done') : t('Mark done')}
+            <Archive strokeWidth={1.8} /> {done ? tc('button', 'Done') : t('Mark done')}
           </button>
           {th.event?.joinUrl && (
             <a className="ib-btn ib-btn-dark" href={th.event.joinUrl} target="_blank" rel="noreferrer">

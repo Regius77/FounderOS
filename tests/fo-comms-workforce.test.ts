@@ -121,8 +121,8 @@ describe('F4 recordings', () => {
     expect(g).toContain('s.setupHref');
     const c = read('components/comms-fo/CommsFoClassic.tsx');
     expect(c).toContain('<SetupLink href={s.setupHref} />');
-    expect(read('components/inbox/InboxG.tsx')).toContain("{ value: 'recordings', label: 'Recordings' }");
-    expect(read('components/inbox/InboxWorkspace.tsx')).toContain("{ id: 'recordings', label: 'Recordings' }");
+    expect(read('components/inbox/InboxG.tsx')).toContain("{ value: 'recordings', label: t('Recordings') }");
+    expect(read('components/inbox/InboxWorkspace.tsx')).toContain("{ id: 'recordings', label: t('Recordings') }");
   });
 });
 
@@ -181,8 +181,8 @@ describe('F5 client board and week', () => {
 
   test('GladOS: Clients and Week tabs with lanes in a card scroller; Classic: extra lanes', () => {
     const g = read('components/inbox/InboxG.tsx');
-    expect(g).toContain("{ value: 'clients', label: 'Clients' }");
-    expect(g).toContain("{ value: 'week', label: 'Week' }");
+    expect(g).toContain("{ value: 'clients', label: t('Clients') }");
+    expect(g).toContain("{ value: 'week', label: t('Week') }");
     expect(read('app/globals.css')).toMatch(/\.wg-cf-lanes \{[^}]*overflow-x: auto/);
     const c = read('components/inbox/InboxWorkspace.tsx');
     expect(c).toContain('<ClientLanesClassic');

@@ -5,7 +5,7 @@ import type { Agent } from '@/lib/schemas';
 import type { WizardProject } from '@/lib/wizard/store';
 import { departmentIcon, projectOwners, projectProgress, projectSubline } from '@/lib/wizard/ui';
 import { ProgressRing } from './ProgressRing';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 export function ProjectsRail({
   projects,
@@ -94,7 +94,7 @@ export function ProjectsRail({
             <Card key={p.id} p={p} />
           ))}
         </Group>
-        <Group icon={<CircleCheck className="h-4 w-4" strokeWidth={2} />} label={t('Done')} count={done.length}>
+        <Group icon={<CircleCheck className="h-4 w-4" strokeWidth={2} />} label={tc('project', 'Done')} count={done.length}>
           {done.map((p) => (
             <Card key={p.id} p={p} />
           ))}

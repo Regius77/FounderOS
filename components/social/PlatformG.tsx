@@ -14,7 +14,7 @@ import { GAreaChart, GButton, GCard, GEmpty, GHeroCard, GList, GPage, GRow, GSec
 import type { Newsletter } from '@/lib/newsletters';
 import { formatFull } from '@/lib/format-number';
 import { fmtDay, fmtPct, MAX_MARKS } from '@/lib/social-view';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 function Back() {
   return (
@@ -41,7 +41,7 @@ type Growth = { d7: number | null; d30: number | null; d60: number | null; allTi
 const WINDOWS = [
   { value: '30', label: t('30d'), days: 30 },
   { value: '90', label: t('90d'), days: 90 },
-  { value: 'all', label: t('All'), days: Infinity },
+  { value: 'all', label: tc('range', 'All'), days: Infinity },
 ];
 
 export function PlatformG(props: {

@@ -7,7 +7,7 @@ import { ConductorEmblem } from '@/components/ConductorEmblem';
 import type { WizardProject } from '@/lib/wizard/store';
 import { elapsedLabel, relativeTime, shortSessionId } from '@/lib/wizard/helpers';
 import { projectProgress, tokensLabel } from '@/lib/wizard/ui';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 export function Conversation({
   project,
@@ -109,7 +109,7 @@ export function Conversation({
           )}
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-os-dim">
             <span className={`dot ${project.status === 'done' ? 'ok' : 'warn'}`} />
-            <span>{project.status === 'done' ? t('done') : t('active')}</span>
+            <span>{project.status === 'done' ? tc('project', 'done') : t('active')}</span>
             {sess && (
               <>
                 <span aria-hidden="true">·</span>

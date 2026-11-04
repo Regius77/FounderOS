@@ -32,7 +32,7 @@ import { launchBlockedReason, writeBlockedReason, type ClientRosterRow, type Cli
 import type { ClientWorkStatus } from '@/lib/schemas';
 import { BRIEF_PLACEHOLDER, LAUNCH_DIALOG_BODY, LAUNCH_DIALOG_TITLE, useClients } from './use-clients';
 import type { ClientsSetup } from './ClientsG';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 const TONE: Record<ClientWorkStatus, BadgeTone> = { draft: 'default', queued: 'default', running: 'accent', done: 'ok', failed: 'err' };
 const nRequests = (n: number) => (n === 1 ? t('{n} request', { n }) : t('{n} requests', { n }));
@@ -72,7 +72,7 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
   const meters: Meter[] = [
     { label: `${t('Done this month')} (${v.doneThisMonth}/${v.thisMonth})`, frac: frac(v.doneThisMonth, v.thisMonth), display: t('{done} of {total}', { done: v.doneThisMonth, total: v.thisMonth }), hue: 'var(--l-ok)' },
     { label: `${t('Failed this month')} (${v.failedThisMonth}/${v.thisMonth})`, frac: frac(v.failedThisMonth, v.thisMonth), display: t('{done} of {total}', { done: v.failedThisMonth, total: v.thisMonth }), hue: 'var(--l-err)' },
-    { label: `${t('Open')} (${v.open}/${v.total})`, frac: frac(v.open, v.total), display: t('{done} of {total}', { done: v.open, total: v.total }) },
+    { label: `${tc('request', 'Open')} (${v.open}/${v.total})`, frac: frac(v.open, v.total), display: t('{done} of {total}', { done: v.open, total: v.total }) },
   ];
 
   return (
@@ -108,7 +108,7 @@ export function ClientsLegacy({ view, setup }: { view: ClientsView; setup: Clien
           </SlabCard>
           <SlabCard title={t('Request Volume')} sub={t('this month')} i={2} className="flex flex-col">
             <div className="l-card-body flex flex-1 flex-col">
-              <BigStat value={v.open} unit={t('open')} chips={v.failedThisMonth ? [{ tone: 'err', text: t('{n} failed', { n: v.failedThisMonth }) }] : []} caption={v.thisMonth === 1 ? t('{n} request this month', { n: v.thisMonth }) : t('{n} requests this month', { n: v.thisMonth })} />
+              <BigStat value={v.open} unit={tc('request', 'open')} chips={v.failedThisMonth ? [{ tone: 'err', text: t('{n} failed', { n: v.failedThisMonth }) }] : []} caption={v.thisMonth === 1 ? t('{n} request this month', { n: v.thisMonth }) : t('{n} requests this month', { n: v.thisMonth })} />
               <MeterStack meters={meters} foot={`${t('{n} on record', { n: v.total })} · ${t('drafts first')}`} />
             </div>
           </SlabCard>

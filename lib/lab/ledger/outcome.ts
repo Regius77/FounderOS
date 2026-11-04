@@ -10,13 +10,14 @@ import { asOfView, type AsOfData } from '@/lib/lab/measure/asof';
 import { cellKey, ebBaseline, fitEb, followersAsOf, metricBasis, surfaceOf, valueAtAge, type AgeValue, type EbBaseline, type EbFit, type Surface } from '@/lib/lab/ledger/deps';
 import { linkPredictionsToPost } from '@/lib/lab/ledger/freeze';
 import { log1p10 } from '@/lib/lab/ledger/metrics';
+import { t } from '@/lib/i18n';
 
 /** 06 2.1 band labels (01 12.3 uses them verbatim). */
 export const BAND_LABEL: Record<LabBand, string> = {
-  below: 'Below your normal',
-  normal: 'Around your normal',
-  above: 'Above your normal',
-  breakout: 'Breakout',
+  below: t('Below your normal'),
+  normal: t('Around your normal'),
+  above: t('Above your normal'),
+  breakout: t('Breakout'),
 };
 
 /** 06 2.1: below < 0.75 <= normal < 1.5 <= above < 3 <= breakout (3 = BREAKOUT_THRESHOLD). */

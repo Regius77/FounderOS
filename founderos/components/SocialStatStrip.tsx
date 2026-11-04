@@ -5,11 +5,11 @@ import { ArrowUpRight, MessageSquare, TrendingDown, TrendingUp, X } from 'lucide
 import type { SocialGrowth } from '@/founderos/lib/schemas';
 import type { DmThread } from '@/lib/social';
 import { InstagramDmInbox } from '@/founderos/components/InstagramDmInbox';
-import { t, localeTag } from '@/lib/i18n';
+import { t, localeTag, tc } from '@/lib/i18n';
 
 type Range = 7 | 30 | 60 | 'all';
 const RANGES: Range[] = [7, 30, 60, 'all'];
-const RANGE_LABEL: Record<string, string> = { '7': t('7d'), '30': t('30d'), '60': t('60d'), all: t('All') };
+const RANGE_LABEL: Record<string, string> = { '7': t('7d'), '30': t('30d'), '60': t('60d'), all: tc('range', 'All') };
 const RANGE_KEY: Record<string, keyof SocialGrowth> = { '7': 'd7', '30': 'd30', '60': 'd60', all: 'allTime' };
 
 type SeriesPoint = { date: string; value: number };

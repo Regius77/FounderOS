@@ -9,6 +9,7 @@
  */
 
 import { INTEGRATIONS, setupHrefFor } from '@/lib/integrations-catalog';
+import { t } from '@/lib/i18n';
 
 // ── Income: processor / account registry ────────────────────────────────────
 
@@ -66,10 +67,10 @@ export function incomeAccounts(
       income: stripe.connected ? stripe.mtdUsd : null,
     },
     account('paypal', 'PayPal', 'PayPal'),
-    account('fanbasis-1', 'FanBasis', 'FanBasis · Account 1'),
-    account('fanbasis-2', 'FanBasis', 'FanBasis · Account 2'),
-    account('wise-1', 'Wise', 'Wise · Account 1'),
-    account('wise-2', 'Wise', 'Wise · Account 2'),
+    account('fanbasis-1', 'FanBasis', t('FanBasis · Account {n}', { n: 1 })),
+    account('fanbasis-2', 'FanBasis', t('FanBasis · Account {n}', { n: 2 })),
+    account('wise-1', 'Wise', t('Wise · Account {n}', { n: 1 })),
+    account('wise-2', 'Wise', t('Wise · Account {n}', { n: 2 })),
   ];
 }
 
@@ -152,7 +153,7 @@ export function processorPeriodLabel(
   headlinePeriod: string,
 ): string {
   if (account.live) return headlinePeriod;
-  return account.configured ? 'pull pending' : 'awaiting key';
+  return account.configured ? t('pull pending') : t('awaiting key');
 }
 
 /** Where a not-configured processor's Set up link goes: its /integrations

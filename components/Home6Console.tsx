@@ -39,7 +39,7 @@ import { isFilming } from '@/lib/demo-mode';
 import { runtimeEnv } from '@/lib/creds';
 import { demoIncomeCategories } from '@/lib/finance-demo';
 import { previewSandboxTasks, sandboxSpeed } from '@/lib/home-sandbox';
-import { locale, localeTag, t } from '@/lib/i18n';
+import { locale, localeTag, t, tc } from '@/lib/i18n';
 
 // The operator console in the Example-6 skin (Control AI dashboard) — the
 // real home page since 2026-08-23. Teal glass gradient cards, gold chrome,
@@ -220,7 +220,7 @@ function NeedsYouCard({ needs }: { needs: NeedsYou }) {
         </h2>
         {needs.total > needs.rows.length && (
           <Link href="/tasks" className="ml-auto whitespace-nowrap text-[11.5px] hover:underline" style={{ color: GOLD }}>
-            {t('All {n}', { n: needs.total })} →
+            {tc('task', 'All {n}', { n: needs.total })} →
           </Link>
         )}
       </div>
@@ -715,7 +715,7 @@ export async function Home6Console() {
                     {[
                       { label: t('Fresh'), n: freshN, color: GOLD, href: '/brain', hint: t('changed in the last 30 days') },
                       { label: t('Aging'), n: agingN, color: 'var(--text-2)', href: '/brain', hint: t('changed 31 to 89 days ago') },
-                      { label: t('Stale'), n: staleN, color: 'var(--h6-stale)', href: '/drift', hint: t('untouched for 90 days or more') },
+                      { label: tc('pages', 'Stale'), n: staleN, color: 'var(--h6-stale)', href: '/drift', hint: t('untouched for 90 days or more') },
                     ].map((s) => (
                       <Link
                         key={s.label}

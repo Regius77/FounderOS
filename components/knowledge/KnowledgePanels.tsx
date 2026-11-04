@@ -23,7 +23,7 @@ import {
   timelineBuckets,
   type RankRow,
 } from '@/lib/knowledge-views';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Matrix
@@ -524,7 +524,7 @@ export function FindingsView({
                   <span className="mt-1 block text-[11.5px] leading-relaxed text-os-muted">{f.detail}</span>
                 </span>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide" style={{ color: SEV_COLOR[f.severity] }}>
-                  {f.severity === 'high' ? t('high') : f.severity === 'medium' ? t('medium') : t('low')}
+                  {f.severity === 'high' ? tc('severity', 'high') : f.severity === 'medium' ? tc('severity', 'medium') : tc('severity', 'low')}
                 </span>
               </button>
               {isOpen && targets.length > 0 && (

@@ -23,6 +23,7 @@ import { resultCopy } from '@/lib/lab/ledger/tests';
 import { retentionByBeatType, retentionByHookForm, type RetentionByBeatTypeRow, type RetentionByHookFormRow } from '@/lib/lab/ledger/retention/map';
 import { HARNESS_VERSION } from '@/lib/lab/ledger/backtest';
 import { HARNESS_PRIOR } from '@/lib/lab/ledger/job';
+import { localeTag, t } from '@/lib/i18n';
 
 export type { LabBand, LabTest } from '@/lib/schemas';
 export type { Verdict } from '@/lib/lab/ledger/hide';
@@ -93,7 +94,7 @@ export type LedgerView = {
 
 export const NOT_ENOUGH = 'not enough yet';
 const BANDS: LabBand[] = ['below', 'normal', 'above', 'breakout'];
-const BAND_RANGE: Record<LabBand, string> = { below: 'under 0.75x', normal: '0.75x to 1.5x', above: '1.5x to 3x', breakout: '3x or more' };
+const BAND_RANGE: Record<LabBand, string> = { below: t('under 0.75x'), normal: t('0.75x to 1.5x'), above: t('1.5x to 3x'), breakout: t('3x or more') };
 const HOUR = 3_600_000;
 
 /* ── formatting (domain copy; 01's format.ts formats the page numbers) ───────── */
@@ -111,28 +112,29 @@ const pct0 = (x: number) => `${Math.round(x * 100)}%`;
 function dayMonth(iso: string): string {
   const d = new Date(iso);
   const tz = labTz();
-  return `${new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric' }).format(d)} ${new Intl.DateTimeFormat('en-GB', { timeZone: tz, month: 'short' }).format(d)}`;
+  const tag = localeTag() === 'en-US' ? 'en-GB' : localeTag();
+  return `${new Intl.DateTimeFormat(tag, { timeZone: tz, day: 'numeric' }).format(d)} ${new Intl.DateTimeFormat(tag, { timeZone: tz, month: 'short' }).format(d)}`;
 }
 
 /* ── metric cells (06 5.7) ───────────────────────────────────────────────────── */
 
 const cell = (value: number | null, lo: number | null, hi: number | null, n: number, display: (v: number) => string): MetricCell | null =>
-  value === null ? null : { value, lo, hi, n, enough: n >= 5, display: n >= 5 ? display(value) : NOT_ENOUGH };
+  value === null ? null : { value, lo, hi, n, enough: n >= 5, display: n >= 5 ? display(value) : t(NOT_ENOUGH) };
 
 export function metricCells(def: PredictorDef, e: LabEval | null): Pick<PredictorCard, 'pairwise' | 'spearman' | 'logMae' | 'coverage' | 'prAuc'> {
   if (!e) return { pairwise: null, spearman: null, logMae: null, coverage: null, prAuc: null };
   const n = e.nPosts;
-  const chance = n < 20 ? ', at chance until n 20' : '';
+  const chance = n < 20 ? t(', at chance until n 20') : '';
   const judge = def.kinds.includes('pairwise');
   return {
     pairwise: cell(e.pairwise, e.pairwiseLo, e.pairwiseHi, n, (v) =>
       judge
-        ? `right ${Math.round(v * n)} of ${n} (${pct0(v)}, 90% ${pct0(e.pairwiseLo ?? v)} to ${pct0(e.pairwiseHi ?? v)})${chance}`
+        ? `${t('right {k} of {n} ({pct}, 90% {lo} to {hi})', { k: Math.round(v * n), n, pct: pct0(v), lo: pct0(e.pairwiseLo ?? v), hi: pct0(e.pairwiseHi ?? v) })}${chance}`
         : `${pct0(v)} (n ${n})${chance}`),
-    spearman: cell(e.spearman, e.spearmanLo, e.spearmanHi, n, (v) => `${v.toFixed(2)} (${(e.spearmanLo ?? v).toFixed(2)} to ${(e.spearmanHi ?? v).toFixed(2)}, n ${n})`),
-    logMae: cell(e.logMae, e.maeDeltaLo, e.maeDeltaHi, n, (v) => `typically off by x${typicalFactor(v).toFixed(1)} (n ${n})`),
-    coverage: e.coverageN ? cell(e.coverage, e.coverageLo, e.coverageHi, e.coverageN, (v) => `${pct0(v)} range held ${Math.round(v * e.coverageN)} of ${e.coverageN}`) : null,
-    prAuc: cell(e.prAuc, e.prAucLo, e.prAucHi, n, (v) => `${v.toFixed(2)} against ${(e.baseRate ?? 0).toFixed(2)} by chance (n ${n})`),
+    spearman: cell(e.spearman, e.spearmanLo, e.spearmanHi, n, (v) => t('{v} ({lo} to {hi}, n {n})', { v: v.toFixed(2), lo: (e.spearmanLo ?? v).toFixed(2), hi: (e.spearmanHi ?? v).toFixed(2), n })),
+    logMae: cell(e.logMae, e.maeDeltaLo, e.maeDeltaHi, n, (v) => t('typically off by x{f} (n {n})', { f: typicalFactor(v).toFixed(1), n })),
+    coverage: e.coverageN ? cell(e.coverage, e.coverageLo, e.coverageHi, e.coverageN, (v) => t('{pct} range held {k} of {n}', { pct: pct0(v), k: Math.round(v * e.coverageN), n: e.coverageN })) : null,
+    prAuc: cell(e.prAuc, e.prAucLo, e.prAucHi, n, (v) => t('{v} against {base} by chance (n {n})', { v: v.toFixed(2), base: (e.baseRate ?? 0).toFixed(2), n })),
   };
 }
 
@@ -150,28 +152,28 @@ const liveRows = (store: LabStore, includeDry: boolean) => store.predictions.lis
 const counted = (p: LabPrediction) => p.status === 'graded' && !p.late && (p.kind === 'pre_post' || p.kind === 'early');
 
 function saidText(p: LabPrediction, def: PredictorDef): string {
-  if (p.kind === 'pairwise') return p.inputs.abstained ? 'Abstained: the two orders disagreed' : `Picked hook ${p.inputs.winner === p.inputs.aId ? 'A' : p.inputs.winner === p.inputs.bId ? 'B' : String(p.inputs.winner ?? '')}`;
+  if (p.kind === 'pairwise') return p.inputs.abstained ? t('Abstained: the two orders disagreed') : t('Picked hook {hook}', { hook: p.inputs.winner === p.inputs.aId ? 'A' : p.inputs.winner === p.inputs.bId ? 'B' : String(p.inputs.winner ?? '') });
   if (p.predictor.startsWith('external:')) return `${String(p.inputs.toolLabel ?? def.label)} ${String(p.inputs.rawScore ?? '')}/${String(p.inputs.scaleMax ?? '')}`;
-  if (p.predictor === 'creator_median') return p.viewsPoint !== null ? `Your normal: ${compact(p.viewsPoint)} at 7 days` : 'Your normal';
-  if (p.predictor === 'comment_intent') return `Comment requests ${p.score !== null ? ratioText(10 ** p.score) : ''} of usual`.replace('  ', ' ');
-  if (p.kind === 'early' && p.viewsPoint !== null) return `Projected ${compact(p.viewsPoint)}${p.viewsLo !== null && p.viewsHi !== null ? ` (80% range ${compact(p.viewsLo)} to ${compact(p.viewsHi)})` : ''}`;
-  if (p.band) return `${BAND_LABEL[p.band]} (${p.ratioLo !== null && p.ratioHi !== null ? `${ratioText(p.ratioLo)} to ${ratioText(p.ratioHi)}` : BAND_RANGE[p.band]})`;
+  if (p.predictor === 'creator_median') return p.viewsPoint !== null ? t('Your normal: {views} at 7 days', { views: compact(p.viewsPoint) }) : t('Your normal');
+  if (p.predictor === 'comment_intent') return t('Comment requests {ratio} of usual', { ratio: p.score !== null ? ratioText(10 ** p.score) : '' }).replace('  ', ' ');
+  if (p.kind === 'early' && p.viewsPoint !== null) return `${t('Projected {views}', { views: compact(p.viewsPoint) })}${p.viewsLo !== null && p.viewsHi !== null ? t(' (80% range {lo} to {hi})', { lo: compact(p.viewsLo), hi: compact(p.viewsHi) }) : ''}`;
+  if (p.band) return `${BAND_LABEL[p.band]} (${p.ratioLo !== null && p.ratioHi !== null ? t('{lo} to {hi}', { lo: ratioText(p.ratioLo), hi: ratioText(p.ratioHi) }) : BAND_RANGE[p.band]})`;
   return def.label;
 }
 
 function happenedText(store: LabStore, p: LabPrediction): string | null {
   if (p.status === 'void') return null;
   if (p.kind === 'pairwise') {
-    if (p.status === 'graded') return p.pairRight ? 'Picked the test winner' : 'Missed the test winner';
-    if (p.status === 'ungradable') return p.note === 'abstained' ? 'Abstained' : 'Could not be graded';
-    return 'Waiting for a test result';
+    if (p.status === 'graded') return p.pairRight ? t('Picked the test winner') : t('Missed the test winner');
+    if (p.status === 'ungradable') return p.note === 'abstained' ? t('Abstained') : t('Could not be graded');
+    return t('Waiting for a test result');
   }
-  if (p.late) return 'Frozen after posting, not graded';
-  if (p.status === 'graded') return p.outcomeRatio7d !== null ? `${ratioText(p.outcomeRatio7d)} at 7 days` : p.outcomeViews7d !== null ? `${compact(p.outcomeViews7d)} at 7 days` : 'Graded';
-  if (p.status === 'ungradable') return 'Could not be graded';
+  if (p.late) return t('Frozen after posting, not graded');
+  if (p.status === 'graded') return p.outcomeRatio7d !== null ? t('{value} at 7 days', { value: ratioText(p.outcomeRatio7d) }) : p.outcomeViews7d !== null ? t('{value} at 7 days', { value: compact(p.outcomeViews7d) }) : t('Graded');
+  if (p.status === 'ungradable') return t('Could not be graded');
   const post = p.postId ? store.posts.get(p.postId) : null;
-  if (!post?.postedAt) return 'Not posted yet';
-  return `Waiting for 7 days (due ${dayMonth(new Date(Date.parse(post.postedAt) + 168 * HOUR).toISOString())})`;
+  if (!post?.postedAt) return t('Not posted yet');
+  return t('Waiting for 7 days (due {date})', { date: dayMonth(new Date(Date.parse(post.postedAt) + 168 * HOUR).toISOString()) });
 }
 
 function postTitle(store: LabStore, p: LabPrediction): string | null {
@@ -213,13 +215,13 @@ function hero(store: LabStore, rows: readonly LabPrediction[]): LedgerView['hero
   const mine = by(who);
   const n = mine.length;
   const bins = reliability(mine);
-  if (n === 0) return { sentence: 'Nothing graded yet. Freeze a prediction before your next post and it is graded 7 days later.', n, enough: false, reliability: bins };
-  if (n < 5) return { sentence: `${n} graded so far. Not enough yet to say whether the Lab, or you, call it right.`, n, enough: false, reliability: bins };
+  if (n === 0) return { sentence: t('Nothing graded yet. Freeze a prediction before your next post and it is graded 7 days later.'), n, enough: false, reliability: bins };
+  if (n < 5) return { sentence: t('{n} graded so far. Not enough yet to say whether the Lab, or you, call it right.', { n }), n, enough: false, reliability: bins };
   const top = [...bins].sort((a, b) => b.said - a.said)[0];
   const label = BAND_LABEL[top.band];
-  const whoText = who === 'brody' ? 'you' : `the ${predictorDef(who).label.toLowerCase()}`;
-  const tail = n < 20 ? ', at chance until n 20' : `, ${pct0(top.baseRate ?? 0)} of all posts land there`;
-  return { sentence: `When ${whoText} said ${label.charAt(0).toLowerCase()}${label.slice(1)}, it landed there ${top.hit} of ${top.said} times (n ${n}${tail}).`, n, enough: true, reliability: bins };
+  const whoText = who === 'brody' ? t('you') : t('the {predictor}', { predictor: predictorDef(who).label.toLowerCase() });
+  const tail = n < 20 ? t(', at chance until n 20') : t(', {pct} of all posts land there', { pct: pct0(top.baseRate ?? 0) });
+  return { sentence: t('When {who} said {band}, it landed there {hit} of {said} times (n {n}{tail}).', { who: whoText, band: `${label.charAt(0).toLowerCase()}${label.slice(1)}`, hit: top.hit, said: top.said, n, tail }), n, enough: true, reliability: bins };
 }
 
 function predictorCard(store: LabStore, def: PredictorDef, rows: readonly LabPrediction[]): PredictorCard {
@@ -242,15 +244,15 @@ function predictorCard(store: LabStore, def: PredictorDef, rows: readonly LabPre
   };
 }
 
-function testRow(t: LabTest): TestRow {
-  const c = resultCopy(t);
-  const feature = t.featureKey ? t.featureKey.split(':').slice(1).join(':').replaceAll('_', ' ') : null;
-  const confirms = t.confirms === true && feature ? `Confirms the Playbook: ${feature}` : t.confirms === false && feature ? `Goes against the Playbook: ${feature}` : null;
-  const arms = t.arms.map((a) => {
-    const rate = t.kind === 'yt_test_compare' ? (a.metrics.watchTimeSharePct !== null ? `${a.metrics.watchTimeSharePct}% watch time share` : null) : a.metrics.reach && a.metrics.shares !== null ? `${((a.metrics.shares / a.metrics.reach) * 100).toFixed(2)}% shares per reach` : null;
-    return { label: a.label, rate, isWinner: t.winnerArm === a.id };
+function testRow(x: LabTest): TestRow {
+  const c = resultCopy(x);
+  const feature = x.featureKey ? x.featureKey.split(':').slice(1).join(':').replaceAll('_', ' ') : null;
+  const confirms = x.confirms === true && feature ? t('Confirms the Playbook: {feature}', { feature }) : x.confirms === false && feature ? t('Goes against the Playbook: {feature}', { feature }) : null;
+  const arms = x.arms.map((a) => {
+    const rate = x.kind === 'yt_test_compare' ? (a.metrics.watchTimeSharePct !== null ? t('{pct}% watch time share', { pct: a.metrics.watchTimeSharePct }) : null) : a.metrics.reach && a.metrics.shares !== null ? t('{pct}% shares per reach', { pct: ((a.metrics.shares / a.metrics.reach) * 100).toFixed(2) }) : null;
+    return { label: a.label, rate, isWinner: x.winnerArm === a.id };
   });
-  return { id: t.id, kind: t.kind, title: t.title, hypothesis: t.hypothesis, status: t.status, result: t.result, resultLabel: c.label, confirms, arms };
+  return { id: x.id, kind: x.kind, title: x.title, hypothesis: x.hypothesis, status: x.status, result: x.result, resultLabel: c.label, confirms, arms };
 }
 
 function experiments(store: LabStore, includeDry: boolean): LedgerView['experiments'] {
@@ -268,7 +270,7 @@ function experiments(store: LabStore, includeDry: boolean): LedgerView['experime
   return [...by.entries()].map(([featureKey, b]) => {
     const n = b.above + b.around + b.below;
     const name = featureKey.split(':').slice(1).join(':').replaceAll('_', ' ') || featureKey;
-    return { featureKey, label: `${name}: ${b.above} above normal, ${b.around} around, ${b.below} below (n ${n})`, ...b, n };
+    return { featureKey, label: t('{name}: {above} above normal, {around} around, {below} below (n {n})', { name, above: b.above, around: b.around, below: b.below, n }), ...b, n };
   });
 }
 
@@ -338,16 +340,16 @@ export function ledgerView(store: LabStore, opts: { now?: Date; dry?: boolean; f
 /** Today's line (06 8.5). */
 export function ledgerLine(store: LabStore, now: Date): string {
   const rows = liveRows(store, false).filter(counted);
-  if (!rows.length) return 'No predictions graded yet. Freeze one in Studio before you post.';
+  if (!rows.length) return t('No predictions graded yet. Freeze one in Studio before you post.');
   const month = now.toISOString().slice(0, 7);
   const thisMonth = rows.filter((r) => (r.gradedAt ?? '').slice(0, 7) === month).length;
   const brody = rows.filter((r) => r.predictor === 'brody');
   const n = brody.length;
-  if (n < 5) return `Predictions this month: ${thisMonth} graded, pairwise not enough yet`;
+  if (n < 5) return t('Predictions this month: {n} graded, pairwise not enough yet', { n: thisMonth });
   const pw = pairwiseAccuracy(rankRows(brody));
   const e = decidingEval(store, 'brody', 'all');
-  const tail = n < 20 ? ', at chance until n 20' : e && verdictFor(e, 'ranking') === 'beats' ? ', beats your normal' : ', at chance';
-  return `Predictions this month: ${thisMonth} graded, pairwise ${pw ? pct0(pw.acc) : NOT_ENOUGH} (n ${n}${tail})`;
+  const tail = n < 20 ? t(', at chance until n 20') : e && verdictFor(e, 'ranking') === 'beats' ? t(', beats your normal') : t(', at chance');
+  return t('Predictions this month: {graded} graded, pairwise {pw} (n {n}{tail})', { graded: thisMonth, pw: pw ? pct0(pw.acc) : t(NOT_ENOUGH), n, tail });
 }
 
 /** Studio, Post sheet, tiles (06 13.1): a shown forecast with its record, Brody's own pick, or the reason it is hidden. */
@@ -357,12 +359,12 @@ export function predictionChip(store: LabStore, scope: { postId?: string; script
   for (const p of early) {
     const platform = p.platform ?? 'all';
     if (isShown(store, p.predictor, platform, 'forecast') && p.viewsPoint !== null) {
-      const range = p.viewsLo !== null && p.viewsHi !== null ? ` (80% range ${compact(p.viewsLo)} to ${compact(p.viewsHi)})` : '';
-      return { text: `Projected 7-day: ${compact(p.viewsPoint)}${range}.`, record: recordLineFor(predictorDef(p.predictor), decidingEval(store, p.predictor, platform), 'forecast'), hiddenReason: null };
+      const range = p.viewsLo !== null && p.viewsHi !== null ? t(' (80% range {lo} to {hi})', { lo: compact(p.viewsLo), hi: compact(p.viewsHi) }) : '';
+      return { text: t('Projected 7-day: {views}{range}.', { views: compact(p.viewsPoint), range }), record: recordLineFor(predictorDef(p.predictor), decidingEval(store, p.predictor, platform), 'forecast'), hiddenReason: null };
     }
   }
   const brody = rows.find((p) => p.predictor === 'brody');
-  if (brody?.band) return { text: `You said ${BAND_LABEL[brody.band].charAt(0).toLowerCase()}${BAND_LABEL[brody.band].slice(1)}.`, record: recordLineFor(predictorDef('brody'), decidingEval(store, 'brody', brody.platform ?? 'all'), 'ranking'), hiddenReason: null };
+  if (brody?.band) return { text: t('You said {band}.', { band: `${BAND_LABEL[brody.band].charAt(0).toLowerCase()}${BAND_LABEL[brody.band].slice(1)}` }), record: recordLineFor(predictorDef('brody'), decidingEval(store, 'brody', brody.platform ?? 'all'), 'ranking'), hiddenReason: null };
   if (early.length) {
     const p = early[0];
     const def = predictorDef(p.predictor);
@@ -370,6 +372,6 @@ export function predictionChip(store: LabStore, scope: { postId?: string; script
     return { text: null, record: null, hiddenReason: hideReasonFor(def, e, e ? verdictFor(e, 'forecast') : null, 'forecast') };
   }
   const cm = rows.find((p) => p.predictor === 'creator_median');
-  if (cm?.viewsPoint !== null && cm?.viewsPoint !== undefined) return { text: `Your normal: ${compact(cm.viewsPoint)} at 7 days.`, record: null, hiddenReason: null };
+  if (cm?.viewsPoint !== null && cm?.viewsPoint !== undefined) return { text: t('Your normal: {views} at 7 days.', { views: compact(cm.viewsPoint) }), record: null, hiddenReason: null };
   return { text: null, record: null, hiddenReason: null };
 }

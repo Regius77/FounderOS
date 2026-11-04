@@ -5,7 +5,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { GButton, GErrorLine, GInput, GSegmented, GTag, GToggle } from '@/components/g';
 import { describeCron } from '@/lib/cron';
 import type { AgentCron, AgentTask } from '@/lib/schemas';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * The AgentSheet's Work section (glados-ui SPEC S04 F-A6.3): the moved
@@ -14,7 +14,7 @@ import { t } from '@/lib/i18n';
  * Schedules tab keeps the honest note that no runner exists yet.
  */
 const STATUS_NEXT: Record<AgentTask['status'], AgentTask['status']> = { open: 'doing', doing: 'done', blocked: 'doing', done: 'open' };
-const STATUS_LABEL: Record<AgentTask['status'], string> = { open: t('Open'), doing: t('In progress'), blocked: t('Blocked'), done: t('Done') };
+const STATUS_LABEL: Record<AgentTask['status'], string> = { open: tc('task', 'Open'), doing: tc('task', 'In progress'), blocked: tc('task', 'Blocked'), done: tc('task', 'Done') };
 
 export function SheetWork({ agentId, initialTasks, initialCrons }: { agentId: string; initialTasks: AgentTask[]; initialCrons: AgentCron[] }) {
   const [tab, setTab] = useState<'tasks' | 'schedules'>('tasks');

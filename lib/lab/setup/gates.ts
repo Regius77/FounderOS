@@ -11,6 +11,7 @@
 import type { LabPlatform } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
 import type { PlanSelection } from '@/lib/lab/setup/estimate';
+import { t } from '@/lib/i18n';
 
 export type GateId = 'baseline_24h' | 'breakouts_week' | 'forecast_fit_24h' | 'profile_family' | 'profile_strong' | 'profile_moderate' | 'radar_crowd' | 'niche_baseline';
 
@@ -163,7 +164,7 @@ export function predictGates(rates: GateRates, sel: PlanSelection, counts: GateC
   {
     const g = base('breakouts_week', 'all');
     const lambda = C * f * r;
-    if (C === 0) out.push({ ...g, state: 'blocked', blockedReason: 'Add creators to see what this set gets you.' });
+    if (C === 0) out.push({ ...g, state: 'blocked', blockedReason: t('Add creators to see what this set gets you.') });
     else out.push({ ...g, rate: r1(lambda), rateRange: [poissonQuantile(0.05, lambda), poissonQuantile(0.95, lambda)], sources: [rates.postsPerWeek.source, rates.breakoutRate.source] });
   }
 
@@ -180,7 +181,7 @@ export function predictGates(rates: GateRates, sel: PlanSelection, counts: GateC
     const matched = Object.values(counts.matchedPerCreator);
     const have = matched.length ? [...matched].sort((a, b) => a - b)[Math.floor(matched.length / 2)] : 0;
     const left = Math.max(0, nNeed - have);
-    const blockedReason = fitted(p) ? null : `Needs 8 creators on ${PLATFORM_NAME[p]} for a fitted prior`;
+    const blockedReason = fitted(p) ? null : t('Needs 8 creators on {platform} for a fitted prior', { platform: PLATFORM_NAME[p] });
     if (left === 0) out.push({ ...g, state: 'met', days: { lo: 0, med: 0, hi: 0 }, blockedReason, sources: [rates.postsPerWeek.source, rates.read24Share.source] });
     else out.push({ ...g, days: daysOf((qq) => 1 + muQ(qq, left) / perDay, adjust), blockedReason, sources: [rates.postsPerWeek.source, rates.read24Share.source] });
 
@@ -225,14 +226,14 @@ export function predictGates(rates: GateRates, sel: PlanSelection, counts: GateC
       });
     }
   } else {
-    for (const gate of ['profile_family', 'profile_strong', 'profile_moderate'] as const) out.push({ ...base(gate, 'all'), state: 'blocked', blockedReason: 'Add creators to see what this set gets you.' });
+    for (const gate of ['profile_family', 'profile_strong', 'profile_moderate'] as const) out.push({ ...base(gate, 'all'), state: 'blocked', blockedReason: t('Add creators to see what this set gets you.') });
   }
 
   // radar crowd rule: 5 tracked creators who post
   {
     const g = base('radar_crowd', 'all');
     const n = Math.max(C, counts.activeTracked);
-    out.push(n >= 5 ? { ...g, state: 'met', days: { lo: 0, med: 0, hi: 0 } } : { ...g, state: 'blocked', blockedReason: `Needs 5 creators who post (you have ${n})` });
+    out.push(n >= 5 ? { ...g, state: 'met', days: { lo: 0, med: 0, hi: 0 } } : { ...g, state: 'blocked', blockedReason: t('Needs 5 creators who post (you have {n})', { n }) });
   }
   return out;
 }
@@ -265,7 +266,7 @@ export function gateRates(store: LabStore, now: Date): GateRates {
   const recent = posts.filter((p) => p.postedAt && T - Date.parse(p.postedAt) <= 28 * DAY && Date.parse(p.postedAt) <= T);
   const activeCreators = new Set(recent.map((p) => p.sourceId));
   const fObs = activeCreators.size ? recent.length / activeCreators.size / 4 : 0;
-  const postsPerWeek = activeCreators.size >= 5 ? rate(fObs, 'observed', activeCreators.size, `from ${activeCreators.size} creators over 28 days`) : rate(GATE_PRIORS.f, 'prior', activeCreators.size, 'assumed 4 a week');
+  const postsPerWeek = activeCreators.size >= 5 ? rate(fObs, 'observed', activeCreators.size, t('from {n} creators over 28 days', { n: activeCreators.size })) : rate(GATE_PRIORS.f, 'prior', activeCreators.size, t('assumed 4 a week'));
 
   // breakout rate: beta prior worth 100 posts at 0.05, over 90 days of verdicts
   const measures = store.measures.all();
@@ -277,12 +278,12 @@ export function gateRates(store: LabStore, now: Date): GateRates {
   const k = judged.filter((m) => m.isBreakout).length;
   const n = judged.length;
   const rBlend = (k + GATE_PRIORS.r * 100) / (n + 100);
-  const breakoutRate = n === 0 ? rate(GATE_PRIORS.r, 'prior', 0, 'assumed until 100 posts are judged') : rate(rBlend, n >= 400 ? 'observed' : 'blended', n, `${k} of ${n} judged`);
+  const breakoutRate = n === 0 ? rate(GATE_PRIORS.r, 'prior', 0, t('assumed until 100 posts are judged')) : rate(rBlend, n >= 400 ? 'observed' : 'blended', n, t('{k} of {n} judged', { k, n }));
 
   const cases = store.controls.all().filter((c) => c.role === 'case');
   const controls = store.controls.all().filter((c) => c.role === 'control');
   const exo = cases.filter((c) => postById.get(c.postId)?.exoReason);
-  const excluded = cases.length >= 20 ? rate(exo.length / cases.length, 'observed', cases.length, `${exo.length} of ${cases.length} cases`) : rate(GATE_PRIORS.q, 'prior', cases.length, 'assumed');
+  const excluded = cases.length >= 20 ? rate(exo.length / cases.length, 'observed', cases.length, t('{k} of {n} cases', { k: exo.length, n: cases.length })) : rate(GATE_PRIORS.q, 'prior', cases.length, t('assumed'));
 
   const fam = new Map<string, number>();
   for (const c of cases) {
@@ -291,7 +292,7 @@ export function gateRates(store: LabStore, now: Date): GateRates {
   }
   const top = Math.max(0, ...fam.values());
   const famTotal = [...fam.values()].reduce((a, b) => a + b, 0);
-  const topFamilyShare = famTotal >= 20 ? rate(top / famTotal, 'observed', famTotal, 'largest family') : rate(GATE_PRIORS.phi, 'prior', famTotal, 'assumed');
+  const topFamilyShare = famTotal >= 20 ? rate(top / famTotal, 'observed', famTotal, t('largest family')) : rate(GATE_PRIORS.phi, 'prior', famTotal, t('assumed'));
 
   const prevalences: number[] = [];
   for (const p of store.profiles.latest()) {
@@ -299,12 +300,12 @@ export function gateRates(store: LabStore, now: Date): GateRates {
     for (const f of p.features) if (f.n + Math.max(0, f.total - f.n) >= 5) prevalences.push(Math.max(0, f.total - f.n) / nonCases);
   }
   const p0Obs = median(prevalences);
-  const valuePrevalence = controls.length >= 30 && p0Obs !== null ? rate(p0Obs, 'observed', controls.length, 'median among controls') : rate(GATE_PRIORS.p0, 'prior', controls.length, 'assumed');
+  const valuePrevalence = controls.length >= 30 && p0Obs !== null ? rate(p0Obs, 'observed', controls.length, t('median among controls')) : rate(GATE_PRIORS.p0, 'prior', controls.length, t('assumed'));
 
   const metrics = store.metrics.byPost();
   const old = posts.filter((p) => p.postedAt && T - Date.parse(p.postedAt) >= 2 * DAY);
   const with24 = old.filter((p) => has24((metrics.get(p.id) ?? []).map((m) => m.ageH ?? (p.postedAt ? (Date.parse(m.capturedAt) - Date.parse(p.postedAt)) / 3_600_000 : -1)).filter((a) => a >= 0)));
-  const read24Share = old.length >= 50 ? rate(with24.length / old.length, 'observed', old.length, `${with24.length} of ${old.length} posts`) : rate(GATE_PRIORS.u24, 'prior', old.length, 'derived from daily reads');
+  const read24Share = old.length >= 50 ? rate(with24.length / old.length, 'observed', old.length, t('{k} of {n} posts', { k: with24.length, n: old.length })) : rate(GATE_PRIORS.u24, 'prior', old.length, t('derived from daily reads'));
 
   const priorFitted = Object.fromEntries(PLATFORMS.map((pl) => {
     const creators = tracked.filter((s) => s.platform === pl);

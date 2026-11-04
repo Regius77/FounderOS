@@ -39,7 +39,7 @@ import {
 } from '@/lib/comms-extras';
 import type { CallRecording } from '@/lib/schemas';
 import { dayLabel, hhmm, slackIso, useDigestReads, useRecordings } from './hooks';
-import { locale, t } from '@/lib/i18n';
+import { locale, t, tc } from '@/lib/i18n';
 
 const TIER_LABEL: Record<string, string> = { call: t('Call booked'), client: t('Client'), people: t('Person'), branddeal: t('Brand deal'), group: t('Group'), noise: t('Automated') };
 
@@ -159,7 +159,7 @@ function DigestEntryG({ entry, onClear }: { entry: DigestEntry; onClear: () => v
         <span className="wg-cf-entry-text">{entry.preview || entry.title}</span>
       </span>
       <GButton variant="sm" onClick={onClear} aria-label={t('Clear {name}', { name: entry.sender })}>
-        {t('Clear')}
+        {tc('inbox', 'Clear')}
       </GButton>
     </li>
   );

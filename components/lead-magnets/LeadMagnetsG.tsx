@@ -15,7 +15,7 @@ import {
 import { LM_STATUSES, LM_STATUS_LABEL, type LeadMagnetRow, type LeadMagnetsPage } from '@/lib/lead-magnets';
 import type { LeadMagnetStatus } from '@/lib/schemas';
 import { EMPTY_FORM, PLACEHOLDERS, copyText, formFrom, useLeadMagnets, validateForm, type MagnetForm, type SaveResult } from './use-lead-magnets';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 export const LM_TONE: Record<LeadMagnetStatus, GTagTone> = { live: 'ok', draft: 'neutral', paused: 'warn', archived: 'outline' };
 const STATUS_OPTIONS = LM_STATUSES.map((s) => ({ value: s, label: t(LM_STATUS_LABEL[s]) }));
@@ -254,7 +254,7 @@ function MagnetSheet({ initial, busy, onClose, onSave }: { initial: LeadMagnetRo
       footer={
         <div className="lm-g-sheet-foot">
           <GButton onClick={onClose}>{t('Cancel')}</GButton>
-          <GButton variant="ink" onClick={() => void submit()} busy={busy}>{initial ? t('Save') : t('Register')}</GButton>
+          <GButton variant="ink" onClick={() => void submit()} busy={busy}>{initial ? t('Save') : tc('button', 'Register')}</GButton>
         </div>
       }
     >

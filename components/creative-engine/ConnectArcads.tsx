@@ -1,6 +1,6 @@
 'use client';
 
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { VIDEO_MODELS, type VideoModel } from '@/lib/creative-engine/schemas';
@@ -261,7 +261,7 @@ export function ConnectArcads({ health, readOnly = false, onClose, onChanged, ba
           {error && <ErrorLine text={error} />}
           <div className="flex justify-end gap-2">
             {back && <Btn onClick={back.onClick}>{back.label}</Btn>}
-            <Btn onClick={onClose}><X className="h-3.5 w-3.5" strokeWidth={1.8} /> {t('Done')}</Btn>
+            <Btn onClick={onClose}><X className="h-3.5 w-3.5" strokeWidth={1.8} /> {tc('button', 'Done')}</Btn>
           </div>
         </div>
       )}

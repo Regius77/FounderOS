@@ -6,14 +6,14 @@ import type { RoadmapStatus } from '@/lib/schemas';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { RoadmapG } from '@/components/roadmap/RoadmapG';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
 const STATUS_BADGE: Record<RoadmapStatus, { tone: BadgeTone; ghost: boolean; label: string }> = {
   done: { tone: 'ok', ghost: false, label: t('Done') },
   now: { tone: 'accent', ghost: false, label: t('Now') },
-  next: { tone: 'warn', ghost: false, label: t('Next') },
+  next: { tone: 'warn', ghost: false, label: tc('roadmap', 'Next') },
   later: { tone: 'default', ghost: true, label: t('Later') },
 };
 

@@ -8,6 +8,7 @@ import type { LabStore } from '@/lib/lab/store';
 import type { LabHealthResult } from '@/lib/lab/setup/health';
 import { apifyConfigured } from '@/lib/connectors/apify';
 import { isPrivateInstance } from '@/lib/lab/setup/instance';
+import { t } from '@/lib/i18n';
 
 export type ChecklistStepId =
   | 'key_apify' | 'key_apify_ok' | 'owned_added' | 'tracked_added' | 'plan_previewed'
@@ -17,7 +18,7 @@ export type ChecklistStepState = 'done' | 'todo' | 'blocked' | 'skipped';
 export type ChecklistStep = { id: ChecklistStepId; required: boolean; title: string; detail: string; state: ChecklistStepState; href: string; doneAt: string | null };
 export type ChecklistView = { steps: ChecklistStep[]; requiredDone: number; requiredTotal: number; complete: boolean };
 
-export const CHECKLIST_COMPLETE_LINE = 'Setup done. The Lab runs on its own now.';
+export const CHECKLIST_COMPLETE_LINE = t('Setup done. The Lab runs on its own now.');
 const FREE_RADAR = ['hn', 'hf_models', 'hf_spaces', 'github', 'vendor'];
 
 type Evidence = { done: boolean; at: string | null; detail?: string };
@@ -49,34 +50,34 @@ export function checklistView(store: LabStore, opts: { health: LabHealthResult[]
 
   const isPrivate = opts.privateInstance ?? isPrivateInstance();
   const defs: { id: ChecklistStepId; required: boolean; title: string; href: string; ev: Evidence; after?: ChecklistStepId[] }[] = [
-    { id: 'key_apify', required: true, title: 'Paste your Apify token', href: '?setup=keys', ev: { done: apifyConfigured(), at: null } },
-    { id: 'key_apify_ok', required: true, title: 'Apify accepts the token', href: '?setup=keys', ev: ok('apify.auth'), after: ['key_apify'] },
-    { id: 'owned_added', required: true, title: 'Add your own accounts', href: '?setup=sources', ev: { done: owned.length >= 1, at: owned.map((s) => s.addedAt).sort()[0] ?? null } },
-    { id: 'tracked_added', required: true, title: 'Add 5 or more creators to track', href: '?setup=sources', ev: { done: tracked.length >= 5, at: tracked.map((s) => s.addedAt).sort()[4] ?? null, detail: `${tracked.length} of 5 added.` } },
-    { id: 'plan_previewed', required: true, title: 'Preview the first run', href: '?setup=sources', ev: { done: Boolean(preview), at: preview?.updatedAt ?? null }, after: ['key_apify', 'key_apify_ok', 'owned_added', 'tracked_added'] },
-    { id: 'first_live_run', required: true, title: 'Do the first live run', href: '?setup=sources', ev: { done: Boolean(firstScrape), at: firstScrape?.finishedAt ?? firstScrape?.startedAt ?? null }, after: ['plan_previewed'] },
-    { id: 'first_cost_settled', required: true, title: "Confirm the first run's cost", href: '?setup=spend', ev: { done: Boolean(settled), at: settled?.settledAt ?? null }, after: ['first_live_run'] },
-    { id: 'posts_measured', required: true, title: 'Your posts have numbers', href: '/lab', ev: { done: Boolean(measuredPost), at: measuredPost ? store.metrics.forPost(measuredPost.id)[0]?.capturedAt ?? null : null }, after: ['first_live_run'] },
-    { id: 'radar_live', required: true, title: 'Radar is reading launches', href: '/lab/radar', ev: { done: Boolean(radarOk), at: radarOk } },
-    { id: 'scheduled', required: isPrivate, title: 'Run the Lab on a schedule', href: '?setup=schedule', ev: { done: Boolean(schedule) && heartbeat?.state === 'ok', at: schedule?.updatedAt ?? null } },
-    { id: 'stt_ready', required: false, title: 'Turn on speech to text', href: '?setup=keys', ev: ok('openai.auth') },
-    { id: 'first_transcript', required: false, title: 'First Whisper transcript', href: '/lab/breakouts', ev: { done: Boolean(whisper && whisperRun), at: null } },
-    { id: 'youtube_connected', required: false, title: 'Connect YouTube Analytics', href: '?setup=keys', ev: ok('youtube.token') },
-    { id: 'instagram_connected', required: false, title: 'Connect Instagram insights', href: '?setup=keys', ev: ok('instagram.token') },
-    { id: 'lexicon_installed', required: false, title: 'Concreteness lexicon', href: '?setup=keys', ev: ok('lexicon.file') },
+    { id: 'key_apify', required: true, title: t('Paste your Apify token'), href: '?setup=keys', ev: { done: apifyConfigured(), at: null } },
+    { id: 'key_apify_ok', required: true, title: t('Apify accepts the token'), href: '?setup=keys', ev: ok('apify.auth'), after: ['key_apify'] },
+    { id: 'owned_added', required: true, title: t('Add your own accounts'), href: '?setup=sources', ev: { done: owned.length >= 1, at: owned.map((s) => s.addedAt).sort()[0] ?? null } },
+    { id: 'tracked_added', required: true, title: t('Add 5 or more creators to track'), href: '?setup=sources', ev: { done: tracked.length >= 5, at: tracked.map((s) => s.addedAt).sort()[4] ?? null, detail: t('{n} of 5 added.', { n: tracked.length }) } },
+    { id: 'plan_previewed', required: true, title: t('Preview the first run'), href: '?setup=sources', ev: { done: Boolean(preview), at: preview?.updatedAt ?? null }, after: ['key_apify', 'key_apify_ok', 'owned_added', 'tracked_added'] },
+    { id: 'first_live_run', required: true, title: t('Do the first live run'), href: '?setup=sources', ev: { done: Boolean(firstScrape), at: firstScrape?.finishedAt ?? firstScrape?.startedAt ?? null }, after: ['plan_previewed'] },
+    { id: 'first_cost_settled', required: true, title: t("Confirm the first run's cost"), href: '?setup=spend', ev: { done: Boolean(settled), at: settled?.settledAt ?? null }, after: ['first_live_run'] },
+    { id: 'posts_measured', required: true, title: t('Your posts have numbers'), href: '/lab', ev: { done: Boolean(measuredPost), at: measuredPost ? store.metrics.forPost(measuredPost.id)[0]?.capturedAt ?? null : null }, after: ['first_live_run'] },
+    { id: 'radar_live', required: true, title: t('Radar is reading launches'), href: '/lab/radar', ev: { done: Boolean(radarOk), at: radarOk } },
+    { id: 'scheduled', required: isPrivate, title: t('Run the Lab on a schedule'), href: '?setup=schedule', ev: { done: Boolean(schedule) && heartbeat?.state === 'ok', at: schedule?.updatedAt ?? null } },
+    { id: 'stt_ready', required: false, title: t('Turn on speech to text'), href: '?setup=keys', ev: ok('openai.auth') },
+    { id: 'first_transcript', required: false, title: t('First Whisper transcript'), href: '/lab/breakouts', ev: { done: Boolean(whisper && whisperRun), at: null } },
+    { id: 'youtube_connected', required: false, title: t('Connect YouTube Analytics'), href: '?setup=keys', ev: ok('youtube.token') },
+    { id: 'instagram_connected', required: false, title: t('Connect Instagram insights'), href: '?setup=keys', ev: ok('instagram.token') },
+    { id: 'lexicon_installed', required: false, title: t('Concreteness lexicon'), href: '?setup=keys', ev: ok('lexicon.file') },
   ];
 
   const byId = new Map(defs.map((d) => [d.id, d]));
   const steps: ChecklistStep[] = defs.map((d) => {
-    if (opts.dry) return { id: d.id, required: d.required, title: d.title, detail: `Checklist counts live runs only. This is ${opts.dryLabel ?? 'a dry run'}.`, state: 'skipped', href: d.href, doneAt: null };
+    if (opts.dry) return { id: d.id, required: d.required, title: d.title, detail: t('Checklist counts live runs only. This is {what}.', { what: opts.dryLabel ?? t('a dry run') }), state: 'skipped', href: d.href, doneAt: null };
     if (d.id === 'scheduled' && !isPrivate) {
-      const detail = BRAND.id === 'founderos' ? 'Schedule your own runs with `npm run lab-sync -- tick` from cron or launchd.' : 'Schedule runs on the private instance only.';
+      const detail = BRAND.id === 'founderos' ? t('Schedule your own runs with `npm run lab-sync -- tick` from cron or launchd.') : t('Schedule runs on the private instance only.');
       return { id: d.id, required: false, title: d.title, detail, state: 'skipped', href: d.href, doneAt: null };
     }
-    if (d.ev.done) return { id: d.id, required: d.required, title: d.title, detail: 'Done.', state: 'done', href: d.href, doneAt: d.ev.at };
+    if (d.ev.done) return { id: d.id, required: d.required, title: d.title, detail: t('Done.'), state: 'done', href: d.href, doneAt: d.ev.at };
     const blocker = (d.after ?? []).map((a) => byId.get(a)!).find((p) => !p.ev.done);
-    if (blocker) return { id: d.id, required: d.required, title: d.title, detail: `After: ${blocker.title}`, state: 'blocked', href: d.href, doneAt: null };
-    return { id: d.id, required: d.required, title: d.title, detail: d.ev.detail ?? (d.id === 'radar_live' ? 'Needs one live tick of the free Radar sources.' : 'To do.'), state: 'todo', href: d.href, doneAt: null };
+    if (blocker) return { id: d.id, required: d.required, title: d.title, detail: t('After: {step}', { step: blocker.title }), state: 'blocked', href: d.href, doneAt: null };
+    return { id: d.id, required: d.required, title: d.title, detail: d.ev.detail ?? (d.id === 'radar_live' ? t('Needs one live tick of the free Radar sources.') : t('To do.')), state: 'todo', href: d.href, doneAt: null };
   });
   const required = steps.filter((s) => s.required);
   const requiredDone = required.filter((s) => s.state === 'done').length;

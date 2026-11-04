@@ -1,6 +1,6 @@
 'use client';
 
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, Search, X } from 'lucide-react';
 import type { Angle, Campaign, Depth, PoolAd } from '@/lib/creative-engine/schemas';
@@ -167,7 +167,7 @@ export function CreativeGenerator({ campaign, campaigns, health, readOnly = fals
       <div className="mt-4 min-h-0 flex-1">
         {phase.kind === 'researching' && <Progress text={t('Planning searches, reading the library, keeping only ads still running')} />}
         {phase.kind === 'angling' && <Progress text={t('Proposing angles from the proven ads')} />}
-        {phase.kind === 'error' && (<div><ErrorLine text={phase.message} /><div className="text-center"><Btn size="sm" onClick={() => setPhase({ kind: 'idle' })}>{t('Dismiss')}</Btn></div></div>)}
+        {phase.kind === 'error' && (<div><ErrorLine text={phase.message} /><div className="text-center"><Btn size="sm" onClick={() => setPhase({ kind: 'idle' })}>{tc('notice', 'Dismiss')}</Btn></div></div>)}
         {phase.kind === 'idle' && (!campaign || campaign.angles.length === 0) && (
           <Empty line1={campaign?.research ? t('Research is done, no angles yet.') : t('Describe an idea to research it.')} line2={campaign?.research ? t('Generate again to propose angles from the pooled ads.') : t('The engine decides what to search, the library answers, and longevity ranks the results. Every angle cites ads that are still running.')} />
         )}

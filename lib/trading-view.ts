@@ -6,6 +6,7 @@
  * page lane picks colours.
  */
 import type { ConnectorStatus } from '@/lib/connectors/types';
+import { t } from '@/lib/i18n';
 import type {
   TradeActivity,
   TradeAnalysis,
@@ -32,14 +33,14 @@ export type Freshness = { state: 'none' | 'live' | 'stale'; label: string; ageMs
 
 /** "updated just now" / "updated 12 min ago" / "Feed 2 days old". Decided by the freshest push. */
 export function freshness(accounts: TradingAccountSnapshot[], now: number = Date.now()): Freshness {
-  if (accounts.length === 0) return { state: 'none', label: 'No feed yet', ageMs: null };
+  if (accounts.length === 0) return { state: 'none', label: t('No feed yet'), ageMs: null };
   const freshest = accounts.reduce((a, b) => (a.capturedAt >= b.capturedAt ? a : b));
   const ageMs = Math.max(0, now - Date.parse(freshest.capturedAt));
   const m = Math.floor(ageMs / MIN);
   const h = Math.floor(m / 60);
   const d = Math.floor(h / 24);
-  if (ageMs >= TRADING_STALE_MS) return { state: 'stale', label: d >= 2 ? `Feed ${d} days old` : `Feed ${h} hours old`, ageMs };
-  const label = m < 1 ? 'updated just now' : m < 60 ? `updated ${m} min ago` : `updated ${h} h ago`;
+  if (ageMs >= TRADING_STALE_MS) return { state: 'stale', label: d >= 2 ? t('Feed {n} days old', { n: d }) : t('Feed {n} hours old', { n: h }), ageMs };
+  const label = m < 1 ? t('updated just now') : m < 60 ? t('updated {n} min ago', { n: m }) : t('updated {n} h ago', { n: h });
   return { state: 'live', label, ageMs };
 }
 
@@ -165,13 +166,13 @@ export const LIMIT_FIELDS = [
 
 /** Labels and hints from FounderOS TradingLimits.svelte. */
 export const LIMIT_LABELS: Record<(typeof LIMIT_FIELDS)[number], { label: string; hint: string }> = {
-  maxDeployedCapitalUsd: { label: 'Autonomy budget', hint: 'Most capital deployed at once without a human' },
-  maxNotionalPerTradeUsd: { label: 'Max per trade', hint: 'Largest single order' },
-  maxPositionPctOfSleeve: { label: 'Max position', hint: '% of the sleeve in one name' },
-  maxRiskPctPerTrade: { label: 'Risk per trade', hint: '% of the sleeve at risk on one trade' },
-  maxConcurrentPositions: { label: 'Max positions', hint: 'Names held at once' },
-  maxTradesPerDay: { label: 'Trades per day', hint: 'Orders per day' },
-  minSleeveValueUsd: { label: 'Kill-switch floor', hint: 'Buys stop if the sleeve falls through this' },
+  maxDeployedCapitalUsd: { label: t('Autonomy budget'), hint: t('Most capital deployed at once without a human') },
+  maxNotionalPerTradeUsd: { label: t('Max per trade'), hint: t('Largest single order') },
+  maxPositionPctOfSleeve: { label: t('Max position'), hint: t('% of the sleeve in one name') },
+  maxRiskPctPerTrade: { label: t('Risk per trade'), hint: t('% of the sleeve at risk on one trade') },
+  maxConcurrentPositions: { label: t('Max positions'), hint: t('Names held at once') },
+  maxTradesPerDay: { label: t('Trades per day'), hint: t('Orders per day') },
+  minSleeveValueUsd: { label: t('Kill-switch floor'), hint: t('Buys stop if the sleeve falls through this') },
 };
 
 /**

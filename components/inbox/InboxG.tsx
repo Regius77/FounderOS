@@ -49,7 +49,7 @@ import { replyByChannel, type StatCard, type WeeklyInput } from '@/lib/inbox-sta
 import { setupHrefFor } from '@/lib/integrations-catalog';
 import { useHistory, type ReaderHandle } from './InboxReader';
 import { useInboxWorkspace } from './useInboxWorkspace';
-import { t, localeTag } from '@/lib/i18n';
+import { t, localeTag, tc } from '@/lib/i18n';
 
 /**
  * /inbox under the GladOS style (glados-ui SPEC S04 §4.9, X5). Same state and
@@ -62,10 +62,10 @@ import { t, localeTag } from '@/lib/i18n';
  */
 type CommsTab = 'threads' | 'recordings' | 'clients' | 'week';
 const COMMS_TABS: { value: CommsTab; label: string }[] = [
-  { value: 'threads', label: 'Threads' },
-  { value: 'recordings', label: 'Recordings' },
-  { value: 'clients', label: 'Clients' },
-  { value: 'week', label: 'Week' },
+  { value: 'threads', label: t('Threads') },
+  { value: 'recordings', label: t('Recordings') },
+  { value: 'clients', label: t('Clients') },
+  { value: 'week', label: t('Week') },
 ];
 function readTab(): CommsTab {
   if (typeof window === 'undefined') return 'threads';
@@ -223,7 +223,7 @@ export function InboxG({
         }
       />
       {extras && (
-        <GTabs className="wg-cf-tabs" label={t('Comms view')} param="tab" value={tab} onChange={(v) => setTab(v as CommsTab)} tabs={COMMS_TABS.map((th) => ({ ...th, label: t(th.label), controls: 'wg-cf-panel' }))} />
+        <GTabs className="wg-cf-tabs" label={t('Comms view')} param="tab" value={tab} onChange={(v) => setTab(v as CommsTab)} tabs={COMMS_TABS.map((th) => ({ ...th, controls: 'wg-cf-panel' }))} />
       )}
       {extras && tab !== 'threads' ? (
         <div id="wg-cf-panel" role="tabpanel" className="wg-cf-panel">
@@ -452,7 +452,7 @@ const ReaderG = forwardRef<
       if (th.source === 'slack' && th.context) {
         const res = await fetch('/api/comms/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: 'slack', channel: th.context.replace(/^#/, ''), text }) }).catch(() => null);
         const body = res ? await res.json().catch(() => ({})) : {};
-        setStatus(body.detail ?? (res?.ok ? t('Sent') : t('Failed')));
+        setStatus(body.detail ?? (res?.ok ? t('Sent') : tc('send', 'Failed')));
         if (res?.ok) setDraft('');
         return;
       }
@@ -521,7 +521,7 @@ const ReaderG = forwardRef<
             </GButton>
           )}
           <GButton size="sm" variant={done ? 'ink' : 'default'} onClick={onDone} title={t('Mark done (e). Saved on this browser.')}>
-            {done ? t('Done') : t('Mark done')}
+            {done ? tc('button', 'Done') : t('Mark done')}
           </GButton>
           {th.event?.joinUrl && (
             <GButton size="sm" variant="ink" href={th.event.joinUrl} external>

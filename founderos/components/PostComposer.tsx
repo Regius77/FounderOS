@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Send, Clock, Paperclip, UploadCloud, X } from 'lucide-react';
 import { Badge } from '@/founderos/components/terminal';
 import type { SocialPost } from '@/founderos/lib/schemas';
-import { t, localeTag } from '@/lib/i18n';
+import { t, localeTag, tc } from '@/lib/i18n';
 
 // Kept in sync with SocialPlatformSchema; defined here so this client
 // component never imports server-only lib code.
@@ -214,7 +214,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
             ) : done ? (
               <span className="animate-pop font-mono text-[11px]">{done}</span>
             ) : (
-              <><Send className="h-[13px] w-[13px]" /> {t('Post')}</>
+              <><Send className="h-[13px] w-[13px]" /> {tc('button', 'Post')}</>
             )}
           </button>
         </div>

@@ -10,6 +10,8 @@
  * at its Set up link.
  */
 import type { LeadMagnet, LeadMagnetStatus } from '@/lib/schemas';
+import { locale, t, tc } from '@/lib/i18n';
+import { MONTHS_SHORT } from '@/lib/locale-names';
 
 export type CapturesState = { tracked: false; reason: 'trakyo_not_configured' | 'not_wired'; setupHref: string | null };
 
@@ -65,9 +67,9 @@ export function leadMagnetsView(magnets: LeadMagnet[], opts: { now?: Date; traky
 
 /* ── page view model (GladOS, Classic and later Legacy trees share it) ── */
 
-export const LM_STATUS_LABEL: Record<LeadMagnetStatus, string> = { draft: 'Draft', live: 'Live', paused: 'Paused', archived: 'Archived' };
+export const LM_STATUS_LABEL: Record<LeadMagnetStatus, string> = { draft: tc('magnet', 'Draft'), live: tc('magnet', 'Live'), paused: tc('magnet', 'Paused'), archived: tc('magnet', 'Archived') };
 export const LM_STATUSES: LeadMagnetStatus[] = ['live', 'draft', 'paused', 'archived'];
-export const LM_DESTINATION_LABEL: Record<LeadMagnet['destination'], string> = { email: 'Email list', booking: 'Booking' };
+export const LM_DESTINATION_LABEL: Record<LeadMagnet['destination'], string> = { email: t('Email list'), booking: t('Booking') };
 
 export type LeadMagnetRow = LeadMagnet & {
   /** host + path for the Link column ("example.com/kit") */
@@ -95,7 +97,7 @@ export type LeadMagnetsPage = {
   sample: boolean;
 };
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = MONTHS_SHORT;
 
 export function linkLabel(url: string): string {
   try {
@@ -109,7 +111,7 @@ export function linkLabel(url: string): string {
 
 const shortDate = (ymd: string) => {
   const [, m, d] = ymd.split('-').map(Number);
-  return `${MONTHS[m - 1]} ${d}`;
+  return locale() === 'it' ? `${d} ${MONTHS[m - 1]}` : `${MONTHS[m - 1]} ${d}`;
 };
 
 export function buildLeadMagnetsPage(
@@ -130,19 +132,19 @@ export function buildLeadMagnetsPage(
     }));
   const n = all.length;
   return {
-    title: 'Lead magnets',
-    subtitle: `${n} ${n === 1 ? 'page' : 'pages'} · ${view.volume.live} live`,
+    title: t('Lead magnets'),
+    subtitle: n === 1 ? t('{n} page · {live} live', { n, live: view.volume.live }) : t('{n} pages · {live} live', { n, live: view.volume.live }),
     rows,
     view,
     total: n,
     filter: opts.filter,
-    capturesNote: 'Not tracked',
+    capturesNote: t('Not tracked'),
     capturesReason:
       view.captures.reason === 'trakyo_not_configured'
-        ? 'Captures come from Trakyo. Connect it to count leads per page.'
-        : 'Trakyo reports leads per content item, not per landing URL, so captures per page are not tracked.',
+        ? t('Captures come from Trakyo. Connect it to count leads per page.')
+        : t('Trakyo reports leads per content item, not per landing URL, so captures per page are not tracked.'),
     weeks: {
-      labels: view.shippedByWeek.map((w) => `Week of ${shortDate(w.weekStart)}`),
+      labels: view.shippedByWeek.map((w) => t('Week of {date}', { date: shortDate(w.weekStart) })),
       axisLabels: view.shippedByWeek.map((w, i, a) => (i === 0 || i === a.length - 1 || i === 6 ? shortDate(w.weekStart) : '')),
       counts: view.shippedByWeek.map((w) => w.count),
     },

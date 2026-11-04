@@ -38,7 +38,7 @@ import { treeFor } from '@/lib/appearance';
 import { channelsNetChange, netChange, seriesWindow } from '@/lib/social-range';
 import { formatFull } from '@/lib/format-number';
 import { SERIES_INDEX } from '@/lib/series';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -259,8 +259,8 @@ export default async function AnalyticsPage() {
   // Run outcomes — reliability at a glance.
   const okRuns = runs.filter((r) => r.ok).length;
   const outcomeItems: PieItem[] = [
-    { key: 'ok', label: t('Succeeded'), value: okRuns },
-    { key: 'fail', label: t('Failed'), value: runs.length - okRuns },
+    { key: 'ok', label: tc('runs', 'Succeeded'), value: okRuns },
+    { key: 'fail', label: tc('runs', 'Failed'), value: runs.length - okRuns },
   ];
 
   // Two trees, one fetch (glados-ui SPEC X5): the GladOS style renders AnalyticsG.

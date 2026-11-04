@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { LabNoveltySchema, type LabEvent, type LabEventPing, type LabNovelty } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
 import { FAMILY_WORDS, keyTokens, splitKey, versionTokens } from '@/lib/lab/radar/names';
+import { t } from '@/lib/i18n';
 
 /** 05 8 [LIVE-CHECK LC-05-4]: versions as of 2026-10-11. */
 export const SEED_FAMILIES = ['gpt 6', 'claude 5.5', 'gemini 4', 'llama 4', 'grok 4', 'qwen 4', 'deepseek r1', 'mistral large 4', 'sora 2', 'veo 4'] as const;
@@ -129,9 +130,9 @@ export async function tagNovelty(store: LabStore, now: Date, opts: { ask?: Novel
 
 /** 05 8 display line. `own` = the Lab's own covering-post median for this tag when n >= 5. */
 export function noveltyPriorLine(novelty: LabNovelty | null, own: { median: number; n: number } | null): string {
-  if (own && own.n >= 5) return `In your niche: ${own.median.toFixed(1)}x (n ${own.n})`;
-  if (!novelty) return 'Prior: not enough yet';
+  if (own && own.n >= 5) return t('In your niche: {x}x (n {n})', { x: own.median.toFixed(1), n: own.n });
+  if (!novelty) return t('Prior: not enough yet');
   const p = NOVELTY_PRIORS[novelty];
-  if (p.medianLift === null || p.n < 5) return 'Prior: not enough yet';
-  return `Prior from big AI channels: ${p.medianLift.toFixed(1)}x their normal (n ${p.n}, YouTube long-form).`;
+  if (p.medianLift === null || p.n < 5) return t('Prior: not enough yet');
+  return t('Prior from big AI channels: {x}x their normal (n {n}, YouTube long-form).', { x: p.medianLift.toFixed(1), n: p.n });
 }

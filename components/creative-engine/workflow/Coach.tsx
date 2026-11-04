@@ -1,6 +1,6 @@
 'use client';
 
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 import { useEffect, useState } from 'react';
 import { OBtn } from '@/components/creative-engine/skin';
 import { createPortal } from 'react-dom';
@@ -49,7 +49,7 @@ export function Coach({ step, scope, container, onNext, onSkip }: { step: number
       <div className="ft">
         <span>{t('{n} of {total}', { n: step + 1, total: COACH_STEPS.length })}</span>
         <OBtn kind="pill" cls="ae-o-pill"  onClick={onSkip}>{t('Skip all')}</OBtn>
-        <OBtn kind="pill" cls="ae-o-pill"  data-primary onClick={onNext}>{step + 1 === COACH_STEPS.length ? t('Done') : t('Next')}</OBtn>
+        <OBtn kind="pill" cls="ae-o-pill"  data-primary onClick={onNext}>{step + 1 === COACH_STEPS.length ? tc('button', 'Done') : t('Next')}</OBtn>
       </div>
     </div>,
     container,

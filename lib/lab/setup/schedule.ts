@@ -12,6 +12,8 @@
  */
 import { JobConfigSchema, type JobConfig, type LabJobId, type LabJobState, type LabSpendLine } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
+import { t, tc } from '@/lib/i18n';
+import { WEEKDAYS_SHORT } from '@/lib/locale-names';
 
 export type { JobConfig } from '@/lib/schemas';
 type JobState = LabJobState;
@@ -120,13 +122,13 @@ const every = (id: string, label: string, everyMin: number): Preset => ({ id, la
 const dflt = (label: string): Preset => ({ id: 'default', label, config: { mode: 'default' } });
 
 export const JOB_PRESETS: Record<JobPresetKey, Preset[]> = {
-  sync: [dflt('Four times a day (default)'), daily('twice', 'Twice a day (07:00, 19:00)', ['07:00', '19:00']), daily('once', 'Once a day (07:00)', ['07:00']), every('every2h', 'Every 2 hours', 120)],
-  snapshots: [dflt('New posts every 2 hours (default)'), every('every1h', 'New posts every hour', 60), every('every4h', 'New posts every 4 hours', 240), every('every6h', 'New posts every 6 hours', 360)],
-  'radar.x': [dflt('Every 2 hours (default)'), every('every1h', 'Every hour', 60), every('every4h', 'Every 4 hours', 240), every('every12h', 'Every 12 hours', 720)],
-  'radar.tiktok_cc': [dflt('Daily after 09:00 (default)'), daily('morning', 'Daily at 07:00', ['07:00']), daily('evening', 'Daily at 18:00', ['18:00'])],
-  'radar.producthunt': [dflt('Daily after 09:00 (default)'), daily('morning', 'Daily at 07:00', ['07:00']), daily('evening', 'Daily at 18:00', ['18:00'])],
-  discover: [dflt('Mondays at 06:00 (default)'), daily('thursday', 'Thursdays at 06:00', ['06:00'], [4]), daily('twice', 'Mondays and Thursdays at 06:00', ['06:00'], [1, 4])],
-  'gen.comments': [dflt('Once a day after the sync (default)'), { id: 'off', label: 'Off', config: { paused: true } }],
+  sync: [dflt(t('Four times a day (default)')), daily('twice', t('Twice a day (07:00, 19:00)'), ['07:00', '19:00']), daily('once', t('Once a day (07:00)'), ['07:00']), every('every2h', t('Every 2 hours'), 120)],
+  snapshots: [dflt(t('New posts every 2 hours (default)')), every('every1h', t('New posts every hour'), 60), every('every4h', t('New posts every 4 hours'), 240), every('every6h', t('New posts every 6 hours'), 360)],
+  'radar.x': [dflt(t('Every 2 hours (default)')), every('every1h', t('Every hour'), 60), every('every4h', t('Every 4 hours'), 240), every('every12h', t('Every 12 hours'), 720)],
+  'radar.tiktok_cc': [dflt(t('Daily after 09:00 (default)')), daily('morning', t('Daily at 07:00'), ['07:00']), daily('evening', t('Daily at 18:00'), ['18:00'])],
+  'radar.producthunt': [dflt(t('Daily after 09:00 (default)')), daily('morning', t('Daily at 07:00'), ['07:00']), daily('evening', t('Daily at 18:00'), ['18:00'])],
+  discover: [dflt(t('Mondays at 06:00 (default)')), daily('thursday', t('Thursdays at 06:00'), ['06:00'], [4]), daily('twice', t('Mondays and Thursdays at 06:00'), ['06:00'], [1, 4])],
+  'gen.comments': [dflt(t('Once a day after the sync (default)')), { id: 'off', label: t('Off'), config: { paused: true } }],
 };
 
 export const isPresetJob = (job: LabJobId): job is JobPresetKey => Object.prototype.hasOwnProperty.call(JOB_PRESETS, job);
@@ -344,11 +346,11 @@ export function describeConfig(cfg: JobConfig, job: LabJobId): string {
   const preset = activePreset(cfg, job);
   if (preset && isPresetJob(job)) return JOB_PRESETS[job].find((p) => p.id === preset)!.label;
   const parts: string[] = [];
-  if (cfg.paused) parts.push('Paused');
-  if (cfg.mode === 'times' && cfg.times?.length) parts.push(`At ${cfg.times.join(', ')}`);
-  else if (cfg.mode === 'interval' && cfg.everyMin) parts.push(`Every ${cfg.everyMin} min`);
-  else parts.push('Default');
-  if (cfg.weekdays?.length) parts.push(`on ${cfg.weekdays.map((d) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ')}`);
-  if (cfg.quiet) parts.push(`quiet ${cfg.quiet.from} to ${cfg.quiet.to}`);
+  if (cfg.paused) parts.push(tc('schedule', 'Paused'));
+  if (cfg.mode === 'times' && cfg.times?.length) parts.push(t('At {times}', { times: cfg.times.join(', ') }));
+  else if (cfg.mode === 'interval' && cfg.everyMin) parts.push(t('Every {n} min', { n: cfg.everyMin }));
+  else parts.push(tc('schedule', 'Default'));
+  if (cfg.weekdays?.length) parts.push(t('on {days}', { days: cfg.weekdays.map((d) => WEEKDAYS_SHORT[d]).join(', ') }));
+  if (cfg.quiet) parts.push(t('quiet {from} to {to}', { from: cfg.quiet.from, to: cfg.quiet.to }));
   return parts.join(', ');
 }

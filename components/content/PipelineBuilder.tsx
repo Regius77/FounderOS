@@ -39,7 +39,7 @@ import type {
   PipelineNode,
   PipelineNodeKind,
 } from '@/lib/content-pipelines';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 const NODE_KINDS: PipelineNodeKind[] = ['input', 'generate', 'transform', 'output'];
 const NODE_KIND_LABEL: Record<PipelineNodeKind, string> = {
@@ -56,7 +56,7 @@ const KIND_ICON: Record<PipelineNodeKind, LucideIcon> = {
 };
 const MEDIA_SOURCE_TYPES: MediaSourceType[] = ['upload', 'library', 'identity', 'text', 'node'];
 const MEDIA_SOURCE_LABEL: Record<MediaSourceType, string> = {
-  upload: t('Upload'),
+  upload: tc('noun', 'Upload'),
   library: t('Library asset'),
   identity: t('Identity asset'),
   text: t('Literal text'),

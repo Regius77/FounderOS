@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { GBar, GButton, GCard, GEmpty, GHeroCard, GPage, GSectionHeader, GSegmented, GTag } from '@/components/g';
 import { openWizard } from '@/lib/wizard-dock';
 import type { Phase, RoadmapItem, RoadmapStatus } from '@/lib/schemas';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * /roadmap under the GladOS style (glados-ui SPEC S04 §4.8, X5). Same tables;
@@ -19,7 +19,7 @@ import { t } from '@/lib/i18n';
  */
 const STATUS: Record<RoadmapStatus, { label: string; tone: 'accent' | 'warn' | 'outline' | 'ok' }> = {
   now: { label: t('Now'), tone: 'accent' },
-  next: { label: t('Next'), tone: 'warn' },
+  next: { label: tc('roadmap', 'Next'), tone: 'warn' },
   later: { label: t('Later'), tone: 'outline' },
   done: { label: t('Done'), tone: 'ok' },
 };
@@ -94,7 +94,7 @@ export function RoadmapG({ phases, quarters, departments, openOnly }: { phases: 
               onChange={(v) => router.replace(v === 'open' ? `${pathname}?show=open` : pathname, { scroll: false })}
               options={[
                 { value: 'all', label: t('All') },
-                { value: 'open', label: t('Open') },
+                { value: 'open', label: tc('roadmap', 'Open') },
               ]}
             />
           ) : undefined

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { t } from '@/lib/i18n';
 
 /**
  * AdPilot campaign layer — paid-media performance for the /adpilot deck.
@@ -216,14 +217,14 @@ export function alignDaily<T extends { daily?: DailyPoint[] }>(items: T[]): { da
 
 /** Short relative time against an explicit `now`, so server and client render the same text. */
 export function relativeAgo(iso: string | null, now: number): string {
-  if (!iso) return 'never';
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return 'never';
-  const mins = Math.max(0, Math.round((now - t) / 60000));
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  if (mins < 60 * 36) return `${Math.round(mins / 60)}h ago`;
-  return `${Math.round(mins / 1440)}d ago`;
+  if (!iso) return t('never');
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return t('never');
+  const mins = Math.max(0, Math.round((now - ms) / 60000));
+  if (mins < 1) return t('just now');
+  if (mins < 60) return t('{n}m ago', { n: mins });
+  if (mins < 60 * 36) return t('{n}h ago', { n: Math.round(mins / 60) });
+  return t('{n}d ago', { n: Math.round(mins / 1440) });
 }
 
 /** A sync older than this reads as stale on the status chip (S01 F6). */

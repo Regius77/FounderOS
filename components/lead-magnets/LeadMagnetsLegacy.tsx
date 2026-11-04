@@ -34,7 +34,7 @@ import { useToast } from '@/components/ui/Toast';
 import { LM_STATUSES, LM_STATUS_LABEL, type LeadMagnetRow, type LeadMagnetsPage } from '@/lib/lead-magnets';
 import type { LeadMagnetStatus } from '@/lib/schemas';
 import { EMPTY_FORM, PLACEHOLDERS, copyText, formFrom, useLeadMagnets, validateForm, type MagnetForm, type SaveResult } from './use-lead-magnets';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 const TONE: Record<LeadMagnetStatus, BadgeTone> = { live: 'ok', draft: 'default', paused: 'warn', archived: 'default' };
 const frac = (n: number, of: number) => (of > 0 ? n / of : 0);
@@ -319,7 +319,7 @@ function MagnetDialog({ initial, busy, onClose, onSave }: { initial: LeadMagnetR
         <>
           <Pressable onClick={onClose}>{t('Cancel')}</Pressable>
           <Pressable tone="primary" onClick={() => void submit()} disabled={busy}>
-            {initial ? t('Save') : t('Register')}
+            {initial ? t('Save') : tc('button', 'Register')}
           </Pressable>
         </>
       }

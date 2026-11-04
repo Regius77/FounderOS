@@ -8,7 +8,7 @@ import { useGc } from '@/components/system-g/style-context';
 import type { Personnel } from '@/lib/personnel';
 import type { MemoryNode } from '@/lib/memory-core';
 import type { Person, RosterClient, SopTask } from '@/lib/schemas';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 export type AgentLite = { id: string; name: string; role: string; model: string };
 export type ToolLite = { id: string; slug: string; name: string; mcp: boolean };
@@ -112,7 +112,7 @@ export function DeptOverviewCard({
       <div className="flex-1 overflow-y-auto px-3 py-3.5">
         <SectionLabel icon={UserCog}>{t('Human personnel')}</SectionLabel>
         {head ? (
-          <Row color={dept.color} title={head.name} sub={head.role} badge={t('Lead')} onClick={() => onPerson(dept.deptId)} />
+          <Row color={dept.color} title={head.name} sub={head.role} badge={tc('role', 'Lead')} onClick={() => onPerson(dept.deptId)} />
         ) : (
           <p className="rounded-md-t border border-dashed border-os-border px-3 py-3 text-[12.5px] text-os-dim">
             {t('No human lead yet — this team runs on agents.')}
@@ -516,7 +516,7 @@ export function PersonDetailCard({
       <PanelHeader title={person.name} sub={person.role} color={color} onBack={onBack} onClose={onClose} />
       <div className="flex-1 overflow-y-auto px-3 py-3.5">
         <p className="mb-4 text-[12.5px] leading-relaxed text-os-muted">
-          {t('Leads')} <span className="font-semibold" style={{ color }}>{deptName}</span> {agents.length === 1 ? t('— manages {n} agent.', { n: agents.length }) : t('— manages {n} agents.', { n: agents.length })}
+          {tc('verb', 'Leads')} <span className="font-semibold" style={{ color }}>{deptName}</span> {agents.length === 1 ? t('— manages {n} agent.', { n: agents.length }) : t('— manages {n} agents.', { n: agents.length })}
         </p>
         <SectionLabel icon={FileText}>{t('Context')} · <span className="font-mono text-[11px]">brain-store/people/{person.name.toLowerCase()}.md</span></SectionLabel>
         <div className="mb-4"><WikiLink label={`${person.name.toLowerCase()}.md`} /></div>

@@ -26,7 +26,7 @@ import {
   type WeekData,
 } from '@/lib/comms-extras';
 import { dayLabel, hhmm, slackIso, useDigestReads, useRecordings } from './hooks';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 const TIER_LABEL: Record<string, string> = { call: t('Call booked'), client: t('Client'), people: t('Person'), branddeal: t('Brand deal'), group: t('Group'), noise: t('Automated') };
 const CARD = 'rounded-lg-t border border-os-border bg-os-surface';
@@ -138,7 +138,7 @@ function DigestRow({ entry, onClear }: { entry: DigestEntry; onClear: () => void
         <span className="line-clamp-2 text-[12.5px] text-os-muted">{entry.preview || entry.title}</span>
       </span>
       <button type="button" onClick={onClear} className="cf-btn shrink-0" aria-label={t('Clear {name}', { name: entry.sender })}>
-        {t('Clear')}
+        {tc('inbox', 'Clear')}
       </button>
     </li>
   );

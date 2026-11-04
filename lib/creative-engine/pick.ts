@@ -1,4 +1,5 @@
 import type { Campaign, CampaignOrigin } from '@/lib/creative-engine/schemas';
+import { t } from '@/lib/i18n';
 
 /**
  * Which campaign the Creative Engine opens on first paint (S03 FR-2), and the
@@ -78,5 +79,6 @@ export function hiddenLine(hidden: Pick<CampaignSummary, 'origin'>[]): string | 
   if (hidden.length === 0) return null;
   const allDry = hidden.every((c) => c.origin === 'dry');
   const n = hidden.length;
-  return `${n} ${allDry ? 'dry-run ' : ''}campaign${n === 1 ? '' : 's'} hidden.`;
+  if (allDry) return n === 1 ? t('{n} dry-run campaign hidden.', { n }) : t('{n} dry-run campaigns hidden.', { n });
+  return n === 1 ? t('{n} campaign hidden.', { n }) : t('{n} campaigns hidden.', { n });
 }

@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { GAsk, GButton, GCard, GDrawer, GEmpty, GErrorLine, GField, GInput, GPage, GProgress, GSectionHeader, GSegmented, GSheet, GTextarea } from '@/components/g';
 import { SkillHierarchy } from '@/components/SkillHierarchy';
 import { specificSkillIcon, type SkillCard } from '@/components/SkillsGrid';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * /skills under the GladOS style (glados-ui SPEC S04 §4.5, X5). Same cards
@@ -316,7 +316,7 @@ function IntakeSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   const placements = proposal ? [proposal.proposed, ...proposal.alternates] : [];
   const footer = created ? (
     <GButton variant="ink" onClick={close}>
-      {t('Done')}
+      {tc('button', 'Done')}
     </GButton>
   ) : proposal ? (
     <>

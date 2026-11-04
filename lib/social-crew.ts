@@ -1,5 +1,6 @@
 import type { Agent, AgentRun, Department } from '@/lib/schemas';
 import { relAge } from '@/lib/home-summary';
+import { t } from '@/lib/i18n';
 
 /**
  * The content crew card on /social (founderos-ui pages/feature-additions.md
@@ -91,6 +92,6 @@ export function contentCrew(input: {
 
 /** "3h ago" / "just now" for the last-post line. */
 export function postAgeText(age: string | null): string {
-  if (!age) return 'No post on record';
-  return age === 'now' ? 'just now' : `${age} ago`;
+  if (!age) return t('No post on record');
+  return age === t('now') ? t('just now') : t('{age} ago', { age });
 }

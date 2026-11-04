@@ -15,7 +15,7 @@ import { launchBlockedReason, writeBlockedReason, type ClientRosterRow, type Cli
 import type { ClientWorkStatus } from '@/lib/schemas';
 import { BRIEF_PLACEHOLDER, LAUNCH_DIALOG_BODY, LAUNCH_DIALOG_TITLE, useClients } from './use-clients';
 import type { ClientsSetup } from './ClientsG';
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 
 const TONE: Record<ClientWorkStatus, PillTone> = { draft: 'default', queued: 'default', running: 'accent', done: 'ok', failed: 'err' };
 
@@ -79,12 +79,12 @@ export function ClientsClassic({ view, setup }: { view: ClientsView; setup: Clie
         <CCard title={t('Request volume')} id="cl-c-volume" className="fo-c-span-4">
           <div className="mb-4 flex items-baseline gap-2">
             <span className="text-[34px] font-light leading-none tracking-[-0.02em] text-os-text">{view.volume.open}</span>
-            <span className="text-[13px] text-os-muted">{t('open')}</span>
+            <span className="text-[13px] text-os-muted">{tc('request', 'open')}</span>
           </div>
           <div className="flex flex-col gap-3.5">
             <CMeter label={t('Done this month')} value={view.volume.doneThisMonth} of={view.volume.thisMonth} tone="ok" />
             <CMeter label={t('Failed this month')} value={view.volume.failedThisMonth} of={view.volume.thisMonth} tone="err" />
-            <CMeter label={t('Open')} value={view.volume.open} of={view.volume.total} tone="accent" />
+            <CMeter label={tc('request', 'Open')} value={view.volume.open} of={view.volume.total} tone="accent" />
           </div>
           <p className="mt-4 text-[12px] text-os-dim">{view.volume.thisMonth === 1 ? t('{n} request this month', { n: view.volume.thisMonth }) : t('{n} requests this month', { n: view.volume.thisMonth })} · {t('{n} on record', { n: view.volume.total })}</p>
         </CCard>

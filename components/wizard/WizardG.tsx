@@ -40,7 +40,7 @@ import { AgentSheetHost } from '@/components/agents/AgentSheet';
 import { openAgentSheet } from '@/components/agents/agent-param';
 import { useWizardWorkspace } from './useWizardWorkspace';
 import type { WizardTab } from './WizardHeader';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /**
  * /wizard under the GladOS style (glados-ui SPEC S04 §4.6, X5). Same state
@@ -196,7 +196,7 @@ function ProjectsRailG({
         onChange={setGroup}
         options={[
           { value: 'active', label: `${t('Active')} ${active.length}` },
-          { value: 'done', label: `${t('Done')} ${done.length}` },
+          { value: 'done', label: `${tc('project', 'Done')} ${done.length}` },
         ]}
       />
       <div className="wg-wz-list">
@@ -293,7 +293,7 @@ function ConversationG({
   ]
     .filter(Boolean)
     .join(' · ');
-  const meta = [project.status === 'done' ? t('done') : t('active'), project.totalCostUsd > 0 ? `$${project.totalCostUsd.toFixed(2)}` : null].filter(Boolean).join(' · ');
+  const meta = [project.status === 'done' ? tc('project', 'done') : t('active'), project.totalCostUsd > 0 ? `$${project.totalCostUsd.toFixed(2)}` : null].filter(Boolean).join(' · ');
   const engineDown = engineError != null && /unavailable|not found|claude|non disponibile|non trovato/i.test(engineError);
 
   return (

@@ -18,11 +18,11 @@ import { t } from '@/lib/i18n';
 
 /** The view strip (F3 to F5): the thread columns, then the FounderOS lanes. */
 const VIEWS = [
-  { id: 'threads', label: 'Threads' },
-  { id: 'digest', label: 'Digest' },
-  { id: 'recordings', label: 'Recordings' },
-  { id: 'clients', label: 'Clients' },
-  { id: 'week', label: 'Week' },
+  { id: 'threads', label: t('Threads') },
+  { id: 'digest', label: t('Digest') },
+  { id: 'recordings', label: t('Recordings') },
+  { id: 'clients', label: t('Clients') },
+  { id: 'week', label: t('Week') },
 ] as const;
 type View = (typeof VIEWS)[number]['id'];
 
@@ -135,7 +135,7 @@ export function InboxWorkspace({
         <nav className="ib-views" role="tablist" aria-label={t('Comms view')}>
           {VIEWS.map((v) => (
             <button key={v.id} role="tab" aria-selected={view === v.id} className={`ib-seg-btn ${view === v.id ? 'is-on' : ''}`} onClick={() => setView(v.id)}>
-              {t(v.label)}
+              {v.label}
               {v.id === 'digest' && digestUnread && <span className="ib-views-dot" aria-label={t('Unread')} />}
             </button>
           ))}
@@ -143,7 +143,7 @@ export function InboxWorkspace({
       )}
 
       {extras && view !== 'threads' ? (
-        <div className="cf-view" role="tabpanel" aria-label={t(VIEWS.find((v) => v.id === view)?.label ?? '')}>
+        <div className="cf-view" role="tabpanel" aria-label={VIEWS.find((v) => v.id === view)?.label ?? ''}>
           {view === 'digest' && <DigestPanelClassic data={extras.digest} />}
           {view === 'recordings' && <RecordingsClassic initial={extras.recordings} active />}
           {view === 'clients' && <ClientLanesClassic data={extras.clients} nowISO={nowISO} />}

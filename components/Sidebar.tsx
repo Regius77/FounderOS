@@ -57,7 +57,7 @@ import { GButton } from '@/components/g';
 import type { UiStyle } from '@/lib/appearance';
 import { useUiStyle } from '@/lib/use-ui-style';
 import { LegacySideFoot, LegacySideHead } from '@/components/legacy/Shell';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 /** The product name and mark for this deployment (lib/brand.ts, read on the server). */
 export type BrandMark = { name: string; mark: string };
@@ -399,7 +399,7 @@ export function Sidebar({ brand, ui = 'classic', off = [] }: { brand: BrandMark;
             </Link>
           </div>
         )}
-        <nav ref={navRef} className="os-nav" aria-label={t('Views')}>
+        <nav ref={navRef} className="os-nav" aria-label={tc('nav', 'Views')}>
           <div ref={listRef} className="os-nav-list">
             {visibleGroups(off).map((group) => (
               <div key={group.id} role="group" aria-label={group.label} className="os-nav-group">

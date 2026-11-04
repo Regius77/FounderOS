@@ -11,7 +11,7 @@ import { formatFollowers, formatPct, GrowthBadge } from '@/founderos/components/
 import { FollowerBarChart } from '@/founderos/components/FollowerBarChart';
 import { Slab, SlabTitle, SlabCard, BigStat, MeterStack, InsightCard, PILL, PILL_ACCENT } from '@/founderos/components/slab';
 import { StepLine } from '@/founderos/components/slab-charts';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +80,7 @@ export default function SocialPlatformPage({ params }: { params: { platform: str
               <GrowthBadge label="7d" value={growth.d7} />
               <GrowthBadge label="30d" value={growth.d30} />
               <GrowthBadge label="60d" value={growth.d60} />
-              <GrowthBadge label={t('all')} value={growth.allTime} />
+              <GrowthBadge label={tc('range', 'all')} value={growth.allTime} />
             </>
           }
         >

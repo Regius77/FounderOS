@@ -1,6 +1,6 @@
 'use client';
 
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 import { History as HistoryIcon, X } from 'lucide-react';
 import { OBtn } from '@/components/creative-engine/skin';
 import type { WorkflowVersion } from '@/lib/creative-engine/store';
@@ -12,7 +12,7 @@ import type { WorkflowVersion } from '@/lib/creative-engine/store';
  */
 
 const time = (iso: string) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? '' : d.toLocaleString(localeTag(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
-const REASON: Record<WorkflowVersion['reason'], string> = { run: t('Run'), save: t('Saved'), restore: t('Before restore') };
+const REASON: Record<WorkflowVersion['reason'], string> = { run: tc('noun', 'Run'), save: tc('noun', 'Saved'), restore: t('Before restore') };
 
 export function VersionsPanel({ versions, loading, previewing, readOnly, onPreview, onRestore, onSave, onClose }: { versions: WorkflowVersion[]; loading: boolean; previewing: number | null; readOnly: boolean; onPreview: (v: WorkflowVersion) => void; onRestore: (v: WorkflowVersion) => void; onSave: () => void; onClose: () => void }) {
   return (

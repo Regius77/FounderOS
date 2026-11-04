@@ -1,6 +1,6 @@
 'use client';
 
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -381,7 +381,7 @@ export function AdLibrary({
   const TABS: { key: Tab; label: string; count?: number }[] = [
     { key: 'foryou', label: t('For you') },
     { key: 'search', label: t('Search') },
-    { key: 'saved', label: t('Saved'), count: saved.length },
+    { key: 'saved', label: tc('list', 'Saved'), count: saved.length },
     { key: 'watchlist', label: t('Watchlist'), count: watchlist.length },
     { key: 'activity', label: t('Activity'), count: signalsTotal },
   ];

@@ -15,7 +15,7 @@ import { CBars, CCard, CMeter, CModal, CPill, CSampleBadge, type PillTone } from
 import { LM_STATUSES, LM_STATUS_LABEL, type LeadMagnetRow, type LeadMagnetsPage } from '@/lib/lead-magnets';
 import type { LeadMagnetStatus } from '@/lib/schemas';
 import { EMPTY_FORM, PLACEHOLDERS, copyText, formFrom, useLeadMagnets, validateForm, type MagnetForm, type SaveResult } from './use-lead-magnets';
-import { t } from '@/lib/i18n';
+import { t, tc } from '@/lib/i18n';
 
 const TONE: Record<LeadMagnetStatus, PillTone> = { live: 'ok', draft: 'default', paused: 'warn', archived: 'default' };
 
@@ -202,7 +202,7 @@ function MagnetModal({ initial, busy, onClose, onSave }: { initial: LeadMagnetRo
       footer={
         <>
           <button type="button" className="c-btn" onClick={onClose}>{t('Cancel')}</button>
-          <button type="button" className="c-btn c-btn-primary" onClick={() => void submit()} disabled={busy}>{initial ? t('Save') : t('Register')}</button>
+          <button type="button" className="c-btn c-btn-primary" onClick={() => void submit()} disabled={busy}>{initial ? t('Save') : tc('button', 'Register')}</button>
         </>
       }
     >

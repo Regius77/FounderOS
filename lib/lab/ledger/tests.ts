@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { LabPlatformSchema, LabTestArmSchema, LabTestKindSchema, LabTestResultSchema, LabTestStatusSchema, LabTestVariableSchema, type LabTest, type LabTestArm } from '@/lib/schemas';
 import type { LabStore } from '@/lib/lab/store';
 import { newcombe } from '@/lib/lab/ledger/metrics';
+import { t } from '@/lib/i18n';
 
 export type TestMark = 'correlation' | 'confirmed' | 'contradicted' | 'tested_inconclusive';
 
@@ -16,10 +17,10 @@ export const RETENTION_MATCH_TOL_H = 12;
 
 /** 06 10.3 hygiene rules shown in the Test sheet. */
 export const TRIAL_REELS_RULES = [
-  'Same body and caption. Change only the hook.',
-  'Post all trials within 24 hours of each other.',
-  'Compare trials only with trials.',
-  'Judged at 72 hours on shares per reach.',
+  t('Same body and caption. Change only the hook.'),
+  t('Post all trials within 24 hours of each other.'),
+  t('Compare trials only with trials.'),
+  t('Judged at 72 hours on shares per reach.'),
 ] as const;
 export const SHORTS_REFUSAL = 'YouTube cannot test Shorts.';
 export const MID_TEST_REFUSAL = 'Changing a variant mid-test stops it. Start a new test.';
@@ -191,24 +192,24 @@ export function testMark(store: LabStore, featureKey: string, liftSign: 1 | -1):
       else disagree++;
     } else if (t.result === 'inconclusive' || t.result === 'performed_same') inconclusive++;
   }
-  if (agree >= 1 && agree > disagree) return { mark: 'confirmed', agree, disagree, inconclusive, label: `confirmed by test (${agree} of ${agree + disagree})` };
-  if (disagree > agree) return { mark: 'contradicted', agree, disagree, inconclusive, label: `contradicted by test (${disagree} of ${agree + disagree})` };
-  if (agree === 0 && disagree === 0 && inconclusive >= 1) return { mark: 'tested_inconclusive', agree, disagree, inconclusive, label: `tested, no clear winner (${inconclusive})` };
-  return { mark: 'correlation', agree, disagree, inconclusive, label: 'correlation' };
+  if (agree >= 1 && agree > disagree) return { mark: 'confirmed', agree, disagree, inconclusive, label: t('confirmed by test ({k} of {n})', { k: agree, n: agree + disagree }) };
+  if (disagree > agree) return { mark: 'contradicted', agree, disagree, inconclusive, label: t('contradicted by test ({k} of {n})', { k: disagree, n: agree + disagree }) };
+  if (agree === 0 && disagree === 0 && inconclusive >= 1) return { mark: 'tested_inconclusive', agree, disagree, inconclusive, label: t('tested, no clear winner ({n})', { n: inconclusive }) };
+  return { mark: 'correlation', agree, disagree, inconclusive, label: t('correlation') };
 }
 
 /* ── copy (06 13.3) ──────────────────────────────────────────────────────────── */
 
-export function resultCopy(t: LabTest): { label: string; sub: string } {
-  if (t.result === 'winner') {
-    const win = t.arms.find((a) => a.id === t.winnerArm);
-    const rates = (t.judgeDetail.rates ?? {}) as Record<string, number>;
-    const other = Object.entries(rates).filter(([id]) => id !== t.winnerArm).sort((a, b) => b[1] - a[1])[0];
-    const pct = (x: number) => `${(x * 100).toFixed(2)}%`;
-    const sub = t.kind === 'trial_reels' && t.winnerArm && rates[t.winnerArm] !== undefined && other ? `${pct(rates[t.winnerArm])} vs ${pct(other[1])} shares per reach at ${t.judgeAgeH ?? 72}h` : '';
-    return { label: `Winner: ${win?.label ?? t.winnerArm ?? ''}`, sub };
+export function resultCopy(x: LabTest): { label: string; sub: string } {
+  if (x.result === 'winner') {
+    const win = x.arms.find((a) => a.id === x.winnerArm);
+    const rates = (x.judgeDetail.rates ?? {}) as Record<string, number>;
+    const other = Object.entries(rates).filter(([id]) => id !== x.winnerArm).sort((a, b) => b[1] - a[1])[0];
+    const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+    const sub = x.kind === 'trial_reels' && x.winnerArm && rates[x.winnerArm] !== undefined && other ? t('{a} vs {b} shares per reach at {h}h', { a: pct(rates[x.winnerArm]), b: pct(other[1]), h: x.judgeAgeH ?? 72 }) : '';
+    return { label: t('Winner: {arm}', { arm: win?.label ?? x.winnerArm ?? '' }), sub };
   }
-  if (t.result === 'performed_same') return { label: 'Performed the same', sub: 'Both within 15% of each other. That is a real answer.' };
-  if (t.result === 'inconclusive') return { label: 'Inconclusive', sub: 'Most tests end here. Run it again or test a bigger difference.' };
+  if (x.result === 'performed_same') return { label: t('Performed the same'), sub: t('Both within 15% of each other. That is a real answer.') };
+  if (x.result === 'inconclusive') return { label: t('Inconclusive'), sub: t('Most tests end here. Run it again or test a bigger difference.') };
   return { label: '', sub: '' };
 }

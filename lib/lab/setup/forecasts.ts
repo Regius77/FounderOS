@@ -14,6 +14,7 @@ import { freezeForecast as freezeRow } from '@/lib/lab/setup/forecast-rows';
 import { planInputs } from '@/lib/lab/setup/planner';
 import { labTz } from '@/lib/lab/setup/tz';
 import { localClock } from '@/lib/lab/setup/schedule';
+import { t } from '@/lib/i18n';
 
 /** 06 LedgerView.forecastRecord, built here; 01 12.3a renders it verbatim. */
 export type ForecastRecord = { runCost: string; month: string; gates: string; n: { runCost: number; month: number; gates: number } };
@@ -119,10 +120,10 @@ export function forecastRecord(store: LabStore): ForecastRecord {
   const months = graded('month_cost');
   const gates = graded('gate_eta');
   const pct = (rows: LabForecast[]) => Math.round((quantile(rows.filter((f) => f.actual! > 0).map((f) => Math.abs(f.actual! - f.predicted) / f.actual!), 0.5) ?? 0) * 100);
-  const runCost = runs.length < 5 ? `Run cost estimates: not enough yet (n ${runs.length}).` : `Run cost estimates: typically off by ${pct(runs)}% on ${runs.length} runs, ${runs.filter(inside).length} of ${runs.length} inside the range.`;
-  const month = months.length < 5 ? `Monthly estimates: not enough yet (n ${months.length}).` : `Monthly estimates: off by ${pct(months)}% over ${months.length} line-months.`;
+  const runCost = runs.length < 5 ? t('Run cost estimates: not enough yet (n {n}).', { n: runs.length }) : t('Run cost estimates: typically off by {pct}% on {n} runs, {k} of {n} inside the range.', { pct: pct(runs), n: runs.length, k: runs.filter(inside).length });
+  const month = months.length < 5 ? t('Monthly estimates: not enough yet (n {n}).', { n: months.length }) : t('Monthly estimates: off by {pct}% over {n} line-months.', { pct: pct(months), n: months.length });
   const d = Math.round(quantile(gates.map((f) => Math.abs(f.actual! - f.predicted)), 0.5) ?? 0);
-  const gatesLine = gates.length < 5 ? `Readiness dates: not enough yet (n ${gates.length}).` : `Readiness dates: typically ${d} days early or late on ${gates.length} gates, ${gates.filter(inside).length} of ${gates.length} inside the window.`;
+  const gatesLine = gates.length < 5 ? t('Readiness dates: not enough yet (n {n}).', { n: gates.length }) : t('Readiness dates: typically {d} days early or late on {n} gates, {k} of {n} inside the window.', { d, n: gates.length, k: gates.filter(inside).length });
   return { runCost, month, gates: gatesLine, n: { runCost: runs.length, month: months.length, gates: gates.length } };
 }
 

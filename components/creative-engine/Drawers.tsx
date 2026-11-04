@@ -1,6 +1,6 @@
 'use client';
 
-import { localeTag, t } from '@/lib/i18n';
+import { localeTag, t, tc } from '@/lib/i18n';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ResolvedRun } from '@/lib/creative-engine/runs';
 import type { SavedAd } from '@/lib/foreplay/saved';
@@ -130,7 +130,7 @@ export function ProofDrawer({ saved, watchlist, signals, onClose, note = null, s
     <Drawer title={t('Proof library')} onClose={onClose}>
       {note && <Tag className="mb-3">{note}</Tag>}
       <p className="ae-cap">{sample ? t('Sample rows: fictional brands and ads, not in AdPilot, so they do not open there.') : t('Saved winners, watched brands and recent signals from the AdPilot library. Picking an angle saves its proof ads here. Each row opens in AdPilot.')}</p>
-      <h3 className="mt-5 text-[15px] font-light">{t('Saved')} <span className="ae-faint">{sec.savedTotal}</span></h3>
+      <h3 className="mt-5 text-[15px] font-light">{tc('list', 'Saved')} <span className="ae-faint">{sec.savedTotal}</span></h3>
       <ul className="mt-2 space-y-2">
         {sec.saved.map((s) => (
           <li key={s.ad.id}>{row({ kind: 'ad', id: s.ad.id }, t('Open this {brand} ad in AdPilot', { brand: s.ad.brand }), '', <><span className="min-w-0 truncate text-[13px]">{s.ad.brand}{s.ad.hook ? `, “${s.ad.hook.slice(0, 48)}”` : ''}</span><span className="ae-faint shrink-0 tabular-nums">{(s.ad.daysRunning === 1 ? t('{n} day', { n: fmtCredits(s.ad.daysRunning) }) : t('{n} days', { n: fmtCredits(s.ad.daysRunning) }))}</span></>)}</li>

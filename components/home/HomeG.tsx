@@ -561,7 +561,7 @@ function FreshnessCard({ f }: { f: HomeGData['freshness'] }) {
             />
             <GRow
               href="/drift"
-              title={t('Stale')}
+              title={tc('pages', 'Stale')}
               meta={t('untouched for 90 days or more')}
               trailing={formatFull(f.stale)}
               hint={t('{n} pages untouched for 90 days or more; open Drift', { n: f.stale })}
@@ -629,7 +629,7 @@ function NeedsYouCard({ needs }: { needs: NeedsYou }) {
         action={
           needs.total > needs.rows.length ? (
             <GButton variant="sm" href="/tasks" title={t('All {n} blocked tasks on the board', { n: needs.total })}>
-              {t('All {n}', { n: needs.total })}
+              {tc('task', 'All {n}', { n: needs.total })}
             </GButton>
           ) : needs.total > 0 ? (
             <GTag tone="warn" dot title={needs.total === 1 ? t('{n} task blocked until you act', { n: needs.total }) : t('{n} tasks blocked until you act', { n: needs.total })}>
@@ -648,7 +648,7 @@ function NeedsYouCard({ needs }: { needs: NeedsYou }) {
               href={task.href}
               leading={<span className="hg-dot" data-tone={task.priority === 'high' ? 'err' : 'warn'} role="img" aria-label={task.priority === 'high' ? t('high priority') : t('blocked')} />}
               title={task.title}
-              meta={task.agentId ?? t('Yours')}
+              meta={task.agentId ?? tc('task', 'Yours')}
               trailing={
                 <span className="hg-age" title={t('Waiting since {when}', { when: new Date(task.at).toLocaleString(localeTag()) })}>
                   {task.age}
