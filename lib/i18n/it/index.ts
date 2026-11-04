@@ -8,7 +8,8 @@ import workspace from './workspace';
 import business from './business';
 import system from './system';
 import lib from './lib';
+import status from './status';
 import fixes from './fixes';
 
-const it: Record<string, string> = { ...shell, ...lab, ...creative, ...growth, ...workforce, ...workspace, ...business, ...system, ...lib, ...fixes };
+const it: Record<string, string> = { ...shell, ...lab, ...creative, ...growth, ...workforce, ...workspace, ...business, ...system, ...lib, ...status, ...fixes };
 export default it;
