@@ -39,6 +39,7 @@ public/content-media/ad-engine/
 
 # Filming mode: the demo dataset and the switch file, both local only
 /demo-data/
+/demo-data.lock
 .glados-mode
 .glados-modules.json
 

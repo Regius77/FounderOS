@@ -96,7 +96,54 @@ export function buildDemoStore(now = Date.now()): { pages: number } {
   return { pages };
 }
 
+const LOCK_STALE_MS = 5 * 60_000;
+const LOCK_WAIT_MS = 3 * 60_000;
+
+function sleepSync(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/** A sibling of demo-data/ (the build wipes the directory itself), so two
+ *  processes never build at once: `next build` prerenders in parallel workers,
+ *  and each one would otherwise rm the directory another is writing. */
+function lockPath(): string {
+  return `${dataDir().replace(/[\\/]+$/, '')}.lock`;
+}
+
+function acquireLock(): number | null {
+  const file = lockPath();
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  for (;;) {
+    try {
+      const fd = fs.openSync(file, 'wx');
+      fs.writeSync(fd, `${process.pid}\n`);
+      return fd;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+    }
+    try {
+      if (Date.now() - fs.statSync(file).mtimeMs > LOCK_STALE_MS) {
+        fs.rmSync(file, { force: true });
+        continue;
+      }
+    } catch {
+      continue; // released between open and stat
+    }
+    if (Date.now() > deadline) return null;
+    sleepSync(100);
+  }
+}
+
 /** Build the demo store if demo mode needs one. Cheap when it is fresh. */
 export function ensureDemoStore(): void {
-  if (demoStoreStale()) buildDemoStore();
+  if (!demoStoreStale()) return;
+  const fd = acquireLock();
+  if (fd == null) throw new Error(`Timed out waiting for another process to build the demo store (${lockPath()}).`);
+  try {
+    // Another process may have finished the build while this one waited.
+    if (demoStoreStale()) buildDemoStore();
+  } finally {
+    fs.closeSync(fd);
+    fs.rmSync(lockPath(), { force: true });
+  }
 }
