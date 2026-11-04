@@ -11,6 +11,7 @@ import { revisionOf } from '@/founderos/lib/deliverable-revision';
 import type { DeliverableGroup, DeliverableItem } from '@/founderos/lib/board-deliverables';
 import type { DecisionKind, DeliverableDecision } from '@/founderos/lib/schemas';
 import { Label } from '@/founderos/components/terminal';
+import { t } from '@/lib/i18n';
 
 /**
  * Needs You  -  the queue of agent work waiting on Alex.
@@ -41,22 +42,22 @@ const GLYPH_TONE: Record<Classified['glyphTone'], string> = {
 
 /** What the white button says, per kind. "Approve" is not a verb he uses. */
 const PRIMARY: Record<ApprovalKind, { label: string; busy: string; done: string }> = {
-  staged: { label: 'send it', busy: 'sending', done: 'sent' },
-  decision: { label: 'go ahead', busy: 'recording', done: 'called' },
-  gate: { label: 'unblock', busy: 'opening', done: 'open' },
-  request: { label: 'approve', busy: 'recording', done: 'approved' },
-  draft: { label: 'publish', busy: 'publishing', done: 'published' },
-  done: { label: 'ok', busy: 'saving', done: 'ok' },
-  output: { label: 'ok', busy: 'saving', done: 'ok' },
+  staged: { label: t('send it'), busy: t('sending'), done: t('sent') },
+  decision: { label: t('go ahead'), busy: t('recording'), done: t('called') },
+  gate: { label: t('unblock'), busy: t('opening'), done: t('open') },
+  request: { label: t('approve'), busy: t('recording'), done: t('approved') },
+  draft: { label: t('publish'), busy: t('publishing'), done: t('published') },
+  done: { label: t('ok'), busy: t('saving'), done: t('ok') },
+  output: { label: t('ok'), busy: t('saving'), done: t('ok') },
 };
 
 const when = (iso: string): string => {
   const ms = Date.now() - Date.parse(iso);
   if (!Number.isFinite(ms)) return '';
   const m = Math.floor(ms / 60000);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return t('{n}m ago', { n: m });
   const h = Math.floor(m / 60);
-  return h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`;
+  return h < 24 ? t('{n}h ago', { n: h }) : t('{n}d ago', { n: Math.floor(h / 24) });
 };
 
 /** Strip the agent's bookkeeping so the row reads as a subject, not a filename. */
@@ -86,8 +87,8 @@ function UnseenDot({ state }: { state: UnseenState }) {
   if (!state) return null;
   return (
     <span
-      title={state === 'new' ? 'New since you last looked' : 'Rewritten since you read it'}
-      aria-label={state === 'new' ? 'new' : 'updated'}
+      title={state === 'new' ? t('New since you last looked') : t('Rewritten since you read it')}
+      aria-label={state === 'new' ? t('new') : t('updated')}
       className={`h-1.5 w-1.5 shrink-0 animate-pulse ${
         state === 'new' ? 'bg-os-accent' : 'bg-os-warn'
       }`}
@@ -149,7 +150,7 @@ function Row({
       <div className="min-w-0">
         <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.1em] text-os-dim">
           <UnseenDot state={unseen} />
-          <span className="truncate">{c.meta || 'board'}</span>
+          <span className="truncate">{c.meta || t('board')}</span>
           <span className="ml-auto shrink-0">{when(c.modifiedAt)}</span>
         </div>
 
@@ -165,10 +166,10 @@ function Row({
 
         {/* Mock 3a: the Conductor shows its working. */}
         <p className="mt-1 font-mono text-[10px] text-os-dim">
-          why here · {c.why}
+          {t('why here ·')} {c.why}
           {c.deadline && (
             <span className={c.overdue ? ' font-bold text-os-err' : ' text-os-warn'}>
-              {c.overdue ? ' · past due ' : ' · due '}
+              {c.overdue ? t(' · past due ') : t(' · due ')}
               {new Date(c.deadline).toISOString().slice(11, 16)}Z
             </span>
           )}
@@ -191,27 +192,27 @@ function Row({
             {words.label}
           </AsyncButton>
           <AsyncButton
-            run={() => settle('dismissed', 'dismissed')}
+            run={() => settle('dismissed', t('dismissed'))}
             tone="secondary"
-            busyLabel="dismissing"
-            doneLabel="dismissed"
+            busyLabel={t('dismissing')}
+            doneLabel={t('dismissed')}
           >
-            dismiss
+            {t('dismiss')}
           </AsyncButton>
           <button
             onClick={() => {
               onSnooze(c);
-              toast.ok(`snoozed 2h · ${text}`, () => onWake(c));
+              toast.ok(t('snoozed 2h · {text}', { text }), () => onWake(c));
             }}
-            title="Hold it for two hours. Nothing is sent and no agent is told."
+            title={t('Hold it for two hours. Nothing is sent and no agent is told.')}
             data-lens="c"
             className="pressable is-dark inline-flex h-[26px] items-center rounded-ctl border border-os-border bg-os-bg px-2.5 font-mono text-[10.5px] font-semibold text-os-muted"
           >
-            snooze
+            {t('snooze')}
           </button>
           <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.1em] text-os-dim">
             {c.label}
-            {c.alsoAs && c.alsoAs.length > 0 && ` · also .${c.alsoAs.join(', .')}`}
+            {c.alsoAs && c.alsoAs.length > 0 && t(' · also .{list}', { list: c.alsoAs.join(', .') })}
           </span>
         </div>
       </div>
@@ -248,7 +249,7 @@ export function NeedsYouList({
 }) {
   const [confirming, setConfirming] = useState(false);
   if (groups === null) {
-    return <p className="font-mono text-[10.5px] text-os-dim">reading the board…</p>;
+    return <p className="font-mono text-[10.5px] text-os-dim">{t('reading the board…')}</p>;
   }
 
   const files = groups.flatMap((g) => g.items).filter((i) => i.kind === 'file');
@@ -264,13 +265,13 @@ export function NeedsYouList({
   return (
     <section data-part="card" className="rounded-panel border border-os-border bg-os-surface">
       <div data-part="card-head" className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-os-border px-4 py-2.5">
-        <Label>Needs you</Label>
+        <Label>{t('Needs you')}</Label>
         <span className="font-mono text-[10px] text-os-dim">
-          {queue.length} of {files.length} agent files are waiting on you
-          {overdue > 0 && <span className="text-os-err"> · {overdue} past due</span>}
-          {unread > 0 && <span className="text-os-accent"> · {unread} unread</span>}
-          {held > 0 && <span className="text-os-dim"> · {held} snoozed</span>}
-          {decided.length > 0 && <span className="text-os-dim"> · {decided.length} handled</span>}
+          {t('{n} of {total} agent files are waiting on you', { n: queue.length, total: files.length })}
+          {overdue > 0 && <span className="text-os-err">{t(' · {n} past due', { n: overdue })}</span>}
+          {unread > 0 && <span className="text-os-accent">{t(' · {n} unread', { n: unread })}</span>}
+          {held > 0 && <span className="text-os-dim">{t(' · {n} snoozed', { n: held })}</span>}
+          {decided.length > 0 && <span className="text-os-dim">{t(' · {n} handled', { n: decided.length })}</span>}
         </span>
         {boardUrl && (
           <a
@@ -279,7 +280,7 @@ export function NeedsYouList({
             rel="noreferrer"
             className="ml-auto flex items-center gap-1 font-mono text-[10px] text-os-dim linky"
           >
-            open board <ExternalLink className="h-3 w-3" />
+            {t('open board')} <ExternalLink className="h-3 w-3" />
           </a>
         )}
         {/* Bulk clear (Alex, 2026-08-22: "bulk clear as well"). DISMISS only:
@@ -296,22 +297,22 @@ export function NeedsYouList({
                 }}
                 className="pressable flex items-center gap-1 rounded-ctl border border-os-err/50 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-os-err hover:bg-os-err/10"
               >
-                <X className="h-3 w-3" /> dismiss all {queue.length}
+                <X className="h-3 w-3" /> {t('dismiss all {n}', { n: queue.length })}
               </button>
               <button
                 onClick={() => setConfirming(false)}
                 className="pressable font-mono text-[10px] uppercase tracking-[0.12em] text-os-dim hover:text-os-text"
               >
-                cancel
+                {t('cancel')}
               </button>
             </span>
           ) : (
             <button
               onClick={() => setConfirming(true)}
-              title="Dismiss everything shown. Nothing is sent."
+              title={t('Dismiss everything shown. Nothing is sent.')}
               className="pressable flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em] text-os-dim hover:text-os-text"
             >
-              <X className="h-3 w-3" /> clear all
+              <X className="h-3 w-3" /> {t('clear all')}
             </button>
           ))}
         <button
@@ -319,7 +320,7 @@ export function NeedsYouList({
           disabled={refreshing}
           className="pressable flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em] text-os-dim hover:text-os-text disabled:opacity-40"
         >
-          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} /> refresh
+          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} /> {t('refresh')}
         </button>
       </div>
 
@@ -327,7 +328,7 @@ export function NeedsYouList({
       <div className="flex items-center gap-2 px-4 pt-2">
         <span className="h-px flex-1 bg-os-border" />
         <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-os-dim">
-          ranked by the Conductor · people first, then deadlines
+          {t('ranked by the Conductor · people first, then deadlines')}
         </span>
         <span className="h-px flex-1 bg-os-border" />
       </div>
@@ -335,11 +336,11 @@ export function NeedsYouList({
       {queue.length === 0 ? (
         <div className="m-4 grid place-items-center gap-1 rounded-panel border border-dashed border-os-border px-4 py-8 text-center">
           <span className="text-[18px] text-os-ok">✓</span>
-          <p className="text-[12.5px] font-semibold text-os-text">Nothing needs you.</p>
+          <p className="text-[12.5px] font-semibold text-os-text">{t('Nothing needs you.')}</p>
           <p className="font-mono text-[10px] text-os-dim">
-            the Conductor will surface the next thing here
-            {held > 0 && ` · ${held} snoozed`}
-            {decided.length > 0 && ` · you handled ${decided.length}`}
+            {t('the Conductor will surface the next thing here')}
+            {held > 0 && t(' · {n} snoozed', { n: held })}
+            {decided.length > 0 && t(' · you handled {n}', { n: decided.length })}
           </p>
         </div>
       ) : (

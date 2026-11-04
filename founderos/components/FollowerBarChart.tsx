@@ -1,5 +1,6 @@
 import { followerBarModel, type FollowerPoint } from '@/lib/social-chart';
 import { formatFollowers } from '@/founderos/components/SocialStats';
+import { t } from '@/lib/i18n';
 
 /**
  * Follower history as a bar diagram — one bar per snapshot, y-axis on round
@@ -29,7 +30,7 @@ export function FollowerBarChart({ series }: { series: FollowerPoint[] }) {
       viewBox={`0 0 ${W} ${H}`}
       className="mt-2 block w-full"
       role="img"
-      aria-label="Follower count over time as a bar chart"
+      aria-label={t('Follower count over time as a bar chart')}
     >
       {/* y gridlines + labels on round follower values */}
       {model.yTicks.map((v) => {

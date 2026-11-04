@@ -4,17 +4,18 @@ import { useMemo, useState } from 'react';
 import { Instagram, Send } from 'lucide-react';
 import type { DmThread } from '@/lib/social';
 import type { SocialDmMessage } from '@/founderos/lib/schemas';
+import { t } from '@/lib/i18n';
 
 /** Compact relative time (mirrors the /comms feed style). */
 function relativeTime(iso: string, nowMs: number): string {
   const diff = nowMs - new Date(iso).getTime();
   if (Number.isNaN(diff)) return '';
   const m = Math.round(diff / 60000);
-  if (m < 1) return 'now';
-  if (m < 60) return `${m}m`;
+  if (m < 1) return t('now');
+  if (m < 60) return t('{n}m', { n: m });
   const h = Math.round(m / 60);
-  if (h < 24) return `${h}h`;
-  return `${Math.round(h / 24)}d`;
+  if (h < 24) return t('{n}h', { n: h });
+  return t('{n}d', { n: Math.round(h / 24) });
 }
 
 function initials(name: string): string {
@@ -53,11 +54,11 @@ function groupThreads(messages: SocialDmMessage[]): DmThread[] {
  * appends nothing.
  */
 export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThread[]; nowMs: number }) {
-  const [messages, setMessages] = useState<SocialDmMessage[]>(() => initial.flatMap((t) => t.messages));
+  const [messages, setMessages] = useState<SocialDmMessage[]>(() => initial.flatMap((th) => th.messages));
   const threads = useMemo(() => groupThreads(messages), [messages]);
 
   const [selected, setSelected] = useState<string | null>(initial[0]?.subscriberId ?? null);
-  const active = threads.find((t) => t.subscriberId === selected) ?? threads[0] ?? null;
+  const active = threads.find((th) => th.subscriberId === selected) ?? threads[0] ?? null;
 
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -77,13 +78,13 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
       });
       const body = await res.json().catch(() => null);
       if (!res.ok || !body?.ok) {
-        setError(typeof body?.error === 'string' ? body.error : 'Send failed — connect ManyChat (MANYCHAT_API_KEY) to reply.');
+        setError(typeof body?.error === 'string' ? body.error : t('Send failed — connect ManyChat (MANYCHAT_API_KEY) to reply.'));
         return;
       }
       setMessages((prev) => [body.message as SocialDmMessage, ...prev]);
       setDraft('');
     } catch {
-      setError('Network error while sending.');
+      setError(t('Network error while sending.'));
     } finally {
       setSending(false);
     }
@@ -102,42 +103,42 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
         </div>
         <span className="ml-auto flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-os-dim">
           <span className={`h-1.5 w-1.5 ${isLive ? 'bg-os-ok' : 'bg-os-dim'}`} />
-          {isLive ? 'live · manychat' : 'seeded · live via manychat webhook'}
+          {isLive ? t('live · manychat') : t('seeded · live via manychat webhook')}
         </span>
       </div>
 
       {threads.length === 0 ? (
         <div className="rounded-lg-t border border-os-border bg-os-surface px-4 py-8 text-center font-mono text-[12px] text-os-dim">
-          No DMs yet. They appear here as ManyChat posts them to /api/webhooks/manychat.
+          {t('No DMs yet. They appear here as ManyChat posts them to /api/webhooks/manychat.')}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg-t border border-os-border bg-os-border md:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           {/* Thread list */}
           <div className="flex max-h-[520px] flex-col overflow-y-auto bg-os-surface">
-            {threads.map((t) => {
-              const on = t.subscriberId === active?.subscriberId;
+            {threads.map((th) => {
+              const on = th.subscriberId === active?.subscriberId;
               return (
                 <button
-                  key={t.subscriberId}
-                  onClick={() => setSelected(t.subscriberId)}
+                  key={th.subscriberId}
+                  onClick={() => setSelected(th.subscriberId)}
                   className={`pressable flex items-center gap-3 border-b border-os-border px-3.5 py-3 text-left ${
  on ? 'bg-os-surface2' : 'hover:bg-os-surface2/50'
  }`}
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-os-border-strong bg-os-bg font-mono text-[11px] font-bold text-os-muted">
-                    {initials(t.name)}
+                    {initials(th.name)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="truncate text-[12.5px] font-semibold text-os-text">{t.name}</span>
-                      <span className="ml-auto shrink-0 font-mono text-[10px] text-os-dim">{relativeTime(t.last.ts, nowMs)}</span>
+                      <span className="truncate text-[12.5px] font-semibold text-os-text">{th.name}</span>
+                      <span className="ml-auto shrink-0 font-mono text-[10px] text-os-dim">{relativeTime(th.last.ts, nowMs)}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="truncate font-mono text-[11px] text-os-dim">
-                        {t.last.direction === 'out' ? 'You: ' : ''}
-                        {t.last.text}
+                        {th.last.direction === 'out' ? t('You: ') : ''}
+                        {th.last.text}
                       </span>
-                      {t.unreplied && <span className="ml-auto h-1.5 w-1.5 shrink-0 bg-os-warn" title="needs reply" />}
+                      {th.unreplied && <span className="ml-auto h-1.5 w-1.5 shrink-0 bg-os-warn" title={t('needs reply')} />}
                     </div>
                   </div>
                 </button>
@@ -155,7 +156,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                   {active.handle && <span className="font-mono text-[11px] text-os-dim">@{active.handle}</span>}
                   {active.unreplied && (
                     <span className="ml-auto rounded-sm-t border border-os-warn/50 px-1.5 py-px font-mono text-[9.5px] uppercase tracking-[0.12em] text-os-warn">
-                      needs reply
+                      {t('needs reply')}
                     </span>
                   )}
                 </div>
@@ -195,7 +196,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                         }
                       }}
                       rows={1}
-                      placeholder={`Reply to ${active.name}…  (⌘↵ to send)`}
+                      placeholder={t('Reply to {name}…  (⌘↵ to send)', { name: active.name })}
                       className="max-h-28 min-h-[38px] flex-1 resize-none rounded-md-t border border-os-border bg-os-bg px-3 py-2 font-mono text-[12px] text-os-text placeholder:text-os-dim focus:border-os-border-strong focus:outline-none"
                     />
                     <button
@@ -204,7 +205,7 @@ export function InstagramDmInbox({ threads: initial, nowMs }: { threads: DmThrea
                       className="pressable flex h-[38px] items-center gap-1.5 rounded-md-t bg-os-accent px-3.5 font-mono text-[12px] font-semibold text-os-bg transition-opacity disabled:opacity-40"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      {sending ? 'Sending' : 'Send'}
+                      {sending ? t('Sending') : t('Send')}
                     </button>
                   </div>
                 </div>

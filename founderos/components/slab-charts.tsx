@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { t } from '@/lib/i18n';
 
 /**
  * Brand Deals' two mini charts, lent to the whole OS (2026-09-24): the
@@ -14,7 +15,7 @@ export type SeriesPoint = { label: string; count: number };
 export function StepLine({
   series,
   hue,
-  empty = 'No activity in this window.',
+  empty = t('No activity in this window.'),
   unit = '',
 }: {
   series: SeriesPoint[];

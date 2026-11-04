@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { AudioLines, Mic, Plus, Send, X } from 'lucide-react';
 import { COMPOSER_MAX_PX, composerHeight } from '@/founderos/lib/composer';
+import { t } from '@/lib/i18n';
 
 /**
  * The Claude-style composer, shared by every Conductor surface (the operator, *: "give the conductor text bar the same capabilities... do the * same thing with the conductor board"). Multiline (Enter sends, Shift+Enter
@@ -19,7 +20,7 @@ export function ConductorComposer({
   onSend,
   disabled = false,
   model = null,
-  placeholder = 'Message the CEO…',
+  placeholder = t('Message the CEO…'),
   lastReply = null,
   onError,
 }: {
@@ -72,7 +73,7 @@ export function ConductorComposer({
       const text = (await file.text()).slice(0, 8000);
       setAttachment({ name: file.name, text });
     } catch {
-      onError?.(`Could not read ${file.name}`);
+      onError?.(t('Could not read {name}', { name: file.name }));
     }
   }
 
@@ -85,7 +86,7 @@ export function ConductorComposer({
     const w = window as unknown as { webkitSpeechRecognition?: new () => any; SpeechRecognition?: new () => any };
     const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!SR) {
-      onError?.('Voice input is not available in this browser.');
+      onError?.(t('Voice input is not available in this browser.'));
       return;
     }
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -146,7 +147,7 @@ export function ConductorComposer({
         <div className="mb-1.5 flex items-center gap-1.5">
           <span className="flex items-center gap-1.5 rounded-full border border-os-border bg-os-surface2 px-2 py-0.5 font-mono text-[9.5px] text-os-muted">
             {attachment.name}
-            <button onClick={() => setAttachment(null)} aria-label="Remove attachment" className="pressable text-os-dim hover:text-os-text">
+            <button onClick={() => setAttachment(null)} aria-label={t('Remove attachment')} className="pressable text-os-dim hover:text-os-text">
               <X className="h-2.5 w-2.5" />
             </button>
           </span>
@@ -162,23 +163,23 @@ export function ConductorComposer({
         />
         <button
           onClick={() => fileRef.current?.click()}
-          title="Attach a text file — its contents ride into the message"
+          title={t('Attach a text file — its contents ride into the message')}
           data-lens="c"
           className="pressable is-dark rounded-full p-1.5 text-os-dim"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>
         <span className="hidden font-mono text-[9px] text-os-dim sm:inline">
-          Enter sends · Shift+Enter breaks
+          {t('Enter sends · Shift+Enter breaks')}
         </span>
         {model && (
-          <span className="ml-auto mr-1 font-mono text-[10px] text-os-dim" title="the model holding the Conductor seat right now">
+          <span className="ml-auto mr-1 font-mono text-[10px] text-os-dim" title={t('the model holding the Conductor seat right now')}>
             {model}
           </span>
         )}
         <button
           onClick={toggleMic}
-          title={listening ? 'Stop dictation' : 'Dictate with your voice'}
+          title={listening ? t('Stop dictation') : t('Dictate with your voice')}
           data-lens="c"
           className={`pressable rounded-full p-1.5 ${listening ? 'text-os-err' : 'is-dark text-os-dim'} ${model ? '' : 'ml-auto'}`}
         >
@@ -186,7 +187,7 @@ export function ConductorComposer({
         </button>
         <button
           onClick={toggleSpeak}
-          title={speaking ? 'Stop reading' : 'Read the last reply aloud'}
+          title={speaking ? t('Stop reading') : t('Read the last reply aloud')}
           data-lens="c"
           className={`pressable rounded-full p-1.5 ${speaking ? 'text-os-accent' : 'is-dark text-os-dim'}`}
         >
@@ -195,7 +196,7 @@ export function ConductorComposer({
         <button
           onClick={send}
           disabled={disabled || !input.trim()}
-          aria-label="Send"
+          aria-label={t('Send')}
           data-lens="c"
           className="pressable is-dark rounded-full border border-os-border-strong bg-os-surface2 p-1.5 text-os-text disabled:opacity-40"
         >

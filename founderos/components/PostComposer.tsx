@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Send, Clock, Paperclip, UploadCloud, X } from 'lucide-react';
 import { Badge } from '@/founderos/components/terminal';
 import type { SocialPost } from '@/founderos/lib/schemas';
+import { t, localeTag } from '@/lib/i18n';
 
 // Kept in sync with SocialPlatformSchema; defined here so this client
 // component never imports server-only lib code.
@@ -27,7 +28,7 @@ const PLATFORMS: { id: SocialPost['platforms'][number]; label: string }[] = [
 
 function fmtWhen(iso: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(localeTag(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
 export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
@@ -62,7 +63,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         form.append('file', file);
         const res = await fetch('/api/social/upload', { method: 'POST', body: form });
         const body = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
-        if (!res.ok || !body?.url) throw new Error(body?.error ?? `upload failed (${res.status})`);
+        if (!res.ok || !body?.url) throw new Error(body?.error ?? t('upload failed ({status})', { status: res.status }));
         setMedia((prev) => [...prev, { url: body.url!, name: file.name }]);
       } catch (err) {
         setError(`${file.name}: ${err instanceof Error ? err.message : String(err)}`);
@@ -74,9 +75,9 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
 
   async function submit() {
     setError(null);
-    if (!caption.trim()) return setError('Add a caption first.');
-    if (selected.size === 0) return setError('Pick at least one platform.');
-    if (uploading > 0) return setError('Media still uploading — one sec.');
+    if (!caption.trim()) return setError(t('Add a caption first.'));
+    if (selected.size === 0) return setError(t('Pick at least one platform.'));
+    if (uploading > 0) return setError(t('Media still uploading — one sec.'));
     setBusy(true);
     try {
       const res = await fetch('/api/social/posts', {
@@ -94,7 +95,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
       const body = (await res.json()) as { post: SocialPost };
       setPosts((prev) => [body.post, ...prev]);
       const n = selected.size;
-      setDone(`✓ queued · ${n} platform${n === 1 ? '' : 's'}`);
+      setDone(n === 1 ? t('✓ queued · {n} platform', { n }) : t('✓ queued · {n} platforms', { n }));
       setTimeout(() => setDone(null), 1800);
       setCaption('');
       setMediaUrl('');
@@ -117,7 +118,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Write a caption — posts for REAL via Zernio…"
+          placeholder={t('Write a caption — posts for REAL via Zernio…')}
           rows={4}
           className="w-full resize-none rounded-sm-t border border-os-border bg-os-surface2 px-3 py-2.5 text-[13px] leading-relaxed text-os-text outline-none placeholder:text-os-dim focus:border-os-border-strong"
         />
@@ -155,7 +156,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         >
           <UploadCloud className={`h-4 w-4 ${dragOver ? 'text-os-accent' : 'text-os-dim'}`} />
           <span className="font-mono text-[10.5px] text-os-dim">
-            {uploading > 0 ? `uploading ${uploading} file${uploading === 1 ? '' : 's'}…` : 'drop images / video here — or click to browse'}
+            {uploading > 0 ? (uploading === 1 ? t('uploading {n} file…', { n: uploading }) : t('uploading {n} files…', { n: uploading })) : t('drop images / video here — or click to browse')}
           </span>
           <input
             ref={fileInputRef}
@@ -172,7 +173,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
               <span key={m.url} className="flex items-center gap-1.5 rounded-sm-t border border-os-border bg-os-bg px-2 py-1 font-mono text-[10px] text-os-muted">
                 <Paperclip className="h-3 w-3 text-os-dim" />
                 <span className="max-w-[180px] truncate">{m.name}</span>
-                <button type="button" aria-label={`remove ${m.name}`} onClick={() => setMedia((prev) => prev.filter((x) => x.url !== m.url))} className="pressable text-os-dim hover:text-os-err">
+                <button type="button" aria-label={t('remove {name}', { name: m.name })} onClick={() => setMedia((prev) => prev.filter((x) => x.url !== m.url))} className="pressable text-os-dim hover:text-os-err">
                   <X className="h-3 w-3" />
                 </button>
               </span>
@@ -185,7 +186,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
             <input
               value={mediaUrl}
               onChange={(e) => setMediaUrl(e.target.value)}
-              placeholder="or paste a media URL (optional)"
+              placeholder={t('or paste a media URL (optional)')}
               className="w-full bg-transparent font-mono text-[11px] text-os-text outline-none placeholder:text-os-dim"
             />
           </label>
@@ -201,7 +202,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         </div>
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="font-mono text-[10px] text-os-dim">
-            Publishes for real via Zernio — scheduled posts go out at their time.
+            {t('Publishes for real via Zernio — scheduled posts go out at their time.')}
           </span>
           <button
             onClick={submit}
@@ -209,11 +210,11 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
             data-lens="c" className="pressable flex items-center gap-2 whitespace-nowrap rounded-ctl border border-os-accent bg-os-accent px-3.5 py-[7px] text-[12.5px] font-semibold text-os-ink hover:shadow-[var(--glow)] disabled:opacity-45"
           >
             {busy ? (
-              <span className="font-mono text-[11px]">posting…</span>
+              <span className="font-mono text-[11px]">{t('posting…')}</span>
             ) : done ? (
               <span className="animate-pop font-mono text-[11px]">{done}</span>
             ) : (
-              <><Send className="h-[13px] w-[13px]" /> Post</>
+              <><Send className="h-[13px] w-[13px]" /> {t('Post')}</>
             )}
           </button>
         </div>
@@ -223,12 +224,12 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
       {/* Queue */}
       <div className="rounded-lg-t border border-os-border bg-os-surface p-1">
         <div className="flex items-center justify-between px-3 py-2.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-os-dim">Queue</span>
-          <span className="font-mono text-[10px] text-os-muted">{queued.length} pending</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-os-dim">{t('Queue')}</span>
+          <span className="font-mono text-[10px] text-os-muted">{t('{n} pending', { n: queued.length })}</span>
         </div>
         <div className="flex max-h-[280px] flex-col gap-1 overflow-y-auto px-1 pb-1">
           {queued.length === 0 && (
-            <p className="px-3 py-6 text-center font-mono text-[10.5px] text-os-dim">nothing queued yet</p>
+            <p className="px-3 py-6 text-center font-mono text-[10.5px] text-os-dim">{t('nothing queued yet')}</p>
           )}
           {queued.map((post) => (
             <div key={post.id} className="rounded-sm-t border border-os-border bg-os-surface2 px-3 py-2.5">
@@ -241,7 +242,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
                 ))}
                 <span className="ml-auto">
                   <Badge tone={post.scheduledFor ? 'warn' : 'accent'}>
-                    {post.scheduledFor ? fmtWhen(post.scheduledFor) : 'queued'}
+                    {post.scheduledFor ? fmtWhen(post.scheduledFor) : t('queued')}
                   </Badge>
                 </span>
               </div>

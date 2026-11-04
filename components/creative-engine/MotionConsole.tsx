@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, AlertTriangle, Box, Camera, Check, ChevronDown, Copy, Eye, EyeOff, FileText, Film, Images, Keyboard, Layers, Lock, LockOpen, MessageSquare, Palette, RotateCcw, Settings2, SkipBack, SkipForward, Square, Target, Trash2, UserRound, Wand2, X } from 'lucide-react';
 import type { Campaign, ConsoleControls, VideoModel } from '@/lib/creative-engine/schemas';
@@ -18,7 +19,7 @@ import { ConsoleErrorBoundary } from '@/components/creative-engine/ConsoleErrorB
 import { ToastProvider, useToast } from '@/components/ui/Toast';
 import { lockBodyScroll } from '@/components/ui/use-dialog';
 import { pushEscape } from '@/lib/escape-stack';
-import { fmtCredits, plural } from '@/lib/creative-engine/format';
+import { fmtCredits } from '@/lib/creative-engine/format';
 import {
   COLUMN_KEYS, CONSOLE_SHORTCUTS, chipWidths, clampControls, clampReport, controlsIssue, defaultFor, draftKey, generateBlockReason,
   isModified, isPresetModified, parseDraft, shortcutFor, titleCaseStatus, trimNotice, type BlockReason, type ConsoleDraft, type DraftPart,
@@ -48,31 +49,31 @@ export type ConsoleSheet = 'runs' | 'credits' | 'connect' | 'scripter' | 'genera
 const DEFAULTS: ConsoleControls = ConsoleControlsSchema.parse({});
 const PART_ORDER: Part[] = ['subject', 'action', 'camera', 'style', 'constraints'];
 const PART_META: Record<Part, { label: string; colour: string; icon: React.ReactNode }> = {
-  subject: { label: 'Subject', colour: 'var(--o-part-1)', icon: <UserRound className="h-4 w-4" strokeWidth={1.6} /> },
-  action: { label: 'Action', colour: 'var(--o-part-2)', icon: <Film className="h-4 w-4" strokeWidth={1.6} /> },
-  camera: { label: 'Camera', colour: 'var(--o-part-3)', icon: <Camera className="h-4 w-4" strokeWidth={1.6} /> },
-  style: { label: 'Style', colour: 'var(--o-part-4)', icon: <Palette className="h-4 w-4" strokeWidth={1.6} /> },
-  constraints: { label: 'Constraints', colour: 'var(--o-part-5)', icon: <Lock className="h-4 w-4" strokeWidth={1.6} /> },
+  subject: { label: t('Subject'), colour: 'var(--o-part-1)', icon: <UserRound className="h-4 w-4" strokeWidth={1.6} /> },
+  action: { label: t('Action'), colour: 'var(--o-part-2)', icon: <Film className="h-4 w-4" strokeWidth={1.6} /> },
+  camera: { label: t('Camera'), colour: 'var(--o-part-3)', icon: <Camera className="h-4 w-4" strokeWidth={1.6} /> },
+  style: { label: t('Style'), colour: 'var(--o-part-4)', icon: <Palette className="h-4 w-4" strokeWidth={1.6} /> },
+  constraints: { label: t('Constraints'), colour: 'var(--o-part-5)', icon: <Lock className="h-4 w-4" strokeWidth={1.6} /> },
 };
 const COLUMN_PART: Record<Column, Part | null> = { shot: 'camera', look: 'style', output: null };
-const COLUMN_NAME: Record<Column, string> = { shot: 'Shot', look: 'Look', output: 'Output' };
+const COLUMN_NAME: Record<Column, string> = { shot: t('Shot'), look: t('Look'), output: t('Output') };
 const ASPECTS = ['9:16', '16:9', '1:1', 'auto'] as const;
 const RESOLUTIONS = ['480p', '720p', '1080p', '4K'] as const;
 const INTENSITY_WORDS = ['slowly', 'gently', 'casually', 'quickly', 'deliberately'] as const;
 const TABS = [
-  { key: 'scene', label: 'Scene', icon: <Layers className="h-3.5 w-3.5" strokeWidth={2} /> },
-  { key: 'presets', label: 'Presets', icon: <Settings2 className="h-3.5 w-3.5" strokeWidth={2} /> },
-  { key: 'references', label: 'Refs', icon: <Images className="h-3.5 w-3.5" strokeWidth={2} /> },
+  { key: 'scene', label: t('Scene'), icon: <Layers className="h-3.5 w-3.5" strokeWidth={2} /> },
+  { key: 'presets', label: t('Presets'), icon: <Settings2 className="h-3.5 w-3.5" strokeWidth={2} /> },
+  { key: 'references', label: t('Refs'), icon: <Images className="h-3.5 w-3.5" strokeWidth={2} /> },
 ] as const;
 type Tab = (typeof TABS)[number]['key'];
 /** Errors raised by `set` for a field limit; a later valid edit clears them. */
 const LIMIT_ERROR = / (characters )?(max|min)$/;
-const PANEL_TITLE: Record<Exclude<Panel, null>, string> = { prompt: 'Composed prompt', presets: 'Presets', dialogue: 'Dialogue', lints: 'Lints', describe: 'Describe it', shortcuts: 'Keyboard shortcuts' };
-const SAMPLE_OFF = 'Sample data: actions are off';
+const PANEL_TITLE: Record<Exclude<Panel, null>, string> = { prompt: t('Composed prompt'), presets: t('Presets'), dialogue: t('Dialogue'), lints: t('Lints'), describe: t('Describe it'), shortcuts: t('Keyboard shortcuts') };
+const SAMPLE_OFF = t('Sample data: actions are off');
 /** Fields sent to Arcads as request fields (the Output column's "Show in composed prompt"). */
 const BOUND_FIELDS: { key: keyof ConsoleControls; label: string }[] = [
-  { key: 'model', label: 'Model' }, { key: 'duration', label: 'Duration' }, { key: 'aspectRatio', label: 'Aspect' }, { key: 'resolution', label: 'Resolution' },
-  { key: 'variations', label: 'Variations' }, { key: 'audioEnabled', label: 'Audio' }, { key: 'enhance', label: 'Enhance prompt' }, { key: 'bitrateMode', label: 'Bitrate' },
+  { key: 'model', label: t('Model') }, { key: 'duration', label: t('Duration') }, { key: 'aspectRatio', label: t('Aspect') }, { key: 'resolution', label: t('Resolution') },
+  { key: 'variations', label: t('Variations') }, { key: 'audioEnabled', label: t('Audio') }, { key: 'enhance', label: t('Enhance prompt') }, { key: 'bitrateMode', label: t('Bitrate') },
 ];
 
 type ConsoleProps = {
@@ -121,11 +122,11 @@ function mergeControls(cur: ConsoleControls, patch: Partial<ConsoleControls>): C
 }
 
 function valueText(key: keyof ConsoleControls, v: unknown): string {
-  if (typeof v === 'boolean') return v ? 'on' : 'off';
+  if (typeof v === 'boolean') return v ? t('on') : t('off');
   if (key === 'duration') return `${String(v)}s`;
   if (key === 'lensMm') return `${String(v)} mm`;
   if (key === 'intensity' && typeof v === 'number') return INTENSITY_WORDS[v - 1] ?? String(v);
-  if (typeof v === 'string') return v || 'empty';
+  if (typeof v === 'string') return v || t('empty');
   return String(v);
 }
 
@@ -393,7 +394,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     const { controls, trimmed } = clampReport({ dialogue: beat ? beat.spoken : firstVersion.fullScript, ...(beat ? { action: beat.action } : {}), duration });
     setC((cur) => mergeControls(cur, controls));
     setBeatPick(i);
-    notify(trimNotice(trimmed) ?? (beat ? `${beat.name}: dialogue and duration follow this beat.` : 'Whole script: dialogue and duration restored.'));
+    notify(trimNotice(trimmed) ?? (beat ? t('{name}: dialogue and duration follow this beat.', { name: beat.name }) : t('Whole script: dialogue and duration restored.')));
   };
   const applyPreset = (p: Preset) => { setC((cur) => mergeControls(cur, p.controls)); setActivePreset(p.name); };
 
@@ -408,7 +409,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     const patch: Partial<ConsoleControls> = {};
     for (const k of COLUMN_KEYS[col]) (patch as Record<string, unknown>)[k] = defaultFor(k, DEFAULTS, preset);
     setC((cur) => mergeControls(cur, patch));
-    notify(`${COLUMN_NAME[col]} reset to ${presetObj ? presetObj.name : 'defaults'}.`, 'ok');
+    notify(t('{column} reset to {target}.', { column: COLUMN_NAME[col], target: presetObj ? presetObj.name : t('defaults') }), 'ok');
   };
   const seedDialogue = (): Partial<ConsoleControls> => (firstVersion ? clampControls({ dialogue: firstVersion.fullScript }) : {});
   const resetAll = () => {
@@ -421,12 +422,12 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     setActivePreset(null);
     setTab('scene');
     if (!readOnly) clearStoredDraft(campaign?.id);
-    notify('Every control is back to its default.', 'ok');
+    notify(t('Every control is back to its default.'), 'ok');
   };
   const resetToPreset = () => {
     if (!presetObj) return;
     setC((cur) => mergeControls(mergeControls(DEFAULTS, presetObj.controls), { dialogue: cur.dialogue, omitDialogue: cur.omitDialogue, referenceImages: cur.referenceImages, referenceVideos: cur.referenceVideos, referenceAudios: cur.referenceAudios, startFrame: cur.startFrame, endFrame: cur.endFrame }));
-    notify(`Back to ${presetObj.name}.`, 'ok');
+    notify(t('Back to {name}.', { name: presetObj.name }), 'ok');
   };
 
   const applyDescribe = () => {
@@ -440,7 +441,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     for (const v of VIDEO_MODELS) if (desc.includes(v.split('-')[0])) next.model = v;
     if (Object.keys(next).length === 0 && want('subject')) next.subject = describe.trim().slice(0, CONSOLE_LIMITS.subject);
     setC((cur) => mergeControls(cur, next));
-    notify(Object.keys(next).length ? `Set ${Object.keys(next).join(', ')}.` : 'Nothing recognised.');
+    notify(Object.keys(next).length ? t('Set {fields}.', { fields: Object.keys(next).join(', ') }) : t('Nothing recognised.'));
   };
 
   const refreshRuns = async () => { const rr = await api.runs(campaign?.id ?? null).catch(() => null); if (rr) onRuns(rr.runs); };
@@ -451,14 +452,14 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     try {
       const res = await api.motion({ campaignId: campaign.id, controls: c, scriptId: firstScript?.id ?? null, override });
       const ok = res.submitted.length;
-      if (res.failed.length) notify(`${ok} of ${ok + res.failed.length} sent. ${res.failed[0].reason}`, 'err');
-      else notify(`${plural(ok, 'request')} sent to Arcads.`, 'ok');
+      if (res.failed.length) notify(`${t('{ok} of {total} sent.', { ok, total: ok + res.failed.length })} ${res.failed[0].reason}`, 'err');
+      else notify(ok === 1 ? t('{n} request sent to Arcads.', { n: fmtCredits(ok) }) : t('{n} requests sent to Arcads.', { n: fmtCredits(ok) }), 'ok');
       setGate(false);
       await refreshRuns();
       onCampaign((await api.campaign(campaign.id)).campaign);
     } catch (err) {
       if (err instanceof ApiError && err.kind === 'cap') setCapAsk(err.message);
-      else setGateError(err instanceof Error ? err.message : 'Submit failed.');
+      else setGateError(err instanceof Error ? err.message : t('Submit failed.'));
     } finally { setBusy(false); }
   };
   const abandon = async () => {
@@ -467,16 +468,16 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     setAbandonError(null);
     try {
       await api.abandon(r.id);
-      notify(`Abandoned ${r.title}.`, 'ok');
+      notify(t('Abandoned {title}.', { title: r.title }), 'ok');
       setMenu(null);
       await refreshRuns();
-    } catch (err) { setAbandonError(err instanceof Error ? err.message : 'Abandon failed.'); }
+    } catch (err) { setAbandonError(err instanceof Error ? err.message : t('Abandon failed.')); }
   };
   const copyPrompt = async () => {
-    if (await copyText(composed.prompt)) { notify('Prompt copied.', 'ok'); return; }
+    if (await copyText(composed.prompt)) { notify(t('Prompt copied.'), 'ok'); return; }
     setPromptFocus(null);
     setPanel('prompt');
-    notify('Copy blocked. The prompt is open; select it with Cmd+A.', 'err');
+    notify(t('Copy blocked. The prompt is open; select it with Cmd+A.'), 'err');
     requestAnimationFrame(() => {
       const el = promptRef.current; if (!el) return;
       const range = document.createRange(); range.selectNodeContents(el);
@@ -487,7 +488,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     const name = presetName.trim();
     if (!name || readOnly) return;
     const clash = presets.find((p) => p.name.toLowerCase() === name.toLowerCase());
-    if (clash?.builtin) { notify("Built-in presets can't be replaced. Pick another name.", 'err'); return; }
+    if (clash?.builtin) { notify(t("Built-in presets can't be replaced. Pick another name."), 'err'); return; }
     if (clash && !replace) { setReplaceAsk(clash); return; }
     try {
       if (replace) await api.deletePreset(replace.id);
@@ -495,9 +496,9 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
       setPresets((p) => [{ id: r.preset.id, name, builtin: false, controls: c }, ...p.filter((x) => x.id !== replace?.id)]);
       setActivePreset(name);
       setReplaceAsk(null);
-      notify(`Preset “${name}” ${replace ? 'replaced' : 'saved'}.`, 'ok');
+      notify(replace ? t('Preset “{name}” replaced.', { name }) : t('Preset “{name}” saved.', { name }), 'ok');
       setPresetName('');
-    } catch (err) { notify(err instanceof Error ? err.message : 'Save failed.', 'err'); }
+    } catch (err) { notify(err instanceof Error ? err.message : t('Save failed.'), 'err'); }
   };
   const deletePreset = async (p: Preset) => {
     if (p.builtin || readOnly) return;
@@ -505,8 +506,8 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
       await api.deletePreset(p.id);
       setPresets((list) => list.filter((x) => x.id !== p.id));
       if (activePreset === p.name) setActivePreset(null);
-      notify(`Preset “${p.name}” deleted.`, 'ok');
-    } catch (err) { notify(err instanceof Error ? err.message : 'Delete failed.', 'err'); }
+      notify(t('Preset “{name}” deleted.', { name: p.name }), 'ok');
+    } catch (err) { notify(err instanceof Error ? err.message : t('Delete failed.'), 'err'); }
   };
   const probeThisModel = async (override = false) => {
     if (readOnly) return;
@@ -514,11 +515,11 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     try {
       const r = await api.probeModel(c.model, override);
       setProbeAsk(false); setCapAsk(null);
-      notify(`Probe for ${c.model} submitted as ${r.runId}. Its verdict lands in Credits & health.`, 'ok');
+      notify(t('Probe for {model} submitted as {id}. Its verdict lands in Credits & health.', { model: c.model, id: r.runId }), 'ok');
       await refreshRuns();
     } catch (err) {
       if (err instanceof ApiError && err.kind === 'cap') setCapAsk(err.message);
-      else setGateError(err instanceof Error ? err.message : 'Probe failed.');
+      else setGateError(err instanceof Error ? err.message : t('Probe failed.'));
     } finally { setBusy(false); }
   };
 
@@ -583,34 +584,34 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     <OBtn kind={small ? 'icon-sm' : 'icon'} cls={`ae-o-icon ${small ? 'sm' : ''}`}  data-on={panel === key} aria-pressed={panel === key} title={title} aria-label={title} onClick={() => toggle(key)}>{icon}{badge ? <span className="ae-o-icon-badge" aria-hidden>{badge}</span> : null}</OBtn>
   );
   const refsTool = (icon: React.ReactNode, small = false) => (
-    <OBtn kind={small ? 'icon-sm' : 'icon'} cls={`ae-o-icon ${small ? 'sm' : ''}`}  data-on={tab === 'references'} aria-pressed={tab === 'references'} title="References: open the Refs tab" aria-label="References" onClick={goRefs}>{icon}</OBtn>
+    <OBtn kind={small ? 'icon-sm' : 'icon'} cls={`ae-o-icon ${small ? 'sm' : ''}`}  data-on={tab === 'references'} aria-pressed={tab === 'references'} title={t('References: open the Refs tab')} aria-label={t('References')} onClick={goRefs}>{icon}</OBtn>
   );
 
-  const statusText = running.length ? `Generating ${running.length}` : health.dry ? 'Dry run' : 'Ready';
-  const modeWord = readOnly ? 'Sample' : !connected ? 'Not configured' : health.dry ? 'Dry run' : 'Live';
-  const presetLabel = activePreset ? `${activePreset}${presetEdited ? ' · edited' : ''}` : 'Custom';
+  const statusText = running.length ? t('Generating {n}', { n: running.length }) : health.dry ? t('Dry run') : t('Ready');
+  const modeWord = readOnly ? t('Sample') : !connected ? t('Not configured') : health.dry ? t('Dry run') : t('Live');
+  const presetLabel = activePreset ? `${activePreset}${presetEdited ? t(' · edited') : ''}` : t('Custom');
   const runLine = running.length
-    ? `${running.length} running · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || 'Waiting'}${running.length > 1 ? ` · +${running.length - 1}` : ''}`
-    : delivered ? `${delivered} delivered` : 'No requests yet';
+    ? `${t('{n} running', { n: running.length })} · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || t('Waiting')}${running.length > 1 ? ` · +${running.length - 1}` : ''}`
+    : delivered ? t('{n} delivered', { n: delivered }) : t('No requests yet');
   const balance = health.arcads.balance?.creditsRemaining ?? null;
   const creditLine = balance != null
-    ? `${fmtCredits(balance)} left · session ${fmtCredits(health.arcads.sessionSpent)} / ${fmtCredits(health.arcads.sessionCap)}`
-    : `session ${fmtCredits(health.arcads.sessionSpent)} / ${fmtCredits(health.arcads.sessionCap)} cap`;
+    ? t('{left} left · session {spent} / {cap}', { left: fmtCredits(balance), spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })
+    : t('session {spent} / {cap} cap', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) });
   const ringPct = running.length ? Math.max(4, Math.min(100, (running[0].elapsedMs / running[0].timeoutMs) * 100)) : 0;
-  const ringTitle = running.length ? `${running[0].title} · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || 'Waiting'}` : 'Nothing running';
-  const assetsWord = plural(stageAssets.length, 'asset');
-  const words = plural(composed.wordCount, 'word');
-  const lintWord = plural(allLints.length, 'lint');
+  const ringTitle = running.length ? `${running[0].title} · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || t('Waiting')}` : t('Nothing running');
+  const assetsWord = (stageAssets.length === 1 ? t('{n} asset', { n: fmtCredits(stageAssets.length) }) : t('{n} assets', { n: fmtCredits(stageAssets.length) }));
+  const words = (composed.wordCount === 1 ? t('{n} word', { n: fmtCredits(composed.wordCount) }) : t('{n} words', { n: fmtCredits(composed.wordCount) }));
+  const lintWord = (allLints.length === 1 ? t('{n} lint', { n: fmtCredits(allLints.length) }) : t('{n} lints', { n: fmtCredits(allLints.length) }));
   const abandonTarget = running.find((x) => x.id === abandonId) ?? running[0] ?? null;
-  const scriptTitle = (s: (typeof approved)[number]) => `${campaign?.angles.find((x) => x.id === s.angleId)?.title ?? 'Script'} v${s.approvedVersion}`;
-  const blockLabel = (a: BlockReason['action'], inGate: boolean) => a === 'campaign' ? (campaigns.length ? (inGate ? 'Open campaigns' : 'Pick one') : 'Create one') : a === 'lints' ? 'Show lints' : a === 'connect' ? 'Connect Arcads' : undefined;
+  const scriptTitle = (s: (typeof approved)[number]) => `${campaign?.angles.find((x) => x.id === s.angleId)?.title ?? t('Script')} v${s.approvedVersion}`;
+  const blockLabel = (a: BlockReason['action'], inGate: boolean) => a === 'campaign' ? (campaigns.length ? (inGate ? t('Open campaigns') : t('Pick one')) : t('Create one')) : a === 'lints' ? t('Show lints') : a === 'connect' ? t('Connect Arcads') : undefined;
   const sortedCampaigns = [...campaigns].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const refCount = (n: number, max: number) => <em className="not-italic" style={{ color: n > max && max > 0 ? 'var(--o-red-text)' : 'var(--o-dim)' }}>{max ? (n ? `${n} of ${max}` : `up to ${max}`) : n ? `${n} kept, not sent` : 'none for this model'}</em>;
+  const refCount = (n: number, max: number) => <em className="not-italic" style={{ color: n > max && max > 0 ? 'var(--o-red-text)' : 'var(--o-dim)' }}>{max ? (n ? t('{n} of {total}', { n, total: max }) : t('up to {n}', { n: max })) : n ? t('{n} kept, not sent', { n }) : t('none for this model')}</em>;
   const refStatus = (paths: string[]) => paths.length > 0 && (
     <ul className="ae-o-refstat">
       {paths.map((p) => {
         const k = refChecks[p];
-        const text = k === undefined || k === 'checking' ? 'checking' : k === 'error' ? 'check failed' : !k.exists ? 'missing' : k.kind ?? 'unknown type';
+        const text = k === undefined || k === 'checking' ? t('checking') : k === 'error' ? t('check failed') : !k.exists ? t('missing') : k.kind ? t(k.kind) : t('unknown type');
         const tone = typeof k === 'object' ? (k.exists ? 'ok' : 'bad') : k === 'error' ? 'bad' : 'wait';
         return <li key={p} data-tone={tone} title={p}><span className="truncate">{p.split('/').pop()}</span><span>{text}</span></li>;
       })}
@@ -619,7 +620,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
   const refField = (field: 'referenceImages' | 'referenceVideos' | 'referenceAudios', label: string, max: number, rows: number, ph: string) => (
     <>
       <div className="mb-1 mt-2 flex justify-between gap-2"><span>{label}</span>{refCount(c[field].length, max)}</div>
-      <OTextarea cls="ae-o-text w-full resize-none" keep="w-full resize-none" value={c[field].join('\n')} onChange={(e) => set(field, e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))} rows={rows} placeholder={max ? ph : `${c.model} takes no ${label.toLowerCase()}`} disabled={readOnly || (max === 0 && c[field].length === 0)} title={readOnly ? SAMPLE_OFF : max === 0 ? `${c.model} takes no ${label.toLowerCase()}` : undefined}  aria-label={`${label} reference paths`} />
+      <OTextarea cls="ae-o-text w-full resize-none" keep="w-full resize-none" value={c[field].join('\n')} onChange={(e) => set(field, e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))} rows={rows} placeholder={max ? ph : t('{model} takes no {what}', { model: c.model, what: label.toLowerCase() })} disabled={readOnly || (max === 0 && c[field].length === 0)} title={readOnly ? SAMPLE_OFF : max === 0 ? t('{model} takes no {what}', { model: c.model, what: label.toLowerCase() }) : undefined}  aria-label={t('{label} reference paths', { label })} />
       {refStatus(c[field])}
     </>
   );
@@ -630,74 +631,74 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
         {/* top bar */}
         <div className="ae-o-top">
           <span className="ae-o-mark" aria-hidden><Film className="h-4 w-4" strokeWidth={2.2} /></span>
-          <span ref={titleRef} tabIndex={-1} className="ae-o-title" id="ae-console-title">Motion console</span>
+          <span ref={titleRef} tabIndex={-1} className="ae-o-title" id="ae-console-title">{t('Motion console')}</span>
           <span className="relative inline-flex">
-            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title="Console menu" aria-label="Console menu" aria-haspopup="menu" aria-expanded={menu === 'console'} data-on={menu === 'console'} onClick={() => setMenu(menu === 'console' ? null : 'console')}><ChevronDown className="h-3.5 w-3.5" strokeWidth={2} /></OBtn>
+            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title={t('Console menu')} aria-label={t('Console menu')} aria-haspopup="menu" aria-expanded={menu === 'console'} data-on={menu === 'console'} onClick={() => setMenu(menu === 'console' ? null : 'console')}><ChevronDown className="h-3.5 w-3.5" strokeWidth={2} /></OBtn>
             {menu === 'console' && (
-              <Popover id="console-menu" label="Console menu" onClose={() => setMenu(null)} className="left-0 top-[36px]">
-                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); resetAll(); }}><RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />Reset all controls to defaults</OBtn>
-                <OBtn kind="row" role="menuitem" disabled={!presetObj} title={presetObj ? undefined : 'No preset applied'} onClick={() => { setMenu(null); resetToPreset(); }}><Layers className="h-3.5 w-3.5" strokeWidth={2} />{presetObj ? `Reset to ${presetObj.name}` : 'Reset to preset'}</OBtn>
-                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); openSheet('runs'); }}><Activity className="h-3.5 w-3.5" strokeWidth={2} />Open Runs</OBtn>
-                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); openSheet('credits'); }}><Settings2 className="h-3.5 w-3.5" strokeWidth={2} />Open Credits & health</OBtn>
-                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); setPanel('shortcuts'); }}><Keyboard className="h-3.5 w-3.5" strokeWidth={2} />Keyboard shortcuts</OBtn>
+              <Popover id="console-menu" label={t('Console menu')} onClose={() => setMenu(null)} className="left-0 top-[36px]">
+                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); resetAll(); }}><RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />{t('Reset all controls to defaults')}</OBtn>
+                <OBtn kind="row" role="menuitem" disabled={!presetObj} title={presetObj ? undefined : t('No preset applied')} onClick={() => { setMenu(null); resetToPreset(); }}><Layers className="h-3.5 w-3.5" strokeWidth={2} />{presetObj ? t('Reset to {name}', { name: presetObj.name }) : t('Reset to preset')}</OBtn>
+                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); openSheet('runs'); }}><Activity className="h-3.5 w-3.5" strokeWidth={2} />{t('Open Runs')}</OBtn>
+                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); openSheet('credits'); }}><Settings2 className="h-3.5 w-3.5" strokeWidth={2} />{t('Open Credits & health')}</OBtn>
+                <OBtn kind="row" role="menuitem" onClick={() => { setMenu(null); setPanel('shortcuts'); }}><Keyboard className="h-3.5 w-3.5" strokeWidth={2} />{t('Keyboard shortcuts')}</OBtn>
               </Popover>
             )}
           </span>
-          <OBtn kind="pill" cls="ae-o-pill"  title={readOnly ? 'Sample data: the bridge is not used' : connected ? `Arcads credentials present on this host (${modeWord}). Open Credits & health` : 'No Arcads credentials yet. Connect Arcads'} onClick={() => (connected ? openSheet('credits') : onConnect())}>
-            <Activity className="h-3.5 w-3.5 text-[var(--o-muted)]" strokeWidth={1.8} />Arcads bridge<span className={`ae-o-badge ${connected ? '' : 'off'}`}>{connected ? <Check className="h-2.5 w-2.5" strokeWidth={3.5} /> : <X className="h-2.5 w-2.5" strokeWidth={3} />}</span><span className="ae-o-mode" data-mode={readOnly ? 'sample' : !connected ? 'off' : health.dry ? 'dry' : 'live'}>{modeWord}</span>
+          <OBtn kind="pill" cls="ae-o-pill"  title={readOnly ? t('Sample data: the bridge is not used') : connected ? t('Arcads credentials present on this host ({mode}). Open Credits & health', { mode: modeWord }) : t('No Arcads credentials yet. Connect Arcads')} onClick={() => (connected ? openSheet('credits') : onConnect())}>
+            <Activity className="h-3.5 w-3.5 text-[var(--o-muted)]" strokeWidth={1.8} />{t('Arcads bridge')}<span className={`ae-o-badge ${connected ? '' : 'off'}`}>{connected ? <Check className="h-2.5 w-2.5" strokeWidth={3.5} /> : <X className="h-2.5 w-2.5" strokeWidth={3} />}</span><span className="ae-o-mode" data-mode={readOnly ? 'sample' : !connected ? 'off' : health.dry ? 'dry' : 'live'}>{modeWord}</span>
           </OBtn>
           {readOnly ? (
-            <OBtn kind="pill" cls="ae-o-pill center"  disabled title="Sample campaign: switching is off in the sample">{campaign ? campaign.name.slice(0, 60) : 'Sample campaign'}</OBtn>
+            <OBtn kind="pill" cls="ae-o-pill center"  disabled title={t('Sample campaign: switching is off in the sample')}>{campaign ? campaign.name.slice(0, 60) : t('Sample campaign')}</OBtn>
           ) : campaigns.length === 0 ? (
-            <OBtn kind="pill" cls="ae-o-pill center"  title="No campaign yet. Create one in the Creative generator" onClick={() => openSheet('generator')}>No campaign · Create one</OBtn>
+            <OBtn kind="pill" cls="ae-o-pill center"  title={t('No campaign yet. Create one in the Creative generator')} onClick={() => openSheet('generator')}>{t('No campaign · Create one')}</OBtn>
           ) : (
-            <OSelect cls="ae-o-pill center ae-o-picker" ref={pickerRef}  value={switching ? '__loading' : campaign?.id ?? ''} disabled={switching} onChange={(e) => void switchCampaign(e.target.value)} aria-label="Campaign" title="Switch campaign">
-              {switching && <option value="__loading">Loading…</option>}
-              {!campaign && <option value="">No campaign</option>}
+            <OSelect cls="ae-o-pill center ae-o-picker" ref={pickerRef}  value={switching ? '__loading' : campaign?.id ?? ''} disabled={switching} onChange={(e) => void switchCampaign(e.target.value)} aria-label={t('Campaign')} title={t('Switch campaign')}>
+              {switching && <option value="__loading">{t('Loading…')}</option>}
+              {!campaign && <option value="">{t('No campaign')}</option>}
               {sortedCampaigns.map((s) => (<option key={s.id} value={s.id}>{s.name.slice(0, 60)}</option>))}
             </OSelect>
           )}
           <span className="ml-auto flex items-center gap-3">
-            <OBtn kind="pill" cls="ae-o-pill dark"  title={activePreset ? `Preset ${activePreset}${presetEdited ? ', edited since applied' : ''}. Open presets` : 'No preset applied. Open presets'} data-on={panel === 'presets'} onClick={() => toggle('presets')}><Layers className="h-4 w-4 text-[var(--o-muted)]" strokeWidth={1.7} /><span className="ae-o-ellipsis">{presetLabel}</span></OBtn>
-            <span className="ae-o-label-strong">Arcads status</span>
+            <OBtn kind="pill" cls="ae-o-pill dark"  title={activePreset ? `${t('Preset {name}', { name: activePreset })}${presetEdited ? t(', edited since applied') : ''}${t('. Open presets')}` : t('No preset applied. Open presets')} data-on={panel === 'presets'} onClick={() => toggle('presets')}><Layers className="h-4 w-4 text-[var(--o-muted)]" strokeWidth={1.7} /><span className="ae-o-ellipsis">{presetLabel}</span></OBtn>
+            <span className="ae-o-label-strong">{t('Arcads status')}</span>
             {connected
-              ? <OBtn kind="pill" cls="ae-o-pill green"  title={`${statusText}. Open Runs`} onClick={() => openSheet('runs')}><span className={`ae-o-dot ${running.length ? 'live' : ''}`} style={{ background: health.dry && !running.length ? 'var(--o-dim)' : 'var(--o-green)' }} />{statusText}</OBtn>
-              : <OBtn kind="pill" cls="ae-o-pill"  title="Connect Arcads" onClick={onConnect}><span className="ae-o-dot" style={{ background: 'var(--o-dim)' }} />Connect Arcads</OBtn>}
-            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title="Engine settings: session cap, UGC path, new session" aria-label="Engine settings" onClick={() => openSheet('credits')}><Settings2 className="h-4 w-4" strokeWidth={1.8} /></OBtn>
-            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title="Exit (Esc). Your controls are kept" aria-label="Exit" onClick={onClose}><X className="h-4 w-4" strokeWidth={2} /></OBtn>
+              ? <OBtn kind="pill" cls="ae-o-pill green"  title={t('{status}. Open Runs', { status: statusText })} onClick={() => openSheet('runs')}><span className={`ae-o-dot ${running.length ? 'live' : ''}`} style={{ background: health.dry && !running.length ? 'var(--o-dim)' : 'var(--o-green)' }} />{statusText}</OBtn>
+              : <OBtn kind="pill" cls="ae-o-pill"  title={t('Connect Arcads')} onClick={onConnect}><span className="ae-o-dot" style={{ background: 'var(--o-dim)' }} />{t('Connect Arcads')}</OBtn>}
+            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title={t('Engine settings: session cap, UGC path, new session')} aria-label={t('Engine settings')} onClick={() => openSheet('credits')}><Settings2 className="h-4 w-4" strokeWidth={1.8} /></OBtn>
+            <OBtn kind="icon-sm" cls="ae-o-icon sm"  title={t('Exit (Esc). Your controls are kept')} aria-label={t('Exit')} onClick={onClose}><X className="h-4 w-4" strokeWidth={2} /></OBtn>
           </span>
         </div>
 
         {/* tool strip · transport · readout */}
         <div className="ae-o-tools">
           <span className="ae-o-strip">
-            {tool('presets', <Layers className="h-[18px] w-[18px]" strokeWidth={1.8} />, 'Presets')}
+            {tool('presets', <Layers className="h-[18px] w-[18px]" strokeWidth={1.8} />, t('Presets'))}
             {refsTool(<Images className="h-[18px] w-[18px]" strokeWidth={1.8} />)}
-            {tool('dialogue', <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />, 'Dialogue')}
-            {tool('lints', <AlertTriangle className="h-[18px] w-[18px]" strokeWidth={1.8} />, blocking.length ? `${lintWord}, ${blocking.length} blocking` : lintWord, false, blocking.length)}
-            {tool('describe', <Wand2 className="h-[18px] w-[18px]" strokeWidth={1.8} />, 'Describe it')}
-            {tool('prompt', <FileText className="h-[18px] w-[18px]" strokeWidth={1.8} />, 'Composed prompt')}
-            <OBtn kind="icon" cls="ae-o-icon"  title="Copy the prompt" aria-label="Copy the prompt" onClick={copyPrompt}><Copy className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
-            <OBtn kind="icon" cls="ae-o-icon"  title={readOnly ? SAMPLE_OFF : !connected ? 'Connect Arcads first' : `Probe ${c.model} with one cheapest request (charges credits)`} aria-label={`Probe ${c.model}`} disabled={!connected || readOnly} data-on={probeAsk} onClick={() => { setGateError(null); setCapAsk(null); setProbeAsk(true); }}><Activity className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
+            {tool('dialogue', <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />, t('Dialogue'))}
+            {tool('lints', <AlertTriangle className="h-[18px] w-[18px]" strokeWidth={1.8} />, blocking.length ? t('{lints}, {n} blocking', { lints: lintWord, n: blocking.length }) : lintWord, false, blocking.length)}
+            {tool('describe', <Wand2 className="h-[18px] w-[18px]" strokeWidth={1.8} />, t('Describe it'))}
+            {tool('prompt', <FileText className="h-[18px] w-[18px]" strokeWidth={1.8} />, t('Composed prompt'))}
+            <OBtn kind="icon" cls="ae-o-icon"  title={t('Copy the prompt')} aria-label={t('Copy the prompt')} onClick={copyPrompt}><Copy className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
+            <OBtn kind="icon" cls="ae-o-icon"  title={readOnly ? SAMPLE_OFF : !connected ? t('Connect Arcads first') : t('Probe {model} with one cheapest request (charges credits)', { model: c.model })} aria-label={t('Probe {model}', { model: c.model })} disabled={!connected || readOnly} data-on={probeAsk} onClick={() => { setGateError(null); setCapAsk(null); setProbeAsk(true); }}><Activity className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
           </span>
           <span className="ae-o-strip">
-            <OBtn kind="icon" cls="ae-o-icon"  title={stageAssets.length < 2 ? (stageAssets.length ? '1 motion asset: nothing to step to' : 'No motion assets yet') : 'Previous asset ( [ )'} aria-label="Previous asset" disabled={stageAssets.length < 2} onClick={() => step(-1)}><SkipBack className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
+            <OBtn kind="icon" cls="ae-o-icon"  title={stageAssets.length < 2 ? (stageAssets.length ? t('1 motion asset: nothing to step to') : t('No motion assets yet')) : t('Previous asset ( [ )')} aria-label={t('Previous asset')} disabled={stageAssets.length < 2} onClick={() => step(-1)}><SkipBack className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
             <span className="relative inline-flex">
-              <OBtn kind="icon" cls="ae-o-icon"  title={readOnly ? SAMPLE_OFF : running.length ? 'Abandon a running job' : 'Nothing running'} aria-label="Abandon a running job" aria-haspopup="menu" aria-expanded={menu === 'abandon'} disabled={running.length === 0 || readOnly} data-on={menu === 'abandon'} onClick={() => { setAbandonError(null); setAbandonId(running[0]?.id ?? null); setMenu(menu === 'abandon' ? null : 'abandon'); }}><Square className="h-[16px] w-[16px]" strokeWidth={1.8} /></OBtn>
+              <OBtn kind="icon" cls="ae-o-icon"  title={readOnly ? SAMPLE_OFF : running.length ? t('Abandon a running job') : t('Nothing running')} aria-label={t('Abandon a running job')} aria-haspopup="menu" aria-expanded={menu === 'abandon'} disabled={running.length === 0 || readOnly} data-on={menu === 'abandon'} onClick={() => { setAbandonError(null); setAbandonId(running[0]?.id ?? null); setMenu(menu === 'abandon' ? null : 'abandon'); }}><Square className="h-[16px] w-[16px]" strokeWidth={1.8} /></OBtn>
               {menu === 'abandon' && abandonTarget && (
-                <Popover id="abandon-confirm" label="Abandon a running job" onClose={() => setMenu(null)} className="left-0 top-[40px] w-[300px]">
+                <Popover id="abandon-confirm" label={t('Abandon a running job')} onClose={() => setMenu(null)} className="left-0 top-[40px] w-[300px]">
                   {running.length > 1 && (
-                    <div role="radiogroup" aria-label="Running jobs" className="ae-o-pop-list">
+                    <div role="radiogroup" aria-label={t('Running jobs')} className="ae-o-pop-list">
                       {running.map((r) => (
                         <OBtn kind="row" key={r.id} role="menuitemradio" aria-checked={abandonTarget.id === r.id} onClick={() => setAbandonId(r.id)}><span className="ae-o-radio" data-on={abandonTarget.id === r.id} /><span className="min-w-0 flex-1 truncate">{r.title}</span><span className="text-[var(--o-dim)]">{fmtMs(r.elapsedMs)}</span></OBtn>
                       ))}
                     </div>
                   )}
-                  <p className="ae-o-pop-text">Abandon <b>{abandonTarget.title}</b>? Arcads already charged; this stops tracking it.</p>
+                  <p className="ae-o-pop-text">{t('Abandon ')}<b>{abandonTarget.title}</b>{t('? Arcads already charged; this stops tracking it.')}</p>
                   {abandonError && <p className="ae-o-pop-text" style={{ color: 'var(--o-red-text)' }}>{abandonError}</p>}
                   <div className="ae-o-pop-actions">
-                    <OBtn kind="pill" cls="ae-o-pill" role="menuitem"  onClick={() => setMenu(null)}>Keep</OBtn>
-                    <OBtn kind="danger" cls="ae-o-pill ae-o-danger" role="menuitem"  onClick={() => void abandon()}>Abandon</OBtn>
+                    <OBtn kind="pill" cls="ae-o-pill" role="menuitem"  onClick={() => setMenu(null)}>{t('Keep')}</OBtn>
+                    <OBtn kind="danger" cls="ae-o-pill ae-o-danger" role="menuitem"  onClick={() => void abandon()}>{t('Abandon')}</OBtn>
                   </div>
                 </Popover>
               )}
@@ -706,15 +707,15 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
             <span className="ae-o-ringslot" data-display-only="run progress" title={ringTitle} aria-label={ringTitle} role="img">
               <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden><circle cx="10" cy="10" r="8" className="ae-o-ring-track" /><circle cx="10" cy="10" r="8" className="ae-o-ring-fill" data-live={running.length > 0} pathLength={100} strokeDasharray={`${ringPct} 100`} transform="rotate(-90 10 10)" /></svg>
             </span>
-            <OBtn kind="icon" cls="ae-o-icon"  title={block ? `Cost preview: ${block.text}` : 'Cost preview: what Generate will send and charge'} aria-label="Cost preview" onClick={() => { setGateError(null); setGate(true); }}><Target className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
-            <OBtn kind="icon" cls="ae-o-icon"  title={stageAssets.length < 2 ? (stageAssets.length ? '1 motion asset: nothing to step to' : 'No motion assets yet') : 'Next asset ( ] )'} aria-label="Next asset" disabled={stageAssets.length < 2} onClick={() => step(1)}><SkipForward className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
+            <OBtn kind="icon" cls="ae-o-icon"  title={block ? t('Cost preview: {text}', { text: block.text }) : t('Cost preview: what Generate will send and charge')} aria-label={t('Cost preview')} onClick={() => { setGateError(null); setGate(true); }}><Target className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
+            <OBtn kind="icon" cls="ae-o-icon"  title={stageAssets.length < 2 ? (stageAssets.length ? t('1 motion asset: nothing to step to') : t('No motion assets yet')) : t('Next asset ( ] )')} aria-label={t('Next asset')} disabled={stageAssets.length < 2} onClick={() => step(1)}><SkipForward className="h-[18px] w-[18px]" strokeWidth={1.8} /></OBtn>
           </span>
           <span className="ae-o-readout">
-            <OBtn kind="row" cls="ae-o-readline" keep="ae-o-readline"  title="Open Runs" onClick={() => openSheet('runs')}>
+            <OBtn kind="row" cls="ae-o-readline" keep="ae-o-readline"  title={t('Open Runs')} onClick={() => openSheet('runs')}>
               <span className="ae-tick" data-mono-ok>{runLine}</span>
               <span className="ae-o-chips" data-idle={!running.length}>{running.length > 0 && <span className="ae-o-chip pink live" style={{ width: `${Math.max(12, Math.min(100, (running[0].elapsedMs / running[0].timeoutMs) * 100))}%` }} />}</span>
             </OBtn>
-            <OBtn kind="row" cls="ae-o-readline" keep="ae-o-readline"  title={`Session spend ${fmtCredits(health.arcads.sessionSpent)} of ${fmtCredits(health.arcads.sessionCap)} cap. Open Credits & health`} onClick={() => openSheet('credits')}>
+            <OBtn kind="row" cls="ae-o-readline" keep="ae-o-readline"  title={t('Session spend {spent} of {cap} cap. Open Credits & health', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })} onClick={() => openSheet('credits')}>
               <span data-mono-ok>{creditLine}</span>
               <span className="ae-o-chips" data-cap={capState}>
                 {chips.used > 0 && <span className="ae-o-chip pink" data-chip="used" style={{ flexBasis: `calc((100% - ${chips.left > 0 ? 6 : 0}px) * ${chips.used / 100})` }} />}
@@ -728,7 +729,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
         <div className="ae-o-body">
           {/* scene tree */}
           <div className="ae-o-panel flex flex-col">
-            <div className="ae-o-tabs" role="tablist" aria-label="Scene tree">
+            <div className="ae-o-tabs" role="tablist" aria-label={t('Scene tree')}>
               {TABS.map((tb, i) => (
                 <OBtn kind="row" cls="ae-o-tab" keep="ae-o-tab" key={tb.key} role="tab" id={`ae-o-tab-${tb.key}`} aria-selected={tab === tb.key} tabIndex={tab === tb.key ? 0 : -1}  data-on={tab === tb.key} onClick={() => setTab(tb.key)}
                   onKeyDown={(e) => {
@@ -745,23 +746,23 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
                 {PART_ORDER.map((part) => (
                   <div key={part}>
                     <div className="ae-o-tree-row" style={{ opacity: isHidden(part) ? 0.45 : 1 }}>
-                      <OBtn kind="row" cls="ae-o-knot" keep="ae-o-knot"  data-open={open.has(part)} aria-expanded={open.has(part)} title={open.has(part) ? `Collapse ${PART_META[part].label}` : `Expand ${PART_META[part].label}`} onClick={() => toggleOpen(part)}><i /></OBtn>
+                      <OBtn kind="row" cls="ae-o-knot" keep="ae-o-knot"  data-open={open.has(part)} aria-expanded={open.has(part)} title={open.has(part) ? t('Collapse {part}', { part: PART_META[part].label }) : t('Expand {part}', { part: PART_META[part].label })} onClick={() => toggleOpen(part)}><i /></OBtn>
                       <span style={{ color: PART_META[part].colour }}>{PART_META[part].icon}</span>
-                      <OBtn kind="row" cls="truncate text-left" keep="truncate text-left"  aria-expanded={open.has(part)} title={open.has(part) ? 'Collapse' : part === 'action' ? 'Show the beats of the approved script' : 'Show what this part puts in the prompt'} onClick={() => toggleOpen(part)}>{PART_META[part].label}</OBtn>
+                      <OBtn kind="row" cls="truncate text-left" keep="truncate text-left"  aria-expanded={open.has(part)} title={open.has(part) ? t('Collapse') : part === 'action' ? t('Show the beats of the approved script') : t('Show what this part puts in the prompt')} onClick={() => toggleOpen(part)}>{PART_META[part].label}</OBtn>
                       <span className="ae-o-tools-mini">
-                        <OBtn kind="icon-sm" title={part === 'constraints' ? 'Constraints always apply' : isHidden(part) ? 'Include in the prompt' : 'Hide from the prompt'} aria-label={`${isHidden(part) ? 'Include' : 'Hide'} ${PART_META[part].label}`} disabled={part === 'constraints'} data-on={!isHidden(part)} onClick={() => toggleOmit(part)}>{isHidden(part) ? <EyeOff className="h-3.5 w-3.5" strokeWidth={1.8} /> : <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />}</OBtn>
-                        <OBtn kind="icon-sm" title={locked.has(part) ? 'Unlock: Describe it may change this part' : 'Protect: Describe it will not change this part'} aria-label={`${locked.has(part) ? 'Unlock' : 'Lock'} ${PART_META[part].label}`} aria-pressed={locked.has(part)} data-on={locked.has(part)} onClick={() => toggleLock(part)}>{locked.has(part) ? <Lock className="h-3.5 w-3.5" strokeWidth={1.8} /> : <LockOpen className="h-3.5 w-3.5" strokeWidth={1.8} />}</OBtn>
+                        <OBtn kind="icon-sm" title={part === 'constraints' ? t('Constraints always apply') : isHidden(part) ? t('Include in the prompt') : t('Hide from the prompt')} aria-label={isHidden(part) ? t('Include {part}', { part: PART_META[part].label }) : t('Hide {part}', { part: PART_META[part].label })} disabled={part === 'constraints'} data-on={!isHidden(part)} onClick={() => toggleOmit(part)}>{isHidden(part) ? <EyeOff className="h-3.5 w-3.5" strokeWidth={1.8} /> : <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />}</OBtn>
+                        <OBtn kind="icon-sm" title={locked.has(part) ? t('Unlock: Describe it may change this part') : t('Protect: Describe it will not change this part')} aria-label={locked.has(part) ? t('Unlock {part}', { part: PART_META[part].label }) : t('Lock {part}', { part: PART_META[part].label })} aria-pressed={locked.has(part)} data-on={locked.has(part)} onClick={() => toggleLock(part)}>{locked.has(part) ? <Lock className="h-3.5 w-3.5" strokeWidth={1.8} /> : <LockOpen className="h-3.5 w-3.5" strokeWidth={1.8} />}</OBtn>
                       </span>
                     </div>
                     {open.has(part) && part === 'action' && firstVersion && (<>
-                      <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left"  data-sub="true" data-on={beatPick === null} title="Dialogue and duration follow the whole approved script" onClick={() => pickBeat(null)}><span /><span className="text-[var(--o-dim)]"><FileText className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">Whole script · {scriptSeconds}s</span><span /></OBtn>
+                      <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left"  data-sub="true" data-on={beatPick === null} title={t('Dialogue and duration follow the whole approved script')} onClick={() => pickBeat(null)}><span /><span className="text-[var(--o-dim)]"><FileText className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">{t('Whole script · {s}s', { s: scriptSeconds })}</span><span /></OBtn>
                       {firstVersion.beats.map((b, i) => (
-                        <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left" key={i}  data-sub="true" data-on={beatPick === i} title={b.spoken ? `${b.spoken.slice(0, 140)}${b.spoken.length > 140 ? '…' : ''}` : 'No spoken line in this beat'} onClick={() => pickBeat(i)}><span /><span className="text-[var(--o-dim)]"><FileText className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">{b.name} · {b.seconds}s</span><span /></OBtn>
+                        <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left" key={i}  data-sub="true" data-on={beatPick === i} title={b.spoken ? `${b.spoken.slice(0, 140)}${b.spoken.length > 140 ? '…' : ''}` : t('No spoken line in this beat')} onClick={() => pickBeat(i)}><span /><span className="text-[var(--o-dim)]"><FileText className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">{b.name} · {b.seconds}s</span><span /></OBtn>
                       ))}
                     </>)}
                     {open.has(part) && (part !== 'action' || !firstVersion) && (
-                      <OBtn kind="row" cls="ae-o-tree-note" keep="ae-o-tree-note"  title={`${composed.parts[part] || 'Nothing composed for this part yet.'}\n\nClick to see it in the composed prompt`} onClick={() => showPrompt(part)}>
-                        <span>{part === 'action' && !firstVersion ? composed.parts.action || 'No approved script yet. Approve one in the Ad scripter to pick its beats here.' : composed.parts[part] || 'Nothing composed for this part yet.'}</span>
+                      <OBtn kind="row" cls="ae-o-tree-note" keep="ae-o-tree-note"  title={`${composed.parts[part] || t('Nothing composed for this part yet.')}\n\n${t('Click to see it in the composed prompt')}`} onClick={() => showPrompt(part)}>
+                        <span>{part === 'action' && !firstVersion ? composed.parts.action || t('No approved script yet. Approve one in the Ad scripter to pick its beats here.') : composed.parts[part] || t('Nothing composed for this part yet.')}</span>
                       </OBtn>
                     )}
                   </div>
@@ -770,45 +771,45 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
             )}
             {tab === 'presets' && (
               <div className="ae-o-tree" role="tabpanel" aria-labelledby="ae-o-tab-presets">
-                {presetsError && <div className="ae-o-inline-err">Couldn&apos;t load presets · <OBtn kind="link" cls="ae-o-linkbtn"  onClick={loadPresets}>Retry</OBtn></div>}
+                {presetsError && <div className="ae-o-inline-err">{t("Couldn't load presets · ")}<OBtn kind="link" cls="ae-o-linkbtn"  onClick={loadPresets}>{t('Retry')}</OBtn></div>}
                 {presets.map((p) => (
                   <div key={p.id} className="ae-o-preset-row">
-                    <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left"  data-sub="true" data-on={activePreset === p.name} title={`Apply ${p.name}`} onClick={() => applyPreset(p)}><span /><span className="text-[var(--o-dim)]"><Layers className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">{p.name}</span><span className="text-[var(--o-dim)]">{p.builtin ? 'built in' : 'saved'}</span></OBtn>
-                    {!p.builtin && <OBtn kind="row" cls="ae-o-preset-del" keep="ae-o-preset-del"  disabled={readOnly} title={readOnly ? SAMPLE_OFF : `Delete preset ${p.name}`} aria-label={`Delete preset ${p.name}`} onClick={() => void deletePreset(p)}><Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} /></OBtn>}
+                    <OBtn kind="row" cls="ae-o-tree-row w-full text-left" keep="ae-o-tree-row w-full text-left"  data-sub="true" data-on={activePreset === p.name} title={t('Apply {name}', { name: p.name })} onClick={() => applyPreset(p)}><span /><span className="text-[var(--o-dim)]"><Layers className="h-3.5 w-3.5" strokeWidth={1.6} /></span><span className="truncate">{p.name}</span><span className="text-[var(--o-dim)]">{p.builtin ? t('built in') : t('saved')}</span></OBtn>
+                    {!p.builtin && <OBtn kind="row" cls="ae-o-preset-del" keep="ae-o-preset-del"  disabled={readOnly} title={readOnly ? SAMPLE_OFF : t('Delete preset {name}', { name: p.name })} aria-label={t('Delete preset {name}', { name: p.name })} onClick={() => void deletePreset(p)}><Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} /></OBtn>}
                   </div>
                 ))}
                 <div className="mt-2 flex gap-1.5 px-2">
-                  <OInput cls="ae-o-text min-w-0 flex-1" keep="min-w-0 flex-1" value={presetName} maxLength={CONSOLE_LIMITS.presetName} disabled={readOnly} title={readOnly ? SAMPLE_OFF : undefined} onChange={(e) => { setPresetName(e.target.value); setReplaceAsk(null); }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void savePreset(); } }} placeholder="Save current as"  aria-label="Preset name" />
-                  <OBtn kind="icon-sm" cls="ae-o-icon sm"  disabled={readOnly || !presetName.trim()} onClick={() => void savePreset()} title={readOnly ? SAMPLE_OFF : presetName.trim() ? 'Save the current controls as a preset' : 'Type a name first'} aria-label="Save preset"><Check className="h-4 w-4" strokeWidth={2} /></OBtn>
+                  <OInput cls="ae-o-text min-w-0 flex-1" keep="min-w-0 flex-1" value={presetName} maxLength={CONSOLE_LIMITS.presetName} disabled={readOnly} title={readOnly ? SAMPLE_OFF : undefined} onChange={(e) => { setPresetName(e.target.value); setReplaceAsk(null); }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void savePreset(); } }} placeholder={t('Save current as')}  aria-label={t('Preset name')} />
+                  <OBtn kind="icon-sm" cls="ae-o-icon sm"  disabled={readOnly || !presetName.trim()} onClick={() => void savePreset()} title={readOnly ? SAMPLE_OFF : presetName.trim() ? t('Save the current controls as a preset') : t('Type a name first')} aria-label={t('Save preset')}><Check className="h-4 w-4" strokeWidth={2} /></OBtn>
                 </div>
                 {replaceAsk && (
                   <div className="ae-o-replace" role="alert">
-                    <span>Replace “{replaceAsk.name}”?</span>
-                    <span className="flex gap-2"><OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => void savePreset(replaceAsk)}>Replace</OBtn><OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => setReplaceAsk(null)}>Keep</OBtn></span>
+                    <span>{t('Replace “{name}”?', { name: replaceAsk.name })}</span>
+                    <span className="flex gap-2"><OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => void savePreset(replaceAsk)}>{t('Replace')}</OBtn><OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => setReplaceAsk(null)}>{t('Keep')}</OBtn></span>
                   </div>
                 )}
               </div>
             )}
             {tab === 'references' && (
               <div ref={refsRef} className="ae-o-tree px-3 text-[12px] text-[var(--o-muted)]" role="tabpanel" aria-labelledby="ae-o-tab-references">
-                <div className="mb-1.5">Local file paths on this host, one per line. Uploaded fresh for every request.</div>
-                {refField('referenceImages', 'Images', rule.maxReferenceImages, 3, '/path/hero.jpg')}
-                {refField('referenceVideos', 'Videos', rule.maxReferenceVideos, 2, '/path/motion-ref.mp4')}
-                {refField('referenceAudios', 'Audio', rule.maxReferenceAudios, 2, '/path/voice.mp3')}
-                <div className="mb-1 mt-2 flex justify-between gap-2"><span>Start frame</span>{!rule.startFrame && <em className="not-italic text-[var(--o-dim)]">{c.startFrame ? 'kept, not sent' : 'not on this model'}</em>}</div>
-                <OInput cls="ae-o-text w-full" keep="w-full" value={c.startFrame ?? ''} onChange={(e) => set('startFrame', e.target.value.trim() || null)} disabled={readOnly || (!rule.startFrame && !c.startFrame)} title={readOnly ? SAMPLE_OFF : !rule.startFrame ? `${c.model} has no start frame` : undefined} placeholder={rule.startFrame ? '/path/first-frame.jpg' : `${c.model} has no start frame`}  aria-label="Start frame path" />
+                <div className="mb-1.5">{t('Local file paths on this host, one per line. Uploaded fresh for every request.')}</div>
+                {refField('referenceImages', t('Images'), rule.maxReferenceImages, 3, '/path/hero.jpg')}
+                {refField('referenceVideos', t('Videos'), rule.maxReferenceVideos, 2, '/path/motion-ref.mp4')}
+                {refField('referenceAudios', t('Audio'), rule.maxReferenceAudios, 2, '/path/voice.mp3')}
+                <div className="mb-1 mt-2 flex justify-between gap-2"><span>{t('Start frame')}</span>{!rule.startFrame && <em className="not-italic text-[var(--o-dim)]">{c.startFrame ? t('kept, not sent') : t('not on this model')}</em>}</div>
+                <OInput cls="ae-o-text w-full" keep="w-full" value={c.startFrame ?? ''} onChange={(e) => set('startFrame', e.target.value.trim() || null)} disabled={readOnly || (!rule.startFrame && !c.startFrame)} title={readOnly ? SAMPLE_OFF : !rule.startFrame ? t('{model} has no start frame', { model: c.model }) : undefined} placeholder={rule.startFrame ? '/path/first-frame.jpg' : t('{model} has no start frame', { model: c.model })}  aria-label={t('Start frame path')} />
                 {c.startFrame && refStatus([c.startFrame])}
-                <div className="mb-1 mt-2 flex justify-between gap-2"><span>End frame</span>{!rule.endFrame && <em className="not-italic text-[var(--o-dim)]">{c.endFrame ? 'kept, not sent' : 'not on this model'}</em>}</div>
-                <OInput cls="ae-o-text w-full" keep="w-full" value={c.endFrame ?? ''} onChange={(e) => set('endFrame', e.target.value.trim() || null)} disabled={readOnly || (!rule.endFrame && !c.endFrame)} title={readOnly ? SAMPLE_OFF : !rule.endFrame ? `${c.model} has no end frame` : undefined} placeholder={rule.endFrame ? '/path/last-frame.jpg' : `${c.model} has no end frame`}  aria-label="End frame path" />
+                <div className="mb-1 mt-2 flex justify-between gap-2"><span>{t('End frame')}</span>{!rule.endFrame && <em className="not-italic text-[var(--o-dim)]">{c.endFrame ? t('kept, not sent') : t('not on this model')}</em>}</div>
+                <OInput cls="ae-o-text w-full" keep="w-full" value={c.endFrame ?? ''} onChange={(e) => set('endFrame', e.target.value.trim() || null)} disabled={readOnly || (!rule.endFrame && !c.endFrame)} title={readOnly ? SAMPLE_OFF : !rule.endFrame ? t('{model} has no end frame', { model: c.model }) : undefined} placeholder={rule.endFrame ? '/path/last-frame.jpg' : t('{model} has no end frame', { model: c.model })}  aria-label={t('End frame path')} />
                 {c.endFrame && refStatus([c.endFrame])}
               </div>
             )}
             {/* the tree foot keeps its shortcuts to the stage sheets (Q-MC-3) */}
             <div className="ae-o-tree-foot">
-              {tool('describe', <Wand2 className="h-4 w-4" strokeWidth={1.8} />, 'Describe it', true)}
-              {tool('dialogue', <MessageSquare className="h-4 w-4" strokeWidth={1.8} />, 'Dialogue', true)}
-              {tool('lints', <AlertTriangle className="h-4 w-4" strokeWidth={1.8} />, 'Lints', true)}
-              {tool('prompt', <FileText className="h-4 w-4" strokeWidth={1.8} />, 'Composed prompt', true)}
+              {tool('describe', <Wand2 className="h-4 w-4" strokeWidth={1.8} />, t('Describe it'), true)}
+              {tool('dialogue', <MessageSquare className="h-4 w-4" strokeWidth={1.8} />, t('Dialogue'), true)}
+              {tool('lints', <AlertTriangle className="h-4 w-4" strokeWidth={1.8} />, t('Lints'), true)}
+              {tool('prompt', <FileText className="h-4 w-4" strokeWidth={1.8} />, t('Composed prompt'), true)}
               {refsTool(<Images className="h-4 w-4" strokeWidth={1.8} />, true)}
             </div>
           </div>
@@ -818,33 +819,33 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
             {asset?.path && !health.dry && !stageError ? (
               asset.kind === 'video'
                 ? <video key={asset.id} src={asset.path} controls className="ae-o-arrive" onError={() => setStageError('video')} />
-                : <img key={asset.id} src={asset.path} alt={`Motion asset ${Math.min(assetIndex, stageAssets.length - 1) + 1}`} className="ae-o-arrive" onError={() => setStageError('image')} />
+                : <img key={asset.id} src={asset.path} alt={t('Motion asset {n}', { n: Math.min(assetIndex, stageAssets.length - 1) + 1 })} className="ae-o-arrive" onError={() => setStageError('image')} />
             ) : <div className="ae-o-grid absolute inset-0" />}
             {(() => {
               let msg: React.ReactNode = null;
-              if (stageError) msg = <>Couldn&apos;t load this file · <OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => openSheet('runs', { runsKind: 'motion' })}>Open in Runs</OBtn></>;
-              else if (asset && readOnly) msg = `Sample asset · ${asset.model}${asset.durationSec ? ` · ${asset.durationSec}s` : ''}. The sample has no video file.`;
-              else if (asset && health.dry) msg = 'Dry run placeholder delivered';
-              else if (asset && !asset.path) msg = 'Delivered; the file is still downloading';
-              else if (!asset && running.length) msg = `Generating ${running[0].title} · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || 'Waiting'}`;
-              else if (!asset) msg = 'No motion video yet. Generate to see it here.';
+              if (stageError) msg = <>{t("Couldn't load this file · ")}<OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => openSheet('runs', { runsKind: 'motion' })}>{t('Open in Runs')}</OBtn></>;
+              else if (asset && readOnly) msg = `${t('Sample asset')} · ${asset.model}${asset.durationSec ? ` · ${asset.durationSec}s` : ''}${t('. The sample has no video file.')}`;
+              else if (asset && health.dry) msg = t('Dry run placeholder delivered');
+              else if (asset && !asset.path) msg = t('Delivered; the file is still downloading');
+              else if (!asset && running.length) msg = `${t('Generating {title}', { title: running[0].title })} · ${fmtMs(running[0].elapsedMs)} · ${titleCaseStatus(running[0].arcads?.lastStatus) || t('Waiting')}`;
+              else if (!asset) msg = t('No motion video yet. Generate to see it here.');
               return msg && !panel ? <div className="ae-o-stage-note ae-o-arrive">{msg}</div> : null;
             })()}
             {!panel && (
               <div className="ae-o-hud">
-                <OBtn kind="pill" title="Open the composed prompt" aria-label={`Open composed prompt, ${words}`} onClick={() => showPrompt(null)}><FileText className="h-3.5 w-3.5" strokeWidth={2} /> {words}</OBtn>
-                <OBtn kind="pill" title="Open lints" aria-label={`Open lints, ${lintWord}`} data-err={blocking.length > 0} onClick={() => setPanel('lints')}><AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} /> {lintWord}</OBtn>
-                {beatPick !== null && firstVersion?.beats[beatPick] && <OBtn kind="pill" title="Back to whole script" aria-label={`${firstVersion.beats[beatPick].name} beat. Back to whole script`} onClick={() => pickBeat(null)}><Film className="h-3.5 w-3.5" strokeWidth={2} /> {firstVersion.beats[beatPick].name} beat</OBtn>}
-                <OBtn kind="pill" title="Open Runs: delivered motion" aria-label={`${assetsWord}. Open Runs`} onClick={() => openSheet('runs', { runsKind: 'motion' })}><Images className="h-3.5 w-3.5" strokeWidth={2} /> <span key={flash} className={flash ? 'ae-o-popnum' : ''}>{assetsWord}{asset ? ` · ${Math.min(assetIndex, stageAssets.length - 1) + 1}` : ''}</span></OBtn>
+                <OBtn kind="pill" title={t('Open the composed prompt')} aria-label={t('Open composed prompt, {words}', { words })} onClick={() => showPrompt(null)}><FileText className="h-3.5 w-3.5" strokeWidth={2} /> {words}</OBtn>
+                <OBtn kind="pill" title={t('Open lints')} aria-label={t('Open lints, {lints}', { lints: lintWord })} data-err={blocking.length > 0} onClick={() => setPanel('lints')}><AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} /> {lintWord}</OBtn>
+                {beatPick !== null && firstVersion?.beats[beatPick] && <OBtn kind="pill" title={t('Back to whole script')} aria-label={t('{name} beat. Back to whole script', { name: firstVersion.beats[beatPick].name })} onClick={() => pickBeat(null)}><Film className="h-3.5 w-3.5" strokeWidth={2} /> {t('{name} beat', { name: firstVersion.beats[beatPick].name })}</OBtn>}
+                <OBtn kind="pill" title={t('Open Runs: delivered motion')} aria-label={t('{assets}. Open Runs', { assets: assetsWord })} onClick={() => openSheet('runs', { runsKind: 'motion' })}><Images className="h-3.5 w-3.5" strokeWidth={2} /> <span key={flash} className={flash ? 'ae-o-popnum' : ''}>{assetsWord}{asset ? ` · ${Math.min(assetIndex, stageAssets.length - 1) + 1}` : ''}</span></OBtn>
               </div>
             )}
             {panel && (
               <div className="ae-o-sheet" role="region" aria-label={PANEL_TITLE[panel]}>
-                <div className="ae-o-sheet-head"><span>{PANEL_TITLE[panel]}{panel === 'prompt' ? ` · ${words}` : ''}</span><span className="flex gap-3">{panel === 'prompt' && <OBtn kind="link" onClick={copyPrompt}>Copy</OBtn>}<OBtn kind="link" onClick={() => setPanel(null)}>Close</OBtn></span></div>
+                <div className="ae-o-sheet-head"><span>{PANEL_TITLE[panel]}{panel === 'prompt' ? ` · ${words}` : ''}</span><span className="flex gap-3">{panel === 'prompt' && <OBtn kind="link" onClick={copyPrompt}>{t('Copy')}</OBtn>}<OBtn kind="link" onClick={() => setPanel(null)}>{t('Close')}</OBtn></span></div>
                 {panel === 'prompt' && (<>
                   {promptFocus === 'output' && (
                     <div className="ae-o-fields">
-                      <div className="mb-1 text-[var(--o-muted)]">Sent to Arcads as fields, not in the prompt:</div>
+                      <div className="mb-1 text-[var(--o-muted)]">{t('Sent to Arcads as fields, not in the prompt:')}</div>
                       <ul>{BOUND_FIELDS.map((f) => (<li key={f.key}><span>{f.label}</span><span>{valueText(f.key, c[f.key])}</span></li>))}</ul>
                     </div>
                   )}
@@ -854,15 +855,15 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
                       : composed.prompt}
                   </div>
                 </>)}
-                {panel === 'lints' && (allLints.length === 0 ? <div className="text-[var(--o-muted)]">No lints. The request and the prompt are clean.</div> : <ul className="space-y-1.5">{allLints.map((l, i) => (<li key={i} style={{ color: l.level === 'error' ? 'var(--o-red-text)' : 'var(--o-yellow)' }}>{l.level}: {l.message}</li>))}</ul>)}
-                {panel === 'describe' && (<div className="flex flex-col gap-2"><OInput cls="ae-o-text w-full" keep="w-full" value={describe} maxLength={CONSOLE_LIMITS.subject} onChange={(e) => setDescribe(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyDescribe()} placeholder="close-up handheld selfie in the kitchen, slow, 8s"  aria-label="Describe the shot" autoFocus /><div className="flex items-center justify-between text-[var(--o-muted)]"><span>Locked parts stay as they are. {describe.length} / {CONSOLE_LIMITS.subject}</span><OBtn kind="pill" cls="ae-o-pill" onClick={applyDescribe} disabled={!describe.trim()} title={describe.trim() ? 'Apply to the controls' : 'Type a description first'} >Apply</OBtn></div></div>)}
+                {panel === 'lints' && (allLints.length === 0 ? <div className="text-[var(--o-muted)]">{t('No lints. The request and the prompt are clean.')}</div> : <ul className="space-y-1.5">{allLints.map((l, i) => (<li key={i} style={{ color: l.level === 'error' ? 'var(--o-red-text)' : 'var(--o-yellow)' }}>{l.level}: {l.message}</li>))}</ul>)}
+                {panel === 'describe' && (<div className="flex flex-col gap-2"><OInput cls="ae-o-text w-full" keep="w-full" value={describe} maxLength={CONSOLE_LIMITS.subject} onChange={(e) => setDescribe(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyDescribe()} placeholder={t('close-up handheld selfie in the kitchen, slow, 8s')}  aria-label={t('Describe the shot')} autoFocus /><div className="flex items-center justify-between text-[var(--o-muted)]"><span>{t('Locked parts stay as they are.')} {describe.length} / {CONSOLE_LIMITS.subject}</span><OBtn kind="pill" cls="ae-o-pill" onClick={applyDescribe} disabled={!describe.trim()} title={describe.trim() ? t('Apply to the controls') : t('Type a description first')} >{t('Apply')}</OBtn></div></div>)}
                 {panel === 'dialogue' && (<>
-                  {c.omitDialogue && <div className="mb-1.5 text-[11.5px] text-[var(--o-yellow)]">Dialogue is off: the text is kept but not sent. <OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => set('omitDialogue', false)}>Turn it on</OBtn></div>}
-                  <OTextarea cls="ae-o-text w-full resize-none" keep="w-full resize-none" value={c.dialogue} maxLength={CONSOLE_LIMITS.dialogue} onChange={(e) => set('dialogue', e.target.value)} rows={5} placeholder={approved.length ? 'From the approved script' : 'Spoken words, 2.5 per second'}  aria-label="Dialogue" />
+                  {c.omitDialogue && <div className="mb-1.5 text-[11.5px] text-[var(--o-yellow)]">{t('Dialogue is off: the text is kept but not sent.')} <OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => set('omitDialogue', false)}>{t('Turn it on')}</OBtn></div>}
+                  <OTextarea cls="ae-o-text w-full resize-none" keep="w-full resize-none" value={c.dialogue} maxLength={CONSOLE_LIMITS.dialogue} onChange={(e) => set('dialogue', e.target.value)} rows={5} placeholder={approved.length ? t('From the approved script') : t('Spoken words, 2.5 per second')}  aria-label={t('Dialogue')} />
                   <div className="mt-1.5 flex justify-between gap-3 text-[11.5px]"><span style={{ color: !dialogueFit || dialogueFit.fits ? 'var(--o-muted)' : 'var(--o-yellow)' }}>{dialogueFit?.note ?? ''}</span><span className="tabular-nums text-[var(--o-dim)]">{c.dialogue.length} / {CONSOLE_LIMITS.dialogue}</span></div>
                 </>)}
-                {panel === 'presets' && (<div className="flex flex-wrap gap-2">{presets.map((p) => (<OBtn kind="pill" cls="ae-o-pill" key={p.id}  data-on={activePreset === p.name} title={`Apply ${p.name}`} onClick={() => applyPreset(p)}>{p.name}{activePreset === p.name && presetEdited ? ' · edited' : ''}</OBtn>))}{presetsError && <span className="ae-o-inline-err">Couldn&apos;t load presets · <OBtn kind="link" cls="ae-o-linkbtn"  onClick={loadPresets}>Retry</OBtn></span>}</div>)}
-                {panel === 'shortcuts' && (<ul className="ae-o-fields"><li className="text-[var(--o-muted)]"><span>Shortcuts are off while you type in a field.</span><span /></li>{CONSOLE_SHORTCUTS.map((s) => (<li key={s.keys}><span className="ae-o-kbd" data-mono-ok>{s.keys}</span><span className="text-right">{s.what}</span></li>))}</ul>)}
+                {panel === 'presets' && (<div className="flex flex-wrap gap-2">{presets.map((p) => (<OBtn kind="pill" cls="ae-o-pill" key={p.id}  data-on={activePreset === p.name} title={t('Apply {name}', { name: p.name })} onClick={() => applyPreset(p)}>{p.name}{activePreset === p.name && presetEdited ? t(' · edited') : ''}</OBtn>))}{presetsError && <span className="ae-o-inline-err">{t("Couldn't load presets · ")}<OBtn kind="link" cls="ae-o-linkbtn"  onClick={loadPresets}>{t('Retry')}</OBtn></span>}</div>)}
+                {panel === 'shortcuts' && (<ul className="ae-o-fields"><li className="text-[var(--o-muted)]"><span>{t('Shortcuts are off while you type in a field.')}</span><span /></li>{CONSOLE_SHORTCUTS.map((s) => (<li key={s.keys}><span className="ae-o-kbd" data-mono-ok>{s.keys}</span><span className="text-right">{s.what}</span></li>))}</ul>)}
               </div>
             )}
           </div>
@@ -872,58 +873,58 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
             <div className="ae-o-params-top">
               {connected ? (
                 <span className="ae-o-genwrap">
-                  <OBtn kind="primary" cls="ae-o-generate"  data-busy={busy} disabled={!!block} title={block?.text ?? 'Opens the cost preview; nothing is sent without Confirm'} aria-describedby={block ? 'ae-o-block-caption' : undefined} onClick={() => { setGateError(null); setGate(true); }}><i /> {busy ? 'Sending' : `Generate${requests > 1 ? ` ×${requests}` : ''}`}</OBtn>
+                  <OBtn kind="primary" cls="ae-o-generate"  data-busy={busy} disabled={!!block} title={block?.text ?? t('Opens the cost preview; nothing is sent without Confirm')} aria-describedby={block ? 'ae-o-block-caption' : undefined} onClick={() => { setGateError(null); setGate(true); }}><i /> {busy ? t('Sending') : `${t('Generate')}${requests > 1 ? ` ×${requests}` : ''}`}</OBtn>
                   {block && !busy && <span id="ae-o-block-caption" className="ae-o-block-caption" title={block.text}>{block.text}{blockLabel(block.action, false) && <> · <OBtn kind="link" cls="ae-o-linkbtn"  onClick={() => fixBlock(block.action)}>{blockLabel(block.action, false)}</OBtn></>}</span>}
                 </span>
               ) : (
-                <span className="flex items-center gap-3"><OBtn kind="primary" cls="ae-o-generate"  disabled={readOnly} title={readOnly ? SAMPLE_OFF : 'Connect Arcads'} onClick={onConnect}><i /> Connect Arcads</OBtn><SetupLink href={health.arcads.setupHref} hint="ARCADS_BASIC_AUTH" label="Set up" /></span>
+                <span className="flex items-center gap-3"><OBtn kind="primary" cls="ae-o-generate"  disabled={readOnly} title={readOnly ? SAMPLE_OFF : t('Connect Arcads')} onClick={onConnect}><i /> {t('Connect Arcads')}</OBtn><SetupLink href={health.arcads.setupHref} hint="ARCADS_BASIC_AUTH" label={t('Set up')} /></span>
               )}
               {error && <span key={error} className="ae-o-shake text-[12px]" role="alert" style={{ color: 'var(--o-red-text)' }}>{error}</span>}
               <span className="ml-auto flex items-center gap-4">
                 <span className="ae-o-file"><FileText className="h-[18px] w-[18px]" strokeWidth={1.6} />{approved.length > 1 ? (
-                  <span className="ae-o-selwrap" title="Pick the approved script to generate from"><span>{firstScript ? scriptTitle(firstScript).slice(0, 30) : 'Script'}</span><OSelect value={firstScript?.id ?? ''} onChange={(e) => setScriptPick(e.target.value)} aria-label="Script">{approved.map((s) => (<option key={s.id} value={s.id}>{scriptTitle(s)}</option>))}</OSelect></span>
+                  <span className="ae-o-selwrap" title={t('Pick the approved script to generate from')}><span>{firstScript ? scriptTitle(firstScript).slice(0, 30) : t('Script')}</span><OSelect value={firstScript?.id ?? ''} onChange={(e) => setScriptPick(e.target.value)} aria-label={t('Script')}>{approved.map((s) => (<option key={s.id} value={s.id}>{scriptTitle(s)}</option>))}</OSelect></span>
                 ) : firstScript ? (
-                  <OBtn kind="row" cls="ae-o-filebtn" keep="ae-o-filebtn"  title="Open this script in the Ad scripter" onClick={() => openSheet('scripter')}>{scriptTitle(firstScript).slice(0, 30)}</OBtn>
+                  <OBtn kind="row" cls="ae-o-filebtn" keep="ae-o-filebtn"  title={t('Open this script in the Ad scripter')} onClick={() => openSheet('scripter')}>{scriptTitle(firstScript).slice(0, 30)}</OBtn>
                 ) : (
-                  <OBtn kind="row" cls="ae-o-filebtn" keep="ae-o-filebtn"  disabled={readOnly || !campaign} title={readOnly ? SAMPLE_OFF : !campaign ? 'Open or create a campaign first' : 'Write and approve a script in the Ad scripter'} onClick={() => openSheet('scripter')}>No approved script · Write one</OBtn>
+                  <OBtn kind="row" cls="ae-o-filebtn" keep="ae-o-filebtn"  disabled={readOnly || !campaign} title={readOnly ? SAMPLE_OFF : !campaign ? t('Open or create a campaign first') : t('Write and approve a script in the Ad scripter')} onClick={() => openSheet('scripter')}>{t('No approved script · Write one')}</OBtn>
                 )}</span>
-                <span className="ae-o-pill lg" data-display-only="model picker frame" title={!modelHealth ? `${c.model}: not probed yet` : modelHealth.ok ? `${c.model}: probe delivered` : `${c.model}: probe failed, ${modelHealth.error}`}><span className="ae-o-dot" style={{ background: !modelHealth ? 'var(--o-dim)' : modelHealth.ok ? 'var(--o-green)' : 'var(--o-red-text)' }} /><Box className="h-4 w-4 text-[var(--o-muted)]" strokeWidth={1.7} /><span className="ae-o-selwrap"><span>{c.model}</span><OSelect value={c.model} onChange={(e) => set('model', e.target.value as VideoModel)} aria-label="Model">{VIDEO_MODELS.map((m) => (<option key={m} value={m}>{m}{UNVERIFIED_MODELS.includes(m) ? ' (limits inherited)' : ''}{health.arcads.health[m] ? (health.arcads.health[m].ok ? ' · probed ok' : ' · probe failed') : ''}</option>))}</OSelect></span></span>
+                <span className="ae-o-pill lg" data-display-only="model picker frame" title={!modelHealth ? t('{model}: not probed yet', { model: c.model }) : modelHealth.ok ? t('{model}: probe delivered', { model: c.model }) : t('{model}: probe failed, {error}', { model: c.model, error: modelHealth.error ?? '' })}><span className="ae-o-dot" style={{ background: !modelHealth ? 'var(--o-dim)' : modelHealth.ok ? 'var(--o-green)' : 'var(--o-red-text)' }} /><Box className="h-4 w-4 text-[var(--o-muted)]" strokeWidth={1.7} /><span className="ae-o-selwrap"><span>{c.model}</span><OSelect value={c.model} onChange={(e) => set('model', e.target.value as VideoModel)} aria-label={t('Model')}>{VIDEO_MODELS.map((m) => (<option key={m} value={m}>{m}{UNVERIFIED_MODELS.includes(m) ? t(' (limits inherited)') : ''}{health.arcads.health[m] ? (health.arcads.health[m].ok ? t(' · probed ok') : t(' · probe failed')) : ''}</option>))}</OSelect></span></span>
               </span>
             </div>
             <div className="ae-o-cols">
               <ColumnBox col="shot" sphere="" hidden={isHidden} locked={locked} onEye={toggleOmit} onLock={toggleLock} menuOpen={menu === 'column:shot'} onMenu={(v) => setMenu(v ? 'column:shot' : null)} resetTo={presetObj?.name ?? null} onResetColumn={resetColumn} onShow={showPrompt}>
-                <SelectRow label="Framing" value={c.framing} options={FRAMINGS} onChange={(v) => set('framing', v)} {...reset('framing')} />
-                <SelectRow label="Movement" value={c.movement} options={MOVEMENTS} onChange={(v) => set('movement', v)} {...reset('movement')} />
-                <SliderRow label="Camera height" value={HEIGHTS.indexOf(c.height)} min={0} max={HEIGHTS.length - 1} readout={c.height} edit="enum" options={HEIGHTS} onChange={(v) => set('height', HEIGHTS[v])} {...reset('height')} />
-                <SliderRow label="Lens feel" value={Math.max(0, LENSES.indexOf(c.lensMm as (typeof LENSES)[number]))} min={0} max={LENSES.length - 1} readout={`${c.lensMm} mm`} edit="enum" options={LENSES.map((l) => `${l} mm`)} onChange={(v) => set('lensMm', LENSES[v])} {...reset('lensMm')} />
-                <SliderRow label="Motion intensity" value={c.intensity} min={1} max={5} readout={INTENSITY_WORDS[c.intensity - 1]} edit="enum" options={INTENSITY_WORDS} onChange={(v) => set('intensity', v)} {...reset('intensity')} />
-                {dRule.kind === 'enum' ? <SelectRow bound label="Duration" value={String(c.duration)} options={dRule.values.map(String)} suffix="s" onChange={(v) => set('duration', Number(v))} {...reset('duration')} /> : dRule.kind === 'range' ? <SliderRow bound label="Duration" value={c.duration} min={dRule.min} max={dRule.max} readout={`${c.duration}s`} edit="number" onChange={(v) => set('duration', v)} {...reset('duration')} /> : <SelectRow bound label="Duration" value="auto" options={['auto']} onChange={() => {}} disabled disabledReason={`${c.model} picks this itself`} />}
-                <SelectRow bound label="Aspect" value={c.aspectRatio} options={ASPECTS.filter((a) => rule.aspects.includes(a))} onChange={(v) => set('aspectRatio', v)} {...reset('aspectRatio')} />
+                <SelectRow label={t('Framing')} value={c.framing} options={FRAMINGS} onChange={(v) => set('framing', v)} {...reset('framing')} />
+                <SelectRow label={t('Movement')} value={c.movement} options={MOVEMENTS} onChange={(v) => set('movement', v)} {...reset('movement')} />
+                <SliderRow label={t('Camera height')} value={HEIGHTS.indexOf(c.height)} min={0} max={HEIGHTS.length - 1} readout={c.height} edit="enum" options={HEIGHTS} onChange={(v) => set('height', HEIGHTS[v])} {...reset('height')} />
+                <SliderRow label={t('Lens feel')} value={Math.max(0, LENSES.indexOf(c.lensMm as (typeof LENSES)[number]))} min={0} max={LENSES.length - 1} readout={`${c.lensMm} mm`} edit="enum" options={LENSES.map((l) => `${l} mm`)} onChange={(v) => set('lensMm', LENSES[v])} {...reset('lensMm')} />
+                <SliderRow label={t('Motion intensity')} value={c.intensity} min={1} max={5} readout={INTENSITY_WORDS[c.intensity - 1]} edit="enum" options={INTENSITY_WORDS} onChange={(v) => set('intensity', v)} {...reset('intensity')} />
+                {dRule.kind === 'enum' ? <SelectRow bound label={t('Duration')} value={String(c.duration)} options={dRule.values.map(String)} suffix="s" onChange={(v) => set('duration', Number(v))} {...reset('duration')} /> : dRule.kind === 'range' ? <SliderRow bound label={t('Duration')} value={c.duration} min={dRule.min} max={dRule.max} readout={`${c.duration}s`} edit="number" onChange={(v) => set('duration', v)} {...reset('duration')} /> : <SelectRow bound label={t('Duration')} value="auto" options={['auto']} onChange={() => {}} disabled disabledReason={t('{model} picks this itself', { model: c.model })} />}
+                <SelectRow bound label={t('Aspect')} value={c.aspectRatio} options={ASPECTS.filter((a) => rule.aspects.includes(a))} onChange={(v) => set('aspectRatio', v)} {...reset('aspectRatio')} />
                 {rule.resolutions.length > 0
-                  ? <SelectRow bound label="Resolution" value={rule.resolutions.includes(c.resolution) ? c.resolution : rule.resolutions[0]} options={RESOLUTIONS.filter((r) => rule.resolutions.includes(r))} onChange={(v) => set('resolution', v)} {...reset('resolution')} />
-                  : <SelectRow bound label="Resolution" value="auto" options={['auto']} onChange={() => {}} disabled disabledReason={`${c.model} picks this itself`} />}
+                  ? <SelectRow bound label={t('Resolution')} value={rule.resolutions.includes(c.resolution) ? c.resolution : rule.resolutions[0]} options={RESOLUTIONS.filter((r) => rule.resolutions.includes(r))} onChange={(v) => set('resolution', v)} {...reset('resolution')} />
+                  : <SelectRow bound label={t('Resolution')} value="auto" options={['auto']} onChange={() => {}} disabled disabledReason={t('{model} picks this itself', { model: c.model })} />}
               </ColumnBox>
               <ColumnBox col="look" sphere="gold" hidden={isHidden} locked={locked} onEye={toggleOmit} onLock={toggleLock} menuOpen={menu === 'column:look'} onMenu={(v) => setMenu(v ? 'column:look' : null)} resetTo={presetObj?.name ?? null} onResetColumn={resetColumn} onShow={showPrompt}>
-                <SwatchRow label="Lighting" value={c.lighting} options={LIGHTING} attr="data-light" onChange={(v) => set('lighting', v)} {...reset('lighting')} />
-                <SwatchRow label="Style" value={c.style} options={STYLES} attr="data-style" onChange={(v) => set('style', v)} {...reset('style')} />
-                <SelectRow label="Setting" value={c.setting} options={SETTINGS} onChange={(v) => set('setting', v)} {...reset('setting')} />
-                <SliderRow label="Imperfection" value={c.imperfection} min={0} max={9} readout={`${c.imperfection}`} edit="number" onChange={(v) => set('imperfection', v)} {...reset('imperfection')} />
-                <SliderRow label="Skin realism" value={c.skinRealism} min={0} max={4} readout={`${c.skinRealism}`} edit="number" onChange={(v) => set('skinRealism', v)} {...reset('skinRealism')} />
-                <SliderRow label="Motion cues" value={c.motionCues} min={3} max={6} readout={`${c.motionCues}`} edit="number" onChange={(v) => set('motionCues', v)} {...reset('motionCues')} />
-                <SelectRow label="Product intro" value={c.intro} options={INTRO_OPTIONS.map((o) => o.value)} labels={Object.fromEntries(INTRO_OPTIONS.map((o) => [o.value, o.label]))} onChange={(v) => set('intro', v)} {...reset('intro')} />
-                <SelectRow label="Tone" value={c.tone} options={TONE_OPTIONS.map((o) => o.value)} labels={Object.fromEntries(TONE_OPTIONS.map((o) => [o.value, o.label]))} onChange={(v) => set('tone', v)} {...reset('tone')} />
-                <TextRow label="Subject" value={c.subject} placeholder="who is in frame" maxLength={CONSOLE_LIMITS.subject} onChange={(v) => set('subject', v)} {...reset('subject')} />
+                <SwatchRow label={t('Lighting')} value={c.lighting} options={LIGHTING} attr="data-light" onChange={(v) => set('lighting', v)} {...reset('lighting')} />
+                <SwatchRow label={t('Style')} value={c.style} options={STYLES} attr="data-style" onChange={(v) => set('style', v)} {...reset('style')} />
+                <SelectRow label={t('Setting')} value={c.setting} options={SETTINGS} onChange={(v) => set('setting', v)} {...reset('setting')} />
+                <SliderRow label={t('Imperfection')} value={c.imperfection} min={0} max={9} readout={`${c.imperfection}`} edit="number" onChange={(v) => set('imperfection', v)} {...reset('imperfection')} />
+                <SliderRow label={t('Skin realism')} value={c.skinRealism} min={0} max={4} readout={`${c.skinRealism}`} edit="number" onChange={(v) => set('skinRealism', v)} {...reset('skinRealism')} />
+                <SliderRow label={t('Motion cues')} value={c.motionCues} min={3} max={6} readout={`${c.motionCues}`} edit="number" onChange={(v) => set('motionCues', v)} {...reset('motionCues')} />
+                <SelectRow label={t('Product intro')} value={c.intro} options={INTRO_OPTIONS.map((o) => o.value)} labels={Object.fromEntries(INTRO_OPTIONS.map((o) => [o.value, t(o.label)]))} onChange={(v) => set('intro', v)} {...reset('intro')} />
+                <SelectRow label={t('Tone')} value={c.tone} options={TONE_OPTIONS.map((o) => o.value)} labels={Object.fromEntries(TONE_OPTIONS.map((o) => [o.value, t(o.label)]))} onChange={(v) => set('tone', v)} {...reset('tone')} />
+                <TextRow label={t('Subject')} value={c.subject} placeholder={t('who is in frame')} maxLength={CONSOLE_LIMITS.subject} onChange={(v) => set('subject', v)} {...reset('subject')} />
               </ColumnBox>
               <ColumnBox col="output" sphere="red" hidden={isHidden} locked={locked} onEye={toggleOmit} onLock={toggleLock} menuOpen={menu === 'column:output'} onMenu={(v) => setMenu(v ? 'column:output' : null)} resetTo={presetObj?.name ?? null} onResetColumn={resetColumn} onShow={showPrompt}>
-                <SliderRow bound label="Variations" value={c.variations} min={1} max={10} readout={`${c.variations} req`} edit="number" onChange={(v) => set('variations', v)} {...reset('variations')} />
-                <CheckRow bound label="Audio" on={c.audioEnabled && rule.audioToggle} disabled={!rule.audioToggle} disabledReason={rule.speaks ? `${c.model} always renders audio` : `${c.model} has no audio`} onChange={(v) => set('audioEnabled', v)} {...reset('audioEnabled')} />
-                <CheckRow bound label="Enhance prompt" on={c.enhance} muted onChange={(v) => set('enhance', v)} hint="+8 credits" {...reset('enhance')} />
-                <SelectRow bound label="Bitrate" value={c.bitrateMode} options={['standard', 'high'] as const} onChange={(v) => set('bitrateMode', v)} {...reset('bitrateMode')} />
-                <CheckRow label="Dialogue" on={dialogueOn} onChange={(v) => { if (!v) set('omitDialogue', true); else { set('omitDialogue', false); if (!c.dialogue.trim()) setPanel('dialogue'); } }} />
-                <TextRow label="Overlay text" value={c.onScreenText} placeholder="none" maxLength={CONSOLE_LIMITS.onScreenText} onChange={(v) => set('onScreenText', v)} {...reset('onScreenText')} />
-                <SelectRow label="Text reveal" value={c.textReveal} options={TEXT_REVEALS} onChange={(v) => set('textReveal', v)} disabled={!c.onScreenText} disabledReason="Add overlay text first" {...reset('textReveal')} />
-                <LinkRow bound label="References" value={plural(c.referenceImages.length + c.referenceVideos.length + c.referenceAudios.length, 'file')} onClick={goRefs} />
-                <LinkRow bound label="Frames" value={c.startFrame && c.endFrame ? 'start + end' : c.startFrame ? 'start' : c.endFrame ? 'end' : 'none'} onClick={goRefs} disabled={!rule.startFrame && !rule.endFrame} title={!rule.startFrame && !rule.endFrame ? `${c.model} takes no start or end frame` : undefined} />
+                <SliderRow bound label={t('Variations')} value={c.variations} min={1} max={10} readout={t('{n} req', { n: c.variations })} edit="number" onChange={(v) => set('variations', v)} {...reset('variations')} />
+                <CheckRow bound label={t('Audio')} on={c.audioEnabled && rule.audioToggle} disabled={!rule.audioToggle} disabledReason={rule.speaks ? t('{model} always renders audio', { model: c.model }) : t('{model} has no audio', { model: c.model })} onChange={(v) => set('audioEnabled', v)} {...reset('audioEnabled')} />
+                <CheckRow bound label={t('Enhance prompt')} on={c.enhance} muted onChange={(v) => set('enhance', v)} hint={t('+8 credits')} {...reset('enhance')} />
+                <SelectRow bound label={t('Bitrate')} value={c.bitrateMode} options={['standard', 'high'] as const} onChange={(v) => set('bitrateMode', v)} {...reset('bitrateMode')} />
+                <CheckRow label={t('Dialogue')} on={dialogueOn} onChange={(v) => { if (!v) set('omitDialogue', true); else { set('omitDialogue', false); if (!c.dialogue.trim()) setPanel('dialogue'); } }} />
+                <TextRow label={t('Overlay text')} value={c.onScreenText} placeholder={t('none')} maxLength={CONSOLE_LIMITS.onScreenText} onChange={(v) => set('onScreenText', v)} {...reset('onScreenText')} />
+                <SelectRow label={t('Text reveal')} value={c.textReveal} options={TEXT_REVEALS} onChange={(v) => set('textReveal', v)} disabled={!c.onScreenText} disabledReason={t('Add overlay text first')} {...reset('textReveal')} />
+                <LinkRow bound label={t('References')} value={((c.referenceImages.length + c.referenceVideos.length + c.referenceAudios.length) === 1 ? t('{n} file', { n: fmtCredits((c.referenceImages.length + c.referenceVideos.length + c.referenceAudios.length)) }) : t('{n} files', { n: fmtCredits((c.referenceImages.length + c.referenceVideos.length + c.referenceAudios.length)) }))} onClick={goRefs} />
+                <LinkRow bound label={t('Frames')} value={c.startFrame && c.endFrame ? t('start + end') : c.startFrame ? t('start') : c.endFrame ? t('end') : t('none')} onClick={goRefs} disabled={!rule.startFrame && !rule.endFrame} title={!rule.startFrame && !rule.endFrame ? t('{model} takes no start or end frame', { model: c.model }) : undefined} />
               </ColumnBox>
             </div>
           </div>
@@ -931,22 +932,22 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
 
         {/* node canvas */}
         <WorkflowCanvas campaign={campaign} health={health} runs={runs} readOnly={readOnly} consoleControls={c} onRuns={onRuns} onCampaign={onCampaign} onNotice={(m) => notify(m)} onConnect={onConnect}
-          onChooseCampaign={readOnly ? undefined : openCampaignPicker} chooseLabel={campaigns.length ? 'Choose a campaign' : 'Create a campaign'} onScripter={readOnly ? undefined : () => openSheet('scripter')} />
+          onChooseCampaign={readOnly ? undefined : openCampaignPicker} chooseLabel={campaigns.length ? t('Choose a campaign') : t('Create a campaign')} onScripter={readOnly ? undefined : () => openSheet('scripter')} />
       </div>
 
       {probeAsk && !gate && (
         <SpendGate
           id="motion-probe"
-          title={`Probe ${c.model}`}
+          title={t('Probe {model}', { model: c.model })}
           dry={health.dry}
-          items={[<>One cheapest request on this model with no campaign attached: {MODEL_RULES[c.model].resolutions[0] ?? 'default resolution'}, the shortest legal duration, no references. The verdict and the raw reply are recorded in Credits & health.</>]}
+          items={[<>{t('One cheapest request on this model with no campaign attached: {resolution}, the shortest legal duration, no references. The verdict and the raw reply are recorded in Credits & health.', { resolution: MODEL_RULES[c.model].resolutions[0] ?? t('default resolution') })}</>]}
           balance={balance}
           session={{ spent: health.arcads.sessionSpent, cap: health.arcads.sessionCap }}
-          block={readOnly ? { text: SAMPLE_OFF } : !connected ? { text: 'Connect Arcads first', actionLabel: 'Connect Arcads', onAction: () => { setProbeAsk(false); onConnect(); } } : null}
+          block={readOnly ? { text: SAMPLE_OFF } : !connected ? { text: t('Connect Arcads first'), actionLabel: t('Connect Arcads'), onAction: () => { setProbeAsk(false); onConnect(); } } : null}
           capAsk={capAsk}
           error={gateError}
           busy={busy}
-          confirmLabel="Run the probe"
+          confirmLabel={t('Run the probe')}
           onConfirm={(override) => void probeThisModel(override)}
           onCancel={() => { setProbeAsk(false); setCapAsk(null); }}
         />
@@ -954,12 +955,12 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
       {gate && (
         <SpendGate
           id="motion-gate"
-          title="Submit to Arcads"
+          title={t('Submit to Arcads')}
           dry={health.dry}
           items={[
-            <><span className="text-[var(--o-text)]">{c.model}</span> · {dRule.kind === 'auto' ? 'auto length' : `${c.duration}s`} · {c.aspectRatio} · {rule.resolutions.length ? c.resolution : 'auto resolution'}</>,
-            <>{plural(requests, 'request')}, each charged separately{c.enhance ? ', each +8 credits for enhancement' : ''}</>,
-            <>{plural(uploads, 'reference upload')} per request</>,
+            <><span className="text-[var(--o-text)]">{c.model}</span> · {dRule.kind === 'auto' ? t('auto length') : `${c.duration}s`} · {c.aspectRatio} · {rule.resolutions.length ? c.resolution : t('auto resolution')}</>,
+            <>{(requests === 1 ? t('{n} request', { n: fmtCredits(requests) }) : t('{n} requests', { n: fmtCredits(requests) }))}{t(', each charged separately')}{c.enhance ? t(', each +8 credits for enhancement') : ''}</>,
+            <>{uploads === 1 ? t('{n} reference upload per request', { n: fmtCredits(uploads) }) : t('{n} reference uploads per request', { n: fmtCredits(uploads) })}</>,
           ]}
           balance={balance}
           session={{ spent: health.arcads.sessionSpent, cap: health.arcads.sessionCap }}
@@ -967,7 +968,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
           capAsk={capAsk}
           error={gateError}
           busy={busy}
-          confirmLabel={`Confirm${requests > 1 ? ` ×${requests}` : ''}`}
+          confirmLabel={`${t('Confirm')}${requests > 1 ? ` ×${requests}` : ''}`}
           onConfirm={(override) => void submit(override)}
           onCancel={() => { setGate(false); setCapAsk(null); }}
         />
@@ -989,18 +990,18 @@ function ColumnBox({ col, sphere, hidden, locked, onEye, onLock, menuOpen, onMen
     <div>
       <div className="ae-o-colhead">
         <span className="relative inline-flex">
-          <OBtn kind="pill" cls="ae-o-pill"  aria-haspopup="menu" aria-expanded={menuOpen} title={`${name} column menu`} onClick={() => onMenu(!menuOpen)}><span className={`ae-o-sphere ${sphere}`} />{name}</OBtn>
+          <OBtn kind="pill" cls="ae-o-pill"  aria-haspopup="menu" aria-expanded={menuOpen} title={t('{name} column menu', { name })} onClick={() => onMenu(!menuOpen)}><span className={`ae-o-sphere ${sphere}`} />{name}</OBtn>
           {menuOpen && (
-            <Popover id={`column-${col}`} label={`${name} column`} onClose={() => onMenu(false)} className="left-0 top-[46px]">
-              <OBtn kind="row" role="menuitem" onClick={() => { onMenu(false); onResetColumn(col); }}><RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />Reset {name} to {resetTo ?? 'defaults'}</OBtn>
-              <OBtn kind="row" role="menuitem" onClick={() => { onMenu(false); onShow(part ?? 'output'); }}><FileText className="h-3.5 w-3.5" strokeWidth={2} />{part ? 'Show in composed prompt' : 'Show the fields sent to Arcads'}</OBtn>
+            <Popover id={`column-${col}`} label={t('{name} column', { name })} onClose={() => onMenu(false)} className="left-0 top-[46px]">
+              <OBtn kind="row" role="menuitem" onClick={() => { onMenu(false); onResetColumn(col); }}><RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />{t('Reset {name} to {target}', { name, target: resetTo ?? t('defaults') })}</OBtn>
+              <OBtn kind="row" role="menuitem" onClick={() => { onMenu(false); onShow(part ?? 'output'); }}><FileText className="h-3.5 w-3.5" strokeWidth={2} />{part ? t('Show in composed prompt') : t('Show the fields sent to Arcads')}</OBtn>
             </Popover>
           )}
         </span>
         {part && (
           <span className="ae-o-tools-mini">
-            <OBtn kind="icon-sm" title={off ? `Include ${part} in the prompt` : `Hide ${part} from the prompt`} aria-label={`${off ? 'Include' : 'Hide'} ${name}`} data-on={!off} onClick={() => onEye(part)}>{off ? <EyeOff className="h-4 w-4" strokeWidth={1.7} /> : <Eye className="h-4 w-4" strokeWidth={1.7} />}</OBtn>
-            <OBtn kind="icon-sm" title={locked.has(part) ? 'Unlock: Describe it may change this part' : 'Protect: Describe it will not change this part'} aria-label={`${locked.has(part) ? 'Unlock' : 'Lock'} ${name}`} aria-pressed={locked.has(part)} data-on={locked.has(part)} onClick={() => onLock(part)}>{locked.has(part) ? <Lock className="h-4 w-4" strokeWidth={1.7} /> : <LockOpen className="h-4 w-4" strokeWidth={1.7} />}</OBtn>
+            <OBtn kind="icon-sm" title={off ? t('Include {part} in the prompt', { part: t(part) }) : t('Hide {part} from the prompt', { part: t(part) })} aria-label={off ? t('Include {part}', { part: name }) : t('Hide {part}', { part: name })} data-on={!off} onClick={() => onEye(part)}>{off ? <EyeOff className="h-4 w-4" strokeWidth={1.7} /> : <Eye className="h-4 w-4" strokeWidth={1.7} />}</OBtn>
+            <OBtn kind="icon-sm" title={locked.has(part) ? t('Unlock: Describe it may change this part') : t('Protect: Describe it will not change this part')} aria-label={locked.has(part) ? t('Unlock {part}', { part: name }) : t('Lock {part}', { part: name })} aria-pressed={locked.has(part)} data-on={locked.has(part)} onClick={() => onLock(part)}>{locked.has(part) ? <Lock className="h-4 w-4" strokeWidth={1.7} /> : <LockOpen className="h-4 w-4" strokeWidth={1.7} />}</OBtn>
           </span>
         )}
       </div>

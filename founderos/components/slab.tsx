@@ -3,6 +3,7 @@ import { Lightbulb } from 'lucide-react';
 import { Rise } from '@/founderos/components/motion';
 import { CountUp, type CountKind } from '@/founderos/components/CountUp';
 import { VolumeMeter } from '@/founderos/components/VolumeMeter';
+import { t } from '@/lib/i18n';
 
 /**
  * The Brand Deals slab as a kit (2026-09-24, Alex: "rebuild the entire OS
@@ -128,7 +129,7 @@ export function BigStat({
   );
 }
 
-export function MeterStack({ meters, foot, empty = 'nothing to measure yet', baseDelay = 500 }: { meters: Meter[]; foot?: ReactNode; empty?: string; baseDelay?: number }) {
+export function MeterStack({ meters, foot, empty = t('nothing to measure yet'), baseDelay = 500 }: { meters: Meter[]; foot?: ReactNode; empty?: string; baseDelay?: number }) {
   return (
     <div className="mt-5 flex flex-1 flex-col">
       <div className="flex flex-1 flex-col justify-around gap-6 border-t border-os-border pt-5">
@@ -203,8 +204,8 @@ export function InsightCard({
         <div className="mt-2 text-[16px] font-semibold leading-snug">{headline}</div>
         {body && <div className="mt-1.5 text-[12.5px] leading-relaxed text-white/75">{body}</div>}
         <div className="mt-auto flex gap-1.5 pt-4">
-          {Array.from({ length: 8 }, (_, t) => (
-            <span key={t} data-tick className="h-[3px] flex-1 rounded-full" style={{ background: t < lit ? '#fff' : 'rgba(255,255,255,.25)' }} />
+          {Array.from({ length: 8 }, (_, k) => (
+            <span key={k} data-tick className="h-[3px] flex-1 rounded-full" style={{ background: k < lit ? '#fff' : 'rgba(255,255,255,.25)' }} />
           ))}
         </div>
       </div>

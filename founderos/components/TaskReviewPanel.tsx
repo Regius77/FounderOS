@@ -9,6 +9,7 @@ import { classifyDeliverable } from '@/founderos/lib/board-approvals';
 import { revisionOf } from '@/founderos/lib/deliverable-revision';
 import type { DecisionKind, DeliverableDecision } from '@/founderos/lib/schemas';
 import { Label } from '@/founderos/components/terminal';
+import { t } from '@/lib/i18n';
 
 /**
  * Read one piece of agent work, then decide on it.
@@ -114,7 +115,7 @@ export function TaskReviewPanel({
       >
         <header className="flex shrink-0 items-start gap-3 border-b border-os-border px-4 py-3">
           <div className="min-w-0 flex-1">
-            <Label>Review</Label>
+            <Label>{t('Review')}</Label>
             {/* The document's own title, not the filename. */}
             <div className="mt-1 break-words text-[13.5px] font-semibold leading-snug text-os-text">
               {item.title || item.name}
@@ -124,14 +125,14 @@ export function TaskReviewPanel({
               {decision && (
                 <span className={decision.decision === 'approved' ? 'text-os-ok' : 'text-os-muted'}>
                   {' · '}
-                  {decision.decision}
+                  {decision.decision === 'approved' ? t('approved') : t('dismissed')}
                 </span>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close review"
+            aria-label={t('Close review')}
             className="pressable shrink-0 rounded-lg border border-os-border p-1 text-os-dim hover:border-os-dim hover:text-os-text"
           >
             <X className="h-3.5 w-3.5" />
@@ -145,11 +146,11 @@ export function TaskReviewPanel({
         )}
 
         <div className="min-h-0 flex-1 overflow-auto">
-          {loading && <p className="px-4 py-3 font-mono text-[10.5px] text-os-dim">reading…</p>}
+          {loading && <p className="px-4 py-3 font-mono text-[10.5px] text-os-dim">{t('reading…')}</p>}
 
           {failed && (
             <p className="px-4 py-3 font-mono text-[10.5px] text-os-err">
-              Could not read this file. It may have been moved or the board host is unreachable.
+              {t('Could not read this file. It may have been moved or the board host is unreachable.')}
             </p>
           )}
 
@@ -157,7 +158,7 @@ export function TaskReviewPanel({
             <>
               {preview?.truncated && (
                 <p className="border-b border-os-border bg-os-warn/[0.08] px-4 py-1.5 font-mono text-[9.5px] text-os-warn">
-                  Showing the first part only. Download for the whole file.
+                  {t('Showing the first part only. Download for the whole file.')}
                 </p>
               )}
               <div className="px-4 py-3">
@@ -180,17 +181,17 @@ export function TaskReviewPanel({
 
           {!loading && !failed && kind === 'binary' && (
             <p className="px-4 py-3 font-mono text-[10.5px] text-os-dim">
-              This format can&apos;t be shown here. Download it to review.
+              {t("This format can't be shown here. Download it to review.")}
             </p>
           )}
 
           {kind === 'link' && (
             <div className="px-4 py-3 font-mono text-[10.5px] text-os-dim">
-              This is a live proposal page rather than a file on the board.
+              {t('This is a live proposal page rather than a file on the board.')}
               {item.accessCode && (
                 <>
                   {' '}
-                  Gate code <span className="text-os-text">{item.accessCode}</span>.
+                  {t('Gate code')} <span className="text-os-text">{item.accessCode}</span>.
                 </>
               )}
             </div>
@@ -203,7 +204,7 @@ export function TaskReviewPanel({
               onClick={() => onDecide(item.id, null, rev)}
               className="pressable flex items-center gap-1.5 rounded-lg border border-os-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-os-muted hover:border-os-dim hover:text-os-text"
             >
-              <Undo2 className="h-3 w-3" /> undo {decision.decision}
+              <Undo2 className="h-3 w-3" /> {decision.decision === 'approved' ? t('undo approved') : t('undo dismissed')}
             </button>
           ) : (
             <>
@@ -211,13 +212,13 @@ export function TaskReviewPanel({
                 onClick={() => onDecide(item.id, 'approved', rev)}
                 className="pressable flex items-center gap-1.5 rounded-lg border border-os-ok/50 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-os-ok hover:bg-os-ok/10"
               >
-                <Check className="h-3 w-3" /> approve
+                <Check className="h-3 w-3" /> {t('approve')}
               </button>
               <button
                 onClick={() => onDecide(item.id, 'dismissed', rev)}
                 className="pressable flex items-center gap-1.5 rounded-lg border border-os-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-os-muted hover:border-os-dim hover:text-os-text"
               >
-                <X className="h-3 w-3" /> dismiss
+                <X className="h-3 w-3" /> {t('dismiss')}
               </button>
             </>
           )}
@@ -230,19 +231,18 @@ export function TaskReviewPanel({
           >
             {item.kind === 'link' ? (
               <>
-                open page <ExternalLink className="h-3 w-3" />
+                {t('open page')} <ExternalLink className="h-3 w-3" />
               </>
             ) : (
               <>
-                download <Download className="h-3 w-3" />
+                {t('download')} <Download className="h-3 w-3" />
               </>
             )}
           </a>
         </footer>
 
         <p className="shrink-0 border-t border-os-border px-4 py-1.5 font-mono text-[9px] text-os-dim">
-          Your call is recorded in the OS and clears this from the queue. If the agent rewrites the
-          file, it comes back.
+          {t('Your call is recorded in the OS and clears this from the queue. If the agent rewrites the file, it comes back.')}
         </p>
       </aside>
     </div>

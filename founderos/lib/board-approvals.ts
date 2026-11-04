@@ -1,4 +1,5 @@
 import type { DeliverableItem } from '@/founderos/lib/board-deliverables';
+import { t } from '@/lib/i18n';
 
 /**
  * The queue of agent work that is waiting on the operator.
@@ -51,13 +52,13 @@ export type Classified = DeliverableItem & {
  * a row can be answered without knowing the board's vocabulary.
  */
 export const ACTION_TEXT: Record<ApprovalKind, string> = {
-  staged: 'The agent already wrote this. Approve to send it. Dismiss to bin it.',
-  decision: 'Only you can make this call. Approve to go ahead. Dismiss to drop it.',
-  gate: 'Work is paused until you answer. Approve to unblock it. Dismiss to keep it closed.',
-  request: 'Someone asked you for something. Approve to act on it. Dismiss to decline.',
-  draft: 'A draft is waiting on you. Approve to publish it. Dismiss to send it back.',
-  done: 'Finished work. Nothing is being asked of you.',
-  output: 'Reference output. Nothing is being asked of you.',
+  staged: t('The agent already wrote this. Approve to send it. Dismiss to bin it.'),
+  decision: t('Only you can make this call. Approve to go ahead. Dismiss to drop it.'),
+  gate: t('Work is paused until you answer. Approve to unblock it. Dismiss to keep it closed.'),
+  request: t('Someone asked you for something. Approve to act on it. Dismiss to decline.'),
+  draft: t('A draft is waiting on you. Approve to publish it. Dismiss to send it back.'),
+  done: t('Finished work. Nothing is being asked of you.'),
+  output: t('Reference output. Nothing is being asked of you.'),
 };
 
 /**
@@ -68,17 +69,17 @@ export const ACTION_TEXT: Record<ApprovalKind, string> = {
  * is a clause, not a sentence: the row reads "why here · someone is waiting".
  */
 export const WHY_TEXT: Record<ApprovalKind, string> = {
-  staged: 'a reply is written and unsent',
-  decision: 'nobody else can make this call',
-  gate: 'work is paused behind it',
-  request: 'someone asked you directly',
-  draft: 'a draft is waiting to go out',
-  done: 'finished, kept for the record',
-  output: 'reference only',
+  staged: t('a reply is written and unsent'),
+  decision: t('nobody else can make this call'),
+  gate: t('work is paused behind it'),
+  request: t('someone asked you directly'),
+  draft: t('a draft is waiting to go out'),
+  done: t('finished, kept for the record'),
+  output: t('reference only'),
 };
 
 /** A blown deadline explains itself before its kind does. */
-const WHY_OVERDUE = 'the deadline the agent set has passed';
+const WHY_OVERDUE = t('the deadline the agent set has passed');
 
 const GLYPH: Record<ApprovalKind, string> = {
   staged: '\u2709',
@@ -100,11 +101,11 @@ const MONEY = /(invoice|refund|payment|stripe|pricing|quote|contract|proposal)/i
 const DONE = /(UNBLOCKED|RESOLVED|FINAL|COMPLETE)/i;
 
 const ACTION: [RegExp, ApprovalKind, string][] = [
-  [/STAGED/i, 'staged', 'staged · send it'],
-  [/\bdecision\b|-decision-/i, 'decision', 'your call'],
-  [/-gate-|\bgate\b/i, 'gate', 'gate'],
-  [/-request-|\brequest\b/i, 'request', 'request'],
-  [/-draft-|\bdraft\b/i, 'draft', 'draft to approve'],
+  [/STAGED/i, 'staged', t('staged · send it')],
+  [/\bdecision\b|-decision-/i, 'decision', t('your call')],
+  [/-gate-|\bgate\b/i, 'gate', t('gate')],
+  [/-request-|\brequest\b/i, 'request', t('request')],
+  [/-draft-|\bdraft\b/i, 'draft', t('draft to approve')],
 ];
 
 /** `DELIVER-BEFORE-1430Z` → 14:30 UTC on the file's own day. */
@@ -125,11 +126,11 @@ export function classifyDeliverable(item: DeliverableItem, now = Date.now()): Cl
   const done = DONE.test(name);
 
   let ask: ApprovalKind = 'output';
-  let label = 'output';
+  let label = t('output');
   let person = false;
   if (done) {
     ask = 'done';
-    label = 'done';
+    label = t('done');
   } else {
     for (const [re, k, l] of ACTION) {
       if (re.test(name)) {
@@ -148,7 +149,7 @@ export function classifyDeliverable(item: DeliverableItem, now = Date.now()): Cl
   // deadline promotes the file into the queue rather than sitting in outputs.
   if (ask === 'output' && deadline && !done) {
     ask = 'request';
-    label = 'due';
+    label = t('due');
   }
 
   const needsYou = !done && ask !== 'output';

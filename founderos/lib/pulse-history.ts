@@ -1,3 +1,4 @@
+import { locale, localeTag } from '@/lib/i18n';
 /**
  * Honest inputs for the operator-console pulse row. `runsPerDay` / `inboundPerDay`
  * turn real timestamped history (agent_runs, comms feed) into per-day series for
@@ -158,7 +159,7 @@ export function dailySeries(timestamps: (string | undefined)[], days = 14, now: 
   const out = Array.from({ length: days }, (_, i) => {
     const d = new Date(start);
     d.setDate(d.getDate() - (days - 1 - i));
-    return { key: d.getTime(), label: `${MONTHS[d.getMonth()]} ${d.getDate()}`, count: 0 };
+    return { key: d.getTime(), label: locale() === 'it' ? d.toLocaleDateString(localeTag(), { day: 'numeric', month: 'short' }) : `${MONTHS[d.getMonth()]} ${d.getDate()}`, count: 0 };
   });
   for (const ts of timestamps) {
     if (!ts) continue;

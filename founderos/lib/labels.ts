@@ -19,3 +19,23 @@ export function taskStatusLabel(s: string): string {
   const map: Record<string, string> = { open: t('open'), doing: t('doing'), blocked: t('blocked'), done: t('done') };
   return map[s] ?? s;
 }
+
+/** Paperclip issue and run statuses (snake_case on the wire) as display text. */
+export function boardStatusLabel(s: string): string {
+  const map: Record<string, string> = {
+    in_progress: t('in progress'),
+    in_review: t('in review'),
+    review: t('review'),
+    blocked: t('blocked'),
+    todo: t('todo'),
+    backlog: t('backlog'),
+    done: t('done'),
+    cancelled: t('cancelled'),
+    running: t('running'),
+    failed: t('failed'),
+    error: t('error'),
+    timed_out: t('timed out'),
+    unknown: t('unknown'),
+  };
+  return map[s] ?? s.replace(/_/g, ' ');
+}

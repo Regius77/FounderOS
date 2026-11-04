@@ -1,6 +1,7 @@
 import type { Meter, Tone } from '@/founderos/components/slab';
 import type { SeriesPoint } from '@/founderos/components/slab-charts';
 import { newsletterSummary, type Newsletter } from '@/lib/newsletters';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * /social/beehiiv in the Brand Deals look (Alex, 2026-09-24). One pure
@@ -31,7 +32,7 @@ export type NewsletterVolume = {
 const MATRIX_COLS = 6;
 const clamp = (f: number) => (Number.isFinite(f) ? Math.max(0, Math.min(1, f)) : 0);
 const pct = (f: number, digits = 1) => `${(f * 100).toFixed(digits)}%`;
-const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const sum = (list: Newsletter[], k: keyof Pick<Newsletter, 'recipients' | 'delivered' | 'opens' | 'clicks' | 'unsubscribes' | 'spamReports'>) =>
   list.reduce((n, x) => n + x[k], 0);
 
@@ -51,34 +52,34 @@ export function newsletterVolume(x: { newsletters: Newsletter[]; subscribers: nu
 
   const chips: NewsletterVolume['chips'] = [];
   if (count) {
-    chips.push({ tone: 'accent', text: `${count} issue${count === 1 ? '' : 's'}` });
-    chips.push({ tone: 'ok', text: `${(summary.avgOpenRate ?? 0).toFixed(1)}% avg open` });
+    chips.push({ tone: 'accent', text: count === 1 ? t('{n} issue', { n: count }) : t('{n} issues', { n: count }) });
+    chips.push({ tone: 'ok', text: t('{pct}% avg open', { pct: (summary.avgOpenRate ?? 0).toFixed(1) }) });
   }
 
   const meters: Meter[] = [];
-  if (recipients > 0) meters.push({ label: 'Delivered', frac: clamp(delivered / recipients), display: `${pct(delivered / recipients)} of sends`, hue: 'var(--ok)' });
-  if (delivered > 0) meters.push({ label: 'Opened', frac: clamp(opens / delivered), display: `${pct(opens / delivered)} of delivered`, hue: 'var(--ramp-1)' });
-  if (opens > 0) meters.push({ label: 'Clicked', frac: clamp(clicks / opens), display: `${pct(clicks / opens)} of opens`, hue: 'var(--ramp-3)' });
-  if (delivered > 0) meters.push({ label: 'Unsubscribed', frac: clamp(unsubscribes / delivered), display: `${pct(unsubscribes / delivered, 2)} of delivered`, hue: 'var(--warn)' });
+  if (recipients > 0) meters.push({ label: t('Delivered'), frac: clamp(delivered / recipients), display: t('{pct} of sends', { pct: pct(delivered / recipients) }), hue: 'var(--ok)' });
+  if (delivered > 0) meters.push({ label: t('Opened'), frac: clamp(opens / delivered), display: t('{pct} of delivered', { pct: pct(opens / delivered) }), hue: 'var(--ramp-1)' });
+  if (opens > 0) meters.push({ label: t('Clicked'), frac: clamp(clicks / opens), display: t('{pct} of opens', { pct: pct(clicks / opens) }), hue: 'var(--ramp-3)' });
+  if (delivered > 0) meters.push({ label: t('Unsubscribed'), frac: clamp(unsubscribes / delivered), display: t('{pct} of delivered', { pct: pct(unsubscribes / delivered, 2) }), hue: 'var(--warn)' });
 
   const foot = count
-    ? `${count} issue${count === 1 ? '' : 's'} · ${recipients.toLocaleString('en-US')} sends${seeded ? ' · seeded preview' : ''}`
-    : 'no issues yet';
+    ? `${count === 1 ? t('{n} issue', { n: count }) : t('{n} issues', { n: count })} · ${t('{n} sends', { n: recipients.toLocaleString(localeTag()) })}${seeded ? t(' · seeded preview') : ''}`
+    : t('no issues yet');
 
   const best = list.reduce<Newsletter | null>((b, n) => (b && b.openRate >= n.openRate ? b : n), null);
   const insight: NewsletterVolume['insight'] = best
     ? {
         display: `${best.openRate.toFixed(1)}%`,
-        headline: `Best open rate: ${best.title}.`,
-        body: `${(summary.avgOpenRate ?? 0).toFixed(1)}% average across ${count} issue${count === 1 ? '' : 's'} · ${shortDate(best.publishedAt)}`,
+        headline: t('Best open rate: {title}.', { title: best.title }),
+        body: `${count === 1 ? t('{pct}% average across {n} issue', { pct: (summary.avgOpenRate ?? 0).toFixed(1), n: count }) : t('{pct}% average across {n} issues', { pct: (summary.avgOpenRate ?? 0).toFixed(1), n: count })} · ${shortDate(best.publishedAt)}`,
         frac: clamp(best.openRate / 100),
       }
-    : { display: 'none', headline: 'No issues sent yet.', body: 'Open rates show here after the first send.', frac: 0 };
+    : { display: t('none'), headline: t('No issues sent yet.'), body: t('Open rates show here after the first send.'), frac: 0 };
 
   return {
     headline: x.subscribers,
     chips,
-    caption: x.subscribers != null ? 'subscribers, live via Beehiiv' : 'no live subscriber count · add BEEHIIV_API_KEY',
+    caption: x.subscribers != null ? t('subscribers, live via Beehiiv') : t('no live subscriber count · add BEEHIIV_API_KEY'),
     meters,
     foot,
     sends: oldestFirst.map((n) => ({ label: shortDate(n.publishedAt), count: n.recipients })),

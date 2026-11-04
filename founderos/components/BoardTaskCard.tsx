@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { boardTaskDecisionId } from '@/founderos/lib/board-live';
 import type { PaperclipIssue } from '@/founderos/lib/connectors/paperclip';
 import type { DecisionKind, DeliverableDecision } from '@/founderos/lib/deliverable-decisions';
+import { t } from '@/lib/i18n';
 
 /**
  * One task in a board lane. Click it and it opens in place to Approve or
@@ -88,8 +89,8 @@ export function BoardTaskCard({
             <span className="truncate">{issue.assigneeName}</span>
           </>
         )}
-        {approved && <span className="ml-auto shrink-0 text-os-ok">✓ approved</span>}
-        {dismissed && <span className="ml-auto shrink-0">dismissed</span>}
+        {approved && <span className="ml-auto shrink-0 text-os-ok">{t('✓ approved')}</span>}
+        {dismissed && <span className="ml-auto shrink-0">{t('dismissed')}</span>}
       </div>
 
       {open && (
@@ -105,7 +106,7 @@ export function BoardTaskCard({
             onClick={() => void decide('approved')}
             className="pressable is-primary h-[22px] flex-1 rounded-ctl border border-os-text font-mono text-[9.5px] font-bold text-os-ink disabled:opacity-40"
           >
-            Approve
+            {t('Approve')}
           </button>
           <button
             data-lens="c"
@@ -113,7 +114,7 @@ export function BoardTaskCard({
             onClick={() => void decide('dismissed')}
             className="pressable is-dark h-[22px] flex-1 rounded-ctl border border-os-border bg-os-bg font-mono text-[9.5px] font-semibold text-os-muted disabled:opacity-40"
           >
-            Dismiss
+            {t('Dismiss')}
           </button>
         </div>
       )}

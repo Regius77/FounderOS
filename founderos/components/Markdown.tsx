@@ -2,6 +2,7 @@
 
 import { Fragment } from 'react';
 import { parseInline, parseMarkdown, type Inline } from '@/founderos/lib/markdown-blocks';
+import { t } from '@/lib/i18n';
 
 /**
  * Render an agent deliverable as the document it is, not raw Markdown
@@ -48,7 +49,7 @@ const HEADING_SIZE = ['text-[15px]', 'text-[14px]', 'text-[13px]', 'text-[12px]'
 export function Markdown({ text }: { text: string }) {
   const blocks = parseMarkdown(text);
   if (blocks.length === 0) {
-    return <p className="font-mono text-[10.5px] text-os-dim">This file is empty.</p>;
+    return <p className="font-mono text-[10.5px] text-os-dim">{t('This file is empty.')}</p>;
   }
 
   return (

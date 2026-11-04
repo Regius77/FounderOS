@@ -15,6 +15,7 @@ import { Label } from '@/founderos/components/terminal';
 import type { DeliverableGroup, DeliverableItem } from '@/founderos/lib/board-deliverables';
 import type { UnseenState } from '@/founderos/lib/deliverables-opened';
 import { DELIVERABLES_COLLAPSED_KEY, parseCollapsed } from '@/founderos/lib/deliverables-seen';
+import { t } from '@/lib/i18n';
 
 /**
  * The Deliverables tab on /agents: every file the
@@ -33,13 +34,13 @@ import { DELIVERABLES_COLLAPSED_KEY, parseCollapsed } from '@/founderos/lib/deli
  */
 const ago = (iso: string): string => {
   const ms = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return 'now';
+  if (!Number.isFinite(ms) || ms < 0) return t('now');
   const m = Math.floor(ms / 60_000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t('just now');
+  if (m < 60) return t('{n}m ago', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return t('{n}h ago', { n: h });
+  return t('{n}d ago', { n: Math.floor(h / 24) });
 };
 
 const size = (b: number): string =>
@@ -100,17 +101,17 @@ export function DeliverablesList({
   return (
     <section className="rounded-lg-t border border-os-border bg-os-surface">
       <div className="flex items-center gap-3 border-b border-os-border px-4 py-2.5">
-        <Label>Agent deliverables</Label>
+        <Label>{t('Agent deliverables')}</Label>
         <span className="font-mono text-[10px] text-os-dim">
           {groups === null
-            ? 'loading…'
-            : `${total} item${total === 1 ? '' : 's'} · ${groups.length} folder${
-                groups.length === 1 ? '' : 's'
+            ? t('loading…')
+            : `${total === 1 ? t('{n} item', { n: total }) : t('{n} items', { n: total })} · ${
+                groups.length === 1 ? t('{n} folder', { n: groups.length }) : t('{n} folders', { n: groups.length })
               }`}
         </span>
         <button
           onClick={onRefresh}
-          title="Refresh"
+          title={t('Refresh')}
           className="pressable ml-auto rounded-full p-1.5 text-os-dim hover:text-os-text"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
@@ -119,9 +120,7 @@ export function DeliverablesList({
 
       {groups !== null && groups.length === 0 && (
         <p className="px-4 py-3 font-mono text-[10.5px] text-os-dim">
-          Nothing in review yet. Proposals appear as folders above; agent files land here when agents write
-          into their workspace deliverables folders on the board host — a dev machine that does not
-          host the board honestly shows none.
+          {t('Nothing in review yet. Proposals appear as folders above; agent files land here when agents write into their workspace deliverables folders on the board host — a dev machine that does not host the board honestly shows none.')}
         </p>
       )}
 
@@ -148,7 +147,7 @@ export function DeliverablesList({
                     <Folder className="h-3 w-3 shrink-0 text-os-dim" />
                   )}
                   <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-os-muted">
-                    {group.name}
+                    {t(group.name)}
                   </span>
                   <span className="ml-auto font-mono text-[9px] text-os-dim">{group.items.length}</span>
                 </button>
@@ -171,10 +170,10 @@ export function DeliverablesList({
                               <span
                                 title={
                                   unseenOf(d) === 'new'
-                                    ? 'New since you last looked'
-                                    : 'Rewritten since you read it'
+                                    ? t('New since you last looked')
+                                    : t('Rewritten since you read it')
                                 }
-                                aria-label={unseenOf(d) === 'new' ? 'new' : 'updated'}
+                                aria-label={unseenOf(d) === 'new' ? t('new') : t('updated')}
                                 className={`h-1.5 w-1.5 shrink-0 animate-pulse rounded-full ${
                                   unseenOf(d) === 'new' ? 'bg-os-accent' : 'bg-os-warn'
                                 }`}
@@ -187,10 +186,10 @@ export function DeliverablesList({
                               <button
                                 type="button"
                                 onClick={() => void copyCode(d.id, d.accessCode)}
-                                title="Copy the access code that opens this proposal"
+                                title={t('Copy the access code that opens this proposal')}
                                 className="pressable shrink-0 rounded-full border border-os-border-strong px-2 py-0.5 font-mono text-[9px] tracking-[0.08em] text-os-muted hover:border-os-dim hover:text-os-text"
                               >
-                                {copied === d.id ? 'copied' : d.accessCode}
+                                {copied === d.id ? t('copied') : d.accessCode}
                               </button>
                             )}
                           </div>
@@ -203,10 +202,10 @@ export function DeliverablesList({
                         <button
                           type="button"
                           onClick={() => onOpen(d)}
-                          title="Review this without leaving the OS"
+                          title={t('Review this without leaving the OS')}
                           className="pressable flex shrink-0 items-center gap-1.5 rounded-full border border-os-border px-3 py-1.5 font-mono text-[10px] text-os-dim hover:border-os-dim hover:text-os-text"
                         >
-                          review
+                          {t('review')}
                         </button>
                         {d.kind === 'link' ? (
                           <a
@@ -216,7 +215,7 @@ export function DeliverablesList({
                             data-lens="c"
                             className="pressable is-dark flex shrink-0 items-center gap-1.5 rounded-full border border-os-border-strong bg-os-surface2 px-3 py-1.5 font-mono text-[10px] text-os-text"
                           >
-                            <ExternalLink className="h-3 w-3" /> open
+                            <ExternalLink className="h-3 w-3" /> {t('open')}
                           </a>
                         ) : (
                           <a
@@ -225,7 +224,7 @@ export function DeliverablesList({
                             data-lens="c"
                             className="pressable is-dark flex shrink-0 items-center gap-1.5 rounded-full border border-os-border-strong bg-os-surface2 px-3 py-1.5 font-mono text-[10px] text-os-text"
                           >
-                            <Download className="h-3 w-3" /> download
+                            <Download className="h-3 w-3" /> {t('download')}
                           </a>
                         )}
                       </div>

@@ -44,6 +44,7 @@ import {
   unreadBadge,
   type ConductorStateDetail,
 } from '@/lib/conductor-launcher';
+import { t } from '@/lib/i18n';
 
 type Turn = {
   id: string;
@@ -168,8 +169,8 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
   useEffect(() => {
     if (open) {
       wasOpen.current = true;
-      const t = window.setTimeout(() => composer()?.focus({ preventScroll: true }), 60);
-      return () => window.clearTimeout(t);
+      const timer = window.setTimeout(() => composer()?.focus({ preventScroll: true }), 60);
+      return () => window.clearTimeout(timer);
     }
     if (!wasOpen.current) return;
     wasOpen.current = false;
@@ -245,7 +246,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
   useEffect(() => {
     if (!focusTick) return;
     // after the open effect's own focus (60ms), so the caret lands at the end
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       const el = composer();
       if (!el) return;
       el.focus({ preventScroll: true });
@@ -256,7 +257,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
         /* input types without a selection */
       }
     }, 80);
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [focusTick, composer]);
 
   async function send() {
@@ -265,7 +266,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
     const toAll = broadcast;
     setSending(true);
     setError(null);
-    setTurns((t) => [...t, { id: `u-${t.length}`, role: 'user', content: text, toAll }]);
+    setTurns((prev) => [...prev, { id: `u-${prev.length}`, role: 'user', content: text, toAll }]);
     setInput('');
     setBroadcast(false); // the chip resets after each send (FR-GP2.2)
     try {
@@ -281,24 +282,24 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(body?.error ?? `${toAll ? 'broadcast' : 'conductor'} failed (${res.status})`);
+        throw new Error(body?.error ?? (toAll ? t('broadcast failed ({status})', { status: res.status }) : t('conductor failed ({status})', { status: res.status })));
       }
       if (toAll) {
         const body = (await res.json()) as { broadcast?: { replies?: unknown } };
         const groups = groupBroadcastReplies(body.broadcast?.replies);
-        setTurns((t) => [...t, { id: `a-${t.length}`, role: 'assistant', content: '', toAll: true, groups }]);
+        setTurns((prev) => [...prev, { id: `a-${prev.length}`, role: 'assistant', content: '', toAll: true, groups }]);
       } else {
         const body = (await res.json()) as { routedTo: string; reply: string };
-        setTurns((t) => [...t, { id: `a-${t.length}`, role: 'assistant', content: body.reply, routedTo: body.routedTo }]);
+        setTurns((prev) => [...prev, { id: `a-${prev.length}`, role: 'assistant', content: body.reply, routedTo: body.routedTo }]);
       }
       // a real reply that lands while the dock is closed stays unread until it reopens
       if (!openRef.current) {
         setUnread((n) => n + 1);
-        setAnnounce('Wizard replied');
+        setAnnounce(t('Wizard replied'));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-      if (!openRef.current) setAnnounce('Wizard message failed');
+      if (!openRef.current) setAnnounce(t('Wizard message failed'));
     } finally {
       setSending(false);
     }
@@ -318,10 +319,10 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
   const state = launcherState({ open, sending, unread, error });
   const copy = launcherCopy(state, unread);
   const badge = unreadBadge(unread);
-  const placeholder = broadcast ? 'Ask every agent…' : `Ask about ${ctx?.title ?? 'this screen'}…`;
+  const placeholder = broadcast ? t('Ask every agent…') : t('Ask about {title}…', { title: ctx?.title ?? t('this screen') });
   const broadcastTitle = broadcast
-    ? 'On: this message goes to every agent, each answers on its own. Turns off after sending.'
-    : 'Off: the Wizard routes this message to the best agent. Turn on to ask every agent.';
+    ? t('On: this message goes to every agent, each answers on its own. Turns off after sending.')
+    : t('Off: the Wizard routes this message to the best agent. Turn on to ask every agent.');
 
   if (g) {
     // ── GladOS tree (S00 §5.5): GLauncher, GWizardDock, GAsk composer ──
@@ -367,7 +368,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
             onPointerDown={onHandleDown}
             onPointerMove={onHandleMove}
             onPointerUp={onHandleUp}
-            title="Drag to resize"
+            title={t('Drag to resize')}
             className="g-dock-handle"
           />
           <div className="g-dock-edge">
@@ -376,13 +377,13 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
               size="sm"
               onClick={() => persistWidth(widthRef.current + 140)}
               disabled={width >= MAX_W}
-              disabledReason="Already at the widest size"
-              aria-label="Widen the panel"
-              title="Wider"
+              disabledReason={t('Already at the widest size')}
+              aria-label={t('Widen the panel')}
+              title={t('Wider')}
             >
               <ChevronLeft size={14} strokeWidth={1.75} aria-hidden />
             </GButton>
-            <GButton variant="icon" size="sm" onClick={closeDock} aria-label="Slide the panel away" title="Slide away">
+            <GButton variant="icon" size="sm" onClick={closeDock} aria-label={t('Slide the panel away')} title={t('Slide away')}>
               <ChevronRight size={14} strokeWidth={1.75} aria-hidden />
             </GButton>
           </div>
@@ -390,11 +391,11 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
             <ConductorEmblem size={32} thinking={sending} glyph="wand" className="shrink-0" />
             <div className="g-dock-head-text">
               <div className="g-dock-title">Wizard</div>
-              <div className="g-dock-cap" title={ctx?.title ? `The Wizard can see ${ctx.title}` : undefined}>
-                Seeing {ctx?.title ?? 'this screen'}
+              <div className="g-dock-cap" title={ctx?.title ? t('The Wizard can see {title}', { title: ctx.title }) : undefined}>
+                {t('Seeing {title}', { title: ctx?.title ?? t('this screen') })}
               </div>
             </div>
-            <GButton variant="icon" onClick={closeDock} aria-label="Close Wizard">
+            <GButton variant="icon" onClick={closeDock} aria-label={t('Close Wizard')}>
               <X size={16} strokeWidth={1.75} aria-hidden />
             </GButton>
           </header>
@@ -403,59 +404,59 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
             {turns.length === 0 && !sending && !error && (
               <div className="g-dock-empty">
                 <ConductorEmblem size={44} glyph="wand" />
-                <h2 className="g-dock-empty-title">What can I help with?</h2>
+                <h2 className="g-dock-empty-title">{t('What can I help with?')}</h2>
                 <p className="g-dock-empty-body">
-                  I can see {ctx?.title ?? 'this screen'}. Type @agent to ask one directly, or turn on Send to every agent.
+                  {t('I can see {title}. Type @agent to ask one directly, or turn on Send to every agent.', { title: ctx?.title ?? t('this screen') })}
                 </p>
               </div>
             )}
-            {turns.map((t) =>
-              t.role === 'user' ? (
-                <div key={t.id} className="g-dock-turn" data-role="user">
-                  {t.toAll && (
+            {turns.map((turn) =>
+              turn.role === 'user' ? (
+                <div key={turn.id} className="g-dock-turn" data-role="user">
+                  {turn.toAll && (
                     <GTag size="xs" tone="accent">
-                      To every agent
+                      {t('To every agent')}
                     </GTag>
                   )}
                   <GCardRaised p={16} className="g-dock-bubble">
-                    {t.content}
+                    {turn.content}
                   </GCardRaised>
                 </div>
-              ) : t.toAll ? (
-                <div key={t.id} className="g-dock-turn" data-role="assistant">
-                  {(t.groups ?? []).length === 0 && <p className="g-dock-text g-dock-quiet">No agent answered.</p>}
-                  {(t.groups ?? []).map((grp) => (
+              ) : turn.toAll ? (
+                <div key={turn.id} className="g-dock-turn" data-role="assistant">
+                  {(turn.groups ?? []).length === 0 && <p className="g-dock-text g-dock-quiet">{t('No agent answered.')}</p>}
+                  {(turn.groups ?? []).map((grp) => (
                     <div key={grp.agentId} className="g-dock-group">
                       <GTag size="xs" tone={grp.replies.every((r) => r.ok) ? 'neutral' : 'err'}>
                         {grp.agentId}
                       </GTag>
                       {grp.replies.map((r, i) => (
                         <p key={i} className="g-dock-text" data-failed={r.ok ? undefined : ''}>
-                          {r.ok ? r.reply || 'No reply text.' : r.reply ? `Failed: ${r.reply}` : 'Failed without a message.'}
+                          {r.ok ? r.reply || t('No reply text.') : r.reply ? t('Failed: {reply}', { reply: r.reply }) : t('Failed without a message.')}
                         </p>
                       ))}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div key={t.id} className="g-dock-turn" data-role="assistant">
-                  {t.routedTo && (
-                    <GTag size="xs" title={`Routed to ${t.routedTo}`}>
-                      {t.routedTo}
+                <div key={turn.id} className="g-dock-turn" data-role="assistant">
+                  {turn.routedTo && (
+                    <GTag size="xs" title={t('Routed to {agent}', { agent: turn.routedTo })}>
+                      {turn.routedTo}
                     </GTag>
                   )}
-                  <p className="g-dock-text">{t.content}</p>
+                  <p className="g-dock-text">{turn.content}</p>
                 </div>
               ),
             )}
-            {sending && <GProgress text={turns[turns.length - 1]?.toAll ? 'Asking every agent…' : 'Routing…'} />}
+            {sending && <GProgress text={turns[turns.length - 1]?.toAll ? t('Asking every agent…') : t('Routing…')} />}
             {error && <GErrorLine align="left">{error}</GErrorLine>}
           </div>
 
           <div className="g-dock-compose">
             <div className="g-dock-chips">
-              <GChip pressed={broadcast} onPressedChange={setBroadcast} size="compact" title={broadcastTitle} disabled={sending} disabledReason="Wait for the reply">
-                Send to every agent
+              <GChip pressed={broadcast} onPressedChange={setBroadcast} size="compact" title={broadcastTitle} disabled={sending} disabledReason={t('Wait for the reply')}>
+                {t('Send to every agent')}
               </GChip>
             </div>
             <GAsk
@@ -463,7 +464,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
               onValueChange={setInput}
               onSubmit={() => void send()}
               busy={sending}
-              label="Message the Wizard"
+              label={t('Message the Wizard')}
               placeholder={placeholder}
               minChars={1}
             />
@@ -530,7 +531,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           onPointerDown={onHandleDown}
           onPointerMove={onHandleMove}
           onPointerUp={onHandleUp}
-          title="Drag to resize"
+          title={t('Drag to resize')}
           className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize hover:bg-os-accent/30"
           style={{ touchAction: 'none' }}
         />
@@ -545,16 +546,16 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           <button
             onClick={() => persistWidth(widthRef.current + 140)}
             disabled={width >= MAX_W}
-            aria-label="Widen the panel"
-            title={width >= MAX_W ? 'Already at the widest size' : 'Wider'}
+            aria-label={t('Widen the panel')}
+            title={width >= MAX_W ? t('Already at the widest size') : t('Wider')}
             className="grid h-7 w-7 place-items-center rounded-full border border-os-border-strong bg-os-surface text-os-dim shadow-sm transition-colors hover:text-os-accent disabled:opacity-30"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={closeDock}
-            aria-label="Slide the panel away"
-            title="Slide away"
+            aria-label={t('Slide the panel away')}
+            title={t('Slide away')}
             className="grid h-7 w-7 place-items-center rounded-full border border-os-border-strong bg-os-surface text-os-dim shadow-sm transition-colors hover:text-os-text"
           >
             <ChevronRight className="h-3.5 w-3.5" />
@@ -566,12 +567,12 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           <div className="min-w-0 flex-1">
             <div className="text-[13.5px] font-medium">Wizard</div>
             <div className="truncate text-[11.5px] text-os-dim">
-              seeing: {ctx?.title ?? '…'}
+              {t('seeing:')} {ctx?.title ?? '…'}
             </div>
           </div>
           <button
             onClick={closeDock}
-            aria-label="Close Wizard"
+            aria-label={t('Close Wizard')}
             className="shrink-0 rounded-sm-t p-1 text-os-dim transition-colors hover:text-os-text"
           >
             <X className="h-4 w-4" />
@@ -586,17 +587,17 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           {turns.length === 0 && !sending && !error && (
             <div className="wiz-empty m-auto flex flex-col items-center gap-3 px-6 text-center">
               <ConductorEmblem size={44} glyph="wand" />
-              <h2 className="text-[19px] font-medium tracking-[-0.01em] text-os-text">What can I help with?</h2>
+              <h2 className="text-[19px] font-medium tracking-[-0.01em] text-os-text">{t('What can I help with?')}</h2>
               <p className="max-w-[260px] text-[12.5px] leading-relaxed text-os-dim">
-                I can see {ctx?.title ?? 'this screen'}. Type <span className="font-mono">@agent</span> to ask one directly.
+                {t('I can see {title}. Type', { title: ctx?.title ?? t('this screen') })} <span className="font-mono">@agent</span> {t('to ask one directly.')}
               </p>
             </div>
           )}
-          {turns.map((t) =>
-            t.role === 'assistant' && t.toAll ? (
-              <div key={t.id} className="space-y-2 text-left">
-                {(t.groups ?? []).length === 0 && <p className="text-[12.5px] text-os-dim">No agent answered.</p>}
-                {(t.groups ?? []).map((grp) => (
+          {turns.map((turn) =>
+            turn.role === 'assistant' && turn.toAll ? (
+              <div key={turn.id} className="space-y-2 text-left">
+                {(turn.groups ?? []).length === 0 && <p className="text-[12.5px] text-os-dim">{t('No agent answered.')}</p>}
+                {(turn.groups ?? []).map((grp) => (
                   <div key={grp.agentId}>
                     <div className="mb-0.5 font-mono text-[10.5px] text-[var(--route-ink)]">→ {grp.agentId}</div>
                     {grp.replies.map((r, i) => (
@@ -604,27 +605,27 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
                         key={i}
                         className={`inline-block max-w-[92%] whitespace-pre-wrap break-words rounded-md border border-os-border bg-os-bg px-2.5 py-2.5 text-[13px] leading-relaxed ${r.ok ? 'text-os-muted' : 'text-os-err'}`}
                       >
-                        {r.ok ? r.reply || 'No reply text.' : r.reply ? `Failed: ${r.reply}` : 'Failed without a message.'}
+                        {r.ok ? r.reply || t('No reply text.') : r.reply ? t('Failed: {reply}', { reply: r.reply }) : t('Failed without a message.')}
                       </span>
                     ))}
                   </div>
                 ))}
               </div>
-            ) : t.role === 'user' ? (
-              <div key={t.id} className="text-right">
+            ) : turn.role === 'user' ? (
+              <div key={turn.id} className="text-right">
                 <span className="inline-block max-w-[88%] break-words rounded-md bg-os-surface2 px-2.5 py-2.5 text-left text-[13px] text-os-text">
-                  {t.content}
+                  {turn.content}
                 </span>
               </div>
             ) : (
-              <div key={t.id} className="text-left">
-                {t.routedTo && (
+              <div key={turn.id} className="text-left">
+                {turn.routedTo && (
                   <div className="mb-0.5 font-mono text-[10.5px] text-[var(--route-ink)]">
-                    → {t.routedTo}
+                    → {turn.routedTo}
                   </div>
                 )}
                 <span className="inline-block max-w-[92%] whitespace-pre-wrap break-words rounded-md border border-os-border bg-os-bg px-2.5 py-2.5 text-[13px] leading-relaxed text-os-muted">
-                  {t.content}
+                  {turn.content}
                 </span>
               </div>
             ),
@@ -632,7 +633,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
           {sending && (
             <div className="flex items-center gap-3">
               <ConductorEmblem size={18} thinking />
-              <span className="font-mono text-[11.5px] text-os-dim">{turns[turns.length - 1]?.toAll ? 'asking every agent…' : 'routing…'}</span>
+              <span className="font-mono text-[11.5px] text-os-dim">{turns[turns.length - 1]?.toAll ? t('asking every agent…') : t('routing…')}</span>
             </div>
           )}
           {error && (
@@ -656,7 +657,7 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
               disabled={sending}
               title={broadcastTitle}
             >
-              Send to every agent
+              {t('Send to every agent')}
             </button>
           </div>
           <div className={`wiz-ask${sending ? ' is-busy' : ''}`}>
@@ -669,11 +670,11 @@ export function ConductorPanel({ ui = 'classic' }: { ui?: UiStyle } = {}) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && send()}
                 placeholder={placeholder}
-                aria-label="Message the Wizard"
+                aria-label={t('Message the Wizard')}
                 autoComplete="off"
                 disabled={sending}
               />
-              <button type="button" onClick={send} disabled={sending || !input.trim()} aria-label="Send" className="wiz-ask-send">
+              <button type="button" onClick={send} disabled={sending || !input.trim()} aria-label={t('Send')} className="wiz-ask-send">
                 <Send />
               </button>
             </div>

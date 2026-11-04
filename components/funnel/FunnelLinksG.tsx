@@ -17,13 +17,14 @@ import {
 import {
   CONFIRM_TITLE, EMPTY_LINK_FORM, WRITES_OFF_REASON, hostPath, linkFormError, linkRequestBody, totalClicks, type LinkForm, type LinkRow, type LinksWorkspace,
 } from './links-model';
+import { localeTag, t } from '@/lib/i18n';
 
-const num = (n: number) => n.toLocaleString('en-US');
+const num = (n: number) => n.toLocaleString(localeTag());
 
 const COLUMNS: GColumn<LinkRow>[] = [
   {
     key: 'short',
-    label: 'Short link',
+    label: t('Short link'),
     render: (l) => (
       <a href={l.shortLink} target="_blank" rel="noreferrer" className="fn-g-link">
         {hostPath(l.shortLink)} <ExternalLink size={11} strokeWidth={1.75} aria-hidden />
@@ -31,9 +32,9 @@ const COLUMNS: GColumn<LinkRow>[] = [
     ),
     sortValue: (l) => l.shortLink,
   },
-  { key: 'dest', label: 'Destination', render: (l) => <span className="fn-g-cap" title={l.url}>{hostPath(l.url)}</span>, sortValue: (l) => l.url },
-  { key: 'content', label: 'Content id', render: (l) => <span className="fn-g-mono">{l.contentItemId ?? '—'}</span> },
-  { key: 'clicks', label: 'Clicks', numeric: true, render: (l) => num(l.clicks), sortValue: (l) => l.clicks },
+  { key: 'dest', label: t('Destination'), render: (l) => <span className="fn-g-cap" title={l.url}>{hostPath(l.url)}</span>, sortValue: (l) => l.url },
+  { key: 'content', label: t('Content id'), render: (l) => <span className="fn-g-mono">{l.contentItemId ?? '—'}</span> },
+  { key: 'clicks', label: t('Clicks'), numeric: true, render: (l) => num(l.clicks), sortValue: (l) => l.clicks },
 ];
 
 export function FunnelLinksG({ configured, setupHref }: { configured: boolean; setupHref: string }) {
@@ -50,10 +51,10 @@ export function FunnelLinksG({ configured, setupHref }: { configured: boolean; s
     setLoadError(null);
     try {
       const res = await fetch('/api/trakyo/links', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Trakyo links answered ${res.status}`);
+      if (!res.ok) throw new Error(t('Trakyo links answered {status}', { status: res.status }));
       setWs((await res.json()) as LinksWorkspace);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Could not read Trakyo links.');
+      setLoadError(err instanceof Error ? err.message : t('Could not read Trakyo links.'));
     }
   }, []);
 
@@ -79,7 +80,7 @@ export function FunnelLinksG({ configured, setupHref }: { configured: boolean; s
       const data = (await res.json().catch(() => ({}))) as { error?: string; field?: string; link?: LinkRow };
       if (!res.ok) {
         setConfirming(false);
-        setError({ field: data.field as keyof LinkForm | undefined, message: data.error ?? `Trakyo answered ${res.status}.` });
+        setError({ field: data.field as keyof LinkForm | undefined, message: data.error ?? t('Trakyo answered {status}.', { status: res.status }) });
         return;
       }
       setCreated(data.link?.shortLink ?? null);
@@ -97,12 +98,12 @@ export function FunnelLinksG({ configured, setupHref }: { configured: boolean; s
     <GSectionHeader
       id="fn-g-links"
       size={22}
-      title={<span className="fn-g-panel-title">Links{ws?.sample && <GSampleBadge fixture="app/api/trakyo/links (Filming)" />}</span>}
+      title={<span className="fn-g-panel-title">{t('Links')}{ws?.sample && <GSampleBadge fixture="app/api/trakyo/links (Filming)" />}</span>}
       caption={caption}
       action={
         configured && ws && ws.state !== 'error' ? (
-          <GButton size="sm" onClick={() => setOpen(true)} disabled={writesOff} disabledReason={writesOff ? WRITES_OFF_REASON : undefined} title="Create a tracked short link in Trakyo">
-            <Plus size={13} strokeWidth={1.75} aria-hidden /> New link
+          <GButton size="sm" onClick={() => setOpen(true)} disabled={writesOff} disabledReason={writesOff ? WRITES_OFF_REASON : undefined} title={t('Create a tracked short link in Trakyo')}>
+            <Plus size={13} strokeWidth={1.75} aria-hidden /> {t('New link')}
           </GButton>
         ) : undefined
       }
@@ -112,33 +113,33 @@ export function FunnelLinksG({ configured, setupHref }: { configured: boolean; s
   if (!configured) {
     return (
       <GCard p={24} className="fn-g-links" aria-labelledby="fn-g-links">
-        {header('Tracked short links and their clicks')}
-        <GEmpty kind="unconfigured" title="Tracked links need Trakyo." body="Create a short link per post or campaign and see which one gets the clicks." setupHref={setupHref} setupHint="Set TRAKYO_API_KEY" />
+        {header(t('Tracked short links and their clicks'))}
+        <GEmpty kind="unconfigured" title={t('Tracked links need Trakyo.')} body={t('Create a short link per post or campaign and see which one gets the clicks.')} setupHref={setupHref} setupHint={t('Set TRAKYO_API_KEY')} />
       </GCard>
     );
   }
 
   return (
     <GCard p={24} className="fn-g-links" aria-labelledby="fn-g-links">
-      {header(ws ? `${num(ws.links.length)}${ws.hasMore ? '+' : ''} links · ${num(totalClicks(ws.links))} clicks` : 'Reading Trakyo')}
+      {header(ws ? t('{n} links · {clicks} clicks', { n: `${num(ws.links.length)}${ws.hasMore ? '+' : ''}`, clicks: num(totalClicks(ws.links)) }) : t('Reading Trakyo'))}
       {loadError ? (
         <GErrorLine onRetry={() => void load()}>{loadError}</GErrorLine>
       ) : !ws ? (
         <GSkeleton height={160} shape="nested" />
       ) : ws.state === 'error' ? (
-        <GErrorLine onRetry={() => void load()}>{ws.messages[0] ?? 'Trakyo could not be read.'}</GErrorLine>
+        <GErrorLine onRetry={() => void load()}>{ws.messages[0] ?? t('Trakyo could not be read.')}</GErrorLine>
       ) : (
         <>
           {ws.messages.map((m) => <p key={m} className="fn-g-cap">{m}</p>)}
-          {created && <p className="fn-g-cap" role="status">Created {hostPath(created)}</p>}
+          {created && <p className="fn-g-cap" role="status">{t('Created {link}', { link: hostPath(created) })}</p>}
           <div className="fn-g-scroll" data-matrix-scroll=""><GTable
             columns={COLUMNS}
             rows={ws.links}
             rowKey={(l) => l.key}
-            caption="Trakyo links and clicks"
+            caption={t('Trakyo links and clicks')}
             sort={{ key: 'clicks', dir: 'desc' }}
             sticky={false}
-            empty="No links yet. New link creates a tracked short link for a post or campaign."
+            empty={t('No links yet. New link creates a tracked short link for a post or campaign.')}
            
           /></div>
         </>
@@ -147,42 +148,43 @@ export function FunnelLinksG({ configured, setupHref }: { configured: boolean; s
       <GSheet
         open={open}
         onClose={() => { setOpen(false); setError(null); }}
-        title="New link"
-        caption="A tracked short link in Trakyo. It is public as soon as it is created."
+        title={t('New link')}
+        caption={t('A tracked short link in Trakyo. It is public as soon as it is created.')}
         width={560}
         footer={
           <>
-            <GButton onClick={() => setOpen(false)}>Cancel</GButton>
-            <GButton variant="ink" onClick={review} disabled={writesOff} disabledReason={writesOff ? WRITES_OFF_REASON : undefined}>Create link</GButton>
+            <GButton onClick={() => setOpen(false)}>{t('Cancel')}</GButton>
+            <GButton variant="ink" onClick={review} disabled={writesOff} disabledReason={writesOff ? WRITES_OFF_REASON : undefined}>{t('Create link')}</GButton>
           </>
         }
       >
         <div className="fn-g-form">
-          <GField label="Destination URL" error={error?.field === 'url' ? error.message : undefined}>
+          <GField label={t('Destination URL')} error={error?.field === 'url' ? error.message : undefined}>
             <GInput value={form.url} onChange={set('url')} placeholder="https://example.com/offer" invalid={error?.field === 'url'} inputMode="url" />
           </GField>
-          <GField label="Source" hint="Where the link is posted, for example Instagram" error={error?.field === 'source' ? error.message : undefined}>
+          <GField label={t('Source')} hint={t('Where the link is posted, for example Instagram')} error={error?.field === 'source' ? error.message : undefined}>
             <GInput value={form.source} onChange={set('source')} placeholder="Instagram" invalid={error?.field === 'source'} />
           </GField>
-          <GField label="Campaign" hint="The post or campaign this link belongs to" error={error?.field === 'campaign' ? error.message : undefined}>
-            <GInput value={form.campaign} onChange={set('campaign')} placeholder="October reel: 3 offers" invalid={error?.field === 'campaign'} />
+          <GField label={t('Campaign')} hint={t('The post or campaign this link belongs to')} error={error?.field === 'campaign' ? error.message : undefined}>
+            <GInput value={form.campaign} onChange={set('campaign')} placeholder={t('October reel: 3 offers')} invalid={error?.field === 'campaign'} />
           </GField>
-          <GField label="Content id" hint="Optional. An existing Trakyo content item (ci_…) instead of source and campaign" error={error?.field === 'contentId' ? error.message : undefined}>
+          <GField label={t('Content id')} hint={t('Optional. An existing Trakyo content item (ci_…) instead of source and campaign')} error={error?.field === 'contentId' ? error.message : undefined}>
             <GInput value={form.contentId} onChange={set('contentId')} placeholder="ci_…" invalid={error?.field === 'contentId'} />
           </GField>
           {ws && ws.domains.length > 0 && (
-            <GField label="Domain">
-              <GSelect value={form.domain} onChange={set('domain')} options={[{ value: '', label: 'Trakyo default' }, ...ws.domains.map((d) => ({ value: d.id, label: d.hostname }))]} />
+            <GField label={t('Domain')}>
+              <GSelect value={form.domain} onChange={set('domain')} options={[{ value: '', label: t('Trakyo default') }, ...ws.domains.map((d) => ({ value: d.id, label: d.hostname }))]} />
             </GField>
           )}
           {error && !error.field && <GErrorLine align="left">{error.message}</GErrorLine>}
         </div>
       </GSheet>
 
-      <GDialog open={confirming} onClose={() => setConfirming(false)} title={CONFIRM_TITLE} confirmLabel="Create link" onConfirm={() => void create()} busy={busy}>
+      <GDialog open={confirming} onClose={() => setConfirming(false)} title={CONFIRM_TITLE} confirmLabel={t('Create link')} onConfirm={() => void create()} busy={busy}>
         <p>
-          Trakyo publishes a short link to {hostPath(form.url)}
-          {form.contentId.trim() ? ` under ${form.contentId.trim()}.` : `, filed under ${form.source.trim()} · ${form.campaign.trim()}.`}
+          {form.contentId.trim()
+            ? t('Trakyo publishes a short link to {url} under {id}.', { url: hostPath(form.url), id: form.contentId.trim() })
+            : t('Trakyo publishes a short link to {url}, filed under {source} · {campaign}.', { url: hostPath(form.url), source: form.source.trim(), campaign: form.campaign.trim() })}
         </p>
       </GDialog>
     </GCard>

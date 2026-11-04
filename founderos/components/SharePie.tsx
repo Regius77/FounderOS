@@ -1,4 +1,5 @@
 import { pieSlices, type PieItem } from '@/lib/social-chart';
+import { t } from '@/lib/i18n';
 
 /** Slice hues ride the theme's funnel ramp — hues on colorways, greys on
  * Monolith where color is reserved for status. */
@@ -50,7 +51,7 @@ export function SharePie({
 }) {
   const slices = pieSlices(items);
   if (slices.length === 0) {
-    return <p className="py-4 text-center font-mono text-[10.5px] text-os-dim">Nothing to chart yet.</p>;
+    return <p className="py-4 text-center font-mono text-[10.5px] text-os-dim">{t('Nothing to chart yet.')}</p>;
   }
 
   const S = 168;

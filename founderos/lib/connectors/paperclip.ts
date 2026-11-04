@@ -5,6 +5,7 @@ import { filmingMode } from '@/lib/paths';
 import { demoBoardAgents, demoBoardIssues, demoBoardOrg, demoBoardRuns } from '@/founderos/lib/demo-board';
 import { isAlertPosted, renderFailoverAlert, type FailoverAlert, type FailoverRun } from '@/founderos/lib/agent-failover';
 import { COCKPIT_TITLE, cockpitIssueCreateBody, cockpitRepairPatch } from '@/founderos/lib/cockpit-issue';
+import { t } from '@/lib/i18n';
 
 /**
  * Paperclip: the agent harness. The board runs on the private network
@@ -495,14 +496,14 @@ export async function postCockpitMessage(message: string): Promise<PaperclipComm
 export async function paperclipStatus(): Promise<ConnectorStatus> {
   // Demo mode answers from the demo company (founderos/lib/demo-board.ts).
   if (GATED || filmingMode())
-    return gatedConnected('paperclip', 'Paperclip', 'orchestration', 'Agent harness · CEO + 8 agents on the board');
+    return gatedConnected('paperclip', 'Paperclip', 'orchestration', t('Agent harness · CEO + 8 agents on the board'));
   if (!creds()) {
     return {
       id: 'paperclip',
-      name: 'Paperclip (agent harness)',
+      name: t('Paperclip (agent harness)'),
       kind: 'orchestration',
       state: 'not_configured',
-      detail: 'PAPERCLIP_API_URL / PAPERCLIP_BOARD_KEY / PAPERCLIP_COMPANY_ID not set in .env.local.',
+      detail: t('PAPERCLIP_API_URL / PAPERCLIP_BOARD_KEY / PAPERCLIP_COMPANY_ID not set in .env.local.'),
     };
   }
   try {
@@ -513,19 +514,19 @@ export async function paperclipStatus(): Promise<ConnectorStatus> {
     const running = agents.filter((a) => a.status === 'running').length;
     return {
       id: 'paperclip',
-      name: 'Paperclip (agent harness)',
+      name: t('Paperclip (agent harness)'),
       kind: 'orchestration',
       state: 'connected',
-      detail: `Board live · ${agents.length} agents · ${running} running`,
+      detail: t('Board live · {n} agents · {running} running', { n: agents.length, running }),
       meta: { agents: agents.length, running },
     };
   } catch (err) {
     return {
       id: 'paperclip',
-      name: 'Paperclip (agent harness)',
+      name: t('Paperclip (agent harness)'),
       kind: 'orchestration',
       state: 'error',
-      detail: `Creds set but board call failed: ${err instanceof Error ? err.message : String(err)}`,
+      detail: t('Creds set but board call failed: {error}', { error: err instanceof Error ? err.message : String(err) }),
     };
   }
 }

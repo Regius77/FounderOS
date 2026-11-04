@@ -13,14 +13,15 @@ import { SetupLink } from '@/components/SetupLink';
 import {
   CONFIRM_TITLE, EMPTY_LINK_FORM, WRITES_OFF_REASON, hostPath, linkFormError, linkRequestBody, totalClicks, type LinkForm, type LinkRow, type LinksWorkspace,
 } from './links-model';
+import { localeTag, t } from '@/lib/i18n';
 
-const num = (n: number) => n.toLocaleString('en-US');
+const num = (n: number) => n.toLocaleString(localeTag());
 
 const FIELDS: { k: Exclude<keyof LinkForm, 'domain'>; label: string; placeholder: string; hint?: string }[] = [
-  { k: 'url', label: 'Destination URL', placeholder: 'https://example.com/offer' },
-  { k: 'source', label: 'Source', placeholder: 'Instagram', hint: 'Where the link is posted' },
-  { k: 'campaign', label: 'Campaign', placeholder: 'October reel: 3 offers', hint: 'The post or campaign' },
-  { k: 'contentId', label: 'Content id', placeholder: 'ci_…', hint: 'Optional, instead of source and campaign' },
+  { k: 'url', label: t('Destination URL'), placeholder: 'https://example.com/offer' },
+  { k: 'source', label: t('Source'), placeholder: 'Instagram', hint: t('Where the link is posted') },
+  { k: 'campaign', label: t('Campaign'), placeholder: t('October reel: 3 offers'), hint: t('The post or campaign') },
+  { k: 'contentId', label: t('Content id'), placeholder: 'ci_…', hint: t('Optional, instead of source and campaign') },
 ];
 
 export function FunnelLinks({ configured, setupHref }: { configured: boolean; setupHref: string }) {
@@ -40,7 +41,7 @@ export function FunnelLinks({ configured, setupHref }: { configured: boolean; se
       if (!res.ok) throw new Error(`Trakyo links answered ${res.status}`);
       setWs((await res.json()) as LinksWorkspace);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Could not read Trakyo links.');
+      setLoadError(err instanceof Error ? err.message : t('Could not read Trakyo links.'));
     }
   }, []);
 
@@ -74,43 +75,43 @@ export function FunnelLinks({ configured, setupHref }: { configured: boolean; se
   };
 
   const writesOff = ws !== null && !ws.writes;
-  const windowLabel = !configured ? 'Tracked short links and their clicks' : ws ? `${num(ws.links.length)}${ws.hasMore ? '+' : ''} links · ${num(totalClicks(ws.links))} clicks` : 'Reading Trakyo';
+  const windowLabel = !configured ? t('Tracked short links and their clicks') : ws ? t('{n} links · {clicks} clicks', { n: `${num(ws.links.length)}${ws.hasMore ? '+' : ''}`, clicks: num(totalClicks(ws.links)) }) : t('Reading Trakyo');
 
   return (
     <div className="fc-card fc-c6 fc-feature" data-feature="funnel-links">
       <div className="fc-card-head">
         <div className="fc-card-title">
-          Links<span className="fc-card-window">{windowLabel}</span>
+          {t('Links')}<span className="fc-card-window">{windowLabel}</span>
         </div>
         {ws?.sample && (
-          <span data-sample-badge="" className="fc-sample" title="Sample data: Filming">
-            Sample
+          <span data-sample-badge="" className="fc-sample" title={t('Sample data: Filming')}>
+            {t('Sample')}
           </span>
         )}
         {configured && ws && ws.state !== 'error' && !open && (
-          <button type="button" className="c-btn" onClick={() => setOpen(true)} disabled={writesOff} title={writesOff ? WRITES_OFF_REASON : 'Create a tracked short link in Trakyo'}>
-            New link
+          <button type="button" className="c-btn" onClick={() => setOpen(true)} disabled={writesOff} title={writesOff ? WRITES_OFF_REASON : t('Create a tracked short link in Trakyo')}>
+            {t('New link')}
           </button>
         )}
       </div>
 
       {!configured ? (
         <div className="fc-feature-empty">
-          <span className="fc-tag">Not configured</span>
-          <p>Tracked links need Trakyo. Create a short link per post or campaign and see which one gets the clicks.</p>
-          <SetupLink href={setupHref} hint="Set TRAKYO_API_KEY" />
+          <span className="fc-tag">{t('Not configured')}</span>
+          <p>{t('Tracked links need Trakyo. Create a short link per post or campaign and see which one gets the clicks.')}</p>
+          <SetupLink href={setupHref} hint={t('Set TRAKYO_API_KEY')} />
         </div>
       ) : loadError || ws?.state === 'error' ? (
         <div className="fc-feature-empty" role="alert">
-          <p>{loadError ?? ws?.messages[0] ?? 'Trakyo could not be read.'}</p>
-          <button type="button" className="c-btn" onClick={() => void load()}>Retry</button>
+          <p>{loadError ?? ws?.messages[0] ?? t('Trakyo could not be read.')}</p>
+          <button type="button" className="c-btn" onClick={() => void load()}>{t('Retry')}</button>
         </div>
       ) : !ws ? (
         <div className="fc-feature-skeleton" aria-hidden />
       ) : (
         <>
           {open && (
-            <form className="fc-link-form" onSubmit={(e) => { e.preventDefault(); review(); }} aria-label="New link">
+            <form className="fc-link-form" onSubmit={(e) => { e.preventDefault(); review(); }} aria-label={t('New link')}>
               {FIELDS.map((f) => (
                 <label key={f.k} className="fc-field">
                   <span className="fc-field-lab">{f.label}{f.hint && <em> · {f.hint}</em>}</span>
@@ -126,9 +127,9 @@ export function FunnelLinks({ configured, setupHref }: { configured: boolean; se
               ))}
               {ws.domains.length > 0 && (
                 <label className="fc-field">
-                  <span className="fc-field-lab">Domain</span>
+                  <span className="fc-field-lab">{t('Domain')}</span>
                   <select className="fc-input" value={form.domain} onChange={(e) => setForm((x) => ({ ...x, domain: e.target.value }))}>
-                    <option value="">Trakyo default</option>
+                    <option value="">{t('Trakyo default')}</option>
                     {ws.domains.map((d) => <option key={d.id} value={d.id}>{d.hostname}</option>)}
                   </select>
                 </label>
@@ -136,33 +137,33 @@ export function FunnelLinks({ configured, setupHref }: { configured: boolean; se
               {error && !error.field && <p className="fc-field-err" role="alert">{error.message}</p>}
               {confirming ? (
                 <div className="fc-confirm" role="alertdialog" aria-label={CONFIRM_TITLE}>
-                  <span>{CONFIRM_TITLE} It is public as soon as it is created.</span>
-                  <button type="button" className="c-btn" onClick={() => setConfirming(false)} disabled={busy}>Cancel</button>
-                  <button type="button" className="c-btn c-btn-primary" onClick={() => void create()} disabled={busy}>{busy ? 'Creating…' : 'Create link'}</button>
+                  <span>{CONFIRM_TITLE} {t('It is public as soon as it is created.')}</span>
+                  <button type="button" className="c-btn" onClick={() => setConfirming(false)} disabled={busy}>{t('Cancel')}</button>
+                  <button type="button" className="c-btn c-btn-primary" onClick={() => void create()} disabled={busy}>{busy ? t('Creating…') : t('Create link')}</button>
                 </div>
               ) : (
                 <div className="fc-confirm">
-                  <button type="button" className="c-btn" onClick={() => { setOpen(false); setError(null); }}>Cancel</button>
-                  <button type="submit" className="c-btn c-btn-primary" disabled={writesOff} title={writesOff ? WRITES_OFF_REASON : undefined}>Create link</button>
+                  <button type="button" className="c-btn" onClick={() => { setOpen(false); setError(null); }}>{t('Cancel')}</button>
+                  <button type="submit" className="c-btn c-btn-primary" disabled={writesOff} title={writesOff ? WRITES_OFF_REASON : undefined}>{t('Create link')}</button>
                 </div>
               )}
             </form>
           )}
           {ws.messages.map((m) => <p key={m} className="fc-sources">{m}</p>)}
-          {created && <p className="fc-sources" role="status">Created {hostPath(created)}</p>}
+          {created && <p className="fc-sources" role="status">{t('Created {link}', { link: hostPath(created) })}</p>}
           {ws.links.length === 0 ? (
             <div className="fc-feature-empty">
-              <p>No links yet. New link creates a tracked short link for a post or campaign.</p>
+              <p>{t('No links yet. New link creates a tracked short link for a post or campaign.')}</p>
             </div>
           ) : (
             <div className="fc-feature-scroll">
               <table className="fc-table">
                 <thead>
                   <tr>
-                    <th>Short link</th>
-                    <th>Destination</th>
-                    <th>Content id</th>
-                    <th className="r">Clicks</th>
+                    <th>{t('Short link')}</th>
+                    <th>{t('Destination')}</th>
+                    <th>{t('Content id')}</th>
+                    <th className="r">{t('Clicks')}</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -1,6 +1,7 @@
 import { SharePie } from '@/founderos/components/SharePie';
 import { formatFollowers } from '@/founderos/components/SocialStats';
 import type { PieItem } from '@/lib/social-chart';
+import { t } from '@/lib/i18n';
 
 /** Audience share as a donut: one slice per account, total reach at center. */
 export function AudiencePie({
@@ -25,7 +26,7 @@ export function AudiencePie({
       framed={framed}
       stacked={stacked}
       donutPx={donutPx}
-      ariaLabel="Audience share by account"
+      ariaLabel={t('Audience share by account')}
     />
   );
 }

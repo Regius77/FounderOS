@@ -22,8 +22,10 @@ import { BoardTaskCard } from '@/founderos/components/BoardTaskCard';
 import { CountUp } from '@/founderos/components/CountUp';
 import { Label } from '@/founderos/components/terminal';
 import { publishBoard } from '@/founderos/components/board-live-store';
+import { boardStatusLabel } from '@/founderos/lib/labels';
 import { boardDecisionFor, boardStats, groupIssues, modelSummary, orderRuns, orderSeats, runDuration, runningSince, RUN_OK, type BoardLivePayload } from '@/founderos/lib/board-live';
 import type { PaperclipAgent } from '@/founderos/lib/connectors/paperclip';
+import { t } from '@/lib/i18n';
 
 /**
  * The live Paperclip board rendered natively in the OS (Alex, 2026-08-07:
@@ -71,7 +73,7 @@ function seatIconColor(agent: PaperclipAgent, live: boolean, idleColor: string):
 function Elapsed({ since }: { since: number }) {
   const [, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
   const s = Math.max(0, Math.floor((Date.now() - since) / 1000));
@@ -117,14 +119,14 @@ const runGlyph = (status: string): string => (status === 'running' ? '▸' : RUN
 const ago = (iso: string | null): string => {
   if (!iso) return '';
   const ms = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return 'now';
+  if (!Number.isFinite(ms) || ms < 0) return t('now');
   const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) return t('{n}s ago', { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return t('{n}m ago', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return t('{n}h ago', { n: h });
+  return t('{n}d ago', { n: Math.floor(h / 24) });
 };
 
 function SeatChip({ agent, since }: { agent: PaperclipAgent; since: string | null }) {
@@ -180,11 +182,11 @@ function SeatChip({ agent, since }: { agent: PaperclipAgent; since: string | nul
         </div>
         <div
           className="truncate font-mono text-[9px] text-os-dim"
-          title={`${agent.model ?? agent.adapterType ?? 'unconfigured'}${agent.model && agent.adapterType ? ` · ${agent.adapterType}` : ''}`}
+          title={`${agent.model ?? agent.adapterType ?? t('unconfigured')}${agent.model && agent.adapterType ? ` · ${agent.adapterType}` : ''}`}
         >
-          {agent.model ?? agent.adapterType ?? 'unconfigured'}
+          {agent.model ?? agent.adapterType ?? t('unconfigured')}
           {agent.model && agent.adapterType ? ` · ${agent.adapterType}` : ''}
-          {failed && <span className="text-os-err"> · run failed</span>}
+          {failed && <span className="text-os-err">{t(' · run failed')}</span>}
         </div>
       </div>
       {/* Right column, three exclusive states. A run HE started goes ▸ →
@@ -198,7 +200,7 @@ function SeatChip({ agent, since }: { agent: PaperclipAgent; since: string | nul
             {startedMs !== null && <Elapsed since={startedMs} />}
           </>
         ) : (
-          <span title={`Run ${agent.name} heartbeat on the board`}>
+          <span title={t('Run {name} heartbeat on the board', { name: agent.name })}>
             <AsyncButton run={run} tone="ghost" failed={failed} showElapsed busyLabel="" doneLabel="" failLabel="">
               ▸
             </AsyncButton>
@@ -251,9 +253,9 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
       <div className="shrink-0 border-b border-os-border px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className={`h-1.5 w-1.5 ${data.connected ? 'bg-os-ok animate-pulse' : 'bg-os-err'}`} />
-          <Label>Board live</Label>
+          <Label>{t('Board live')}</Label>
           <span className="font-mono text-[10px] text-os-dim">
-            {data.connected ? `${data.agents.length} seats · ${running} running` : 'board unreachable'}
+            {data.connected ? t('{n} seats · {running} running', { n: data.agents.length, running }) : t('board unreachable')}
           </span>
           {boardUrl && (
             <a
@@ -262,7 +264,7 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
               rel="noreferrer"
               className="ml-auto flex shrink-0 items-center gap-1 font-mono text-[10px] text-os-dim linky"
             >
-              open board <ArrowUpRight className="h-3 w-3" />
+              {t('open board')} <ArrowUpRight className="h-3 w-3" />
             </a>
           )}
         </div>
@@ -271,7 +273,7 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
             fifth model clipped to an ellipsis  -  Alex, 2026-08-18: "can't
             see the rest of the models on the board". */}
         {data.connected && (
-          <p className="mt-1 font-mono text-[10px] leading-relaxed text-os-muted" title="models holding seats right now">
+          <p className="mt-1 font-mono text-[10px] leading-relaxed text-os-muted" title={t('models holding seats right now')}>
             {modelSummary(data.agents)}
           </p>
         )}
@@ -279,7 +281,7 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
 
       {!data.connected ? (
         <p className="px-4 py-3 font-mono text-[10.5px] text-os-dim">
-          Paperclip is not answering on the tailnet. No fake data: this strip lights up the moment the board responds.
+          {t('Paperclip is not answering on the tailnet. No fake data: this strip lights up the moment the board responds.')}
         </p>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -289,11 +291,11 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
               const s = boardStats(data);
               return (
                 [
-                  ['Seats', s.seats],
-                  ['Running now', s.running],
-                  ['Open tasks', s.openTasks],
-                  ['Runs · 24h', s.runs24h],
-                  ['Heartbeats · 24h', s.heartbeats24h],
+                  [t('Seats'), s.seats],
+                  [t('Running now'), s.running],
+                  [t('Open tasks'), s.openTasks],
+                  [t('Runs · 24h'), s.runs24h],
+                  [t('Heartbeats · 24h'), s.heartbeats24h],
                 ] as const
               ).map(([label, value]) => (
                 <div key={label} data-lens="r" className="pressable is-row flex min-w-0 flex-col gap-1 rounded-ctl border border-os-border bg-os-bg px-2.5 py-2">
@@ -317,10 +319,10 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
               panel; the lanes did, so they take everything that is left. */}
           <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
             <div className="flex min-h-0 flex-col">
-              <div className="mb-2 shrink-0"><Label>Run feed</Label></div>
+              <div className="mb-2 shrink-0"><Label>{t('Run feed')}</Label></div>
               <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1">
                 {runs.length === 0 && (
-                  <p className="font-mono text-[10px] text-os-dim">no heartbeat runs yet, hit a ▸ on a seat</p>
+                  <p className="font-mono text-[10px] text-os-dim">{t('no heartbeat runs yet, hit a ▸ on a seat')}</p>
                 )}
                 {runs.map((r) => (
                   <div key={r.id} data-lens="r" className="pressable is-row animate-enter flex items-baseline gap-1.5 rounded-ctl px-1 py-0.5 font-mono text-[9.5px] leading-snug">
@@ -332,7 +334,7 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
                         out 'succeeded' on every row just ate the width the
                         agent name needed and clipped 'Conductor' to 'Cond…'.
                         Anything NOT a clean finish still says so in words. */}
-                    {!RUN_OK.has(r.status) && <span className={runColor(r.status)}>{r.status}</span>}
+                    {!RUN_OK.has(r.status) && <span className={runColor(r.status)}>{boardStatusLabel(r.status)}</span>}
                     {runDuration(r) && <span className="text-os-dim">{runDuration(r)}</span>}
                     <span className="shrink-0 text-os-dim">{ago(r.startedAt)}</span>
                   </div>
@@ -341,7 +343,7 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
             </div>
 
             <div className="flex min-h-0 flex-col">
-              <div className="mb-2 shrink-0"><Label>Task lanes</Label></div>
+              <div className="mb-2 shrink-0"><Label>{t('Task lanes')}</Label></div>
               {/* The stages always render  -  an empty lane reads as a stage with
                   nothing in it, whereas a missing lane reads as a broken board.
                   groupIssues guarantees at least in progress / todo / done. */}
@@ -359,13 +361,13 @@ export function BoardLive({ initial, boardUrl }: { initial: BoardLivePayload; bo
                         }`}
                       >
                         <span className={`h-1 w-1 shrink-0 ${LANE_DOT[lane.status] ?? 'bg-os-dim'}`} />
-                        <span className="truncate">{lane.status.replace(/_/g, ' ')}</span>
+                        <span className="truncate">{boardStatusLabel(lane.status)}</span>
                         <span className="ml-auto shrink-0 tabular-nums">{lane.issues.length}</span>
                       </div>
                       <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain pr-1">
                         {lane.issues.length === 0 && (
                           <div className="animate-enter rounded-ctl border border-dashed border-os-border px-2 py-1.5 font-mono text-[9.5px] text-os-dim/70">
-                            nothing here
+                            {t('nothing here')}
                           </div>
                         )}
                         {lane.issues.map((i) => {

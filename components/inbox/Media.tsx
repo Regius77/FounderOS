@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Download, FileText, Pause, Play } from 'lucide-react';
 import type { ThreadMedia } from '@/lib/inbox';
+import { t } from '@/lib/i18n';
 
 /**
  * WhatsApp media, played from the copy already on this machine. Nothing is
@@ -88,7 +89,7 @@ export function VoiceNote({ media }: { media: ThreadMedia }) {
 
   return (
     <div className="ib-voice">
-      <button className="ib-voice-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>
+      <button className="ib-voice-btn" onClick={toggle} aria-label={playing ? t('Pause') : t('Play')}>
         {playing ? <Pause strokeWidth={2} /> : <Play strokeWidth={2} />}
       </button>
       <div className="ib-wave" onClick={seek} role="presentation">

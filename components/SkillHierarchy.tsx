@@ -21,6 +21,7 @@ import type { SkillCard } from '@/components/SkillsGrid';
 import { useSvgCamera, type CameraTarget } from '@/components/useSvgCamera';
 import { usePalette } from '@/lib/use-palette';
 import { GButton } from '@/components/g';
+import { t } from '@/lib/i18n';
 
 // Console-only branch coloring, unchanged. Under red, domain/group/leaf are
 // keyed by DEPTH instead of branch (see domainColor/groupColor/leafColor
@@ -520,10 +521,10 @@ export function SkillHierarchy({
               </>
             )}
             <text y="52" textAnchor="middle" fontSize="12.5" fill={G ? 'var(--g-ink)' : 'var(--text)'} fontWeight="500">
-              Skills
+              {t('Skills')}
             </text>
             <text y="67" textAnchor="middle" fontSize="9" fill={G ? 'var(--g-muted)' : '#7e8c88'} className={G ? undefined : 'font-mono'}>
-              {cards.length} on disk · {tree.length} domains
+              {t('{n} on disk · {d} domains', { n: cards.length, d: tree.length })}
             </text>
           </g>
         </g>
@@ -531,10 +532,10 @@ export function SkillHierarchy({
 
       {/* GladOS: the file panel on the kit */}
       {G && sel && selDomain && selPath && (
-        <div className="wg-skh-panel" role="region" aria-label={`${sel.name} location`}>
+        <div className="wg-skh-panel" role="region" aria-label={t('{name} location', { name: sel.name })}>
           <div className="wg-skh-panel-top">
             <span className="wg-cap">{sel.group}</span>
-            <GButton variant="icon" size="compact" aria-label="Close" onClick={() => setSel(null)}>
+            <GButton variant="icon" size="compact" aria-label={t('Close')} onClick={() => setSel(null)}>
               ×
             </GButton>
           </div>
@@ -548,7 +549,7 @@ export function SkillHierarchy({
           </div>
           <p className="wg-cap">{sel.description}</p>
           <GButton variant="ink" size="sm" onClick={() => onOpen(sel.id)}>
-            Read SKILL.md
+            {t('Read SKILL.md')}
           </GButton>
         </div>
       )}
@@ -562,7 +563,7 @@ export function SkillHierarchy({
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full" style={{ background: domainColor(selDomain.ci) }} />
             <span className="truncate text-[11px] text-os-muted">{sel.group}</span>
-            <button onClick={() => setSel(null)} className="ml-auto font-mono text-[12px] text-os-dim hover:text-os-text" aria-label="Close">
+            <button onClick={() => setSel(null)} className="ml-auto font-mono text-[12px] text-os-dim hover:text-os-text" aria-label={t('Close')}>
               ×
             </button>
           </div>
@@ -592,7 +593,7 @@ export function SkillHierarchy({
             className="mt-3 w-full rounded-[9px] border px-3 py-2 text-[12px] font-medium text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
             style={{ borderColor: 'var(--accent-line)' }}
           >
-            Read SKILL.md ›
+            {t('Read SKILL.md')} ›
           </button>
         </div>
       )}

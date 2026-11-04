@@ -10,21 +10,22 @@
 import { useState } from 'react';
 import { GCard, GEmpty, GLegend, GSampleBadge, GSectionHeader, GStackedBar, GTable, type GColumn, type StackKey } from '@/components/g';
 import type { ChannelRow, ChannelsCard } from '@/lib/funnel-channels';
+import { localeTag, t } from '@/lib/i18n';
 
-const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
-const num = (n: number) => n.toLocaleString('en-US');
+const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
+const num = (n: number) => n.toLocaleString(localeTag());
 
 const KEYS: StackKey[] = [
-  { id: 'lead', label: 'Lead only', color: 'series-3' },
-  { id: 'booked', label: 'Booked', color: 'series-2' },
-  { id: 'converted', label: 'Converted', color: 'series-1' },
+  { id: 'lead', label: t('Lead only'), color: 'series-3' },
+  { id: 'booked', label: t('Booked'), color: 'series-2' },
+  { id: 'converted', label: t('Converted'), color: 'series-1' },
 ];
 
 const COLUMNS: GColumn<ChannelRow>[] = [
-  { key: 'channel', label: 'Channel', render: (r) => r.label, sortValue: (r) => r.label },
-  { key: 'leads', label: 'Leads', numeric: true, render: (r) => num(r.leads), sortValue: (r) => r.leads },
-  { key: 'bookings', label: 'Bookings', numeric: true, render: (r) => num(r.bookings), sortValue: (r) => r.bookings, title: 'Leads that booked a call or converted' },
-  { key: 'revenue', label: 'Revenue', numeric: true, render: (r) => (r.revenueUsd > 0 ? usd(r.revenueUsd) : '—'), sortValue: (r) => r.revenueUsd },
+  { key: 'channel', label: t('Channel'), render: (r) => t(r.label), sortValue: (r) => r.label },
+  { key: 'leads', label: t('Leads'), numeric: true, render: (r) => num(r.leads), sortValue: (r) => r.leads },
+  { key: 'bookings', label: t('Bookings'), numeric: true, render: (r) => num(r.bookings), sortValue: (r) => r.bookings, title: t('Leads that booked a call or converted') },
+  { key: 'revenue', label: t('Revenue'), numeric: true, render: (r) => (r.revenueUsd > 0 ? usd(r.revenueUsd) : '—'), sortValue: (r) => r.revenueUsd },
 ];
 
 export function FunnelChannelsG({ card }: { card: ChannelsCard }) {
@@ -35,42 +36,42 @@ export function FunnelChannelsG({ card }: { card: ChannelsCard }) {
   if (card.state === 'not_configured') {
     return (
       <GCard p={24} className="fn-g-channels" aria-labelledby="fn-g-channels">
-        <GSectionHeader id="fn-g-channels" size={22} title="Channels" caption="Leads, bookings and revenue by first touch" />
-        <GEmpty kind="unconfigured" title="Channel attribution needs Trakyo." body="Trakyo reports which post or ad brought each lead in." setupHref={card.setupHref} setupHint="Set TRAKYO_API_KEY" />
+        <GSectionHeader id="fn-g-channels" size={22} title={t('Channels')} caption={t('Leads, bookings and revenue by first touch')} />
+        <GEmpty kind="unconfigured" title={t('Channel attribution needs Trakyo.')} body={t('Trakyo reports which post or ad brought each lead in.')} setupHref={card.setupHref} setupHint={t('Set TRAKYO_API_KEY')} />
       </GCard>
     );
   }
 
   const { rows, total, attributed } = card.analytics;
-  const caption = total === 0 ? 'Leads, bookings and revenue by first touch' : `${num(attributed)} of ${num(total)} leads attributed · by first touch`;
+  const caption = total === 0 ? t('Leads, bookings and revenue by first touch') : t('{n} of {total} leads attributed · by first touch', { n: num(attributed), total: num(total) });
   return (
     <GCard p={24} className="fn-g-channels" aria-labelledby="fn-g-channels">
       <GSectionHeader
         id="fn-g-channels"
         size={22}
-        title={<span className="fn-g-panel-title">Channels{card.sample && <GSampleBadge fixture="components/funnel/sample.ts" />}</span>}
+        title={<span className="fn-g-panel-title">{t('Channels')}{card.sample && <GSampleBadge fixture="components/funnel/sample.ts" />}</span>}
         caption={caption}
       />
       {total === 0 ? (
-        <GEmpty title="No leads yet." body="Each channel fills in as Trakyo attributes a new lead to the post or ad that brought it in." />
+        <GEmpty title={t('No leads yet.')} body={t('Each channel fills in as Trakyo attributes a new lead to the post or ad that brought it in.')} />
       ) : (
         <>
           <GLegend
-            label="Show or hide a stage"
+            label={t('Show or hide a stage')}
             items={KEYS.map((k) => ({ id: k.id, label: k.label, color: k.color ?? 'series-1', on: !hidden.includes(k.id) }))}
             onToggle={toggle}
             onIsolate={isolate}
             className="fn-g-channels-legend"
           />
           <GStackedBar
-            label="Leads per acquisition channel, split by how far they got"
+            label={t('Leads per acquisition channel, split by how far they got')}
             keys={KEYS}
             hiddenKeys={hidden}
-            columns={rows.map((r) => ({ id: r.id, label: r.label, parts: [r.leads - r.bookings, r.booked, r.converted] }))}
+            columns={rows.map((r) => ({ id: r.id, label: t(r.label), parts: [r.leads - r.bookings, r.booked, r.converted] }))}
             height={150}
           />
-          {attributed === 0 && <p className="fn-g-cap">No lead has matched a Trakyo first touch yet, so every lead is unattributed.</p>}
-          <div className="fn-g-scroll" data-matrix-scroll=""><GTable columns={COLUMNS} rows={rows} rowKey={(r) => r.id} caption="Leads, bookings and revenue per channel" sort={null} sticky={false} /></div>
+          {attributed === 0 && <p className="fn-g-cap">{t('No lead has matched a Trakyo first touch yet, so every lead is unattributed.')}</p>}
+          <div className="fn-g-scroll" data-matrix-scroll=""><GTable columns={COLUMNS} rows={rows} rowKey={(r) => r.id} caption={t('Leads, bookings and revenue per channel')} sort={null} sticky={false} /></div>
         </>
       )}
     </GCard>

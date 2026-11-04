@@ -5,6 +5,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { ConductorEmblem } from '@/founderos/components/ConductorEmblem';
 import { ConductorComposer } from '@/founderos/components/ConductorComposer';
 import { Synthesizing } from '@/founderos/components/Synthesizing';
+import { t } from '@/lib/i18n';
 
 /**
  * Conductor chat for the /agents page — the REAL CEO. Speaks to the board's
@@ -61,7 +62,7 @@ export function ConductorChat({
   const applyThread = useCallback((thread: Turn[]) => {
     if (thread.length === 0) return;
     setTurns(thread.slice(-14));
-    const assistants = thread.filter((t) => t.role === 'assistant').length;
+    const assistants = thread.filter((turn) => turn.role === 'assistant').length;
     if (awaitingRef.current && assistants > assistantBaselineRef.current) {
       setAwaiting(false);
       setError(null);
@@ -80,7 +81,7 @@ export function ConductorChat({
       applyThread(await loadThread());
       if (awaitingRef.current && Date.now() - awaitingSinceRef.current > WAIT_LIMIT_MS) {
         setAwaiting(false);
-        setError('The CEO run is taking a while. Its reply lands in this thread automatically.');
+        setError(t('The CEO run is taking a while. Its reply lands in this thread automatically.'));
       }
     }, 4000);
     return () => clearInterval(id);
@@ -96,7 +97,7 @@ export function ConductorChat({
     if (sending) return;
     setSending(true);
     setError(null);
-    setTurns((t) => [...t, { id: `optimistic-${Date.now()}`, role: 'user', content: display }]);
+    setTurns((turn) => [...turn, { id: `optimistic-${Date.now()}`, role: 'user', content: display }]);
     try {
       const res = await fetch('/api/conductor/chat', {
         method: 'POST',
@@ -105,22 +106,22 @@ export function ConductorChat({
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(body?.error ?? `board unreachable (${res.status})`);
+        throw new Error(body?.error ?? t('board unreachable ({status})', { status: res.status }));
       }
       // baseline from the FULL thread, not the sliced local turns — otherwise
       // the first poll "detects" a reply that landed weeks ago and the
       // synthesizing state clears instantly
       awaitingSinceRef.current = Date.now();
       setAwaiting(true);
-      assistantBaselineRef.current = (await loadThread()).filter((t) => t.role === 'assistant').length;
+      assistantBaselineRef.current = (await loadThread()).filter((turn) => turn.role === 'assistant').length;
     } catch (err) {
-      setError(`Message did not reach the board: ${err instanceof Error ? err.message : String(err)}`);
+      setError(t('Message did not reach the board: {error}', { error: err instanceof Error ? err.message : String(err) }));
     } finally {
       setSending(false);
     }
   }
 
-  const lastReply = [...turns].reverse().find((t) => t.role === 'assistant')?.content ?? null;
+  const lastReply = [...turns].reverse().find((turn) => turn.role === 'assistant')?.content ?? null;
 
   return (
     <div
@@ -135,17 +136,17 @@ export function ConductorChat({
             <span aria-hidden className="h-1.5 w-1.5 shrink-0 animate-pulse bg-os-ok" />
             <span className="text-[13px] font-bold tracking-[0.12em]">CONDUCTOR</span>
             <span className="rounded-full border border-os-border px-1.5 py-0.5 font-mono text-[8.5px] text-os-dim">
-              board · {model ?? 'model unknown'}
+              {t('board · {model}', { model: model ?? t('model unknown') })}
             </span>
           </div>
           <div className="font-mono text-[10px] text-os-dim">
-            the real CEO on the company board · delegates, creates tasks, reads your data
+            {t('the real CEO on the company board · delegates, creates tasks, reads your data')}
           </div>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2.5">
           {awaiting && (
             <span className="font-mono text-[9.5px] uppercase tracking-wider text-os-warn">
-              CEO working
+              {t('CEO working')}
             </span>
           )}
           {boardUrl && (
@@ -155,7 +156,7 @@ export function ConductorChat({
               rel="noreferrer"
               className="flex items-center gap-1 font-mono text-[10px] text-os-dim linky"
             >
-              open on board <ArrowUpRight className="h-3 w-3" />
+              {t('open on board')} <ArrowUpRight className="h-3 w-3" />
             </a>
           )}
         </div>
@@ -163,20 +164,20 @@ export function ConductorChat({
 
       {(turns.length > 0 || awaiting) && (
         <div ref={scrollRef} className="mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
-          {turns.map((t) =>
-            t.role === 'user' ? (
-              <div key={t.id} className="text-right">
+          {turns.map((turn) =>
+            turn.role === 'user' ? (
+              <div key={turn.id} className="text-right">
                 <span className="inline-block max-w-[85%] break-words rounded-md bg-os-surface2 px-2.5 py-1 text-[11.5px] text-os-text">
-                  {t.content}
+                  {turn.content}
                 </span>
               </div>
             ) : (
-              <div key={t.id} className="text-left">
+              <div key={turn.id} className="text-left">
                 <div className="mb-0.5 font-mono text-[9.5px] uppercase tracking-wider text-os-accent">
                   → Conductor · board
                 </div>
                 <span className="inline-block max-w-[85%] whitespace-pre-wrap break-words rounded-md bg-os-raised px-2.5 py-1 text-[11.5px] text-os-muted">
-                  {t.content}
+                  {turn.content}
                 </span>
               </div>
             ),

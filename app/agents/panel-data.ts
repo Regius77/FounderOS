@@ -140,18 +140,16 @@ export function buildLogicRules(
   }
   if (children.length > 0) {
     rules.push(
-      t(children.length === 1 ? 'Coordinates {n} sub-agent: {names}.' : 'Coordinates {n} sub-agents: {names}.', {
-        n: children.length,
-        names: children.map((c) => c.agent.name).join(', '),
-      }),
+      children.length === 1
+        ? t('Coordinates {n} sub-agent: {names}.', { n: children.length, names: children.map((c) => c.agent.name).join(', ') })
+        : t('Coordinates {n} sub-agents: {names}.', { n: children.length, names: children.map((c) => c.agent.name).join(', ') }),
     );
   }
   if (ownedSkills.length > 0) {
     rules.push(
-      t(ownedSkills.length === 1 ? 'Backed by {n} owned skill: {names}.' : 'Backed by {n} owned skills: {names}.', {
-        n: ownedSkills.length,
-        names: ownedSkills.map((s) => s.name).join(', '),
-      }),
+      ownedSkills.length === 1
+        ? t('Backed by {n} owned skill: {names}.', { n: ownedSkills.length, names: ownedSkills.map((s) => s.name).join(', ') })
+        : t('Backed by {n} owned skills: {names}.', { n: ownedSkills.length, names: ownedSkills.map((s) => s.name).join(', ') }),
     );
   }
   if (latestRun) {

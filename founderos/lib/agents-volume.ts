@@ -4,6 +4,7 @@ import type { BoardLivePayload } from '@/founderos/lib/board-live';
 import { boardStats, RUN_OK } from '@/founderos/lib/board-live';
 import { dailySeries } from '@/founderos/lib/pulse-history';
 import { shortLabels } from '@/founderos/lib/short-labels';
+import { t, localeTag } from '@/lib/i18n';
 
 /**
  * /agents in the Brand Deals look (Alex, 2026-09-24). One pure pass over
@@ -34,7 +35,6 @@ export type AgentsVolume = {
 const PENDING = new Set(['running', 'queued', 'pending']);
 const frac = (n: number, d: number) => (d > 0 ? Math.max(0, Math.min(1, n / d)) : 0);
 const pct = (f: number) => `${Math.round(f * 100)}%`;
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 /** Open stages in board order; the board spells review two ways. */
 const LANES: Array<[string, string[]]> = [
@@ -65,13 +65,13 @@ export function agentsVolume(
   start.setHours(0, 0, 0, 0);
   start.setDate(start.getDate() - (days - 1));
   const inWindow = p.runs.filter((r) => {
-    const t = r.startedAt ? new Date(r.startedAt).getTime() : NaN;
-    return Number.isFinite(t) && t >= start.getTime() && t <= now.getTime();
+    const ts = r.startedAt ? new Date(r.startedAt).getTime() : NaN;
+    return Number.isFinite(ts) && ts >= start.getTime() && ts <= now.getTime();
   });
   const oldest = Math.min(...p.runs.map((r) => (r.startedAt ? new Date(r.startedAt).getTime() : Infinity)));
   const truncated = p.runs.length >= RUNS_FETCHED && Number.isFinite(oldest) && oldest > start.getTime();
   const window = truncated
-    ? `since ${new Date(oldest).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    ? t('since {date}', { date: new Date(oldest).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric' }) })
     : `${days}d`;
   const failed = (s: string) => !RUN_OK.has(s) && !PENDING.has(s);
   const finished = inWindow.filter((r) => !PENDING.has(r.status));
@@ -93,17 +93,17 @@ export function agentsVolume(
 
   const live = p.issues.filter((i) => i.status !== 'cancelled');
   const done = live.filter((i) => i.status === 'done').length;
-  const lanes = LANES.map(([label, statuses]) => ({ label, count: live.filter((i) => statuses.includes(i.status)).length }));
+  const lanes = LANES.map(([label, statuses]) => ({ label: t(label), count: live.filter((i) => statuses.includes(i.status)).length }));
   const models = new Set(p.agents.map((a) => a.model).filter(Boolean)).size;
 
   if (!p.connected) {
     return {
       headline: 0,
       counts,
-      chips: [{ tone: 'err', text: 'board unreachable' }],
-      caption: 'Paperclip is not answering, so there is nothing to count',
+      chips: [{ tone: 'err', text: t('board unreachable') }],
+      caption: t('Paperclip is not answering, so there is nothing to count'),
       meters: [],
-      foot: 'no live board',
+      foot: t('no live board'),
       openTasks: 0,
       series,
       window,
@@ -111,15 +111,15 @@ export function agentsVolume(
       failedInWindow: 0,
       bySeat: [],
       lanes,
-      insight: { value: 0, headline: 'Board unreachable.', body: 'No numbers until Paperclip answers on the tailnet.', frac: 0 },
+      insight: { value: 0, headline: t('Board unreachable.'), body: t('No numbers until Paperclip answers on the tailnet.'), frac: 0 },
     };
   }
 
   const chips: AgentsVolume['chips'] = [];
-  if (counts.running) chips.push({ tone: 'ok', text: `${counts.running} running` });
-  if (counts.idle) chips.push({ text: `${counts.idle} idle` });
-  if (counts.paused) chips.push({ tone: 'warn', text: `${counts.paused} paused` });
-  if (counts.error) chips.push({ tone: 'err', text: `${counts.error} in error` });
+  if (counts.running) chips.push({ tone: 'ok', text: t('{n} running', { n: counts.running }) });
+  if (counts.idle) chips.push({ text: t('{n} idle', { n: counts.idle }) });
+  if (counts.paused) chips.push({ tone: 'warn', text: t('{n} paused', { n: counts.paused }) });
+  if (counts.error) chips.push({ tone: 'err', text: t('{n} in error', { n: counts.error }) });
 
   const seats = stats.seats;
   const runF = frac(counts.running, seats);
@@ -127,22 +127,28 @@ export function agentsVolume(
   const okF = frac(okRuns, finished.length);
   const doneF = frac(done, live.length);
   const meters: Meter[] = [
-    { label: `Seats running (${counts.running}/${seats})`, frac: runF, display: counts.running ? pct(runF) : 'none running', hue: 'var(--ok)' },
-    { label: `Heartbeat in 24h (${stats.heartbeats24h}/${seats})`, frac: beatF, display: seats ? pct(beatF) : 'no seats', hue: 'var(--accent)' },
+    { label: t('Seats running ({a}/{b})', { a: counts.running, b: seats }), frac: runF, display: counts.running ? pct(runF) : t('none running'), hue: 'var(--ok)' },
+    { label: t('Heartbeat in 24h ({a}/{b})', { a: stats.heartbeats24h, b: seats }), frac: beatF, display: seats ? pct(beatF) : t('no seats'), hue: 'var(--accent)' },
     {
-      label: `Runs OK · ${window} (${okRuns}/${finished.length})`,
+      label: t('Runs OK · {window} ({a}/{b})', { window, a: okRuns, b: finished.length }),
       frac: okF,
-      display: finished.length ? `${okRuns} ok · ${failedInWindow} failed` : 'no finished runs',
+      display: finished.length ? t('{ok} ok · {failed} failed', { ok: okRuns, failed: failedInWindow }) : t('no finished runs'),
       hue: 'var(--ramp-1)',
     },
-    { label: `Tasks done (${done}/${live.length})`, frac: doneF, display: live.length ? pct(doneF) : 'no tasks', hue: 'var(--ramp-4)' },
+    { label: t('Tasks done ({a}/{b})', { a: done, b: live.length }), frac: doneF, display: live.length ? pct(doneF) : t('no tasks'), hue: 'var(--ramp-4)' },
   ];
 
   const waiting = lanes[1].count + lanes[3].count;
   const insight = {
     value: waiting,
-    headline: waiting ? `${plural(waiting, 'task')} waiting on review or unblocking.` : 'Nothing on the board is waiting on you.',
-    body: `${plural(counts.error, 'seat')} in error · ${plural(failed24h, 'failed run')} in 24h`,
+    headline: waiting
+      ? waiting === 1
+        ? t('{n} task waiting on review or unblocking.', { n: waiting })
+        : t('{n} tasks waiting on review or unblocking.', { n: waiting })
+      : t('Nothing on the board is waiting on you.'),
+    body: `${counts.error === 1 ? t('{n} seat in error', { n: counts.error }) : t('{n} seats in error', { n: counts.error })} · ${
+      failed24h === 1 ? t('{n} failed run in 24h', { n: failed24h }) : t('{n} failed runs in 24h', { n: failed24h })
+    }`,
     frac: frac(waiting, stats.openTasks),
   };
 
@@ -150,9 +156,11 @@ export function agentsVolume(
     headline: seats,
     counts,
     chips,
-    caption: `seats on the Paperclip board · ${plural(models, 'model')}`,
+    caption: models === 1 ? t('seats on the Paperclip board · {n} model', { n: models }) : t('seats on the Paperclip board · {n} models', { n: models }),
     meters,
-    foot: `${plural(stats.openTasks, 'open task')} · ${plural(stats.runs24h, 'run')} in 24h`,
+    foot: `${stats.openTasks === 1 ? t('{n} open task', { n: stats.openTasks }) : t('{n} open tasks', { n: stats.openTasks })} · ${
+      stats.runs24h === 1 ? t('{n} run in 24h', { n: stats.runs24h }) : t('{n} runs in 24h', { n: stats.runs24h })
+    }`,
     openTasks: stats.openTasks,
     series,
     window,
