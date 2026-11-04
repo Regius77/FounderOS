@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { dataPath } from '@/lib/paths';
+import { dt } from './it';
 
 /**
  * The demo Optimal Engine store: markdown pages written from the seeded demo
@@ -9,6 +10,9 @@ import { dataPath } from '@/lib/paths';
  * the rest of the demo company. Also writes demo-data/bin/gbrain, the stub CLI
  * demo mode calls in place of the real engine (lib/stores.ts). Returns the
  * number of pages written.
+ *
+ * Page text goes through dt() (./it.ts), so the store speaks the demo's locale;
+ * file names, slugs and [[links]] stay English in every locale.
  */
 export function writeDemoBrain(): number {
 
@@ -51,11 +55,11 @@ export function writeDemoBrain(): number {
   const VENTURES: Record<string, { title: string; body: string }> = {
     vantage: {
       title: 'Vantage',
-      body: 'The done-for-you arm. Builds AI intake and operations systems for service businesses, sold as a fixed sprint or a monthly retainer. Delivery runs through the Clients pillar; pipeline through Sales.',
+      body: dt('The done-for-you arm. Builds AI intake and operations systems for service businesses, sold as a fixed sprint or a monthly retainer. Delivery runs through the Clients pillar; pipeline through Sales.'),
     },
     'launchpad-cohort': {
       title: 'Launchpad Cohort',
-      body: 'The mentorship programme. Six weeks, live, a small group building their own operating system with guidance. Sold paid-in-full or on a three-payment plan; leads arrive from the webinar and Instagram DMs.',
+      body: dt('The mentorship programme. Six weeks, live, a small group building their own operating system with guidance. Sold paid-in-full or on a three-payment plan; leads arrive from the webinar and Instagram DMs.'),
     },
   };
   for (const [id, v] of Object.entries(VENTURES)) {
@@ -65,7 +69,7 @@ export function writeDemoBrain(): number {
       `venture-${id}`,
       v.title,
       ['venture'],
-      `${v.body}\n\n## Pipeline\n\n${members.map((c) => `- ${link(`contact-${s(c.id).replace(/^fc-/, '')}`)}`).join('\n')}\n\nOwned by ${link(deptSlug('dept-sales'))} and ${link(deptSlug('dept-clients'))}.`,
+      `${v.body}\n\n${dt('## Pipeline')}\n\n${members.map((c) => `- ${link(`contact-${s(c.id).replace(/^fc-/, '')}`)}`).join('\n')}\n\n${dt('Owned by {a} and {b}.', { a: link(deptSlug('dept-sales')), b: link(deptSlug('dept-clients')) })}`,
     );
   }
 
@@ -79,20 +83,20 @@ export function writeDemoBrain(): number {
       deptSlug(d.id),
       s(d.name),
       ['department', s(d.slug)],
-      `${s(d.tagline)}\n\n## Agents\n\n${own.map((a) => `- ${link(agentSlug(a.id))}: ${s(a.role)}`).join('\n') || '- none yet'}\n\n## People\n\n${humans.map((p) => `- ${link(`person-${s(p.id).replace(/^person-/, '')}`)}`).join('\n') || '- none yet'}\n\n## Standard work\n\n${work.map((t) => `- ${link(`sop-${s(t.id)}`)}`).join('\n') || '- none written down'}`,
+      `${s(d.tagline)}\n\n${dt('## Agents')}\n\n${own.map((a) => `- ${link(agentSlug(a.id))}: ${s(a.role)}`).join('\n') || dt('- none yet')}\n\n${dt('## People')}\n\n${humans.map((p) => `- ${link(`person-${s(p.id).replace(/^person-/, '')}`)}`).join('\n') || dt('- none yet')}\n\n${dt('## Standard work')}\n\n${work.map((t) => `- ${link(`sop-${s(t.id)}`)}`).join('\n') || dt('- none written down')}`,
     );
   }
 
   // ── Agents ───────────────────────────────────────────────────────────────────
   for (const a of agents) {
     const toolList = (JSON.parse(s(a.tools) || '[]') as string[]).map((t) => link(`tool-${t}`)).join(', ');
-    const parent = a.parent_id ? `Reports to ${link(agentSlug(a.parent_id))}.` : 'Leads its pillar.';
+    const parent = a.parent_id ? dt('Reports to {parent}.', { parent: link(agentSlug(a.parent_id)) }) : dt('Leads its pillar.');
     page(
       'org',
       agentSlug(a.id),
       s(a.name),
       ['agent', s(a.tier)],
-      `**${s(a.role)}** in ${link(deptSlug(a.department_id))}. ${parent}\n\n${s(a.description)}\n\nTools: ${toolList || 'none'}.\nModel: ${s(a.model)}.`,
+      `${dt('**{role}** in {dept}. {parent}', { role: s(a.role), dept: link(deptSlug(a.department_id)), parent })}\n\n${s(a.description)}\n\n${dt('Tools: {tools}.', { tools: toolList || dt('none') })}\n${dt('Model: {model}.', { model: s(a.model) })}`,
     );
   }
 
@@ -103,7 +107,7 @@ export function writeDemoBrain(): number {
       `person-${s(p.id).replace(/^person-/, '')}`,
       s(p.name),
       ['team'],
-      `${s(p.role)}, ${link(deptSlug(p.department_id))}.\n\nWorks in: ${(JSON.parse(s(p.tools) || '[]') as string[]).map((t) => link(`tool-${t}`)).join(', ')}.`,
+      `${s(p.role)}, ${link(deptSlug(p.department_id))}.\n\n${dt('Works in: {tools}.', { tools: (JSON.parse(s(p.tools) || '[]') as string[]).map((t) => link(`tool-${t}`)).join(', ') })}`,
     );
   }
 
@@ -114,13 +118,14 @@ export function writeDemoBrain(): number {
     const company = s(c.company) || companyFromName || '';
     const slug = `contact-${s(c.id).replace(/^fc-/, '')}`;
     if (company) companies.set(company, [...(companies.get(company) ?? []), slug]);
-    const deal = c.product ? `\n\nDeal: ${s(c.product)}, $${Number(c.amount_usd ?? 0).toLocaleString('en-US')}.` : '';
+    const deal = c.product ? `\n\n${dt('Deal: {product}, {amount}.', { product: s(c.product), amount: `$${Number(c.amount_usd ?? 0).toLocaleString('en-US')}` })}` : '';
+    const companyLink = company ? link(`company-${slugify(company)}`) : '';
     page(
       'people',
       slug,
       person,
       ['contact', s(c.relationship)],
-      `${s(c.role) ? `${s(c.role)}${company ? ` at ${link(`company-${slugify(company)}`)}` : ''}. ` : company ? `At ${link(`company-${slugify(company)}`)}. ` : ''}In the ${link(`venture-${s(c.venture)}`)} pipeline, ${s(c.relationship)} with a ${s(c.likelihood)}% likelihood to buy.${deal}\n\nOwner: ${link(agentSlug('sales-agent'))}.`,
+      `${s(c.role) ? (company ? dt('{role} at {company}. ', { role: s(c.role), company: companyLink }) : `${s(c.role)}. `) : company ? dt('At {company}. ', { company: companyLink }) : ''}${dt('In the {venture} pipeline, {relationship} with a {likelihood}% likelihood to buy.', { venture: link(`venture-${s(c.venture)}`), relationship: s(c.relationship), likelihood: s(c.likelihood) })}${deal}\n\n${dt('Owner: {owner}.', { owner: link(agentSlug('sales-agent')) })}`,
     );
   }
   for (const [company, members] of companies) {
@@ -129,24 +134,24 @@ export function writeDemoBrain(): number {
       `company-${slugify(company)}`,
       company,
       ['client'],
-      `Client account. People: ${members.map(link).join(', ')}.\n\nDelivery tracked by ${link(deptSlug('dept-clients'))}.`,
+      `${dt('Client account. People: {people}.', { people: members.map(link).join(', ') })}\n\n${dt('Delivery tracked by {dept}.', { dept: link(deptSlug('dept-clients')) })}`,
     );
   }
 
   // ── Tools ────────────────────────────────────────────────────────────────────
   for (const t of tools) {
     // Tool ids are already tool-<slug>, the form agents and people link to.
-    page('hub', s(t.id).startsWith('tool-') ? s(t.id) : `tool-${s(t.id)}`, s(t.name), ['tool', slugify(s(t.category))], `${s(t.description)}\n\nCategory: ${s(t.category)}. Status: ${s(t.status)}.`);
+    page('hub', s(t.id).startsWith('tool-') ? s(t.id) : `tool-${s(t.id)}`, s(t.name), ['tool', slugify(s(t.category))], `${s(t.description)}\n\n${dt('Category: {category}. Status: {status}.', { category: s(t.category), status: s(t.status) })}`);
   }
 
   // ── Standard work, skills, workflows, roadmap, lead magnets ──────────────────
   for (const t of sops) {
     const steps = (JSON.parse(s(t.steps) || '[]') as string[]).map((x, i) => `${i + 1}. ${x}`).join('\n');
     const who = t.assignee_kind === 'agent' ? link(agentSlug(t.assignee_id)) : link(`person-${s(t.assignee_id).replace(/^person-/, '')}`);
-    page('writing', `sop-${s(t.id)}`, s(t.title), ['sop'], `${s(t.summary)}\n\nOwner: ${who}, ${link(deptSlug(t.department_id))}.\n\n${steps}`);
+    page('writing', `sop-${s(t.id)}`, s(t.title), ['sop'], `${s(t.summary)}\n\n${dt('Owner: {who}, {dept}.', { who, dept: link(deptSlug(t.department_id)) })}\n\n${steps}`);
   }
   for (const k of skills) {
-    page('writing', `skill-${s(k.id)}`, s(k.name), ['skill', slugify(s(k.category))], `${s(k.description)}\n\nRun by ${link(agentSlug(k.owner_agent_id))}.`);
+    page('writing', `skill-${s(k.id)}`, s(k.name), ['skill', slugify(s(k.category))], `${s(k.description)}\n\n${dt('Run by {agent}.', { agent: link(agentSlug(k.owner_agent_id)) })}`);
   }
   for (const w of workflows) {
     const steps = JSON.parse(s(w.steps) || '[]') as { name?: string; title?: string; owner?: string }[];
@@ -155,14 +160,14 @@ export function writeDemoBrain(): number {
       `workflow-${s(w.id)}`,
       s(w.name),
       ['workflow'],
-      `${s(w.subtitle)}\n\n${steps.map((st, i) => `${i + 1}. ${st.name ?? st.title ?? 'Step'}`).join('\n')}\n\nRevenue it carries: $${Number(w.revenue_usd ?? 0).toLocaleString('en-US')}. See ${link('venture-vantage')} and ${link('venture-launchpad-cohort')}.`,
+      `${s(w.subtitle)}\n\n${steps.map((st, i) => `${i + 1}. ${st.name ?? st.title ?? dt('Step')}`).join('\n')}\n\n${dt('Revenue it carries: {amount}. See {a} and {b}.', { amount: `$${Number(w.revenue_usd ?? 0).toLocaleString('en-US')}`, a: link('venture-vantage'), b: link('venture-launchpad-cohort') })}`,
     );
   }
   for (const r of roadmap) {
-    page('projects', `roadmap-${s(r.id)}`, s(r.title), ['roadmap', s(r.status)], `${s(r.description)}\n\n${s(r.quarter)}, ${s(r.status)}.${r.department_id ? ` Pillar: ${link(deptSlug(r.department_id))}.` : ''}`);
+    page('projects', `roadmap-${s(r.id)}`, s(r.title), ['roadmap', s(r.status)], `${s(r.description)}\n\n${s(r.quarter)}, ${s(r.status)}.${r.department_id ? dt(' Pillar: {dept}.', { dept: link(deptSlug(r.department_id)) }) : ''}`);
   }
   for (const m of magnets) {
-    page('ideas', `magnet-${s(m.id)}`, s(m.name), ['lead-magnet', s(m.status)], `${s(m.offer)}\n\nCampaign: ${s(m.campaign)}.\n\n${s(m.notes)}\n\nFeeds ${link('venture-launchpad-cohort')}.`);
+    page('ideas', `magnet-${s(m.id)}`, s(m.name), ['lead-magnet', s(m.status)], `${s(m.offer)}\n\n${dt('Campaign: {campaign}.', { campaign: s(m.campaign) })}\n\n${s(m.notes)}\n\n${dt('Feeds {venture}.', { venture: link('venture-launchpad-cohort') })}`);
   }
 
   // ── Meetings: one call note per contact who reached a deal ───────────────────
@@ -175,9 +180,9 @@ export function writeDemoBrain(): number {
       page(
         'meetings',
         `call-${date}-${s(c.id).replace(/^fc-/, '')}`,
-        `Call with ${person}`,
+        dt('Call with {person}', { person }),
         ['meeting', 'sales-call'],
-        `${date}. ${link(`contact-${s(c.id).replace(/^fc-/, '')}`)} on ${s(c.product)}.\n\n- Walked through the current week and where the hours go\n- Agreed scope and start date; ${link(agentSlug('sales-agent'))} sends the proposal\n- Follow-up owned by ${link(agentSlug('comms-agent'))}`,
+        `${dt('{date}. {contact} on {product}.', { date, contact: link(`contact-${s(c.id).replace(/^fc-/, '')}`), product: s(c.product) })}\n\n${dt('- Walked through the current week and where the hours go')}\n${dt('- Agreed scope and start date; {agent} sends the proposal', { agent: link(agentSlug('sales-agent')) })}\n${dt('- Follow-up owned by {agent}', { agent: link(agentSlug('comms-agent')) })}`,
       );
     });
 
@@ -186,16 +191,16 @@ export function writeDemoBrain(): number {
   page(
     'inbox',
     `daily-briefing-${today}`,
-    'Daily briefing',
+    dt('Daily briefing'),
     ['briefing', 'comms'],
-    `${today}. Built at 7am by ${link(agentSlug('ag-vera'))} from every inbox, Slack and the calendar.\n\n- Two clients waiting on a reply: ${[...companies.keys()].slice(0, 2).map((c) => link(`company-${slugify(c)}`)).join(', ')}\n- Brand deal pipeline: four drafts need approval before noon\n- The pipeline moved: one deal to opted in, one stalled for a week\n- Kickoff today, prep pack from ${link(agentSlug('ag-pike'))}`,
+    `${dt('{date}. Built at 7am by {agent} from every inbox, Slack and the calendar.', { date: today, agent: link(agentSlug('ag-vera')) })}\n\n${dt('- Two clients waiting on a reply: {clients}', { clients: [...companies.keys()].slice(0, 2).map((c) => link(`company-${slugify(c)}`)).join(', ') })}\n${dt('- Brand deal pipeline: four drafts need approval before noon')}\n${dt('- The pipeline moved: one deal to opted in, one stalled for a week')}\n${dt('- Kickoff today, prep pack from {agent}', { agent: link(agentSlug('ag-pike')) })}`,
   );
   page(
     'inbox',
     'sender-rules',
-    'Sender rules',
+    dt('Sender rules'),
     ['comms', 'policy'],
-    `Who gets an answer from an agent and who waits for a human.\n\n- A known client sender goes to ${link(agentSlug('ag-vera'))}, drafted, never sent without sign-off\n- A brand deal sender goes to the approval queue with the quote parsed\n- A new sender with a pricing question is scored by ${link(agentSlug('ag-beacon'))} against the ICP first\n- Anything about money owed goes to ${link(agentSlug('ag-brisk'))}`,
+    `${dt('Who gets an answer from an agent and who waits for a human.')}\n\n${dt('- A known client sender goes to {agent}, drafted, never sent without sign-off', { agent: link(agentSlug('ag-vera')) })}\n${dt('- A brand deal sender goes to the approval queue with the quote parsed')}\n${dt('- A new sender with a pricing question is scored by {agent} against the ICP first', { agent: link(agentSlug('ag-beacon')) })}\n${dt('- Anything about money owed goes to {agent}', { agent: link(agentSlug('ag-brisk')) })}`,
   );
 
   db.close();
