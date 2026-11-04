@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import type { MouseEventHandler, ReactNode } from 'react';
 import { cx } from './cx';
 import { GBadge, GButton, GTag } from './Controls';
@@ -40,19 +41,19 @@ export function GEmpty(props: GEmptyProps) {
     <div data-g="GEmpty" data-kind={kind} data-inline={inline || undefined} className={cx('g-empty', className)} role={kind === 'error' ? 'alert' : undefined}>
       {kind === 'unconfigured' && (
         <GTag tone="outline" size="xs">
-          Not configured
+          {t('Not configured')}
         </GTag>
       )}
       <p className="g-empty-title">{title}</p>
       {body != null && <p className="g-empty-body">{body}</p>}
       {props.kind === 'unconfigured' && (
         <GButton variant="sm" href={props.setupHref} title={props.setupHint}>
-          Set up
+          {t('Set up')}
         </GButton>
       )}
       {props.kind === 'error' && props.onRetry && (
         <GButton variant="sm" onClick={props.onRetry} busy={props.retryBusy}>
-          Retry
+          {t('Retry')}
         </GButton>
       )}
       {(props.kind === undefined || props.kind === 'empty') && props.action && (
@@ -96,7 +97,7 @@ export function GErrorLine({ children, align = 'center', onRetry, className }: {
       <span>{children}</span>
       {onRetry && (
         <GButton variant="sm" onClick={onRetry}>
-          Retry
+          {t('Retry')}
         </GButton>
       )}
     </p>
@@ -107,7 +108,7 @@ export function GErrorLine({ children, align = 'center', onRetry, className }: {
 export function GSampleBadge({ fixture, className }: { fixture: string; className?: string }) {
   return (
     <span data-g="GSampleBadge" data-sample-badge="" className={cx('g-sample', className)}>
-      <GBadge title={`Sample data: ${fixture}`}>Sample</GBadge>
+      <GBadge title={t('Sample data: {fixture}', { fixture })}>{t('Sample')}</GBadge>
     </span>
   );
 }

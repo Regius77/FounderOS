@@ -4,6 +4,7 @@ import { Send, Clock, Paperclip, X } from 'lucide-react';
 import { Badge } from '@/components/terminal';
 import type { SocialPost } from '@/lib/schemas';
 import { COMPOSER_PLATFORMS as PLATFORMS, fmtWhen, usePostComposer } from '@/components/social/use-post-composer';
+import { t } from '@/lib/i18n';
 
 export { QUEUE_UNDO_MS } from '@/components/social/use-post-composer';
 
@@ -19,7 +20,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Write a caption"
+          placeholder={t('Write a caption')}
           rows={4}
           className="w-full resize-none rounded-sm-t border border-os-border bg-os-surface2 px-3 py-3.5 text-[14px] leading-relaxed text-os-text outline-none placeholder:text-os-dim focus:border-os-border-strong"
         />
@@ -48,7 +49,7 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
             <input
               value={mediaUrl}
               onChange={(e) => setMediaUrl(e.target.value)}
-              placeholder="media URL (optional)"
+              placeholder={t('media URL (optional)')}
               className="w-full bg-transparent font-mono text-[12.5px] text-os-text outline-none placeholder:text-os-dim"
             />
           </label>
@@ -64,10 +65,10 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
         </div>
         <div className="mt-4 flex items-center justify-between gap-4">
           <span className="text-[12px] text-os-dim">
-            Queues only — the Social agent publishes on its next run.
+            {t('Queues only — the Social agent publishes on its next run.')}
           </span>
           <button onClick={submit} disabled={busy} className="c-btn c-btn-primary">
-            {busy ? 'Queuing…' : <><Send className="h-[13px] w-[13px]" /> Queue post</>}
+            {busy ? t('Queuing…') : <><Send className="h-[13px] w-[13px]" /> {t('Queue post')}</>}
           </button>
         </div>
         {error && (
@@ -81,12 +82,12 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
       {/* Queue */}
       <div className="rounded-lg-t border border-os-border bg-os-surface p-1">
         <div className="flex items-center justify-between px-3 py-3.5">
-          <span className="text-[13px] font-medium text-os-muted">Queue</span>
-          <span className="c-chip">{queued.length} pending</span>
+          <span className="text-[13px] font-medium text-os-muted">{t('Queue')}</span>
+          <span className="c-chip">{t('{n} pending', { n: queued.length })}</span>
         </div>
         <div className="flex max-h-[280px] flex-col gap-1 overflow-y-auto px-1 pb-1">
           {queued.length === 0 && (
-            <p className="px-3 py-6 text-center text-[12.5px] text-os-dim">Nothing queued yet</p>
+            <p className="px-3 py-6 text-center text-[12.5px] text-os-dim">{t('Nothing queued yet')}</p>
           )}
           {queued.map((post) => (
             <div key={post.id} className="rounded-sm-t border border-os-border bg-os-surface2 px-3 py-3.5">
@@ -99,14 +100,14 @@ export function PostComposer({ initialPosts }: { initialPosts: SocialPost[] }) {
                 ))}
                 <span className="ml-auto">
                   <Badge tone={post.scheduledFor ? 'warn' : 'accent'}>
-                    {post.scheduledFor ? fmtWhen(post.scheduledFor) : 'queued'}
+                    {post.scheduledFor ? fmtWhen(post.scheduledFor) : t('queued')}
                   </Badge>
                 </span>
                 <button
                   type="button"
                   onClick={() => remove(post)}
-                  aria-label="Remove from queue"
-                  title="Remove from queue (Undo for 5 seconds)"
+                  aria-label={t('Remove from queue')}
+                  title={t('Remove from queue (Undo for 5 seconds)')}
                   className="grid h-6 w-6 shrink-0 place-items-center rounded-sm-t border border-os-border text-os-dim transition-colors hover:bg-os-surface3 hover:text-os-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 >
                   <X className="h-3 w-3" />

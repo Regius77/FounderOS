@@ -6,6 +6,7 @@ import { IconSearch } from './icons';
 import { LAB_DUR, LAB_EASE } from '@/lib/lab/motion';
 import { prefersReducedMotion } from './motion/useReducedMotion';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type SearchPillProps = { placeholder?: string; defaultValue?: string; onSubmit?: (q: string) => void; shortcut?: '/' };
 
@@ -16,7 +17,7 @@ function typingTarget(t: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
-export function SearchPill({ placeholder = 'Ask the Lab', defaultValue = '', onSubmit, shortcut = '/' }: SearchPillProps) {
+export function SearchPill({ placeholder = t('Ask the Lab'), defaultValue = '', onSubmit, shortcut = '/' }: SearchPillProps) {
   const km = useKitMark();
   const input = useRef<HTMLInputElement>(null);
   const icon = useRef<HTMLSpanElement>(null);
@@ -52,7 +53,7 @@ export function SearchPill({ placeholder = 'Ask the Lab', defaultValue = '', onS
         ref={input}
         type="search"
         className="lab2-search-input"
-        aria-label="Ask the Lab"
+        aria-label={t('Ask the Lab')}
         placeholder={placeholder}
         value={q}
         onChange={(e) => { setQ(e.target.value); tick(); }}

@@ -13,6 +13,7 @@ import { IconChevronLeft, IconChevronRight, IconTrendDown, IconTrendUp } from '.
 import { CountUpText } from './motion/CountUpText';
 import { prefersReducedMotion } from './motion/useReducedMotion';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type { DotGroup } from './DotMatrix';
 export type HeroState = 'ready' | 'thin' | 'empty' | 'not-configured' | 'loading' | 'sample';
@@ -40,7 +41,7 @@ export type HeroMetricProps = {
   ariaLabel?: string;
 };
 
-const UNIT_WORDS: Record<string, string> = { x: ' times', '%': ' percent', $: ' dollars', h: ' hours', d: ' days' };
+const UNIT_WORDS: Record<string, string> = { x: ` ${t('times')}`, '%': ` ${t('percent')}`, $: ` ${t('dollars')}`, h: ` ${t('hours')}`, d: ` ${t('days')}` };
 
 function effectiveState(p: HeroMetricProps): HeroState {
   if ((p.state === 'ready' || p.state === 'sample') && p.n < N_MIN) return 'thin';
@@ -59,8 +60,8 @@ export function HeroMetric(p: HeroMetricProps) {
   const aria =
     p.ariaLabel ??
     (shown && split
-      ? `${p.label}: ${split.text}${split.unit ? UNIT_WORDS[split.unit] ?? '' : ''}${p.delta && p.deltaWords ? `, ${p.deltaWords} on ${prev?.label ?? 'the last period'}` : ''}, ${p.nText}`
-      : `${p.label}: ${state === 'thin' ? NOT_ENOUGH : state === 'not-configured' ? 'Not configured' : state === 'empty' ? 'Nothing yet' : 'loading'}`);
+      ? `${p.label}: ${split.text}${split.unit ? UNIT_WORDS[split.unit] ?? '' : ''}${p.delta && p.deltaWords ? `, ${t('{delta} on {period}', { delta: p.deltaWords, period: prev?.label ?? t('the last period') })}` : ''}, ${p.nText}`
+      : `${p.label}: ${state === 'thin' ? NOT_ENOUGH : state === 'not-configured' ? t('Not configured') : state === 'empty' ? t('Nothing yet') : t('loading')}`);
   const showDots = state === 'ready' || state === 'sample' || state === 'thin' || state === 'loading';
   const showN = state === 'ready' || state === 'sample' || state === 'thin';
   const showArrow = !!p.href && (state === 'ready' || state === 'sample' || state === 'thin');
@@ -69,7 +70,7 @@ export function HeroMetric(p: HeroMetricProps) {
     <section className="lab2-hero" data-lab="HeroMetric" {...km('LabHeroMetric')} data-state={state} aria-label={aria} role="group">
       <div className="lab2-hero-head">
         <h3 className="lab2-hero-label" data-lab-ink="">{p.label}</h3>
-        {showArrow && <ArrowButton label={`Open ${p.label}`} href={p.href} size={36} />}
+        {showArrow && <ArrowButton label={t('Open {title}', { title: p.label })} href={p.href} size={36} />}
       </div>
 
       <div className="lab2-hero-num" aria-hidden={shown ? true : undefined}>
@@ -81,11 +82,11 @@ export function HeroMetric(p: HeroMetricProps) {
         ) : state === 'thin' ? (
           <span className="lab2-hero-word" data-lab-ink="">{NOT_ENOUGH}</span>
         ) : state === 'empty' ? (
-          <span className="lab2-hero-word" data-lab-ink="">Nothing yet</span>
+          <span className="lab2-hero-word" data-lab-ink="">{t('Nothing yet')}</span>
         ) : state === 'not-configured' ? (
           <span className="lab2-hero-nc">
-            <span className="lab2-hero-word" data-lab-ink="">Not configured</span>
-            <SetupLink href={p.setupHref ?? '?setup=keys'} label="Set up" className="lab2-setup" />
+            <span className="lab2-hero-word" data-lab-ink="">{t('Not configured')}</span>
+            <SetupLink href={p.setupHref ?? '?setup=keys'} label={t('Set up')} className="lab2-setup" />
           </span>
         ) : (
           <span className="lab2-skel lab2-skel-hero" />
@@ -94,7 +95,7 @@ export function HeroMetric(p: HeroMetricProps) {
 
       {showDots && vis.length > 0 && (
         <div className="lab2-hero-viz" style={{ width: layout.width }}>
-          <DotMatrix groups={vis} rows={rows} label={`${p.label}, ${vis.map((g) => g.label).join(' against ')}`} unlit={state !== 'ready' && state !== 'sample'} />
+          <DotMatrix groups={vis} rows={rows} label={`${p.label}, ${vis.map((g) => g.label).join(` ${t('against')} `)}`} unlit={state !== 'ready' && state !== 'sample'} />
           {shown && p.delta && (
             <span className="lab2-delta" data-dir={p.delta.dir} data-lab-ink="">
               {p.delta.dir === 'up' ? <IconTrendUp size={12} /> : p.delta.dir === 'down' ? <IconTrendDown size={12} /> : null}
@@ -152,7 +153,7 @@ export function HeroPair({ pages, page, onPage }: HeroPairProps) {
   };
   if (!pg) return null;
   return (
-    <div className="lab2-heropair" data-lab="HeroPair" {...km('LabHeroPair')} role="group" aria-label={`Hero metrics, ${pg.label}`}>
+    <div className="lab2-heropair" data-lab="HeroPair" {...km('LabHeroPair')} role="group" aria-label={t('Hero metrics, {platform}', { platform: pg.label })}>
       <div ref={row} className="lab2-heropair-row">
         <HeroMetric {...pg.heroes[0]} />
         <HeroMetric {...pg.heroes[1]} />
@@ -160,11 +161,11 @@ export function HeroPair({ pages, page, onPage }: HeroPairProps) {
       <div className="lab2-heropair-foot">
         <span className="lab2-rule" aria-hidden="true" />
         <span className="lab2-pager" data-lab="HeroPager" {...km('LabHeroPager')}>
-          <button type="button" className="lab2-pager-btn" aria-label="Previous platform" aria-disabled={pages.length < 2 ? true : undefined} onClick={() => go(-1)} onKeyDown={onKey} data-lab-mark="">
+          <button type="button" className="lab2-pager-btn" aria-label={t('Previous platform')} aria-disabled={pages.length < 2 ? true : undefined} onClick={() => go(-1)} onKeyDown={onKey} data-lab-mark="">
             <IconChevronLeft size={14} />
           </button>
           <span ref={label} className="lab2-pager-label" data-lab-ink="">{pg.label}</span>
-          <button type="button" className="lab2-pager-btn" aria-label="Next platform" aria-disabled={pages.length < 2 ? true : undefined} onClick={() => go(1)} onKeyDown={onKey} data-lab-mark="">
+          <button type="button" className="lab2-pager-btn" aria-label={t('Next platform')} aria-disabled={pages.length < 2 ? true : undefined} onClick={() => go(1)} onKeyDown={onKey} data-lab-mark="">
             <IconChevronRight size={14} />
           </button>
         </span>

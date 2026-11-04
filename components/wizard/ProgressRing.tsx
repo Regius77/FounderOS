@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ringFraction } from '@/lib/wizard/helpers';
+import { t } from '@/lib/i18n';
 
 /**
  * Circular progress — drawn ONLY when a project carries real done/total
@@ -23,7 +24,7 @@ export function ProgressRing({ done, total, size = 44 }: { done: number; total: 
   const pct = Math.round(fraction * 100);
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }} title={`${done} of ${total} tasks done`}>
+    <div className="relative shrink-0" style={{ width: size, height: size }} title={t('{done} of {total} tasks done', { done, total })}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={stroke} />
         <circle

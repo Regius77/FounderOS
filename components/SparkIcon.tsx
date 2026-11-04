@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 /**
  * The agent emblem — a concentric core (dot + orbit ring), inlined as an SVG
  * data-URI mask. Replaced the four-point spark 2026-08-24  — the rings echo the Optimal Engine
@@ -22,7 +23,7 @@ export function SparkIcon({
   return (
     <span
       role="img"
-      aria-label="Agent"
+      aria-label={t('Agent')}
       className={`emblem inline-block shrink-0 ${className}`}
       style={{
         width: size,

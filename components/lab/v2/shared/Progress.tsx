@@ -11,6 +11,7 @@
 import { ProgressRing, RoundButton } from './ActionPill';
 import { IconAlert, IconCheck } from './icons';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type ProgressRowView = {
   label: string;
@@ -38,7 +39,7 @@ export function ProgressRow({ row, onStop, compact }: { row: ProgressRowView; on
         <span className="lab2-prow-label" data-lab-ink="">{row.label}</span>
         <span className="lab2-prow-meta" data-lab-ink="">{row.targetsText}</span>
         <span className="lab2-prow-state" data-lab-ink="">{row.stateText}</span>
-        {row.canStop && onStop && <RoundButton label={`Stop ${row.label}`} icon="close" onClick={onStop} />}
+        {row.canStop && onStop && <RoundButton label={t('Stop {label}', { label: row.label })} icon="close" onClick={onStop} />}
       </div>
       {!compact && (
         <>
@@ -55,7 +56,7 @@ export function ProgressRow({ row, onStop, compact }: { row: ProgressRowView; on
           <div className="lab2-prow-sub" data-lab-ink="">
             {[row.costText, row.elapsedText, row.typicalText].filter(Boolean).join(' · ')}
             {msg && <q className="lab2-prow-msg">{msg}</q>}
-            {row.failed && row.runLogHref && <a href={row.runLogHref} className="lab2-prow-log">Run log</a>}
+            {row.failed && row.runLogHref && <a href={row.runLogHref} className="lab2-prow-log">{t('Run log')}</a>}
           </div>
         </>
       )}

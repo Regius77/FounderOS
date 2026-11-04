@@ -12,6 +12,7 @@ import { Glass } from './Glass';
 import { IconTrendDown, IconTrendUp } from './icons';
 import { BandViz, CapViz, TickViz, WaveViz } from './MiniViz';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type TileViz =
   | { kind: 'band'; ageH: number; points: { h: number; v: number }[]; band: { h: number; lo: number; mid: number; hi: number }[] }
@@ -57,8 +58,8 @@ export function Tile(p: TileProps) {
   const router = useRouter();
   const state: TileState = p.state === 'ready' && p.n < N_MIN ? 'thin' : p.state;
   const split = state === 'ready' && p.valueText ? splitUnit(p.valueText, p.format) : null;
-  const foot = state === 'too-new' ? 'judged from 6h' : p.foot;
-  const spoken = state === 'ready' ? p.valueWords ?? p.valueText ?? '' : state === 'thin' ? NOT_ENOUGH : state === 'too-new' ? TOO_NEW : 'loading';
+  const foot = state === 'too-new' ? t('judged from 6h') : p.foot;
+  const spoken = state === 'ready' ? p.valueWords ?? p.valueText ?? '' : state === 'thin' ? NOT_ENOUGH : state === 'too-new' ? TOO_NEW : t('loading');
   const label = p.nText ? `${p.title}: ${spoken}, ${foot}, ${p.nText}` : `${p.title}: ${spoken}, ${foot}`;
   const onClick = (e: MouseEvent<HTMLElement>) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -82,7 +83,7 @@ export function Tile(p: TileProps) {
     >
       <span className="lab2-tile-body">
         <span className="lab2-tile-title" data-lab-ink="">{p.title}</span>
-        <ArrowButton label={`Open ${p.title}`} size={32} decorative />
+        <ArrowButton label={t('Open {title}', { title: p.title })} size={32} decorative />
         <span className="lab2-tile-bottom">
           <span className="lab2-tile-num">
             {state === 'ready' && split ? (
@@ -124,7 +125,7 @@ export type TileRowProps = {
   id?: string;
 };
 
-export function TileRow({ title, description, seeAllHref, seeAllLabel = 'See all', children, emptyText, id }: TileRowProps) {
+export function TileRow({ title, description, seeAllHref, seeAllLabel = t('See all'), children, emptyText, id }: TileRowProps) {
   const km = useKitMark();
   const has = Array.isArray(children) ? children.length > 0 : !!children;
   const hid = id ? `${id}-title` : undefined;
@@ -135,18 +136,18 @@ export function TileRow({ title, description, seeAllHref, seeAllLabel = 'See all
   useEffect(() => {
     const all = tiles();
     if (!all.length) return;
-    const cur = all.findIndex((t) => t.getAttribute('tabindex') === '0');
-    all.forEach((t, i) => t.setAttribute('tabindex', i === (cur >= 0 ? cur : 0) ? '0' : '-1'));
+    const cur = all.findIndex((el) => el.getAttribute('tabindex') === '0');
+    all.forEach((el, i) => el.setAttribute('tabindex', i === (cur >= 0 ? cur : 0) ? '0' : '-1'));
   });
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const all = tiles();
-    const i = all.findIndex((t) => t === document.activeElement || t.contains(document.activeElement));
+    const i = all.findIndex((el) => el === document.activeElement || el.contains(document.activeElement));
     if (i < 0) return;
     const to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : null;
     if (to === null) return;
     e.preventDefault();
     const j = Math.max(0, Math.min(all.length - 1, to));
-    all.forEach((t, k) => t.setAttribute('tabindex', k === j ? '0' : '-1'));
+    all.forEach((el, k) => el.setAttribute('tabindex', k === j ? '0' : '-1'));
     all[j].focus();
     all[j].scrollIntoView({ block: 'nearest', inline: 'nearest' });
   };

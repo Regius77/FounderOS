@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { DEFAULT_THEME, THEMES, THEME_META, THEME_STORAGE_KEY, isTheme, type Theme } from '@/lib/theme';
 import { classicMode } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 /**
  * OS theme picker (Settings → Appearance). Applies instantly by setting
@@ -36,7 +37,7 @@ export function ThemePicker() {
   };
 
   return (
-    <div role="group" aria-label="Colour theme" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div role="group" aria-label={t('Colour theme')} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {THEMES.map((theme) => {
         const meta = THEME_META[theme];
         const active = theme === current;

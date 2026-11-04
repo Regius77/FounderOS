@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 /**
  * Loading state for the routes whose server render waits on live third-party calls (perf): their
  * `loading.tsx` re-exports this, so a click shows the page frame at once while the render finishes;
@@ -12,7 +13,7 @@
 export function RouteSkeleton() {
   return (
     <div className="route-skel" role="status" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading</span>
+      <span className="sr-only">{t('Loading')}</span>
       <div className="route-skel-head" aria-hidden="true">
         <span className="route-skel-bar route-skel-title" />
         <span className="route-skel-bar route-skel-sub" />
@@ -35,7 +36,7 @@ export function RouteSkeleton() {
  * the page (SQLite reads) is already on screen (SPEC 4.1 a4). aria-busy, so a settled check waits
  * for the real card.
  */
-export function CardSkeleton({ height = 340, label = 'Loading' }: { height?: number; label?: string }) {
+export function CardSkeleton({ height = 340, label = t('Loading') }: { height?: number; label?: string }) {
   return (
     <div className="route-skel-card" style={{ height }} role="status" aria-busy="true" aria-live="polite">
       <span className="sr-only">{label}</span>

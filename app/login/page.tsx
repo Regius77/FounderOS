@@ -7,6 +7,7 @@ import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { LoginFormG, NoPasswordG } from '@/components/login/LoginG';
 import { LoginFormL, NoPasswordL } from '@/components/login/LoginL';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,17 +50,16 @@ export default function LoginPage() {
             <span className="h-2 w-2 rounded-full" style={{ background: 'var(--accent)' }} />
             <span className="text-[15px] font-medium">{BRAND.name}</span>
           </div>
-          <p className="mb-5 text-[12.5px] text-os-dim">No password is set on this install</p>
+          <p className="mb-5 text-[12.5px] text-os-dim">{t('No password is set on this install')}</p>
           <p className="text-[12.5px] leading-relaxed text-os-dim">
-            Nothing is locked, so there is nothing to sign in to. Open the console directly, or set an
-            operator password under Setup to turn sign-in on.
+            {t('Nothing is locked, so there is nothing to sign in to. Open the console directly, or set an operator password under Setup to turn sign-in on.')}
           </p>
           <div className="mt-5 flex gap-2.5">
             <Link href="/" className="c-btn c-btn-primary justify-center px-3.5 py-2 text-[13px]">
-              Open {BRAND.name}
+              {t('Open {brand}', { brand: BRAND.name })}
             </Link>
             <Link href="/setup" className="c-btn justify-center px-3.5 py-2 text-[13px]">
-              Set a password
+              {t('Set a password')}
             </Link>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
     );
   }
   return (
-    <Suspense fallback={<div className="grid min-h-[70vh] place-items-center text-[12.5px] text-os-dim">Loading…</div>}>
+    <Suspense fallback={<div className="grid min-h-[70vh] place-items-center text-[12.5px] text-os-dim">{t('Loading…')}</div>}>
       <LoginForm brandName={BRAND.name} />
     </Suspense>
   );

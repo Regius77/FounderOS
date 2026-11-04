@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { chainDepthBucket, pollStatus, type ChainDepthBucket, type DealFilter } from '@/lib/brand-deals-view';
 import type { BrandDealsSnapshot, Deal } from '@/lib/brand-deals';
+import { t } from '@/lib/i18n';
 
 /**
  * The Brand Deals board's state and actions (glados-ui SPEC S02 FR-B1, FR-B5,
@@ -86,7 +87,7 @@ export function useDealBoard(initial: BrandDealsSnapshot) {
       const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
       const body = await r.json();
       if (body.snapshot) setSnap(body.snapshot);
-      if (!body.ok) setNotice(body.error ?? 'action failed');
+      if (!body.ok) setNotice(body.error ?? t('action failed'));
       return Boolean(body.ok);
     } catch (e) {
       setNotice(String(e));
@@ -104,7 +105,7 @@ export function useDealBoard(initial: BrandDealsSnapshot) {
       const r = await fetch(`/api/brand-deals/draft?id=${encodeURIComponent(id)}`);
       const b = await r.json();
       if (b.ok) return b.draft.body as string;
-      setNotice(b.error || 'could not load the draft');
+      setNotice(b.error || t('could not load the draft'));
       return null;
     } catch (e) {
       setNotice(String(e));
@@ -115,8 +116,8 @@ export function useDealBoard(initial: BrandDealsSnapshot) {
   }, []);
 
   useEffect(() => {
-    const t = setInterval(refresh, 30_000);
-    return () => clearInterval(t);
+    const timer = setInterval(refresh, 30_000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
   // One-second clock for the "Updated n s ago" pill; the server just rendered `initial`.
@@ -124,8 +125,8 @@ export function useDealBoard(initial: BrandDealsSnapshot) {
     const start = Date.now();
     setLastOkAt((v) => v ?? start);
     setNow(start);
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const filtered = filterDeals(snap.deals, stageFilter, query, depth);

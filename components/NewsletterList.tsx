@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import type { Newsletter } from '@/lib/newsletters';
+import { localeTag, t } from '@/lib/i18n';
 
-const fmt = (n: number) => n.toLocaleString('en-US');
+const fmt = (n: number) => n.toLocaleString(localeTag());
 const pct = (n: number) => `${n.toFixed(n < 10 ? 2 : 1)}%`;
 const dateLabel = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  new Date(iso).toLocaleDateString(localeTag(), { month: 'short', day: 'numeric', year: 'numeric' });
 
 /** A labeled metric cell inside the expanded analytics grid. Status shows as
     a dot beside the label — the numeral itself stays neutral (Console rule). */
@@ -33,7 +34,7 @@ export function NewsletterList({ newsletters }: { newsletters: Newsletter[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (newsletters.length === 0) {
-    return <p className="rounded-lg-t border border-os-border bg-os-surface px-5 py-6 text-center text-[12.5px] text-os-dim">No newsletters yet.</p>;
+    return <p className="rounded-lg-t border border-os-border bg-os-surface px-5 py-6 text-center text-[12.5px] text-os-dim">{t('No newsletters yet.')}</p>;
   }
 
   return (
@@ -53,32 +54,32 @@ export function NewsletterList({ newsletters }: { newsletters: Newsletter[] }) {
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px] font-medium">{n.title}</span>
                 <span className="mt-0.5 block text-[12px] text-os-dim">
-                  {dateLabel(n.publishedAt)} · {fmt(n.recipients)} sent
+                  {dateLabel(n.publishedAt)} · {t('{n} sent', { n: fmt(n.recipients) })}
                 </span>
               </span>
               <span className="shrink-0 text-right">
                 <span className="block text-[20px] font-normal leading-none tracking-[-0.01em] tabular-nums">
                   {pct(n.openRate)}
                 </span>
-                <span className="mt-0.5 block text-[11px] text-os-dim">open rate</span>
+                <span className="mt-0.5 block text-[11px] text-os-dim">{t('open rate')}</span>
               </span>
             </button>
 
             {expanded && (
               <div className="border-t border-os-border px-4 pb-4 pt-3">
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                  <Metric label="Recipients" value={fmt(n.recipients)} />
-                  <Metric label="Delivered" value={fmt(n.delivered)} sub={pct(n.deliveryRate) + ' delivery'} tone="ok" />
-                  <Metric label="Open rate" value={pct(n.openRate)} sub={fmt(n.opens) + ' opens'} tone="ok" />
-                  <Metric label="Click rate" value={pct(n.clickRate)} sub={fmt(n.clicks) + ' clicks'} />
-                  <Metric label="Unsubscribes" value={fmt(n.unsubscribes)} sub={pct(n.unsubscribeRate)} tone={n.unsubscribeRate > 1 ? 'warn' : undefined} />
-                  <Metric label="Spam reports" value={fmt(n.spamReports)} tone={n.spamReports > 0 ? 'warn' : undefined} />
-                  <Metric label="Web views" value={fmt(n.webViews)} />
-                  <Metric label="Delivered %" value={pct(n.deliveryRate)} />
+                  <Metric label={t('Recipients')} value={fmt(n.recipients)} />
+                  <Metric label={t('Delivered')} value={fmt(n.delivered)} sub={t('{pct} delivery', { pct: pct(n.deliveryRate) })} tone="ok" />
+                  <Metric label={t('Open rate')} value={pct(n.openRate)} sub={t('{n} opens', { n: fmt(n.opens) })} tone="ok" />
+                  <Metric label={t('Click rate')} value={pct(n.clickRate)} sub={t('{n} clicks', { n: fmt(n.clicks) })} />
+                  <Metric label={t('Unsubscribes')} value={fmt(n.unsubscribes)} sub={pct(n.unsubscribeRate)} tone={n.unsubscribeRate > 1 ? 'warn' : undefined} />
+                  <Metric label={t('Spam reports')} value={fmt(n.spamReports)} tone={n.spamReports > 0 ? 'warn' : undefined} />
+                  <Metric label={t('Web views')} value={fmt(n.webViews)} />
+                  <Metric label={t('Delivered %')} value={pct(n.deliveryRate)} />
                 </div>
                 {n.webUrl && (
                   <a href={n.webUrl} target="_blank" rel="noreferrer" className="c-btn mt-4">
-                    Read the issue <ExternalLink className="h-3 w-3" />
+                    {t('Read the issue')} <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
               </div>

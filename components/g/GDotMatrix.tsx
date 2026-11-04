@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useState } from 'react';
 import { dotFill, heatAlpha, peakIndex } from '@/lib/chart-geometry';
 import { GChartTooltip } from './GChartTooltip';
@@ -59,7 +60,7 @@ export function GDotMatrix({ columns, rows = 6, max, color = 'accent', peakInk =
   const hc = hover !== null ? columns[hover] : null;
   return (
     <div ref={ref} data-g="GDotMatrix" data-mode={mode} data-compact={compact || undefined} className={`g-dots ${className}`}>
-      <div role={onSelect ? 'radiogroup' : 'group'} aria-label={allZero ? `${label} · none in this range` : label} className="g-dots-cols">
+      <div role={onSelect ? 'radiogroup' : 'group'} aria-label={allZero ? t('{label} · none in this range', { label }) : label} className="g-dots-cols">
         {columns.map((c, i) => {
           const fill = i === peak ? 'var(--g-ink)' : colorVar(color);
           const dots = Array.from({ length: rows }, (_, r) => {
@@ -88,7 +89,7 @@ export function GDotMatrix({ columns, rows = 6, max, color = 'accent', peakInk =
           );
         })}
       </div>
-      {allZero && <div className="g-dots-caption">None in this range.</div>}
+      {allZero && <div className="g-dots-caption">{t('None in this range.')}</div>}
       {hc && hover !== null && <GChartTooltip x={colW * (hover + 0.5)} y={0} containerWidth={W} title={hc.title} />}
     </div>
   );

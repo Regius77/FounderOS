@@ -8,6 +8,7 @@ import { snapTick } from '@/lib/lab/motion';
 import { Glass } from './Glass';
 import { IconChevronLeft, IconChevronRight } from './icons';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type Period = { id: string; label: string; from: string; to: string };
 export type PeriodScrubberProps = { periods: Period[]; value?: string; onChange?: (id: string) => void; label?: string };
@@ -25,7 +26,7 @@ function Ticks({ side }: { side: 'l' | 'r' }) {
   );
 }
 
-export function PeriodScrubber({ periods, value, onChange, label = 'Period' }: PeriodScrubberProps) {
+export function PeriodScrubber({ periods, value, onChange, label = t('Period') }: PeriodScrubberProps) {
   const km = useKitMark();
   const [local, setLocal] = useState(value ?? periods[periods.length - 1]?.id);
   const cur = onChange ? value : local;
@@ -59,7 +60,7 @@ export function PeriodScrubber({ periods, value, onChange, label = 'Period' }: P
   const p = periods[idx];
   return (
     <Glass tone="base" radius="pill" priority={0} className="lab2-scrub" data-lab="PeriodScrubber" {...km('LabPeriodScrubber')}>
-      <button type="button" className="lab2-scrub-btn" aria-label="Previous period" aria-disabled={atStart ? true : undefined} onClick={() => !atStart && set(idx - 1)} data-lab-mark="">
+      <button type="button" className="lab2-scrub-btn" aria-label={t('Previous period')} aria-disabled={atStart ? true : undefined} onClick={() => !atStart && set(idx - 1)} data-lab-mark="">
         <IconChevronLeft size={14} />
       </button>
       <span
@@ -81,7 +82,7 @@ export function PeriodScrubber({ periods, value, onChange, label = 'Period' }: P
         <span className="lab2-scrub-label" data-lab-ink="">{p?.label}</span>
         <Ticks side="r" />
       </span>
-      <button type="button" className="lab2-scrub-btn" aria-label="Next period" aria-disabled={atEnd ? true : undefined} onClick={() => !atEnd && set(idx + 1)} data-lab-mark="">
+      <button type="button" className="lab2-scrub-btn" aria-label={t('Next period')} aria-disabled={atEnd ? true : undefined} onClick={() => !atEnd && set(idx + 1)} data-lab-mark="">
         <IconChevronRight size={14} />
       </button>
     </Glass>

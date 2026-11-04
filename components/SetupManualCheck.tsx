@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { t } from '@/lib/i18n';
 
 /** Mark-done state and action, shared by both trees of /setup (the GladOS one is components/setup/SetupG.tsx). */
 export function useManualCheck(id: string, marked: boolean) {
@@ -40,10 +41,10 @@ export function SetupManualCheck({ id, marked }: { id: string; marked: boolean }
     >
       {marked ? (
         <>
-          <span className="dot ok" /> Done — undo
+          <span className="dot ok" /> {t('Done — undo')}
         </>
       ) : (
-        'Mark done'
+        t('Mark done')
       )}
     </button>
   );

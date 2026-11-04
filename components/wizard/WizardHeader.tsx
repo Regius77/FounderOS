@@ -1,6 +1,7 @@
 'use client';
 
 import { Plus } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 export type WizardTab = 'workspace' | 'sessions';
 
@@ -11,7 +12,7 @@ export function WizardHeader({
   projectCount,
 }: {
   tab: WizardTab;
-  onTab: (t: WizardTab) => void;
+  onTab: (tab: WizardTab) => void;
   onCreateAgent: () => void;
   projectCount: number;
 }) {
@@ -20,21 +21,21 @@ export function WizardHeader({
       <div>
         <div className="flex items-center gap-3">
           <h1 className="text-[30px] leading-none tracking-[-0.01em] text-os-text">Wizard</h1>
-          <button type="button" aria-label="Create an agent" onClick={onCreateAgent} className="wz-plus group/plus">
+          <button type="button" aria-label={t('Create an agent')} onClick={onCreateAgent} className="wz-plus group/plus">
             <Plus className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 ease-[var(--ease)] group-hover/plus:rotate-90" strokeWidth={2.2} />
-            <span className="wz-plus-label">Create an agent</span>
+            <span className="wz-plus-label">{t('Create an agent')}</span>
           </button>
         </div>
-        <p className="mt-2 text-[13px] text-os-muted">Talk to the system. Every conversation becomes a project.</p>
+        <p className="mt-2 text-[13px] text-os-muted">{t('Talk to the system. Every conversation becomes a project.')}</p>
       </div>
       <div className="flex items-center gap-6">
         <span className="text-[12px] text-os-dim tabular-nums">
-          {projectCount} project{projectCount === 1 ? '' : 's'}
+          {projectCount === 1 ? t('{n} project', { n: projectCount }) : t('{n} projects', { n: projectCount })}
         </span>
         <div className="flex items-center gap-5" role="tablist">
-          {(['workspace', 'sessions'] as WizardTab[]).map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => onTab(t)} className={`wz-tab ${tab === t ? 'wz-tab-on' : ''}`}>
-              {t === 'workspace' ? 'Workspace' : 'Sessions'}
+          {(['workspace', 'sessions'] as WizardTab[]).map((key) => (
+            <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => onTab(key)} className={`wz-tab ${tab === key ? 'wz-tab-on' : ''}`}>
+              {key === 'workspace' ? t('Workspace') : t('Sessions')}
             </button>
           ))}
         </div>

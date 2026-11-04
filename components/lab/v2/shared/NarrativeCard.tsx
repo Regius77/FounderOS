@@ -9,6 +9,7 @@ import { SetupLink } from '@/components/SetupLink';
 import { useInViewPause } from './motion/useInViewPause';
 import { stepWindowT } from './tokens';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type NarrativeKind = 'brief' | 'window';
 export type NarrativeState = 'ready' | 'thin' | 'none' | 'not-configured' | 'loading' | 'sample';
@@ -37,10 +38,10 @@ export type NarrativeCardProps = {
 
 /** Component default copy (02 section 7.2). Section 01 may pass its own sentence. */
 export const NARRATIVE_COPY = {
-  briefThin: 'Not enough data yet.',
-  briefThinMeta: 'The Brief needs n 8 or more.',
-  windowNone: 'No open windows.',
-  notConfigured: 'Not configured',
+  briefThin: t('Not enough data yet.'),
+  briefThinMeta: t('The Brief needs n 8 or more.'),
+  windowNone: t('No open windows.'),
+  notConfigured: t('Not configured'),
 } as const;
 
 /** Over this many characters the sentence may take a sixth line, so a long launch name still reads whole instead of ending in an ellipsis. */
@@ -50,7 +51,7 @@ export function NarrativeCard(p: NarrativeCardProps) {
   const km = useKitMark();
   const ref = useRef<HTMLElement>(null);
   useInViewPause(ref, !!p.paused);
-  const t = p.kind === 'window' ? (p.state === 'none' || p.state === 'not-configured' ? 1 : stepWindowT(p.windowT)) : undefined;
+  const wt = p.kind === 'window' ? (p.state === 'none' || p.state === 'not-configured' ? 1 : stepWindowT(p.windowT)) : undefined;
 
   let sentence: string | null = p.sentence;
   let meta = p.meta;
@@ -80,7 +81,7 @@ export function NarrativeCard(p: NarrativeCardProps) {
         data-has-action={showAction ? '' : undefined}
         data-lab="NarrativeCard"
         {...km('LabNarrative')}
-        style={t !== undefined ? ({ ['--lab-window-t' as string]: String(t) } as React.CSSProperties) : undefined}
+        style={wt !== undefined ? ({ ['--lab-window-t' as string]: String(wt) } as React.CSSProperties) : undefined}
       >
         <div className="lab2-narr-body lab2-narr-vbody" data-lab-shared={p.sharedId}>
           <span className="lab2-narr-label" data-lab-ink="">{p.label}</span>
@@ -97,7 +98,7 @@ export function NarrativeCard(p: NarrativeCardProps) {
                   )}
                 </span>
               ) : <span />}
-              {p.state === 'not-configured' && <SetupLink href={p.setupHref ?? '?setup=keys'} label="Set up" className="lab2-setup" />}
+              {p.state === 'not-configured' && <SetupLink href={p.setupHref ?? '?setup=keys'} label={t('Set up')} className="lab2-setup" />}
               {showAction && p.action && (p.action.href ? (
                 <Link data-g="LabLink" href={p.action.href} scroll={false} className="lab2-narr-action" data-lab-ink="">{p.action.label}</Link>
               ) : (
@@ -141,7 +142,7 @@ export function NarrativeCard(p: NarrativeCardProps) {
       data-has-action={showAction ? '' : undefined}
       data-lab="NarrativeCard"
       {...km('LabNarrative')}
-      style={t !== undefined ? ({ ['--lab-window-t' as string]: String(t) } as React.CSSProperties) : undefined}
+      style={wt !== undefined ? ({ ['--lab-window-t' as string]: String(wt) } as React.CSSProperties) : undefined}
     >
       {linked ? (
         <Link href={p.href as string} scroll={false} className="lab2-narr-body lab2-narr-link" aria-label={p.hrefLabel} data-lab-shared={p.sharedId}>
@@ -152,7 +153,7 @@ export function NarrativeCard(p: NarrativeCardProps) {
       )}
       {p.state === 'not-configured' && (
         <span className="lab2-narr-foot">
-          <SetupLink href={p.setupHref ?? '?setup=keys'} label="Set up" className="lab2-setup" />
+          <SetupLink href={p.setupHref ?? '?setup=keys'} label={t('Set up')} className="lab2-setup" />
         </span>
       )}
       {showAction && p.action && (

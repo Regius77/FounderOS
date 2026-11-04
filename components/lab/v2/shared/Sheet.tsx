@@ -12,6 +12,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import { RoundButton } from './ActionPill';
 import { flipClose, flipOpen, sharedElement, type FlipParts } from './motion/useFlipSheet';
 import { useKitMark } from '@/components/lab/v2/shared/kitMark';
+import { t } from '@/lib/i18n';
 
 export type SheetProps = {
   kind: 'post' | 'event' | 'idea' | 'script' | 'test' | 'setup' | 'ask';
@@ -145,7 +146,7 @@ export function Sheet({ kind, open, onClose, title, caption, originId, footer, b
             </span>
             <span className="lab2-sheet-tools">
               {actions}
-              <span ref={closeBtn}><RoundButton label="Close" icon="close" onClick={onClose} /></span>
+              <span ref={closeBtn}><RoundButton label={t('Close')} icon="close" onClick={onClose} /></span>
             </span>
           </header>
           {tabs && <div className="lab2-sheet-tabs">{tabs}</div>}
@@ -153,8 +154,8 @@ export function Sheet({ kind, open, onClose, title, caption, originId, footer, b
           <div className="lab2-sheet-body">
             {error ? (
               <p className="lab2-sheet-error" data-lab-ink="">
-                Could not load this. Try again.
-                {onRetry && <button type="button" className="lab2-pill" onClick={onRetry}>Retry</button>}
+                {t('Could not load this. Try again.')}
+                {onRetry && <button type="button" className="lab2-pill" onClick={onRetry}>{t('Retry')}</button>}
               </p>
             ) : (
               children

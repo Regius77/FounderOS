@@ -7,6 +7,7 @@ import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
 import { buildAgentDirectory } from '@/lib/agent-directory';
 import { TasksG } from '@/components/tasks/TasksG';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,8 +35,8 @@ export default function TasksPage(props: { searchParams?: { range?: string; task
   return (
     <div>
       <PageHeader
-        eyebrow="Agent work across the board"
-        title="Tasks"
+        eyebrow={t('Agent work across the board')}
+        title={t('Tasks')}
         right={<RangePill range={range.id} />}
       />
       <TasksView

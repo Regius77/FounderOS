@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { t } from '@/lib/i18n';
 
 /** Key entry state and save, shared by both trees of /setup (GladOS: components/setup/SetupG.tsx). */
 export function useKeySave(envVar: string, present: boolean) {
@@ -23,7 +24,7 @@ export function useKeySave(envVar: string, present: boolean) {
         setValue('');
       } else {
         setState('error');
-        setError((await r.json()).error?.toString?.() ?? 'save failed');
+        setError((await r.json()).error?.toString?.() ?? t('save failed'));
       }
     } catch (e) {
       setState('error');
@@ -43,7 +44,7 @@ export function SetupKeyInput({ envVar, present, masked }: { envVar: string; pre
     <div className="flex flex-wrap items-center gap-2.5">
       {state === 'saved' ? (
         <span className="inline-flex items-center gap-2 rounded-[6px] border border-os-border-strong bg-os-surface2 px-3 py-1 text-[11.5px] text-os-muted">
-          <span className="dot ok" /> set {masked && <span className="font-mono">· {masked}</span>}
+          <span className="dot ok" /> {t('set')} {masked && <span className="font-mono">· {masked}</span>}
         </span>
       ) : (
         <>
@@ -60,13 +61,13 @@ export function SetupKeyInput({ envVar, present, masked }: { envVar: string; pre
             disabled={state === 'saving' || !value.trim()}
             className="c-btn c-btn-primary h-auto px-3.5 py-1.5 text-[12px]"
           >
-            {state === 'saving' ? 'Saving...' : 'Save'}
+            {state === 'saving' ? t('Saving...') : t('Save')}
           </button>
         </>
       )}
       {state === 'saved' && (
         <button onClick={() => setState('idle')} className="text-[11.5px] text-os-dim transition-colors hover:text-os-text">
-          replace
+          {t('replace')}
         </button>
       )}
       {error && (

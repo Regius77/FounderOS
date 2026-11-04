@@ -13,11 +13,12 @@ import { CheckCircle2, ChevronDown, ChevronRight, Copy, FileEdit, Mail } from 'l
 import { SectionHead } from '@/components/terminal';
 import { useToast } from '@/components/ui/Toast';
 import type { DriftInsight } from '@/lib/drift';
+import { t } from '@/lib/i18n';
 
 // Nothing on this page sends or writes anything (GladOS UI H35): the draft and
 // the proposed canon passage are offered for copying, and the operator sends
 // or edits by hand.
-export const DRAFT_FOOTER = 'Not sent. Copy it, or send from';
+export const DRAFT_FOOTER = t('Not sent. Copy it, or send from');
 
 function CopyButton({ text, label, what }: { text: string; label: string; what: string }) {
   const { toast } = useToast();
@@ -25,15 +26,15 @@ function CopyButton({ text, label, what }: { text: string; label: string; what: 
     try {
       if (!navigator.clipboard) throw new Error('no clipboard');
       await navigator.clipboard.writeText(text);
-      toast({ text: `${what} copied`, tone: 'ok' });
+      toast({ text: t('{what} copied', { what }), tone: 'ok' });
     } catch {
-      toast({ text: 'Copy failed: select the text and copy it by hand', tone: 'err' });
+      toast({ text: t('Copy failed: select the text and copy it by hand'), tone: 'err' });
     }
   };
   return (
     <button type="button" onClick={onCopy} className="c-btn text-[12px]" aria-label={label} title={label}>
       <Copy className="h-3.5 w-3.5" />
-      Copy
+      {t('Copy')}
     </button>
   );
 }
@@ -89,7 +90,7 @@ export const PROPOSED_FIX: Record<
 function ConfidenceChip({ confidence }: { confidence: DriftInsight['confidence'] }) {
   return (
     <span className="glass-chip px-2.5 py-1 text-[10.5px] text-os-muted">
-      {confidence === 'high' ? 'High confidence' : 'Medium confidence'}
+      {confidence === 'high' ? t('High confidence') : t('Medium confidence')}
     </span>
   );
 }
@@ -127,7 +128,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
         {resolved && (
           <span className="glass-chip mt-0.5 flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-[10.5px] text-os-muted">
             <CheckCircle2 className="h-3 w-3" />
-            Resolved
+            {t('Resolved')}
           </span>
         )}
       </button>
@@ -136,7 +137,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
         <div className="mt-4 flex flex-col gap-4">
           {/* occurrence strip */}
           <div>
-            <div className="glass-label mb-1.5">Occurrences</div>
+            <div className="glass-label mb-1.5">{t('Occurrences')}</div>
             <div className="flex flex-wrap gap-1.5">
               {insight.occurrences.map((occ, i) => (
                 <button
@@ -169,7 +170,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
           {/* canon passage */}
           <div className="rounded-[10px] border border-white/[0.06] bg-black/20 p-3">
             <div className="flex items-center justify-between gap-3">
-              <span className="glass-label">Canon</span>
+              <span className="glass-label">{t('Canon')}</span>
               <span className="font-mono text-[10.5px] text-os-dim">{insight.canon.file}</span>
             </div>
             <p className="mt-1.5 text-[12px] leading-relaxed text-os-muted">{insight.canon.passage}</p>
@@ -178,18 +179,18 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
           {/* footer: confidence, detected, actions */}
           <div className="flex flex-wrap items-center gap-2">
             <ConfidenceChip confidence={insight.confidence} />
-            <span className="font-mono text-[10.5px] text-os-dim">detected {insight.detectedAt}</span>
+            <span className="font-mono text-[10.5px] text-os-dim">{t('detected {date}', { date: insight.detectedAt })}</span>
             <span className="flex-1" />
             {/* edge 9: with no proposed fix there is nothing to reveal, so no buttons */}
             {fix && (
               <>
                 <button type="button" onClick={() => setShowDiff((v) => !v)} aria-expanded={showDiff} className="c-btn text-[12px]">
                   <FileEdit className="h-3.5 w-3.5" />
-                  Update canon
+                  {t('Update canon')}
                 </button>
                 <button type="button" onClick={() => setShowDraft((v) => !v)} aria-expanded={showDraft} className="c-btn text-[12px]">
                   <Mail className="h-3.5 w-3.5" />
-                  Draft correction
+                  {t('Draft correction')}
                 </button>
               </>
             )}
@@ -197,12 +198,12 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
 
           {showDiff && fix && (
             <div className="rounded-[10px] border border-white/[0.06] bg-black/20 p-3 font-mono text-[11px] leading-relaxed">
-              <div className="mb-1.5 text-[10.5px] uppercase tracking-[0.2em] text-os-dim">Proposed diff · {insight.canon.file}</div>
+              <div className="mb-1.5 text-[10.5px] uppercase tracking-[0.2em] text-os-dim">{t('Proposed diff')} · {insight.canon.file}</div>
               <div className="rounded-[6px] bg-[var(--drift-del-bg)] px-2 py-1.5 text-[var(--drift-del-fg)]">− {fix.removed}</div>
               <div className="mt-1 rounded-[6px] bg-[var(--drift-add-bg)] px-2 py-1.5 text-[var(--diff-add-fg)]">+ {fix.added}</div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2 font-sans">
-                <span className="text-[10.5px] text-os-dim">Not written. Copy the new passage into {insight.canon.file}.</span>
-                <CopyButton text={fix.added} label={`Copy the new passage for ${insight.canon.file}`} what="New passage" />
+                <span className="text-[10.5px] text-os-dim">{t('Not written. Copy the new passage into {file}.', { file: insight.canon.file })}</span>
+                <CopyButton text={fix.added} label={t('Copy the new passage for {file}', { file: insight.canon.file })} what={t('New passage')} />
               </div>
             </div>
           )}
@@ -210,7 +211,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
           {showDraft && fix && (
             <div className="rounded-[10px] border border-white/[0.06] bg-black/20 p-3">
               <div className="text-[11px] text-os-dim">
-                To: <span className="text-os-muted">{fix.to}</span>
+                {t('To:')} <span className="text-os-muted">{fix.to}</span>
               </div>
               <p className="mt-1.5 text-[12px] leading-relaxed text-os-muted">{fix.message}</p>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -221,7 +222,7 @@ function DriftCard({ insight }: { insight: DriftInsight }) {
                   </Link>
                   .
                 </span>
-                <CopyButton text={fix.message} label={`Copy the draft to the ${fix.to}`} what="Draft" />
+                <CopyButton text={fix.message} label={t('Copy the draft to the {to}', { to: fix.to })} what={t('Draft')} />
               </div>
             </div>
           )}
@@ -238,23 +239,21 @@ export function DriftRail({ insights }: { insights: DriftInsight[] }) {
   if (insights.length === 0) {
     return (
       <div className="mt-6">
-        <SectionHead label="Drift" count="not configured" />
+        <SectionHead label="Drift" count={t('not configured')} />
         <div
           className="mt-3 rounded-[16px] border border-dashed px-5 py-6 text-[12px] leading-relaxed"
           style={{ borderColor: 'var(--drift-empty-border)', color: 'var(--text-2, var(--drift-empty-fg))' }}
         >
-          Canon-drift detection compares claims in incoming calls and threads against the knowledge canon and
-          surfaces contradictions here. The extraction pipeline is not configured yet — no insights to show.
+          {t('Canon-drift detection compares claims in incoming calls and threads against the knowledge canon and surfaces contradictions here. The extraction pipeline is not configured yet — no insights to show.')}
         </div>
       </div>
     );
   }
   return (
     <div className="mt-6">
-      <SectionHead label="Drift" count={`${insights.filter((i) => i.state !== 'resolved').length} open`} />
+      <SectionHead label="Drift" count={t('{n} open', { n: insights.filter((i) => i.state !== 'resolved').length })} />
       <p className="-mt-1 mb-4 max-w-[92ch] text-[12px] leading-relaxed text-os-muted">
-        Claims made in incoming calls and threads, checked against the knowledge canon. When the same
-        contradiction repeats across independent sources, it surfaces here with the evidence on both sides.
+        {t('Claims made in incoming calls and threads, checked against the knowledge canon. When the same contradiction repeats across independent sources, it surfaces here with the evidence on both sides.')}
       </p>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {insights.map((insight) => (

@@ -5,6 +5,7 @@ import { GPage, GSectionHeader, GTag } from '@/components/g';
 import { readDriftInsights } from '@/lib/drift-store';
 import { getAppearance } from '@/lib/appearance-server';
 import { treeFor } from '@/lib/appearance';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +28,8 @@ export default function DriftPage() {
         <GSectionHeader
           size="page"
           title="Drift"
-          caption="Claims from calls and threads, checked against the canon. A contradiction that repeats across independent sources shows here with the evidence on both sides."
-          action={insights.length > 0 ? <GTag tone={open > 0 ? 'warn' : 'ok'}>{open} open</GTag> : undefined}
+          caption={t('Claims from calls and threads, checked against the canon. A contradiction that repeats across independent sources shows here with the evidence on both sides.')}
+          action={insights.length > 0 ? <GTag tone={open > 0 ? 'warn' : 'ok'}>{t('{n} open', { n: open })}</GTag> : undefined}
         />
         <DriftG insights={insights} />
       </GPage>
@@ -36,7 +37,7 @@ export default function DriftPage() {
   }
   return (
     <div>
-      <PageHeader eyebrow="Knowledge layer" title="Drift" />
+      <PageHeader eyebrow={t('Knowledge layer')} title="Drift" />
       <DriftRail insights={insights} />
     </div>
   );

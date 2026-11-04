@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { SkillsGrid, type SkillCard } from '@/components/SkillsGrid';
 import { SkillHierarchy } from '@/components/SkillHierarchy';
+import { t } from '@/lib/i18n';
 
 export function SkillsExplorer({ cards, sourceNote }: { cards: SkillCard[]; sourceNote: string }) {
   const [query, setQuery] = useState('');
@@ -23,13 +24,13 @@ export function SkillsExplorer({ cards, sourceNote }: { cards: SkillCard[]; sour
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search skills"
+          placeholder={t('Search skills')}
           spellCheck={false}
           className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-os-text outline-none placeholder:text-os-dim"
           style={{ caretColor: 'var(--accent)' }}
         />
         {query !== '' && (
-          <button onClick={() => setQuery('')} className="font-mono text-[12px] text-os-dim hover:text-os-text" aria-label="Clear search">
+          <button onClick={() => setQuery('')} className="font-mono text-[12px] text-os-dim hover:text-os-text" aria-label={t('Clear search')}>
             ×
           </button>
         )}

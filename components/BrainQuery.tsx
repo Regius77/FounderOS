@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { t } from '@/lib/i18n';
 
 export type Hit = { title: string; snippet: string; source: string };
 export type QueryState =
@@ -14,12 +15,12 @@ export function BrainQuery({ fallbackActive }: { fallbackActive: boolean }) {
   const { q, setQ, state, run } = useBrainQuery();
   const statusLine =
     state.phase === 'busy'
-      ? 'querying — hybrid (local + zeroentropy)…'
+      ? t('querying — hybrid (local + zeroentropy)…')
       : state.phase === 'done'
-        ? `${state.hits.length} hits · "${state.query}"${fallbackActive ? ' · local fallback (supabase paused)' : ''}`
+        ? t('{n} hits · "{query}"', { n: state.hits.length, query: state.query }) + (fallbackActive ? t(' · local fallback (supabase paused)') : '')
         : state.phase === 'error'
-          ? `query failed · ${state.message}`
-          : 'press ↵ to query the second brain';
+          ? t('query failed · {message}', { message: state.message })
+          : t('press ↵ to query the second brain');
 
   return (
     <div className="flex min-h-[220px] flex-1 flex-col rounded-lg-t border border-os-border bg-os-surface p-1">
@@ -31,7 +32,7 @@ export function BrainQuery({ fallbackActive }: { fallbackActive: boolean }) {
           onKeyDown={(e) => e.key === 'Enter' && run()}
           // the pop-out's whole point is the prompt — land the caret in it
           autoFocus
-          placeholder="query the second brain…"
+          placeholder={t('query the second brain…')}
           className="flex-1 bg-transparent font-mono text-xs text-os-text outline-none placeholder:text-os-dim"
         />
         <kbd className="rounded-sm-t border border-os-border-strong border-b-2 bg-os-surface px-1.5 py-0.5 font-mono text-[11.5px] text-os-muted">
@@ -55,7 +56,7 @@ export function BrainQuery({ fallbackActive }: { fallbackActive: boolean }) {
           ))}
         {state.phase === 'done' && state.hits.length === 0 && (
           <div className="px-[11px] py-3 text-[12.5px] text-os-dim">
-            nothing matched — try a broader phrase, or check the store with <code className="font-mono">engine doctor</code>
+            {t('nothing matched — try a broader phrase, or check the store with')} <code className="font-mono">engine doctor</code>
           </div>
         )}
       </div>

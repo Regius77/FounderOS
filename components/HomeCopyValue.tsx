@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { t } from '@/lib/i18n';
 
 /**
  * A Details value that copies itself (S10 FR-17): the Store row shows a
@@ -26,20 +27,20 @@ export function HomeCopyValue({ text, copy, className = '' }: { text: string; co
     range.selectNodeContents(el);
     sel.removeAllRanges();
     sel.addRange(range);
-    flash('Selected');
+    flash(t('Selected'));
   };
   const onClick = async () => {
     try {
       if (!navigator.clipboard) throw new Error('no clipboard');
       await navigator.clipboard.writeText(copy);
-      flash('Copied');
+      flash(t('Copied'));
     } catch {
       selectText();
     }
   };
 
   return (
-    <button type="button" onClick={onClick} className={`h6-copy flex min-w-0 items-baseline justify-end gap-2 ${className}`} title={`${copy} (click to copy)`} aria-label={`Copy ${copy}`}>
+    <button type="button" onClick={onClick} className={`h6-copy flex min-w-0 items-baseline justify-end gap-2 ${className}`} title={t('{copy} (click to copy)', { copy })} aria-label={t('Copy {copy}', { copy })}>
       <span aria-live="polite" className="shrink-0 font-sans text-[10px]" style={{ color: 'var(--accent)' }}>
         {note}
       </span>

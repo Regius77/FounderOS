@@ -6,6 +6,7 @@ import { SectionHead } from '@/components/terminal';
 import { PipelineChart, type PipelineStage } from '@/components/PipelineChart';
 import { formatCompact, formatFull, formatUsdCompact } from '@/lib/format-number';
 import type { IncomeCategory } from '@/lib/finances';
+import { t } from '@/lib/i18n';
 
 /**
  * Homepage finance widget — the same Pipeline design as /brand-deals' hero
@@ -34,13 +35,13 @@ export function FinancePipelineStrip({ categories, period }: { categories: Incom
     label: c.label,
     value: c.usd,
     usd: c.usd,
-    note: `${total > 0 ? Math.round((c.usd / total) * 100) : 0}% of ${period} revenue`,
+    note: t('{pct}% of {period} revenue', { pct: total > 0 ? Math.round((c.usd / total) * 100) : 0, period }),
   }));
   const [active, setActive] = useState(() => stages.reduce((bestIdx, s, i) => (s.value > stages[bestIdx].value ? i : bestIdx), 0));
 
   return (
     <div className="glass-panel h6-strip min-w-0 p-4">
-      <SectionHead label="Finances" count={`${usd(total)} ${period}`} link="Open" href="/finances" />
+      <SectionHead label={t('Finances')} count={`${usd(total)} ${period}`} link={t('Open')} href="/finances" />
       <PipelineChart
         stages={stages}
         active={active}

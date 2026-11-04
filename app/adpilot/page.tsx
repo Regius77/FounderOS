@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import { readAdpilotFile } from '@/lib/adpilot-data';
 import { adStore } from '@/lib/foreplay/store';
 import { readWatchEntries } from '@/lib/foreplay/watchlist';
@@ -75,17 +76,17 @@ export default function AdPilotPage({ searchParams }: { searchParams?: { ad?: st
         <GSectionHeader
           size="page"
           title="AdPilot"
-          caption="Paid media"
+          caption={t('Paid media')}
           action={
             <GButton size="sm" href={ENGINE_HREF}>
-              {ENGINE_NAME_SENTENCE}{engineCampaigns ? ` · ${engineCampaigns} campaign${engineCampaigns === 1 ? '' : 's'}` : ''}
+              {ENGINE_NAME_SENTENCE}{engineCampaigns ? ` · ${engineCampaigns === 1 ? t('{n} campaign', { n: engineCampaigns }) : t('{n} campaigns', { n: engineCampaigns })}` : ''}
             </GButton>
           }
         />
         <Suspense fallback={null}>
           <AdPilotDeckG campaigns={campaigns} syncedAt={syncedAt} now={now} filming={filming} />
           <section className="soc-g-sec" aria-labelledby="adpilot-intel">
-            <GSectionHeader id="adpilot-intel" size={22} title="Ad intelligence" caption={`${wall.length} tracked ads`} />
+            <GSectionHeader id="adpilot-intel" size={22} title={t('Ad intelligence')} caption={t('{n} tracked ads', { n: wall.length })} />
             {library}
           </section>
         </Suspense>
@@ -114,11 +115,11 @@ export default function AdPilotPage({ searchParams }: { searchParams?: { ad?: st
 
       <div className="relative">
         <PageHeader
-          eyebrow="Paid media"
+          eyebrow={t('Paid media')}
           title="AdPilot"
           right={
             <Link href={ENGINE_HREF} className="rounded-full border px-3 py-1 text-[11.5px] text-os-accent transition-colors hover:bg-[var(--accent-soft)]" style={{ borderColor: 'var(--accent-line)' }}>
-              {ENGINE_NAME_SENTENCE}{engineCampaigns ? ` · ${engineCampaigns} campaign${engineCampaigns === 1 ? '' : 's'}` : ''} ›
+              {ENGINE_NAME_SENTENCE}{engineCampaigns ? ` · ${engineCampaigns === 1 ? t('{n} campaign', { n: engineCampaigns }) : t('{n} campaigns', { n: engineCampaigns })}` : ''} ›
             </Link>
           }
         />
@@ -129,7 +130,7 @@ export default function AdPilotPage({ searchParams }: { searchParams?: { ad?: st
           <AdPilotDeck campaigns={campaigns} syncedAt={syncedAt} now={now} filming={filming} />
 
         <section className="mt-12">
-          <SectionHead label="Ad intelligence" count={`${wall.length} tracked ads`} />
+          <SectionHead label={t('Ad intelligence')} count={t('{n} tracked ads', { n: wall.length })} />
           {library}
         </section>
         </Suspense>

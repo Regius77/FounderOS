@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clapperboard, Lock } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 type State = { filming: boolean; pinned: boolean; dataDir: string };
 
@@ -35,7 +36,7 @@ export function useFilmingToggle(filming: boolean) {
         body: JSON.stringify({ filming: !filming }),
       });
       const body = (await res.json()) as { ok: boolean; error?: string };
-      if (!body.ok) setError(body.error ?? 'Could not change mode');
+      if (!body.ok) setError(body.error ?? t('Could not change mode'));
       router.refresh();
     } catch (e) {
       setError(String(e));
@@ -52,13 +53,13 @@ function FilmingClassic({ filming, pinned, dataDir, busy, error, toggle }: State
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-[12.5px] text-os-text">
           <Clapperboard size={14} className="shrink-0" />
-          Filming mode
+          {t('Filming mode')}
           {filming ? <span className="dot warn" /> : null}
         </div>
         <p className="mt-1 text-[11.5px] leading-relaxed text-os-muted">
           {filming
-            ? 'Reading the sample dataset. Nothing on screen is real, and nothing written here reaches your live stores.'
-            : 'Reading your real data. Turn this on before you record anything.'}
+            ? t('Reading the sample dataset. Nothing on screen is real, and nothing written here reaches your live stores.')
+            : t('Reading your real data. Turn this on before you record anything.')}
         </p>
         <p className="mt-1 font-mono text-[10.5px] text-os-muted [overflow-wrap:anywhere]">{dataDir}</p>
         {error ? <p className="mt-1 text-[11.5px] text-os-warn">{error}</p> : null}
@@ -66,7 +67,7 @@ function FilmingClassic({ filming, pinned, dataDir, busy, error, toggle }: State
 
       {pinned ? (
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] border border-os-border-strong bg-os-surface3 px-3 py-1 text-[11.5px] text-os-muted">
-          <Lock size={12} /> Pinned by host
+          <Lock size={12} /> {t('Pinned by host')}
         </span>
       ) : (
         <button
@@ -74,7 +75,7 @@ function FilmingClassic({ filming, pinned, dataDir, busy, error, toggle }: State
           disabled={busy}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-[6px] border border-os-border-strong bg-os-surface2 px-3 py-1 text-[11.5px] text-os-muted transition-colors hover:bg-os-surface3 hover:text-os-text disabled:opacity-50"
         >
-          {filming ? 'Switch to real data' : 'Switch to sample data'}
+          {filming ? t('Switch to real data') : t('Switch to sample data')}
         </button>
       )}
     </div>

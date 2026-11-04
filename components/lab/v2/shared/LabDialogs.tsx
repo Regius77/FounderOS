@@ -10,6 +10,7 @@ import type { PlanEstimate } from '@/lib/lab/setup/estimate';
 import { LAB_COPY } from '@/lib/lab/view/copy';
 import { fill, fmtUsd } from '@/lib/lab/view/format';
 import { isSampleUrl } from './useLabPost';
+import { t } from '@/lib/i18n';
 
 const D = LAB_COPY.dialog;
 
@@ -122,7 +123,7 @@ export function OutsideScoreDialog({ open, scripts, onClose, onSubmit }: { open:
       </label>
       <label className="labv-field"><span>{D.tool}</span>
         <select value={tool} onChange={(e) => setTool(e.target.value)}>
-          {Object.entries(labelOf).map(([id, l]) => <option key={id} value={id}>{l}</option>)}
+          {Object.entries(labelOf).map(([id, l]) => <option key={id} value={id}>{id === 'other' ? t('Other') : l}</option>)}
         </select>
       </label>
       {tool === 'other' && <label className="labv-field"><span>{D.toolOther}</span><input value={other} maxLength={24} onChange={(e) => setOther(e.target.value)} /></label>}

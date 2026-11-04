@@ -9,6 +9,7 @@ import { AgentsTabs } from '@/founderos/components/AgentsTabs';
 import { BoardLive } from '@/founderos/components/BoardLive';
 import { ConductorChat } from '@/founderos/components/ConductorChat';
 import { AgentsVolumePanel } from '@/founderos/components/AgentsVolumePanel';
+import { t } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,18 +51,18 @@ export default async function AgentsPage() {
   return (
     <Slab>
       <SlabTitle
-        eyebrow="runtime"
-        title="Real Agents"
-        meta="live Paperclip board · polls every 4s · Conductor on the rail"
+        eyebrow={t('runtime')}
+        title={t('Real Agents')}
+        meta={t('live Paperclip board · polls every 4s · Conductor on the rail')}
         right={
           <>
             {boardUrl && (
               <a href={boardUrl} target="_blank" rel="noreferrer" className={PILL}>
-                Open board <ArrowUpRight size={13} strokeWidth={1.7} />
+                {t('Open board')} <ArrowUpRight size={13} strokeWidth={1.7} />
               </a>
             )}
             <Link href="/workflows" className={PILL}>
-              Workflows
+              {t('Workflows')}
             </Link>
           </>
         }

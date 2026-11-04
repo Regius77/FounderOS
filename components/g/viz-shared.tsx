@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
 import { getCursor, setCursor, subscribeCursor } from '@/lib/chart-sync';
 import { GButton } from './Controls';
@@ -57,14 +58,14 @@ export type VizStateProps = {
  * Loading, empty and error bodies at the chart's final height, so a state
  * change never shifts layout. Returns null for 'ready'.
  */
-export function VizStateBody({ state = 'ready', emptyText = 'No data in this range.', empty, error, onRetry, height }: VizStateProps & { height: number }) {
+export function VizStateBody({ state = 'ready', emptyText = t('No data in this range.'), empty, error, onRetry, height }: VizStateProps & { height: number }) {
   if (state === 'ready') return null;
-  if (state === 'loading') return <div className="g-viz-skel" style={{ height }} aria-busy="true" aria-label="Loading" />;
+  if (state === 'loading') return <div className="g-viz-skel" style={{ height }} aria-busy="true" aria-label={t('Loading')} />;
   if (state === 'error') {
     return (
       <div className="g-viz-state" style={{ minHeight: height }} role="alert">
-        <span className="g-viz-error">{error || 'Could not load this chart.'}</span>
-        {onRetry && <GButton variant="sm" className="g-viz-act" onClick={onRetry}>Retry</GButton>}
+        <span className="g-viz-error">{error || t('Could not load this chart.')}</span>
+        {onRetry && <GButton variant="sm" className="g-viz-act" onClick={onRetry}>{t('Retry')}</GButton>}
       </div>
     );
   }

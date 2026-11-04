@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { orderedEvents, placeEvents, type PlacedEvent } from '@/lib/timeline-place';
 import { GButton } from './Controls';
@@ -60,7 +61,7 @@ const DEFAULT_COLOURS: Record<string, VizColor> = { sent: 'accent', announced: '
  * events, Enter opens, PageUp/PageDown change the range).
  */
 export function GTimelineStrip({
-  events, spanMs, agoLabel, endLabel = 'now', now: nowProp, statusColor = DEFAULT_COLOURS, onDot, onCluster, onRangeStep, selectedId = null, rangeControl, label, className = '', ...stateProps
+  events, spanMs, agoLabel, endLabel = t('now'), now: nowProp, statusColor = DEFAULT_COLOURS, onDot, onCluster, onRangeStep, selectedId = null, rangeControl, label, className = '', ...stateProps
 }: GTimelineStripProps) {
   const [ref, W] = useWidth<HTMLDivElement>(560);
   const [hover, setHover] = useState<string | null>(null);
@@ -93,14 +94,14 @@ export function GTimelineStrip({
     else if ((e.key === 'Enter' || e.key === ' ') && cursorId && onDot) { e.preventDefault(); onDot(cursorId); }
   };
 
-  const valueText = cursorId ? [byId.get(cursorId)?.title, byId.get(cursorId)?.detail].filter(Boolean).join(', ') : order.length ? `${order.length} events` : `Nothing in this range`;
+  const valueText = cursorId ? [byId.get(cursorId)?.title, byId.get(cursorId)?.detail].filter(Boolean).join(', ') : order.length ? t('{n} events', { n: order.length }) : t('Nothing in this range');
 
   return (
     <div data-g="GTimelineStrip" className={`g-tl ${className}`}>
       {(rangeControl || (placement.earlier > 0 && onRangeStep)) && (
         <div className="g-tl-head">
           {placement.earlier > 0 && onRangeStep ? (
-            <GButton variant="sm" className="g-viz-act" onClick={() => onRangeStep('wider')} title="Show a wider range">+{placement.earlier} earlier</GButton>
+            <GButton variant="sm" className="g-viz-act" onClick={() => onRangeStep('wider')} title={t('Show a wider range')}>{t('+{n} earlier', { n: placement.earlier })}</GButton>
           ) : <span />}
           {rangeControl}
         </div>
@@ -110,7 +111,7 @@ export function GTimelineStrip({
         className="g-tl-track"
         role="slider"
         tabIndex={0}
-        aria-label={`${label}. Arrow keys step through events${onDot ? ', Enter opens one' : ''}${onRangeStep ? ', Page Up and Page Down change the range' : ''}.`}
+        aria-label={`${t('{label}. Arrow keys step through events', { label })}${onDot ? t(', Enter opens one') : ''}${onRangeStep ? t(', Page Up and Page Down change the range') : ''}.`}
         aria-valuemin={0}
         aria-valuemax={Math.max(0, order.length - 1)}
         aria-valuenow={cursor ?? Math.max(0, order.length - 1)}
@@ -123,11 +124,11 @@ export function GTimelineStrip({
         </div>
         {!compact && <span className="g-tl-gutter" style={{ left: 16 }} aria-hidden="true">{agoLabel}</span>}
         {!compact && <span className="g-tl-gutter" style={{ right: 16 }} aria-hidden="true">{endLabel}</span>}
-        {order.length === 0 && <span className="g-tl-none">{stateProps.emptyText ?? 'Nothing in this range'}</span>}
+        {order.length === 0 && <span className="g-tl-none">{stateProps.emptyText ?? t('Nothing in this range')}</span>}
         {placement.items.map((it) => {
           const sel = (selectedId !== null && it.runIds.includes(selectedId)) || (cursorId !== null && it.runIds.includes(cursorId));
           const ev = it.kind === 'dot' ? byId.get(it.id) : null;
-          const aria = it.kind === 'cluster' ? `${it.runIds.length} events` : [ev?.title, ev?.detail].filter(Boolean).join(', ');
+          const aria = it.kind === 'cluster' ? t('{n} events', { n: it.runIds.length }) : [ev?.title, ev?.detail].filter(Boolean).join(', ');
           const style = { left: it.x, top: `${LANE_Y[Math.max(0, Math.min(2, it.lane))] * 100}%`, ...(it.kind === 'dot' ? { background: colorVar(statusColor[it.status] ?? 'dim') } : {}) };
           const hov = { onPointerEnter: () => setHover(it.runIds[0]), onPointerLeave: () => setHover((h) => (it.runIds.includes(h ?? '') ? null : h)) };
           const click = it.kind === 'cluster' ? (onCluster ? () => onCluster(it.runIds) : undefined) : onDot ? () => onDot(it.id) : undefined;
@@ -149,8 +150,8 @@ export function GTimelineStrip({
 
 function tipFor(it: PlacedEvent, byId: Map<string, TimelineEvent>): { title: string; lines: string[] } {
   if (it.kind === 'cluster') {
-    const names = it.runIds.map((id) => byId.get(id)?.title).filter((t): t is string => !!t);
-    return { title: `${it.runIds.length} events`, lines: [names.slice(0, 3).join(', ') + (names.length > 3 ? ` and ${names.length - 3} more` : ''), 'Click to zoom in'] };
+    const names = it.runIds.map((id) => byId.get(id)?.title).filter((name): name is string => !!name);
+    return { title: t('{n} events', { n: it.runIds.length }), lines: [names.slice(0, 3).join(', ') + (names.length > 3 ? t(' and {n} more', { n: names.length - 3 }) : ''), t('Click to zoom in')] };
   }
   const e = byId.get(it.id);
   return { title: e?.title ?? it.id, lines: [e?.detail, e?.meta].filter((x): x is string => !!x) };

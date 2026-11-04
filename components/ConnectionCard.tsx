@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BrandLogo } from '@/lib/brand-logos';
 import { connectKeysFor, type CatalogEntry } from '@/lib/integrations-catalog';
 import { ConnectFlow } from '@/components/ConnectFlow';
+import { t } from '@/lib/i18n';
 
 /**
  * One integration tile in the connections marketplace: rounded card, brand
@@ -47,7 +48,7 @@ export function ConnectionCard({ entry, guidance }: { entry: CatalogEntry; guida
               />
               <span className="text-os-dim">{c.label}</span>
               <span className="ml-auto text-os-dim">
-                {c.state === 'connected' ? 'Live' : c.state === 'error' ? 'Error' : 'Not set up'}
+                {c.state === 'connected' ? t('Live') : c.state === 'error' ? t('Error') : t('Not set up')}
               </span>
             </li>
           ))}
@@ -57,7 +58,7 @@ export function ConnectionCard({ entry, guidance }: { entry: CatalogEntry; guida
               className="rounded-[8px] border px-2.5 py-[3px] text-[11.5px] font-medium text-os-accent transition-colors hover:bg-[var(--accent-soft)]"
               style={{ borderColor: 'var(--accent-line)' }}
             >
-              Configure <span aria-hidden>›</span>
+              {t('Configure')} <span aria-hidden>›</span>
             </Link>
           </li>
         </ul>

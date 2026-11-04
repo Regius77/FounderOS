@@ -17,20 +17,23 @@ import { formatUsdCompact } from '@/lib/format-number';
 import { CHAIN_DEPTH_BUCKETS, chainDepthBucket, sendRangeFor, sendSpanMs, SEND_RANGES, stageBars, type ChainDepthBucket, type DealFilter, type SendRange } from '@/lib/brand-deals-view';
 import type { BrandDealsSnapshot, Deal, DealOutcome } from '@/lib/brand-deals';
 import { parseDealQuery, useDealBoard } from './use-deal-board';
+import { localeTag, t } from '@/lib/i18n';
 
-const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
+const usd = (n: number) => `$${Math.round(n).toLocaleString(localeTag())}`;
 const frac = (a: number, b: number) => (b > 0 ? Math.max(0, Math.min(1, a / b)) : 0);
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const dealsN = (n: number) => (n === 1 ? t('{n} deal', { n }) : t('{n} deals', { n }));
+const msgsN = (n: number) => (n === 1 ? t('{n} msg', { n }) : t('{n} msgs', { n }));
+const messagesN = (n: number) => (n === 1 ? t('{n} message', { n }) : t('{n} messages', { n }));
 
 function age(iso: string | null, now: number): string {
   if (!iso || !now) return '';
-  const t = Date.parse(iso);
-  if (Number.isNaN(t)) return '';
-  const mins = Math.max(0, Math.round((now - t) / 60_000));
-  if (mins < 60) return `${mins} min`;
+  const ts = Date.parse(iso);
+  if (Number.isNaN(ts)) return '';
+  const mins = Math.max(0, Math.round((now - ts) / 60_000));
+  if (mins < 60) return t('{n} min', { n: mins });
   const hrs = Math.round(mins / 60);
-  if (hrs < 48) return `${hrs} h`;
-  return `${Math.round(hrs / 24)} d`;
+  if (hrs < 48) return t('{n} h', { n: hrs });
+  return t('{n} d', { n: Math.round(hrs / 24) });
 }
 
 /** The chart column a stage filter lights (S02 §5.3 Selection); `unique` lights none. */
@@ -41,12 +44,12 @@ function columnFor(f: DealFilter): string | null {
 }
 
 function stageTag(d: Deal): { text: string; tone: GTagTone } {
-  if (d.outcome === 'won') return { text: 'Won', tone: 'ok' };
-  if (d.outcome === 'lost') return { text: 'Lost', tone: 'err' };
-  if (d.outcome === 'skipped' || d.stage === 'skipped') return { text: 'Skipped', tone: 'neutral' };
-  if (d.stage === 'approval') return { text: 'Approve', tone: 'warn' };
-  if (d.stage === 'sent') return { text: 'Sent', tone: 'accent' };
-  return { text: 'Closed', tone: 'neutral' };
+  if (d.outcome === 'won') return { text: t('Won'), tone: 'ok' };
+  if (d.outcome === 'lost') return { text: t('Lost'), tone: 'err' };
+  if (d.outcome === 'skipped' || d.stage === 'skipped') return { text: t('Skipped'), tone: 'neutral' };
+  if (d.stage === 'approval') return { text: t('Approve'), tone: 'warn' };
+  if (d.stage === 'sent') return { text: t('Sent'), tone: 'accent' };
+  return { text: t('Closed'), tone: 'neutral' };
 }
 
 export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnapshot; botUrl?: string | null }) {
@@ -69,12 +72,12 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
           count: c.count,
           won: won?.usd ?? 0,
           lost: lost?.usd ?? 0,
-          sub: plural(c.count, 'deal'),
-          tip: { lines: [`${won?.count ?? 0} won · ${usd(won?.usd ?? 0)}`, `${lost?.count ?? 0} lost · ${usd(lost?.usd ?? 0)}`], hint: 'Click a segment to show won or lost' },
+          sub: dealsN(c.count),
+          tip: { lines: [t('{n} won · {usd}', { n: won?.count ?? 0, usd: usd(won?.usd ?? 0) }), t('{n} lost · {usd}', { n: lost?.count ?? 0, usd: usd(lost?.usd ?? 0) })], hint: t('Click a segment to show won or lost') },
         };
       }
-      const share = c.key !== 'all' && open > 0 ? `${Math.round((c.usd / open) * 100)}% of open value` : 'every tracked deal thread';
-      return { id: c.key, label: c.label, value: c.usd, count: c.count, tip: { lines: [`${usd(c.usd)} across ${plural(c.count, 'deal')}`, share] } };
+      const share = c.key !== 'all' && open > 0 ? t('{pct}% of open value', { pct: Math.round((c.usd / open) * 100) }) : t('every tracked deal thread');
+      return { id: c.key, label: c.label, value: c.usd, count: c.count, tip: { lines: [t('{usd} across {deals}', { usd: usd(c.usd), deals: dealsN(c.count) }), share] } };
     });
   }, [snap, volume.openUsd]);
   const allZero = columns.every((c) => !(c.value > 0));
@@ -96,8 +99,8 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
           status: e.kind,
           lane: e.kind === 'sent' ? 1 : e.kind === 'announced' ? 0 : 2,
           title: e.brand,
-          detail: `${e.kind === 'sent' ? 'Sent' : e.kind === 'announced' ? 'Announced' : 'Skipped'} · ${when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`,
-          meta: d && d.chainLen > 0 ? plural(d.chainLen, 'msg') + ' in thread' : undefined,
+          detail: `${e.kind === 'sent' ? t('Sent') : e.kind === 'announced' ? t('Announced') : t('Skipped')} · ${when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`,
+          meta: d && d.chainLen > 0 ? t('{msgs} in thread', { msgs: msgsN(d.chainLen) }) : undefined,
         };
       }),
     [snap.events, snap.deals],
@@ -109,7 +112,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
     const j = dir === 'wider' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1);
     setRange(order[j]);
   };
-  const agoLabel = r.spanMs ? r.ago : `${Math.round(span / 86_400_000)} d ago`;
+  const agoLabel = r.spanMs ? r.ago : t('{n} d ago', { n: Math.round(span / 86_400_000) });
 
   /* Chains (FR-B5): depth columns filter the list. */
   const depthCols = useMemo(() => {
@@ -118,7 +121,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
       const k = chainDepthBucket(d.chainLen);
       if (k) n.set(k, (n.get(k) ?? 0) + 1);
     }
-    return CHAIN_DEPTH_BUCKETS.map((k) => ({ id: k, label: k, value: n.get(k) ?? 0, title: `${k} ${k === '1' ? 'message' : 'messages'} · ${plural(n.get(k) ?? 0, 'deal')}` }));
+    return CHAIN_DEPTH_BUCKETS.map((k) => ({ id: k, label: k, value: n.get(k) ?? 0, title: `${k === '1' ? t('{k} message', { k }) : t('{k} messages', { k })} · ${dealsN(n.get(k) ?? 0)}` }));
   }, [snap.deals]);
   const totalMsgs = snap.deals.reduce((n, d) => n + d.chainLen, 0);
   const deepest = Math.max(0, ...snap.deals.map((d) => d.chainLen));
@@ -130,19 +133,19 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
   const head = (
     <GSectionHeader
       size="page"
-      title="Deal journeys"
-      caption="Every brand thread bdpilot is working, from first email to outcome."
+      title={t('Deal journeys')}
+      caption={t('Every brand thread bdpilot is working, from first email to outcome.')}
       action={
         <div className="bd-g-head-actions">
           <span role="status" data-poll-status={poll.tone} title={poll.title}>
             <GTag tone={poll.tone === 'warn' ? 'warn' : 'neutral'} dot={poll.tone === 'warn'}>{poll.text}</GTag>
           </span>
           {botUrl && (
-            <GButton href={botUrl} external data-bot-link="" title="Approve drafts in the Telegram bot">
-              Approve in Telegram <ExternalLink size={13} strokeWidth={1.75} aria-hidden />
+            <GButton href={botUrl} external data-bot-link="" title={t('Approve drafts in the Telegram bot')}>
+              {t('Approve in Telegram')} <ExternalLink size={13} strokeWidth={1.75} aria-hidden />
             </GButton>
           )}
-          <GButton variant="icon" aria-label="Refresh" title="Refresh now" onClick={b.refresh}>
+          <GButton variant="icon" aria-label={t('Refresh')} title={t('Refresh now')} onClick={b.refresh}>
             <RefreshCw size={15} strokeWidth={1.75} aria-hidden />
           </GButton>
         </div>
@@ -157,7 +160,7 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
         <div data-bd-empty="unconfigured">
           {head}
           <GCard p={24} className="bd-g-gap">
-            <GEmpty kind="unconfigured" title="bdpilot is not reporting" body="No brand-deal daemon state was found on this host, so there are no deals, quotes or sends to show yet." setupHref="/setup" setupHint="bdpilot state file not found (BDPILOT_STATE)" />
+            <GEmpty kind="unconfigured" title={t('bdpilot is not reporting')} body={t('No brand-deal daemon state was found on this host, so there are no deals, quotes or sends to show yet.')} setupHref="/setup" setupHint={t('bdpilot state file not found (BDPILOT_STATE)')} />
           </GCard>
         </div>
       </GPage>
@@ -174,9 +177,9 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
             id="bd-g-pipeline"
             size={22}
             title="Pipeline"
-            caption="Bar height is quoted value; the count is under each figure."
+            caption={t('Bar height is quoted value; the count is under each figure.')}
             action={
-              <GButton variant="icon" size="sm" aria-label="Show the deal list" title="Show the deal list" onClick={toList}>
+              <GButton variant="icon" size="sm" aria-label={t('Show the deal list')} title={t('Show the deal list')} onClick={toList}>
                 <ArrowUpRight size={15} strokeWidth={1.75} aria-hidden />
               </GButton>
             }
@@ -191,16 +194,16 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
               onSelect={(id) => setStageFilter(id as DealFilter)}
               onSegmentSelect={(_, seg) => setStageFilter(seg)}
               selectedSegment={segment}
-              countNoun={['deal', 'deals']}
-              tipHint="Click to show these deals"
-              label="Pipeline by stage, bar height in quoted dollars"
+              countNoun={[t('deal'), t('deals')]}
+              tipHint={t('Click to show these deals')}
+              label={t('Pipeline by stage, bar height in quoted dollars')}
             />
-            {allZero && <p className="bd-g-note">No quotes yet. Set one from a deal&apos;s drawer.</p>}
+            {allZero && <p className="bd-g-note">{t("No quotes yet. Set one from a deal's drawer.")}</p>}
           </div>
-          <GAsk mode="filter" value={b.query} onValueChange={b.setQuery} label="Filter deals" placeholder="Filter deals, or type /unique /approval /won /lost" className="bd-g-ask" />
+          <GAsk mode="filter" value={b.query} onValueChange={b.setQuery} label={t('Filter deals')} placeholder={t('Filter deals, or type /unique /approval /won /lost')} className="bd-g-ask" />
           {token && (
             <p className="bd-g-token">
-              {parseDealQuery(b.query).tokenFilter ? <>Filtering by <GTag size="xs" tone="accent">{token}</GTag></> : <>Unknown filter <GTag size="xs" tone="warn">{token}</GTag> · try /unique /approval /won /lost</>}
+              {parseDealQuery(b.query).tokenFilter ? <>{t('Filtering by')} <GTag size="xs" tone="accent">{token}</GTag></> : <>{t('Unknown filter')} <GTag size="xs" tone="warn">{token}</GTag> · {t('try /unique /approval /won /lost')}</>}
             </p>
           )}
         </GCard>
@@ -208,20 +211,20 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
         <GHeroCard
           variant="a"
           className="bd-g-volume"
-          caption="Open deal value"
+          caption={t('Open deal value')}
           value={formatUsdCompact(volume.openUsd)}
-          label={`Open deal value ${usd(volume.openUsd)}`}
-          title={`Open = needs approval + awaiting brand. ${volume.quotedDeals} of ${snap.deals.length} threads carry a quote.`}
-          status={`${volume.quotedDeals} of ${snap.deals.length} threads quoted`}
+          label={t('Open deal value {usd}', { usd: usd(volume.openUsd) })}
+          title={t('Open = needs approval + awaiting brand. {q} of {n} threads carry a quote.', { q: volume.quotedDeals, n: snap.deals.length })}
+          status={t('{q} of {n} threads quoted', { q: volume.quotedDeals, n: snap.deals.length })}
           strip={
             <GDriverBars
               labelWidth={116}
-              label="Open value by stage"
+              label={t('Open value by stage')}
               max={1}
               rows={[
-                { id: 'approval', label: `Needs approval (${counts.approval})`, value: frac(volume.approvalUsd, volume.openUsd), display: formatUsdCompact(volume.approvalUsd), title: `Needs approval: ${usd(volume.approvalUsd)} across ${plural(counts.approval, 'deal')}, share of open value. Click to show them.`, onClick: () => { setStageFilter('approval'); toList(); }, selected: stageFilter === 'approval' },
-                { id: 'sent', label: `Awaiting brand (${counts.sent})`, value: frac(volume.awaitingUsd, volume.openUsd), display: formatUsdCompact(volume.awaitingUsd), title: `Awaiting brand: ${usd(volume.awaitingUsd)} across ${plural(counts.sent, 'deal')}, share of open value. Click to show them.`, onClick: () => { setStageFilter('sent'); toList(); }, selected: stageFilter === 'sent' },
-                { id: 'closed', label: `Won vs lost (${counts.won}/${counts.lost})`, value: frac(volume.wonUsd, volume.wonUsd + volume.lostUsd), display: `${formatUsdCompact(volume.wonUsd)} / ${formatUsdCompact(volume.lostUsd)}`, title: `Won ${usd(volume.wonUsd)}, lost ${usd(volume.lostUsd)}; the bar is the won share of closed value. Click to show closed deals.`, onClick: () => { setStageFilter('closed'); toList(); }, selected: stageFilter === 'closed' },
+                { id: 'approval', label: t('Needs approval ({n})', { n: counts.approval }), value: frac(volume.approvalUsd, volume.openUsd), display: formatUsdCompact(volume.approvalUsd), title: t('Needs approval: {usd} across {deals}, share of open value. Click to show them.', { usd: usd(volume.approvalUsd), deals: dealsN(counts.approval) }), onClick: () => { setStageFilter('approval'); toList(); }, selected: stageFilter === 'approval' },
+                { id: 'sent', label: t('Awaiting brand ({n})', { n: counts.sent }), value: frac(volume.awaitingUsd, volume.openUsd), display: formatUsdCompact(volume.awaitingUsd), title: t('Awaiting brand: {usd} across {deals}, share of open value. Click to show them.', { usd: usd(volume.awaitingUsd), deals: dealsN(counts.sent) }), onClick: () => { setStageFilter('sent'); toList(); }, selected: stageFilter === 'sent' },
+                { id: 'closed', label: t('Won vs lost ({won}/{lost})', { won: counts.won, lost: counts.lost }), value: frac(volume.wonUsd, volume.wonUsd + volume.lostUsd), display: `${formatUsdCompact(volume.wonUsd)} / ${formatUsdCompact(volume.lostUsd)}`, title: t('Won {won}, lost {lost}; the bar is the won share of closed value. Click to show closed deals.', { won: usd(volume.wonUsd), lost: usd(volume.lostUsd) }), onClick: () => { setStageFilter('closed'); toList(); }, selected: stageFilter === 'closed' },
               ]}
             />
           }
@@ -230,10 +233,10 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
 
       <div className="bd-g-row2">
         <GCard p={24} aria-labelledby="bd-g-sends">
-          <GSectionHeader id="bd-g-sends" size={22} title="Send activity" />
+          <GSectionHeader id="bd-g-sends" size={22} title={t('Send activity')} />
           <div className="bd-g-stat">
-            <GDotNumber value={String(sendsInRange)} size={4} label={`${sendsInRange} sends in range`} />
-            <span className="bd-g-stat-cap">{sendsInRange === 1 ? 'send' : 'sends'} · {r.long}</span>
+            <GDotNumber value={String(sendsInRange)} size={4} label={t('{n} sends in range', { n: sendsInRange })} />
+            <span className="bd-g-stat-cap">{sendsInRange === 1 ? t('send') : t('sends')} · {r.long}</span>
           </div>
           <GTimelineStrip
             readOnly
@@ -241,48 +244,48 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
             spanMs={span}
             now={now || undefined}
             agoLabel={agoLabel}
-            emptyText="No sends yet"
+            emptyText={t('No sends yet')}
             onDot={(id) => b.setSelectedId(id.split(':')[0])}
             onCluster={() => (effRange === '24h' ? toList() : step('narrower'))}
             onRangeStep={step}
             rangeControl={
               <GSegmented<SendRange>
-                label="Range"
+                label={t('Range')}
                 value={effRange}
                 onChange={setRange}
                 options={order.map((k) => ({ value: k, label: SEND_RANGES[k].label, title: SEND_RANGES[k].long }))}
               />
             }
-            label="Brand deal sends, announcements and skips over time"
+            label={t('Brand deal sends, announcements and skips over time')}
           />
         </GCard>
 
         <GCard p={24} aria-labelledby="bd-g-chains">
-          <GSectionHeader id="bd-g-chains" size={22} title="Chains" />
+          <GSectionHeader id="bd-g-chains" size={22} title={t('Chains')} />
           <div className="bd-g-stat">
-            <GDotNumber value={String(totalMsgs)} size={4} label={`${totalMsgs} messages`} />
-            <span className="bd-g-stat-cap">messages · deepest {deepest}</span>
+            <GDotNumber value={String(totalMsgs)} size={4} label={t('{n} messages', { n: totalMsgs })} />
+            <span className="bd-g-stat-cap">{t('messages · deepest {n}', { n: deepest })}</span>
           </div>
           <GDotMatrix
             columns={depthCols}
             color="series-2"
             selected={depth}
             onSelect={(id) => setDepth(depth === id ? null : (id as ChainDepthBucket))}
-            label="Deals by chain depth; pick a column to filter the list"
+            label={t('Deals by chain depth; pick a column to filter the list')}
             className="bd-g-depth"
           />
-          <p className="bd-g-cap">Messages per thread. Pick a column to filter the list.</p>
+          <p className="bd-g-cap">{t('Messages per thread. Pick a column to filter the list.')}</p>
         </GCard>
 
         <GHeroCard
           variant="b"
           className="bd-g-unique"
-          caption="Outside the reel playbook"
+          caption={t('Outside the reel playbook')}
           value={String(counts.unique)}
-          label={`${counts.unique} unique deals`}
-          status={`${counts.unique} of ${plural(snap.deals.length, 'deal')}${reasons.length ? ` · ${reasons.join(' · ')}` : ''}`}
-          title="Deals tagged unique by bdpilot. Click to show them."
-          strip={<GDotCloud total={snap.deals.length} lit={counts.unique} onHero label={`${counts.unique} of ${snap.deals.length} deals are unique`} />}
+          label={t('{n} unique deals', { n: counts.unique })}
+          status={`${t('{n} of {deals}', { n: counts.unique, deals: dealsN(snap.deals.length) })}${reasons.length ? ` · ${reasons.join(' · ')}` : ''}`}
+          title={t('Deals tagged unique by bdpilot. Click to show them.')}
+          strip={<GDotCloud total={snap.deals.length} lit={counts.unique} onHero label={t('{n} of {total} deals are unique', { n: counts.unique, total: snap.deals.length })} />}
           onClick={() => { setStageFilter('unique'); toList(); }}
         />
       </div>
@@ -290,34 +293,34 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
       <div ref={listRef} className="bd-g-listwrap">
         <GCard p={24} aria-labelledby="bd-g-deals">
           <div className="bd-g-listhead">
-            <GSectionHeader id="bd-g-deals" size={22} title="Deals" caption={`${filtered.length} of ${snap.deals.length}`} />
+            <GSectionHeader id="bd-g-deals" size={22} title={t('Deals')} caption={t('{n} of {total}', { n: filtered.length, total: snap.deals.length })} />
             <div className="bd-g-filters">
               {depth && (
-                <GButton size="sm" onClick={() => setDepth(null)} aria-label={`Remove chain depth filter ${depth}`} title="Remove the chain depth filter">
-                  Depth {depth} <X size={12} strokeWidth={1.75} aria-hidden />
+                <GButton size="sm" onClick={() => setDepth(null)} aria-label={t('Remove chain depth filter {depth}', { depth })} title={t('Remove the chain depth filter')}>
+                  {t('Depth {depth}', { depth })} <X size={12} strokeWidth={1.75} aria-hidden />
                 </GButton>
               )}
               <GSegmented<DealFilter>
-                label="Stage"
+                label={t('Stage')}
                 size="md"
                 value={stageFilter === 'closed' ? 'closed' : stageFilter}
                 onChange={setStageFilter}
                 options={[
-                  { value: 'all', label: `All ${snap.deals.length}` },
-                  { value: 'approval', label: `Needs approval ${counts.approval}` },
-                  { value: 'sent', label: `Awaiting ${counts.sent}` },
-                  { value: 'unique', label: `Unique ${counts.unique}` },
-                  ...(stageFilter === 'closed' ? [{ value: 'closed' as const, label: `Closed ${counts.won + counts.lost}` }] : []),
-                  { value: 'won', label: `Won ${counts.won}` },
-                  { value: 'lost', label: `Lost ${counts.lost}` },
+                  { value: 'all', label: t('All {n}', { n: snap.deals.length }) },
+                  { value: 'approval', label: t('Needs approval {n}', { n: counts.approval }) },
+                  { value: 'sent', label: t('Awaiting {n}', { n: counts.sent }) },
+                  { value: 'unique', label: t('Unique {n}', { n: counts.unique }) },
+                  ...(stageFilter === 'closed' ? [{ value: 'closed' as const, label: t('Closed {n}', { n: counts.won + counts.lost }) }] : []),
+                  { value: 'won', label: t('Won {n}', { n: counts.won }) },
+                  { value: 'lost', label: t('Lost {n}', { n: counts.lost }) },
                 ]}
               />
             </div>
           </div>
           {filtered.length === 0 ? (
-            <GEmpty inline title="Nothing matches that filter." />
+            <GEmpty inline title={t('Nothing matches that filter.')} />
           ) : (
-            <GList label="Deals" className="bd-g-list">
+            <GList label={t('Deals')} className="bd-g-list">
               {filtered.map((d) => {
                 const st = stageTag(d);
                 return (
@@ -326,18 +329,18 @@ export function DealBoardG({ initial, botUrl = null }: { initial: BrandDealsSnap
                     className="bd-g-row"
                     selected={b.selectedId === d.id}
                     onClick={() => b.setSelectedId(d.id)}
-                    hint={`Open ${d.brand}`}
+                    hint={t('Open {brand}', { brand: d.brand })}
                     title={d.brand}
                     meta={d.email}
                     trailing={
                       <span className="bd-g-trail">
                         <span className="bd-g-subject">{d.subject || d.tagReason || '—'}</span>
                         <span className="bd-g-tags">
-                          {d.quotedUsd != null && <GTag tone="accent" title={d.quoteSource === 'manual' ? 'Quote set manually' : 'Quote parsed from the thread'}>{usd(d.quotedUsd)}</GTag>}
-                          {d.tag === 'UNIQUE' && <GTag tone="outline">Unique</GTag>}
+                          {d.quotedUsd != null && <GTag tone="accent" title={d.quoteSource === 'manual' ? t('Quote set manually') : t('Quote parsed from the thread')}>{usd(d.quotedUsd)}</GTag>}
+                          {d.tag === 'UNIQUE' && <GTag tone="outline">{t('Unique')}</GTag>}
                           <GTag tone={st.tone}>{st.text}</GTag>
                         </span>
-                        <span className="bd-g-meta" title={`${plural(d.chainLen, 'message')} cached`}>
+                        <span className="bd-g-meta" title={t('{messages} cached', { messages: messagesN(d.chainLen) })}>
                           {d.chainLen > 0 && (<><MessagesSquare size={12} strokeWidth={1.6} aria-hidden /> {d.chainLen}</>)}
                         </span>
                         <span className="bd-g-meta bd-g-age" title={d.lastEventAt ?? undefined}>{age(d.lastEventAt, now)}</span>
@@ -378,9 +381,9 @@ function DealDrawerG({ b, deal }: { b: ReturnType<typeof useDealBoard>; deal: De
       <div className="bd-g-dhead">
         <span className="bd-g-email">{deal.email}</span>
         <span className="bd-g-tags">
-          <GTag tone={st.tone}>{deal.stage === 'approval' && deal.outcome === 'open' ? 'Needs approval' : st.text}</GTag>
-          {deal.tag === 'UNIQUE' && <GTag tone="outline">Unique</GTag>}
-          {deal.chainLen > 0 && <GTag>{plural(deal.chainLen, 'msg')}</GTag>}
+          <GTag tone={st.tone}>{deal.stage === 'approval' && deal.outcome === 'open' ? t('Needs approval') : st.text}</GTag>
+          {deal.tag === 'UNIQUE' && <GTag tone="outline">{t('Unique')}</GTag>}
+          {deal.chainLen > 0 && <GTag>{msgsN(deal.chainLen)}</GTag>}
         </span>
         {deal.tagReason && <p className="bd-g-cap">{deal.tagReason}</p>}
       </div>
@@ -388,53 +391,53 @@ function DealDrawerG({ b, deal }: { b: ReturnType<typeof useDealBoard>; deal: De
 
       {deal.stage === 'approval' && (
         <section className="bd-g-sec">
-          <h3 className="bd-g-sec-title">Draft actions</h3>
+          <h3 className="bd-g-sec-title">{t('Draft actions')}</h3>
           <div className="bd-g-actions">
             {!armed ? (
               <GButton variant="ink" onClick={() => setArmed(true)} disabled={busy != null}>
-                <Send size={13} strokeWidth={1.75} aria-hidden /> Send as the verified sender
+                <Send size={13} strokeWidth={1.75} aria-hidden /> {t('Send as the verified sender')}
               </GButton>
             ) : (
               <>
                 <GButton variant="ink" busy={busy === 'send'} disabled={busy != null && busy !== 'send'} onClick={async () => { if (await b.act('send', '/api/brand-deals/send', { dealId: deal.id })) setArmed(false); }}>
-                  Confirm send
+                  {t('Confirm send')}
                 </GButton>
-                <GButton onClick={() => setArmed(false)} disabled={busy != null}>Cancel</GButton>
+                <GButton onClick={() => setArmed(false)} disabled={busy != null}>{t('Cancel')}</GButton>
               </>
             )}
-            <GButton busy={busy === 'skip'} disabled={busy != null && busy !== 'skip'} onClick={() => b.act('skip', '/api/brand-deals/override', { dealId: deal.id, outcome: 'skipped' })}>Skip</GButton>
+            <GButton busy={busy === 'skip'} disabled={busy != null && busy !== 'skip'} onClick={() => b.act('skip', '/api/brand-deals/override', { dealId: deal.id, outcome: 'skipped' })}>{t('Skip')}</GButton>
             {draft === null && (
-              <GButton busy={busy === 'draft-load'} disabled={busy != null && busy !== 'draft-load'} onClick={async () => { const t = await b.loadDraft(deal.id); if (t !== null) setDraft(t); }}>
-                Edit draft
+              <GButton busy={busy === 'draft-load'} disabled={busy != null && busy !== 'draft-load'} onClick={async () => { const body = await b.loadDraft(deal.id); if (body !== null) setDraft(body); }}>
+                {t('Edit draft')}
               </GButton>
             )}
           </div>
           {draft !== null && (
             <div className="bd-g-draft">
-              <GTextarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={8} maxLines={16} aria-label="Draft email body" />
+              <GTextarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={8} maxLines={16} aria-label={t('Draft email body')} />
               <div className="bd-g-actions">
-                <GButton variant="ink" busy={busy === 'draft-save'} disabled={(busy != null && busy !== 'draft-save') || !draft.trim()} disabledReason="The draft is empty" onClick={async () => { if (await b.act('draft-save', '/api/brand-deals/draft', { dealId: deal.id, text: draft })) setDraft(null); }}>
-                  Save draft
+                <GButton variant="ink" busy={busy === 'draft-save'} disabled={(busy != null && busy !== 'draft-save') || !draft.trim()} disabledReason={t('The draft is empty')} onClick={async () => { if (await b.act('draft-save', '/api/brand-deals/draft', { dealId: deal.id, text: draft })) setDraft(null); }}>
+                  {t('Save draft')}
                 </GButton>
-                <GButton onClick={() => setDraft(null)} disabled={busy != null}>Cancel</GButton>
+                <GButton onClick={() => setDraft(null)} disabled={busy != null}>{t('Cancel')}</GButton>
               </div>
-              <p className="bd-g-cap">Recipient, subject, and thread are locked in code, so an edit can never redirect the email.</p>
+              <p className="bd-g-cap">{t('Recipient, subject, and thread are locked in code, so an edit can never redirect the email.')}</p>
             </div>
           )}
         </section>
       )}
 
       <section className="bd-g-sec">
-        <h3 className="bd-g-sec-title">Outcome</h3>
+        <h3 className="bd-g-sec-title">{t('Outcome')}</h3>
         <div className="bd-g-actions">
-          {([['open', 'Reopen'], ['won', 'Mark won'], ['lost', 'Mark lost']] as Array<[DealOutcome, string]>).map(([o, label]) => (
+          {([['open', t('Reopen')], ['won', t('Mark won')], ['lost', t('Mark lost')]] as Array<[DealOutcome, string]>).map(([o, label]) => (
             <GButton
               key={o}
               variant={deal.outcome === o ? 'ink' : 'default'}
               aria-pressed={deal.outcome === o}
               busy={busy === `outcome-${o}`}
               disabled={(busy != null && busy !== `outcome-${o}`) || deal.outcome === o}
-              disabledReason={deal.outcome === o ? 'Already the outcome' : undefined}
+              disabledReason={deal.outcome === o ? t('Already the outcome') : undefined}
               onClick={() => b.act(`outcome-${o}`, '/api/brand-deals/override', { dealId: deal.id, outcome: o })}
             >
               {label}
@@ -442,23 +445,23 @@ function DealDrawerG({ b, deal }: { b: ReturnType<typeof useDealBoard>; deal: De
           ))}
         </div>
         <div className="bd-g-quote">
-          <GInput value={quote} onChange={(e) => setQuote(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" placeholder="USD" aria-label="Quote in USD" className="bd-g-quote-input" />
-          <GButton busy={busy === 'quote'} disabled={busy != null && busy !== 'quote'} onClick={() => b.act('quote', '/api/brand-deals/override', { dealId: deal.id, amountUsd: quote ? Number(quote) : null })}>Set quote</GButton>
-          <span className="bd-g-cap">{deal.quotedUsd != null ? (deal.quoteSource === 'manual' ? 'Set manually' : 'Parsed from the thread') : 'No quote detected'}</span>
+          <GInput value={quote} onChange={(e) => setQuote(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" placeholder="USD" aria-label={t('Quote in USD')} className="bd-g-quote-input" />
+          <GButton busy={busy === 'quote'} disabled={busy != null && busy !== 'quote'} onClick={() => b.act('quote', '/api/brand-deals/override', { dealId: deal.id, amountUsd: quote ? Number(quote) : null })}>{t('Set quote')}</GButton>
+          <span className="bd-g-cap">{deal.quotedUsd != null ? (deal.quoteSource === 'manual' ? t('Set manually') : t('Parsed from the thread')) : t('No quote detected')}</span>
         </div>
-        <p className="bd-g-cap">Outcome and quote are tracked here only. They never email anyone.</p>
+        <p className="bd-g-cap">{t('Outcome and quote are tracked here only. They never email anyone.')}</p>
       </section>
 
       {deal.summary && (
         <section className="bd-g-sec">
-          <h3 className="bd-g-sec-title">Summary</h3>
+          <h3 className="bd-g-sec-title">{t('Summary')}</h3>
           <p className="bd-g-body">{deal.summary}</p>
         </section>
       )}
 
       <section className="bd-g-sec">
-        <h3 className="bd-g-sec-title">Email chain {deal.chain.length > 0 && <span className="bd-g-cap">{deal.chain.length}</span>}</h3>
-        {deal.chain.length === 0 && <p className="bd-g-cap">No cached chain for this deal (sent before chain caching existed).</p>}
+        <h3 className="bd-g-sec-title">{t('Email chain')} {deal.chain.length > 0 && <span className="bd-g-cap">{deal.chain.length}</span>}</h3>
+        {deal.chain.length === 0 && <p className="bd-g-cap">{t('No cached chain for this deal (sent before chain caching existed).')}</p>}
         <div className="bd-g-chain">
           {deal.chain.map((m, i) => (
             <GWell key={i}>

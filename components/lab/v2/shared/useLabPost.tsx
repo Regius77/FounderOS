@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { useToast } from '@/components/g';
 import { LAB_COPY } from '@/lib/lab/view/copy';
+import { t } from '@/lib/i18n';
 
 export type LabPostResult = { ok: boolean; status: number; data: Record<string, unknown> };
 export type LabPostOpts = {
@@ -74,8 +75,8 @@ export function useLabPost() {
         const msg = typeof data.error === 'string' ? data.error : null;
         const result: LabPostResult = { ok: res.ok && data.ok !== false, status: res.status, data };
         if (result.ok) {
-          const t = typeof opts.okText === 'function' ? opts.okText(data) : opts.okText;
-          if (t) toast({ text: t, tone: 'ok' });
+          const okMsg = typeof opts.okText === 'function' ? opts.okText(data) : opts.okText;
+          if (okMsg) toast({ text: okMsg, tone: 'ok' });
           opts.onOk?.(result);
           if (opts.refresh !== false) router.refresh();
         } else if (opts.inline?.includes(res.status)) {
@@ -83,7 +84,7 @@ export function useLabPost() {
         } else if (res.status === 501) {
           toast({ text: LAB_COPY.notBuiltToast, tone: 'info', ms: 6000 });
         } else if (res.status === 402) {
-          const capAsk = typeof data.capAsk === 'string' ? data.capAsk : msg ?? 'This would pass the monthly cap.';
+          const capAsk = typeof data.capAsk === 'string' ? data.capAsk : msg ?? t('This would pass the monthly cap.');
           if (opts.onCap) {
             opts.onCap(() => void post(path, { ...(body ?? {}), override: true }, opts), data);
           } else if (cap && opts.capRetry !== false && body !== null) {
@@ -98,14 +99,14 @@ export function useLabPost() {
         } else if (res.status === 503) {
           toast({ text: opts.cliText ?? LAB_COPY.cliMissing, tone: 'info', ms: 6000 });
         } else if (res.status === 422) {
-          toast({ text: msg ?? `Request refused (${res.status})`, tone: 'info', ms: 6000 });
+          toast({ text: msg ?? t('Request refused ({status})', { status: res.status }), tone: 'info', ms: 6000 });
         } else {
           const setup = typeof data.setupHref === 'string' ? data.setupHref : null;
-          toast({ text: msg ?? `Request failed (${res.status})`, tone: 'err', ms: 6000, action: setup ? { label: 'Set up', onClick: () => router.push(setup) } : undefined });
+          toast({ text: msg ?? t('Request failed ({status})', { status: res.status }), tone: 'err', ms: 6000, action: setup ? { label: t('Set up'), onClick: () => router.push(setup) } : undefined });
         }
         return result;
       } catch (err) {
-        if (!opts.quiet) toast({ text: `Could not reach the Lab: ${err instanceof Error ? err.message : String(err)}`, tone: 'err' });
+        if (!opts.quiet) toast({ text: t('Could not reach the Lab: {error}', { error: err instanceof Error ? err.message : String(err) }), tone: 'err' });
         return { ok: false, status: 0, data: {} };
       } finally {
         setBusy(null);

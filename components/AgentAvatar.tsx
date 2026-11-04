@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { Bot } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 export function AgentAvatar({ src, name, size = 24 }: { src: string | null; name?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -31,7 +32,7 @@ export function AgentAvatar({ src, name, size = 24 }: { src: string | null; name
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
-      alt={name ? `${name} avatar` : ''}
+      alt={name ? t('{name} avatar', { name }) : ''}
       width={size}
       height={size}
       data-agent-avatar=""

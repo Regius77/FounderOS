@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { GButton } from './Controls';
@@ -37,17 +38,17 @@ export function GDiff({ removed, added, file, copyText, className = '' }: GDiffP
     <figure data-g="GDiff" className={`g-diff ${className}`}>
       <figcaption className="g-diff-head">
         {file ? <span className="g-diff-file" data-mono-ok="">{file}</span> : <span />}
-        <GButton variant="sm" className="g-viz-act" onClick={copy} disabled={!text} title={text ? 'Copy the added lines' : undefined} disabledReason="Nothing to copy">
+        <GButton variant="sm" className="g-viz-act" onClick={copy} disabled={!text} title={text ? t('Copy the added lines') : undefined} disabledReason={t('Nothing to copy')}>
           {copied === 'ok' ? <Check size={13} strokeWidth={1.8} aria-hidden="true" /> : <Copy size={13} strokeWidth={1.8} aria-hidden="true" />}
-          {copied === 'ok' ? 'Copied' : copied === 'fail' ? 'Copy blocked' : 'Copy'}
+          {copied === 'ok' ? t('Copied') : copied === 'fail' ? t('Copy blocked') : t('Copy')}
         </GButton>
       </figcaption>
       {empty ? (
-        <GEmpty inline title="No changes." />
+        <GEmpty inline title={t('No changes.')} />
       ) : (
         <pre className="g-diff-body" data-mono-ok="">
-          {removed.map((l, i) => <div key={`d${i}`} className="g-diff-line" data-kind="del"><span aria-hidden="true">-</span><span className="sr-only">Removed: </span>{l}</div>)}
-          {added.map((l, i) => <div key={`a${i}`} className="g-diff-line" data-kind="add"><span aria-hidden="true">+</span><span className="sr-only">Added: </span>{l}</div>)}
+          {removed.map((l, i) => <div key={`d${i}`} className="g-diff-line" data-kind="del"><span aria-hidden="true">-</span><span className="sr-only">{t('Removed: ')}</span>{l}</div>)}
+          {added.map((l, i) => <div key={`a${i}`} className="g-diff-line" data-kind="add"><span aria-hidden="true">+</span><span className="sr-only">{t('Added: ')}</span>{l}</div>)}
         </pre>
       )}
     </figure>

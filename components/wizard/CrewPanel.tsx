@@ -4,6 +4,7 @@ import { Activity, Info } from 'lucide-react';
 import type { CrewSnapshot } from '@/lib/wizard/crew';
 import { relativeTime } from '@/lib/wizard/helpers';
 import { departmentIcon, percent, RUN_DOTS } from '@/lib/wizard/ui';
+import { t } from '@/lib/i18n';
 
 /**
  * Agent performance — real run history only. The two dot rows are the last
@@ -17,14 +18,14 @@ export function CrewPanel({ crew, now }: { crew: CrewSnapshot; now: number }) {
       <div className="flex items-center justify-between gap-3 border-b border-os-hairline px-4 py-3">
         <div className="flex items-center gap-2 whitespace-nowrap text-[13.5px] text-os-text">
           <Activity className="h-4 w-4 text-os-muted" strokeWidth={2} />
-          Agent performance
-          <span title={`Last ${RUN_DOTS} runs per agent within ${crew.windowDays} days. Percent = runs that succeeded.`} className="text-os-dim">
+          {t('Agent performance')}
+          <span title={t('Last {n} runs per agent within {days} days. Percent = runs that succeeded.', { n: RUN_DOTS, days: crew.windowDays })} className="text-os-dim">
             <Info className="h-3.5 w-3.5" />
           </span>
         </div>
         {/* every run figure states its window (F0.2, H30) */}
         <div className="text-right text-[11.5px] text-os-dim tabular-nums">
-          <span className="whitespace-nowrap"><span className="text-os-muted">{crew.totalRuns}</span> runs · {crew.windowDays} days</span> · <span className="whitespace-nowrap"><span className="text-os-muted">{percent(crew.okRate)}</span> ok</span>
+          <span className="whitespace-nowrap"><span className="text-os-muted">{crew.totalRuns}</span> {t('runs')} · {t('{n} days', { n: crew.windowDays })}</span> · <span className="whitespace-nowrap"><span className="text-os-muted">{percent(crew.okRate)}</span> {t('ok')}</span>
         </div>
       </div>
 
@@ -35,7 +36,7 @@ export function CrewPanel({ crew, now }: { crew: CrewSnapshot; now: number }) {
           const dots = Array.from({ length: RUN_DOTS }, (_, i) => ordered[i] ?? null);
           const last = runs[0];
           return (
-            <div key={agent.id} className="wz-crew-row" title={last ? `${last.ok ? 'ok' : 'failed'} · ${last.summary} · ${relativeTime(last.startedAt, now)}` : 'no runs in window'}>
+            <div key={agent.id} className="wz-crew-row" title={last ? `${last.ok ? t('ok') : t('failed')} · ${last.summary} · ${relativeTime(last.startedAt, now)}` : t('no runs in window')}>
               <div className="flex items-center gap-2.5">
                 <span className="wz-tile">
                   <Icon className="h-3.5 w-3.5" strokeWidth={2} />
@@ -67,7 +68,7 @@ export function CrewPanel({ crew, now }: { crew: CrewSnapshot; now: number }) {
                   <div className="truncate text-[13px] text-os-text">{d.name}</div>
                   <div className="truncate text-[11px] text-os-dim">{d.purpose}</div>
                 </div>
-                <span className="wz-chip">designed</span>
+                <span className="wz-chip">{t('designed')}</span>
               </div>
             </div>
           );

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { t } from '@/lib/i18n';
 
 /**
  * The ONE setup affordance for anything unconfigured (* "every single thing that needs to be set up has a setup button"). Small
@@ -10,7 +11,7 @@ import Link from 'next/link';
 export function SetupLink({
   href = '/integrations',
   hint,
-  label = 'Set up',
+  label = t('Set up'),
   className = '',
 }: {
   href?: string;

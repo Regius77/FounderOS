@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { OsMark, Pressable } from '@/components/legacy';
 import { useLogin } from '@/components/LoginForm';
+import { t } from '@/lib/i18n';
 
 /**
  * /login under Bennett Legacy (founderos-ui pages/login.md): one centred
@@ -17,10 +18,10 @@ function Frame({ brandName, title, children }: { brandName: string; title: strin
     <main data-l="Login" className="l-login">
       <div className="l-login-head l-rise">
         <OsMark size={40} />
-        <div className="l-eyebrow">{'// OPERATOR CONSOLE'}</div>
+        <div className="l-eyebrow">{t('// OPERATOR CONSOLE')}</div>
         <h1 className="l-login-title">{title}</h1>
       </div>
-      <section data-l="SlabCard" className="l-card l-login-card l-rise" aria-label={`${brandName} sign in`}>
+      <section data-l="SlabCard" className="l-card l-login-card l-rise" aria-label={t('{brand} sign in', { brand: brandName })}>
         {children}
       </section>
       <p className="l-login-foot">
@@ -34,10 +35,10 @@ function Frame({ brandName, title, children }: { brandName: string; title: strin
 export function LoginFormL({ brandName }: { brandName: string }) {
   const { password, setPassword, error, busy, submit } = useLogin();
   return (
-    <Frame brandName={brandName} title="Sign in">
+    <Frame brandName={brandName} title={t('Sign in')}>
       <form onSubmit={submit} className="l-login-form">
         <label htmlFor="login-password" className="l-login-label">
-          Operator password
+          {t('Operator password')}
         </label>
         <input
           id="login-password"
@@ -49,8 +50,8 @@ export function LoginFormL({ brandName }: { brandName: string }) {
           aria-invalid={Boolean(error)}
           className="l-login-input"
         />
-        <Pressable tone="primary" type="submit" disabled={busy || password.length === 0} className="l-login-submit" title={password.length === 0 ? 'Type the password first' : undefined}>
-          {busy ? 'Signing in' : 'Sign in'} <ArrowRight size={13} strokeWidth={2} aria-hidden />
+        <Pressable tone="primary" type="submit" disabled={busy || password.length === 0} className="l-login-submit" title={password.length === 0 ? t('Type the password first') : undefined}>
+          {busy ? t('Signing in') : t('Sign in')} <ArrowRight size={13} strokeWidth={2} aria-hidden />
         </Pressable>
         {error && (
           <p role="alert" className="l-login-error">
@@ -59,7 +60,7 @@ export function LoginFormL({ brandName }: { brandName: string }) {
         )}
       </form>
       <p className="l-login-note">
-        Set in Settings on the machine {brandName} runs on. Stored there as a hash in .env.local, never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line, restart, and set a new one.
+        {t('Set in Settings on the machine {brand} runs on. Stored there as a hash in .env.local, never in git. Forgot it: delete the GLADOS_PASSWORD_HASH line, restart, and set a new one.', { brand: brandName })}
       </p>
     </Frame>
   );
@@ -67,14 +68,14 @@ export function LoginFormL({ brandName }: { brandName: string }) {
 
 export function NoPasswordL({ brandName }: { brandName: string }) {
   return (
-    <Frame brandName={brandName} title="No password is set">
-      <p className="l-login-note">Nothing is locked, so there is nothing to sign in to. Open the console directly, or set an operator password under Settings to turn sign-in on.</p>
+    <Frame brandName={brandName} title={t('No password is set')}>
+      <p className="l-login-note">{t('Nothing is locked, so there is nothing to sign in to. Open the console directly, or set an operator password under Settings to turn sign-in on.')}</p>
       <div className="l-login-actions">
         <Pressable tone="primary" href="/">
-          Open {brandName}
+          {t('Open {brand}', { brand: brandName })}
         </Pressable>
         <Pressable tone="secondary" href="/setup#security">
-          Set a password
+          {t('Set a password')}
         </Pressable>
       </div>
     </Frame>

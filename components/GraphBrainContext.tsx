@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { t } from '@/lib/i18n';
 
 type Hit = { title: string; snippet: string };
 
@@ -38,13 +39,13 @@ export function GraphBrainContext({ label }: { label: string | null }) {
   return (
     <div className="border-t border-os-border pt-3">
       <div className="mb-1.5 flex items-baseline justify-between">
-        <span className="text-[12.5px] font-medium text-os-muted">In the brain</span>
-        <span className="font-mono text-[10px] text-os-dim">live retrieval</span>
+        <span className="text-[12.5px] font-medium text-os-muted">{t('In the brain')}</span>
+        <span className="font-mono text-[10px] text-os-dim">{t('live retrieval')}</span>
       </div>
       {state.hits == null ? (
-        <div className="py-1 text-[12px] text-os-dim">searching for “{state.q}”…</div>
+        <div className="py-1 text-[12px] text-os-dim">{t('searching for “{q}”…', { q: state.q })}</div>
       ) : state.hits.length === 0 ? (
-        <div className="py-1 text-[12px] text-os-dim">no brain-store pages mention “{state.q}” yet</div>
+        <div className="py-1 text-[12px] text-os-dim">{t('no brain-store pages mention “{q}” yet', { q: state.q })}</div>
       ) : (
         <div className="flex flex-col gap-1.5">
           {state.hits.map((h, i) => (

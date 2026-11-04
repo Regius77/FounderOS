@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n';
 import { Dashboard } from '@/components/creative-engine/Dashboard';
 import { BackToAdPilot } from '@/components/creative-engine/BackLink';
 import { getAppearance } from '@/lib/appearance-server';
@@ -37,7 +38,7 @@ export default async function CreativeEnginePage({ searchParams }: { searchParam
   const campaigns = readCampaigns().map(toSummary);
   const health = sample ? sampleHealth() : await buildHealthSnapshot();
   // S03 FR-12: Product suggestions from ventures, the chosen Arcads product and the cached catalog (no network).
-  const products = sample ? [{ label: SAMPLE_PRODUCT, detail: 'Sample product', source: 'arcads' as const }] : productOptions();
+  const products = sample ? [{ label: SAMPLE_PRODUCT, detail: t('Sample product'), source: 'arcads' as const }] : productOptions();
   const sampleSet = sample ? { campaign: sampleCampaign(), runs: sampleRuns(), catalog: sampleCatalog() } : null;
   const g = treeFor(getAppearance(), '/creative-engine') === 'glados';
 

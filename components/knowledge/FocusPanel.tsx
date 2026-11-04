@@ -18,6 +18,7 @@ import {
   KIND_LABEL,
   interpret,
 } from '@/lib/knowledge-views';
+import { t } from '@/lib/i18n';
 
 const ORDER: EdgeKind[] = ['link', 'owns', 'mention', 'similar'];
 
@@ -83,11 +84,11 @@ export function FocusPanel({
         <span className="mt-[6px] h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
         <div className="min-w-0 flex-1">
           <div className="text-[10.5px] text-os-muted">
-            {KIND_LABEL[entity.kind] ?? entity.kind} · {entity.cluster}
+            {KIND_LABEL[entity.kind] ? t(KIND_LABEL[entity.kind]) : entity.kind} · {entity.cluster}
           </div>
           <div className="mt-0.5 break-words text-[15px] font-medium leading-snug text-os-text">{entity.label}</div>
         </div>
-        <button onClick={onClose} className="font-mono text-[13px] text-os-dim hover:text-os-text" aria-label="Close">
+        <button onClick={onClose} className="font-mono text-[13px] text-os-dim hover:text-os-text" aria-label={t('Close')}>
           ×
         </button>
       </div>
@@ -101,21 +102,21 @@ export function FocusPanel({
         </div>
 
         <div className="grid grid-cols-2 gap-2 p-4">
-          {stat('connections', String(m.degree), 'Total edges touching this record')}
-          {stat('written', String(m.authoredDegree), 'Edges a person actually wrote, excluding inferred similarity')}
-          {stat('authority', (m.pagerank * 1000).toFixed(1), 'PageRank ×1000 — how much of the graph flows through here')}
-          {stat('brokerage', String(Math.round(m.betweenness)), 'Shortest paths between other records that pass through this one')}
-          {entity.days !== null && stat('last edited', `${entity.days}d`, 'Days since the file was last modified')}
-          {entity.words > 0 && stat('words', String(entity.words), 'Body length of the record')}
+          {stat(t('connections'), String(m.degree), t('Total edges touching this record'))}
+          {stat(t('written'), String(m.authoredDegree), t('Edges a person actually wrote, excluding inferred similarity'))}
+          {stat(t('authority'), (m.pagerank * 1000).toFixed(1), t('PageRank ×1000 — how much of the graph flows through here'))}
+          {stat(t('brokerage'), String(Math.round(m.betweenness)), t('Shortest paths between other records that pass through this one'))}
+          {entity.days !== null && stat(t('last edited'), `${entity.days}d`, t('Days since the file was last modified'))}
+          {entity.words > 0 && stat(t('words'), String(entity.words), t('Body length of the record'))}
         </div>
 
         {entity.terms.length > 0 && (
           <div className="px-4 pb-3">
-            <div className="mb-1.5 text-[10.5px] text-os-dim">What it is about (most distinctive terms)</div>
+            <div className="mb-1.5 text-[10.5px] text-os-dim">{t('What it is about (most distinctive terms)')}</div>
             <div className="flex flex-wrap gap-1">
-              {entity.terms.map((t) => (
-                <span key={t} className="rounded-[6px] border px-1.5 py-0.5 font-mono text-[10px] text-os-muted" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.12)' }}>
-                  {t}
+              {entity.terms.map((term) => (
+                <span key={term} className="rounded-[6px] border px-1.5 py-0.5 font-mono text-[10px] text-os-muted" style={{ borderColor: 'rgb(var(--mist-rgb) / 0.12)' }}>
+                  {term}
                 </span>
               ))}
             </div>
@@ -124,7 +125,7 @@ export function FocusPanel({
 
         {entity.source && (
           <div className="px-4 pb-3">
-            <div className="mb-1 text-[10.5px] text-os-dim">Source</div>
+            <div className="mb-1 text-[10.5px] text-os-dim">{t('Source')}</div>
             <div className="break-all font-mono text-[10px] text-os-muted">{entity.source}</div>
           </div>
         )}
@@ -132,7 +133,7 @@ export function FocusPanel({
         {/* connections */}
         <div className="border-t border-os-border">
           <div className="px-4 pt-3 text-[11px] text-os-muted">
-            {total} connections, grouped by how we know
+            {t('{total} connections, grouped by how we know', { total })}
           </div>
           {ORDER.map((k) => {
             const list = connections.get(k);
@@ -143,10 +144,10 @@ export function FocusPanel({
                 <button
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-[rgb(var(--cold-hover-rgb) / 0.06)]"
                   onClick={() => setOpenKind(isOpen ? null : k)}
-                  title={EDGE_HINT[k]}
+                  title={t(EDGE_HINT[k])}
                 >
                   <span className="h-1.5 w-4 rounded-full" style={{ background: EDGE_COLOR[k] }} />
-                  <span className="flex-1 text-[11.5px] text-os-text">{EDGE_LABEL[k]}</span>
+                  <span className="flex-1 text-[11.5px] text-os-text">{t(EDGE_LABEL[k])}</span>
                   <span className="font-mono text-[11px] text-os-dim">{list.length}</span>
                   <span className="text-os-dim">{isOpen ? '−' : '+'}</span>
                 </button>
@@ -171,7 +172,7 @@ export function FocusPanel({
                       </button>
                     ))}
                     {list.length > 24 && (
-                      <div className="px-4 pt-1 font-mono text-[10px] text-os-dim">+{list.length - 24} more</div>
+                      <div className="px-4 pt-1 font-mono text-[10px] text-os-dim">{t('+{n} more', { n: list.length - 24 })}</div>
                     )}
                   </div>
                 )}
