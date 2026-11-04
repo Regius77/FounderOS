@@ -467,7 +467,7 @@ export function AdLibrary({
           <div className="mt-2 text-center text-[12px] text-os-dim" aria-live="polite">
             {!foreplayConfigured || syncSetup ? (
               <span className="inline-flex flex-wrap items-center justify-center gap-1.5">
-                {t('Not configured')} <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
+                Not configured <Setup href={FOREPLAY_SETUP} hint={t('Add a Foreplay API key')} />
               </span>
             ) : sync.armed ? (
               t('Uses Foreplay credits (one call per watched brand)')

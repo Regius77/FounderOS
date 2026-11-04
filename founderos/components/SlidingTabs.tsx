@@ -15,7 +15,7 @@ export function SlidingTabs<T extends string>({
   variant?: 'underline' | 'pill';
   tabWidth?: number;
 }) {
-  const i = Math.max(0, tabs.findIndex((t) => t.id === value));
+  const i = Math.max(0, tabs.findIndex((item) => item.id === value));
   const pill = variant === 'pill';
   return (
     <div
@@ -30,27 +30,27 @@ export function SlidingTabs<T extends string>({
         }`}
         style={{ width: tabWidth, transform: `translateX(${i * tabWidth}px)` }}
       />
-      {tabs.map((t) => {
-        const active = t.id === value;
+      {tabs.map((item) => {
+        const active = item.id === value;
         return (
           <button
-            key={t.id}
+            key={item.id}
             role="tab"
             aria-selected={active}
             data-lens="c"
-            onClick={() => onChange(t.id)}
+            onClick={() => onChange(item.id)}
             className={`pressable relative inline-flex h-[30px] items-center justify-center gap-1.5 bg-transparent font-mono text-[10.5px] font-bold uppercase tracking-[.18em] hover:scale-[1.04] hover:shadow-none ${
  active ? 'text-os-text' : 'text-os-dim hover:text-os-muted'
  }`}
           >
-            {t.label}
-            {t.count != null && (
+            {item.label}
+            {item.count != null && (
               <span
                 className={`px-1.5 text-[9.5px] leading-[15px] tracking-normal ${
                   active ? 'bg-os-text text-os-ink' : 'bg-os-surface text-os-dim'
                 }`}
               >
-                {t.count}
+                {item.count}
               </span>
             )}
           </button>

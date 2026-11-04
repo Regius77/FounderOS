@@ -10,6 +10,7 @@ import { needsYou } from '@/founderos/lib/board-approvals';
 import { partitionByDecision } from '@/founderos/lib/deliverable-decisions';
 import type { DeliverableItem } from '@/founderos/lib/board-deliverables';
 import { useDeliverables } from '@/founderos/components/useDeliverables';
+import { t } from '@/lib/i18n';
 
 /**
  * /agents tab shell — "Roster" is the OS's own agent runtime (children,
@@ -109,14 +110,14 @@ export function AgentsTabs({
       <div className="mb-4 flex shrink-0 items-center gap-1">
         <SlidingTabs<TabId>
           tabs={[
-            { id: 'roster', label: 'Roster' },
+            { id: 'roster', label: t('Roster') },
             {
               id: 'needsyou',
               label: (
                 <>
-                  Needs You
+                  {t('Needs You')}
                   {waiting > 0 && (
-                    <TabBadge n={waiting} tone="warn" title={`${waiting} agent files are waiting on you`} />
+                    <TabBadge n={waiting} tone="warn" title={t('{n} agent files are waiting on you', { n: waiting })} />
                   )}
                 </>
               ),
@@ -125,12 +126,12 @@ export function AgentsTabs({
               id: 'deliverables',
               label: (
                 <>
-                  Deliverables
+                  {t('Deliverables')}
                   {changedCount > 0 && (
-                    <TabBadge n={changedCount} tone="err" title={`${changedCount} changed since you last looked`} />
+                    <TabBadge n={changedCount} tone="err" title={t('{n} changed since you last looked', { n: changedCount })} />
                   )}
                   {unseenCount > 0 && (
-                    <TabBadge n={unseenCount} tone="ok" title={`${unseenCount} new since you last looked`} />
+                    <TabBadge n={unseenCount} tone="ok" title={t('{n} new since you last looked', { n: unseenCount })} />
                   )}
                 </>
               ),
@@ -199,12 +200,11 @@ export function AgentsTabs({
         <div className={tab === 'hermes' ? '' : 'hidden'}>
           <iframe
             src={hermesUrl}
-            title="Hermes worker-pool dashboard"
+            title={t('Hermes worker-pool dashboard')}
             className="h-[calc(100dvh-14rem)] min-h-[480px] w-full rounded-panel border border-os-border bg-os-bg"
           />
           <div className="mt-1.5 font-mono text-[9.5px] text-os-dim">
-            Stock Hermes dashboard, embedded live from the host. Blank or erroring? The dashboard
-            process may be down on os-host (the VPN serve answers 502).
+            {t('Stock Hermes dashboard, embedded live from the host. Blank or erroring? The dashboard process may be down on os-host (the VPN serve answers 502).')}
           </div>
         </div>
       )}

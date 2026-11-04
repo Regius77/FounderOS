@@ -5,6 +5,7 @@ import { StepLine, DotMatrix } from '@/founderos/components/slab-charts';
 import { useBoardSnapshot } from '@/founderos/components/board-live-store';
 import { agentsVolume } from '@/founderos/lib/agents-volume';
 import type { BoardLivePayload } from '@/founderos/lib/board-live';
+import { t } from '@/lib/i18n';
 
 const WINDOW_DAYS = 14;
 
@@ -25,54 +26,54 @@ export function AgentsVolumePanel({ initial }: { initial: BoardLivePayload }) {
     <>
       {/* Hero row, Brand Deals' shape: the run line + the volume card */}
       <div className="grid grid-cols-[2fr_1fr] gap-6 max-[1200px]:grid-cols-1">
-        <SlabCard i={1} title="Run Activity" sub={v.window === `${WINDOW_DAYS}d` ? `last ${WINDOW_DAYS} days` : v.window} className="pb-2">
+        <SlabCard i={1} title={t('Run Activity')} sub={v.window === `${WINDOW_DAYS}d` ? t('last {n} days', { n: WINDOW_DAYS }) : v.window} className="pb-2">
           <div className="px-6 pb-2 pt-3">
             <BigStat
               size={30}
               value={v.runsInWindow}
-              chips={v.failedInWindow > 0 ? [{ tone: 'err', text: `${v.failedInWindow} failed` }] : []}
-              caption="heartbeat runs off the live board (its latest 120)"
+              chips={v.failedInWindow > 0 ? [{ tone: 'err', text: t('{n} failed', { n: v.failedInWindow }) }] : []}
+              caption={t('heartbeat runs off the live board (its latest 120)')}
             />
           </div>
           <StepLine
             series={v.series}
             hue="var(--send-activity)"
-            unit=" runs"
-            empty={data.connected ? `No heartbeat runs in the last ${WINDOW_DAYS} days.` : 'Board unreachable, no runs to draw.'}
+            unit={t(' runs')}
+            empty={data.connected ? t('No heartbeat runs in the last {n} days.', { n: WINDOW_DAYS }) : t('Board unreachable, no runs to draw.')}
           />
         </SlabCard>
 
-        <SlabCard i={2} title="Agent Volume" className="flex flex-col">
+        <SlabCard i={2} title={t('Agent Volume')} className="flex flex-col">
           <div className="flex flex-1 flex-col px-6 pb-6 pt-3">
             <BigStat value={v.headline} chips={v.chips} caption={v.caption} />
-            <MeterStack meters={v.meters} foot={v.foot} empty="board unreachable, nothing to measure" />
+            <MeterStack meters={v.meters} foot={v.foot} empty={t('board unreachable, nothing to measure')} />
           </div>
         </SlabCard>
       </div>
 
       {/* Second row: runs by seat, the open lanes, THE gradient card */}
       <div className="mt-6 grid grid-cols-3 gap-6 max-[1200px]:grid-cols-1">
-        <SlabCard i={3} title="Runs by Seat" sub={v.window === `${WINDOW_DAYS}d` ? `${WINDOW_DAYS} days` : v.window}>
+        <SlabCard i={3} title={t('Runs by Seat')} sub={v.window === `${WINDOW_DAYS}d` ? t('{n} days', { n: WINDOW_DAYS }) : v.window}>
           <div className="flex flex-col gap-5 px-6 pb-6 pt-3">
             <BigStat
               size={30}
-              display={busiest ? busiest.label : 'none'}
-              caption={busiest ? `busiest seat · ${busiest.count} runs` : `no runs in ${WINDOW_DAYS} days`}
+              display={busiest ? busiest.label : t('none')}
+              caption={busiest ? t('busiest seat · {n} runs', { n: busiest.count }) : t('no runs in {n} days', { n: WINDOW_DAYS })}
             />
             <DotMatrix cols={v.bySeat} hue="var(--ramp-1)" />
           </div>
         </SlabCard>
 
-        <SlabCard i={4} title="Task Lanes" sub="open stages">
+        <SlabCard i={4} title={t('Task Lanes')} sub={t('open stages')}>
           <div className="flex flex-col gap-5 px-6 pb-6 pt-3">
-            <BigStat size={30} value={v.openTasks} caption={v.openTasks === 1 ? 'open task on the board' : 'open tasks on the board'} />
+            <BigStat size={30} value={v.openTasks} caption={v.openTasks === 1 ? t('open task on the board') : t('open tasks on the board')} />
             <DotMatrix cols={v.lanes} hue="var(--accent)" />
           </div>
         </SlabCard>
 
         <InsightCard
           i={5}
-          badge="Needs you"
+          badge={t('Needs you')}
           value={v.insight.value}
           headline={v.insight.headline}
           body={v.insight.body}

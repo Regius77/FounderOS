@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { GAsk, GButton, GCard, GDrawer, GEmpty, GErrorLine, GField, GInput, GPage, GProgress, GSectionHeader, GSegmented, GSheet, GTextarea } from '@/components/g';
 import { SkillHierarchy } from '@/components/SkillHierarchy';
 import { specificSkillIcon, type SkillCard } from '@/components/SkillsGrid';
+import { t } from '@/lib/i18n';
 
 /**
  * /skills under the GladOS style (glados-ui SPEC S04 §4.5, X5). Same cards
@@ -99,16 +100,16 @@ export function SkillsG({ cards, sourceNote }: { cards: SkillCard[]; sourceNote:
     <GPage className="wg-page">
       <GSectionHeader
         size="page"
-        title="Skills"
+        title={t('Skills')}
         caption={sourceNote}
         action={
           <GButton variant="ink" onClick={() => setIntake(true)}>
-            <Plus size={14} strokeWidth={1.75} aria-hidden /> New skill
+            <Plus size={14} strokeWidth={1.75} aria-hidden /> {t('New skill')}
           </GButton>
         }
       />
       <div ref={askWrap} className="wg-sk-search">
-        <GAsk mode="filter" value={query} onValueChange={setQuery} label="Search skills (/)" placeholder="Search skills" />
+        <GAsk mode="filter" value={query} onValueChange={setQuery} label={t('Search skills (/)')} placeholder={t('Search skills')} />
       </div>
 
       <GCard p={16} className="wg-sk-tree">
@@ -123,15 +124,15 @@ export function SkillsG({ cards, sourceNote }: { cards: SkillCard[]; sourceNote:
       </GCard>
 
       <GSegmented
-        label="Domain"
+        label={t('Domain')}
         value={domain}
         onChange={pickDomain}
         className="wg-fit"
-        options={[{ value: ALL, label: `All ${total}` }, ...domains.map((d) => ({ value: d.name, label: `${d.name} ${d.count}` }))]}
+        options={[{ value: ALL, label: t('All {n}', { n: total }) }, ...domains.map((d) => ({ value: d.name, label: `${d.name} ${d.count}` }))]}
       />
 
       {visible.length === 0 ? (
-        <GEmpty inline title={q ? `No skill matches “${query.trim()}”` : 'No skills in this domain'} />
+        <GEmpty inline title={q ? t('No skill matches “{query}”', { query: query.trim() }) : t('No skills in this domain')} />
       ) : (
         <div className="wg-sk-groups">
           {groups.map((g) => (
@@ -143,11 +144,11 @@ export function SkillsG({ cards, sourceNote }: { cards: SkillCard[]; sourceNote:
                 {byGroup.get(g)!.map((c) => {
                   const Icon = specificSkillIcon(c);
                   return (
-                    <GCard key={c.id} p={16} onClick={() => open(c)} className="wg-sk-card" title={`${c.name}: open SKILL.md`}>
+                    <GCard key={c.id} p={16} onClick={() => open(c)} className="wg-sk-card" title={t('{name}: open SKILL.md', { name: c.name })}>
                       <span className="wg-sk-name">
                         {Icon && <Icon size={14} strokeWidth={1.6} aria-hidden />}
                         <span>{c.name}</span>
-                        {c.status && <span className="wg-dot" data-tone={STATUS_TONE[c.status]} title={c.status} />}
+                        {c.status && <span className="wg-dot" data-tone={STATUS_TONE[c.status]} title={c.status === 'live' ? t('live') : c.status === 'learning' ? t('learning') : c.status === 'planned' ? t('planned') : c.status} />}
                       </span>
                       <span className="wg-sk-desc">{c.description}</span>
                     </GCard>
@@ -181,8 +182,8 @@ function Reader({ card, onClose }: { card: SkillCard | null; onClose: () => void
     setMd(null);
     fetch(`/api/skills/${encodeURIComponent(card.id)}`)
       .then((r) => r.json().then((b: { markdown?: string; error?: string }) => ({ r, b })))
-      .then(({ r, b }) => !dead && setMd(b.markdown ?? `SKILL.md could not be read (${b.error ?? r.status}).`))
-      .catch(() => !dead && setMd('SKILL.md could not be read.'));
+      .then(({ r, b }) => !dead && setMd(b.markdown ?? t('SKILL.md could not be read ({error}).', { error: b.error ?? r.status })))
+      .catch(() => !dead && setMd(t('SKILL.md could not be read.')));
     return () => {
       dead = true;
     };
@@ -201,10 +202,10 @@ function Reader({ card, onClose }: { card: SkillCard | null; onClose: () => void
                 void navigator.clipboard?.writeText(card.filePath).then(() => setCopied(true), () => setCopied(false));
               }}
             >
-              {copied ? 'Copied' : 'Copy path'}
+              {copied ? t('Copied') : t('Copy path')}
             </GButton>
           </div>
-          {md === null ? <GProgress text="Loading SKILL.md" /> : <MarkdownG src={md} />}
+          {md === null ? <GProgress text={t('Loading SKILL.md')} /> : <MarkdownG src={md} />}
         </div>
       )}
     </GDrawer>
@@ -275,7 +276,7 @@ function IntakeSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
 
   async function propose() {
     setError(null);
-    if (description.trim().length < 8) return setError('Describe it in a bit more detail, at least a sentence.');
+    if (description.trim().length < 8) return setError(t('Describe it in a bit more detail, at least a sentence.'));
     setBusy(true);
     try {
       const res = await fetch('/api/skills/propose', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ description: description.trim(), name: name.trim() || undefined }) });
@@ -315,51 +316,51 @@ function IntakeSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   const placements = proposal ? [proposal.proposed, ...proposal.alternates] : [];
   const footer = created ? (
     <GButton variant="ink" onClick={close}>
-      Done
+      {t('Done')}
     </GButton>
   ) : proposal ? (
     <>
       <GButton onClick={() => setProposal(null)} disabled={busy}>
-        Back
+        {t('Back')}
       </GButton>
       <GButton variant="ink" busy={busy} onClick={confirm}>
-        Create draft skill
+        {t('Create draft skill')}
       </GButton>
     </>
   ) : (
     <>
-      <GButton onClick={close}>Cancel</GButton>
-      <GButton variant="ink" busy={busy} onClick={propose} disabled={!description.trim()} disabledReason="Describe the skill first">
-        Propose placement
+      <GButton onClick={close}>{t('Cancel')}</GButton>
+      <GButton variant="ink" busy={busy} onClick={propose} disabled={!description.trim()} disabledReason={t('Describe the skill first')}>
+        {t('Propose placement')}
       </GButton>
     </>
   );
 
   return (
-    <GSheet open={open} onClose={close} width={560} title="New skill" caption="Describe it; the placement is proposed from the real skill library." footer={footer}>
+    <GSheet open={open} onClose={close} width={560} title={t('New skill')} caption={t('Describe it; the placement is proposed from the real skill library.')} footer={footer}>
       <div className="wg-form">
         {created ? (
           <>
             <p className="wg-sk-done">
-              Draft created at <span data-mono-ok="">{created.path}</span>
+              {t('Draft created at')} <span data-mono-ok="">{created.path}</span>
             </p>
-            <p className="wg-cap">It is a stub: flesh it out before first use. It already shows in the hierarchy.</p>
+            <p className="wg-cap">{t('It is a stub: flesh it out before first use. It already shows in the hierarchy.')}</p>
           </>
         ) : (
           <>
-            <GField label="What should this skill do?">
+            <GField label={t('What should this skill do?')}>
               <GTextarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} disabled={busy || !!proposal} />
             </GField>
-            <GField label="Name" hint="Optional, kebab-case, for example invoice-chaser">
+            <GField label={t('Name')} hint={t('Optional, kebab-case, for example invoice-chaser')}>
               <GInput value={name} onChange={(e) => setName(e.target.value)} disabled={busy || !!proposal} />
             </GField>
             {proposal && (
-              <GField label="Placement" hint={`Will be created at ${placements[Number(chosen)].path}`}>
+              <GField label={t('Placement')} hint={t('Will be created at {path}', { path: placements[Number(chosen)].path })}>
                 <GSegmented
-                  label="Placement"
+                  label={t('Placement')}
                   value={chosen}
                   onChange={setChosen}
-                  options={placements.map((p, i) => ({ value: String(i), label: `${i === 0 ? 'Proposed' : 'Alternate'}: ${p.domain}/${p.group}` }))}
+                  options={placements.map((p, i) => ({ value: String(i), label: `${i === 0 ? t('Proposed') : t('Alternate')}: ${p.domain}/${p.group}` }))}
                 />
               </GField>
             )}

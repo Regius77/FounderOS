@@ -160,8 +160,8 @@ function Popover({ id, label, onClose, className = '', children }: { id: string;
     first?.focus({ preventScroll: true });
     const off = pushEscape(() => close.current(), { id });
     const onDown = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (ref.current?.contains(t) || ref.current?.parentElement?.contains(t)) return;
+      const node = e.target as Node;
+      if (ref.current?.contains(node) || ref.current?.parentElement?.contains(node)) return;
       close.current();
     };
     document.addEventListener('mousedown', onDown);
@@ -299,8 +299,8 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
   const liveCount = liveRuns.length;
   useEffect(() => {
     if (!liveCount) return;
-    const t = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(timer);
   }, [liveCount]);
 
   // what the stage can show: delivered motion and image assets of this campaign
@@ -344,7 +344,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
     if (readOnly) return;
     const todo = refList.map((r) => r.path).filter((p) => !(p in refChecks));
     if (!todo.length) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setRefChecks((m) => ({ ...m, ...Object.fromEntries(todo.map((p) => [p, 'checking' as const])) }));
       for (const p of todo) {
         api.checkAsset(p)
@@ -352,7 +352,7 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
           .catch(() => setRefChecks((m) => ({ ...m, [p]: 'error' })));
       }
     }, 400);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [refSig, readOnly]);
   const resolvedChecks = useMemo(() => Object.fromEntries(Object.entries(refChecks).filter(([, v]) => typeof v === 'object')) as Record<string, RefCheck>, [refChecks]);
 
@@ -431,13 +431,13 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
 
   const applyDescribe = () => {
     if (!describe.trim()) return;
-    const t = describe.toLowerCase();
+    const desc = describe.toLowerCase();
     const next: Partial<ConsoleControls> = {};
     const want = (part: Part) => !locked.has(part);
-    if (want('camera')) { for (const f of FRAMINGS) if (t.includes(f)) next.framing = f; for (const m of MOVEMENTS) if (t.includes(m)) next.movement = m; for (const h of HEIGHTS) if (t.includes(h)) next.height = h; if (/slow/.test(t)) next.intensity = 1; if (/fast|quick/.test(t)) next.intensity = 4; }
-    if (want('style')) { for (const s of SETTINGS) if (t.includes(s)) next.setting = s; for (const l of LIGHTING) if (t.includes(l.split(' ')[0])) next.lighting = l; if (/selfie|phone|handheld/.test(t)) next.style = 'handheld phone'; if (/documentary/.test(t)) next.style = 'documentary'; if (/commercial|polished/.test(t)) next.style = 'commercial'; }
-    const m = t.match(/(\d{1,2})\s*s(ec|econds)?\b/); if (m) next.duration = Number(m[1]);
-    for (const v of VIDEO_MODELS) if (t.includes(v.split('-')[0])) next.model = v;
+    if (want('camera')) { for (const f of FRAMINGS) if (desc.includes(f)) next.framing = f; for (const m of MOVEMENTS) if (desc.includes(m)) next.movement = m; for (const h of HEIGHTS) if (desc.includes(h)) next.height = h; if (/slow/.test(desc)) next.intensity = 1; if (/fast|quick/.test(desc)) next.intensity = 4; }
+    if (want('style')) { for (const s of SETTINGS) if (desc.includes(s)) next.setting = s; for (const l of LIGHTING) if (desc.includes(l.split(' ')[0])) next.lighting = l; if (/selfie|phone|handheld/.test(desc)) next.style = 'handheld phone'; if (/documentary/.test(desc)) next.style = 'documentary'; if (/commercial|polished/.test(desc)) next.style = 'commercial'; }
+    const m = desc.match(/(\d{1,2})\s*s(ec|econds)?\b/); if (m) next.duration = Number(m[1]);
+    for (const v of VIDEO_MODELS) if (desc.includes(v.split('-')[0])) next.model = v;
     if (Object.keys(next).length === 0 && want('subject')) next.subject = describe.trim().slice(0, CONSOLE_LIMITS.subject);
     setC((cur) => mergeControls(cur, next));
     notify(Object.keys(next).length ? `Set ${Object.keys(next).join(', ')}.` : 'Nothing recognised.');
@@ -567,9 +567,9 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
   useEffect(() => {
     if (layered) return;
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t?.closest('.ae-o-graph, .ae-o-gate, [role="dialog"], [role="menu"]')) return;
-      const a = shortcutFor(e, t?.tagName ?? null, !!t?.isContentEditable);
+      const el = e.target as HTMLElement | null;
+      if (el?.closest('.ae-o-graph, .ae-o-gate, [role="dialog"], [role="menu"]')) return;
+      const a = shortcutFor(e, el?.tagName ?? null, !!el?.isContentEditable);
       if (!a) return;
       e.preventDefault();
       shortcutRef.current(a);
@@ -729,15 +729,15 @@ function MotionConsoleBody({ campaign, health, runs, readOnly = false, onClose, 
           {/* scene tree */}
           <div className="ae-o-panel flex flex-col">
             <div className="ae-o-tabs" role="tablist" aria-label="Scene tree">
-              {TABS.map((t, i) => (
-                <OBtn kind="row" cls="ae-o-tab" keep="ae-o-tab" key={t.key} role="tab" id={`ae-o-tab-${t.key}`} aria-selected={tab === t.key} tabIndex={tab === t.key ? 0 : -1}  data-on={tab === t.key} onClick={() => setTab(t.key)}
+              {TABS.map((tb, i) => (
+                <OBtn kind="row" cls="ae-o-tab" keep="ae-o-tab" key={tb.key} role="tab" id={`ae-o-tab-${tb.key}`} aria-selected={tab === tb.key} tabIndex={tab === tb.key ? 0 : -1}  data-on={tab === tb.key} onClick={() => setTab(tb.key)}
                   onKeyDown={(e) => {
                     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
                     e.preventDefault();
                     const n = TABS[(i + (e.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length];
                     setTab(n.key);
                     requestAnimationFrame(() => document.getElementById(`ae-o-tab-${n.key}`)?.focus());
-                  }}>{t.icon}{t.label}</OBtn>
+                  }}>{tb.icon}{tb.label}</OBtn>
               ))}
             </div>
             {tab === 'scene' && (

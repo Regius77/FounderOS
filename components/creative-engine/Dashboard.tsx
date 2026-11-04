@@ -1,5 +1,6 @@
 'use client';
 
+import { t } from '@/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, Clapperboard, FileText, Gauge as GaugeIcon, Library, MoreHorizontal, PenLine, Plus, Sparkles, Trash2, UserRound } from 'lucide-react';
 import type { Campaign, PoolAd } from '@/lib/creative-engine/schemas';
@@ -222,10 +223,10 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
       const res = await api.patchCampaign(id, { name });
       setCampaign((cur) => (cur?.id === id ? res.campaign : cur));
       setCampaigns((prev) => prev.map((p) => (p.id === id ? toSummary(res.campaign) : p)));
-      setAnnounce(`Renamed to ${res.campaign.name}`);
+      setAnnounce(t('Renamed to {name}', { name: res.campaign.name }));
       return null;
     } catch (err) {
-      return err instanceof Error ? err.message : 'Could not rename the campaign.';
+      return err instanceof Error ? err.message : t('Could not rename the campaign.');
     }
   }, []);
 
@@ -258,11 +259,11 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
         if (next) void load(next.id);
       }
       setDeleteTarget(null);
-      setAnnounce(`Deleted ${del.name}`);
-      toast({ text: `Deleted "${del.name}"`, tone: 'ok' });
+      setAnnounce(t('Deleted {name}', { name: del.name }));
+      toast({ text: t('Deleted "{name}"', { name: del.name }), tone: 'ok' });
       setTimeout(() => h1Ref.current?.focus({ preventScroll: true }), 0);
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Could not delete the campaign.');
+      setDeleteError(err instanceof Error ? err.message : t('Could not delete the campaign.'));
     } finally {
       setDeleteBusy(false);
     }
@@ -293,26 +294,26 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
   const credits = health.arcads.creditsThisMonth;
   // SPEC C23 (S04 B14): the ruler is the session against its cap; the caption names both numbers.
   const sessionPct = Math.min(1, Math.max(0, health.arcads.sessionSpent / Math.max(1, health.arcads.sessionCap)));
-  const sessionLine = `session ${fmtCredits(health.arcads.sessionSpent)} of ${fmtCredits(health.arcads.sessionCap)} cap · ${fmtCredits(credits)} this month`;
+  const sessionLine = t('session {spent} of {cap} cap · {month} this month', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap), month: fmtCredits(credits) });
 
   const nav: { key: Exclude<Sheet, null> | 'console'; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { key: 'generator', label: 'Creative generator', icon: <Sparkles className="h-4 w-4" strokeWidth={1.6} />, badge: campaign?.research ? `${campaign.research.apiCalls} calls` : undefined },
-    { key: 'scripter', label: 'Ad scripter', icon: <PenLine className="h-4 w-4" strokeWidth={1.6} />, badge: selected.length ? `${selected.length} selected` : undefined },
-    { key: 'briefings', label: 'Briefings', icon: <FileText className="h-4 w-4" strokeWidth={1.6} />, badge: campaign?.briefs.length ? `${campaign.briefs.length}` : undefined },
-    { key: 'ugc', label: 'UGC studio', icon: <UserRound className="h-4 w-4" strokeWidth={1.6} />, badge: ugcCount ? `${ugcCount} video${ugcCount === 1 ? '' : 's'}` : undefined },
-    { key: 'console', label: 'Motion console', icon: <Clapperboard className="h-4 w-4" strokeWidth={1.6} />, badge: motionCount ? `${motionCount} run${motionCount === 1 ? '' : 's'}` : undefined },
-    { key: 'proof', label: 'Proof library', icon: <Library className="h-4 w-4" strokeWidth={1.6} />, badge: saved.length ? `${saved.length} saved` : undefined },
-    { key: 'runs', label: 'Runs', icon: <Activity className="h-4 w-4" strokeWidth={1.6} />, badge: running.length ? `${running.length} live` : runs.length ? `${runs.length}` : undefined },
-    { key: 'credits', label: 'Credits & health', icon: <GaugeIcon className="h-4 w-4" strokeWidth={1.6} />, badge: health.arcads.configured ? fmtCredits(credits) : 'set up' },
+    { key: 'generator', label: t('Creative generator'), icon: <Sparkles className="h-4 w-4" strokeWidth={1.6} />, badge: campaign?.research ? t('{n} calls', { n: campaign.research.apiCalls }) : undefined },
+    { key: 'scripter', label: t('Ad scripter'), icon: <PenLine className="h-4 w-4" strokeWidth={1.6} />, badge: selected.length ? t('{n} selected', { n: selected.length }) : undefined },
+    { key: 'briefings', label: t('Briefings'), icon: <FileText className="h-4 w-4" strokeWidth={1.6} />, badge: campaign?.briefs.length ? `${campaign.briefs.length}` : undefined },
+    { key: 'ugc', label: t('UGC studio'), icon: <UserRound className="h-4 w-4" strokeWidth={1.6} />, badge: ugcCount ? (ugcCount === 1 ? t('{n} video', { n: ugcCount }) : t('{n} videos', { n: ugcCount })) : undefined },
+    { key: 'console', label: t('Motion console'), icon: <Clapperboard className="h-4 w-4" strokeWidth={1.6} />, badge: motionCount ? (motionCount === 1 ? t('{n} run', { n: motionCount }) : t('{n} runs', { n: motionCount })) : undefined },
+    { key: 'proof', label: t('Proof library'), icon: <Library className="h-4 w-4" strokeWidth={1.6} />, badge: saved.length ? t('{n} saved', { n: saved.length }) : undefined },
+    { key: 'runs', label: t('Runs'), icon: <Activity className="h-4 w-4" strokeWidth={1.6} />, badge: running.length ? t('{n} live', { n: running.length }) : runs.length ? `${runs.length}` : undefined },
+    { key: 'credits', label: t('Credits & health'), icon: <GaugeIcon className="h-4 w-4" strokeWidth={1.6} />, badge: health.arcads.configured ? fmtCredits(credits) : t('set up') },
   ];
 
   // F22: the caption names the real poll interval; the sample is never polled.
   const recentFail = running.length ? null : runs.find((r) => (r.status === 'failed' || r.status === 'stale') && r.finishedAt && now - Date.parse(r.finishedAt) < 10 * 60_000) ?? null;
   const renderCaption = running.length
-    ? `${running[0].title.slice(0, 48)} · ${readOnly ? 'sample data, not checked' : 'checked every 5 seconds'}; open to see every run or abandon one.`
+    ? `${running[0].title.slice(0, 48)} · ${readOnly ? t('sample data, not checked') : t('checked every 5 seconds')}${t('; open to see every run or abandon one.')}`
     : recentFail
-      ? `${kindNoun(recentFail.kind)} failed: ${(recentFail.error ?? 'no reason given').split('\n')[0].slice(0, 90)}`
-      : 'Submit a UGC or motion video and its progress shows here.';
+      ? t('{kind} failed: {reason}', { kind: t(kindNoun(recentFail.kind)), reason: (recentFail.error ?? t('no reason given')).split('\n')[0].slice(0, 90) })
+      : t('Submit a UGC or motion video and its progress shows here.');
 
   /** F24, F25: optimistic, rolled back with a red toast when the save fails. */
   const setBriefStatus = async (briefId: string, status: BriefStatus) => {
@@ -322,10 +323,10 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
     try {
       const res = await api.patchBrief(briefId, { status });
       setCampaign((cur) => (cur?.id === res.campaign.id ? res.campaign : cur));
-      setAnnounce(`Brief marked ${status}`);
+      setAnnounce(t('Brief marked {status}', { status: t(status) }));
     } catch {
       setCampaign((cur) => (cur?.id === before.id ? before : cur));
-      toast({ text: 'Could not save the brief status.', tone: 'err' });
+      toast({ text: t('Could not save the brief status.'), tone: 'err' });
     }
   };
 
@@ -350,7 +351,7 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
     setRunsKind(opts?.runsKind ?? null);
     setSheet(s);
   };
-  const backLabel = returnTo === 'console' ? 'Back to Motion console' : undefined;
+  const backLabel = returnTo === 'console' ? t('Back to Motion console') : undefined;
   // A normal close forgets a deep-linked ?asset=, so reopening later starts on the default asset.
   const closeConsole = () => { setConsoleOpen(false); setTarget((x) => (x?.sheet === 'console' ? null : x)); };
 
@@ -363,9 +364,9 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
   // the centre dot = Arcads: connected (a check has passed), key set but unverified, or not configured.
   const arcadsChecks = Object.values(health.arcads.health);
   const arcadsState: GRingsStatus = !health.arcads.configured ? 'off' : arcadsChecks.some((v) => v.ok) ? 'ok' : 'warn';
-  const arcadsWord = arcadsState === 'off' ? 'Arcads not configured' : arcadsState === 'ok' ? 'Arcads connected' : 'Arcads key set, not verified yet';
+  const arcadsWord = arcadsState === 'off' ? t('Arcads not configured') : arcadsState === 'ok' ? t('Arcads connected') : t('Arcads key set, not verified yet');
   const inFlight = running.length;
-  const ringsLabel = `${inFlight === 1 ? '1 run' : `${inFlight} runs`} in flight · ${arcadsWord}`;
+  const ringsLabel = `${inFlight === 1 ? t('1 run in flight') : t('{n} runs in flight', { n: inFlight })} · ${arcadsWord}`;
 
   return (
     <div className="ae-paper relative">
@@ -374,14 +375,14 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
         <aside className="ae-dash-nav">
           <div className="flex items-baseline gap-5 px-1 pb-3">
             {/* S04 B42: real tabs; Left/Right move between them and the choice is in the URL (?tab=runs). */}
-            <TitleTabs tabs={[{ value: 'engine', label: 'Engine' }, { value: 'runs', label: 'Runs' }] as const} value={tab} onChange={changeTab} label="Creative engine view" panelId="ae-tabpanel" />
+            <TitleTabs tabs={[{ value: 'engine', label: t('Engine') }, { value: 'runs', label: t('Runs') }] as const} value={tab} onChange={changeTab} label={t('Creative engine view')} panelId="ae-tabpanel" />
           </div>
-          <nav className="ae-dash-pills" aria-label="Creative engine tools">
+          <nav className="ae-dash-pills" aria-label={t('Creative engine tools')}>
           {switcherList.length === 0 ? (
-            <NavPill active icon={<Plus className="h-4 w-4" strokeWidth={1.6} />} label="New concept" onClick={() => { setGenFresh(true); setSheet('generator'); }} />
+            <NavPill active icon={<Plus className="h-4 w-4" strokeWidth={1.6} />} label={t('New concept')} onClick={() => { setGenFresh(true); setSheet('generator'); }} />
           ) : (
             <PopAnchor>
-              <NavPill ref={pillRef} active aria-haspopup="true" aria-expanded={switcherOpen} onClick={() => setSwitcherOpen((o) => !o)} icon={<Plus className="h-4 w-4" strokeWidth={1.6} />} label="All campaigns" badge={switcherList.length} />
+              <NavPill ref={pillRef} active aria-haspopup="true" aria-expanded={switcherOpen} onClick={() => setSwitcherOpen((o) => !o)} icon={<Plus className="h-4 w-4" strokeWidth={1.6} />} label={t('All campaigns')} badge={switcherList.length} />
               {switcherOpen && (
                 <CampaignSwitcher
                   campaigns={switcherList}
@@ -408,24 +409,24 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
             <div className="mt-1 text-[12px] leading-snug text-[var(--p-muted)]">{card.body}</div>
             {card.kind === 'dry-campaign' && campaign && <RerunResearch campaign={campaign} health={health} onCampaign={onCampaign} />}
             <div className="ae-status-actions mt-4 flex flex-wrap items-center justify-between gap-2">
-              {!health.foreplay.configured && !readOnly && card.kind !== 'dry-campaign' ? <SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" label="Set up Foreplay" className="whitespace-nowrap" /> : !health.arcads.configured && !readOnly ? <Btn size="sm" onClick={() => setSheet('connect')}>Connect Arcads</Btn> : <span />}
+              {!health.foreplay.configured && !readOnly && card.kind !== 'dry-campaign' ? <SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" label={t('Set up Foreplay')} className="whitespace-nowrap" /> : !health.arcads.configured && !readOnly ? <Btn size="sm" onClick={() => setSheet('connect')}>{t('Connect Arcads')}</Btn> : <span />}
               {/* S03 FR-8: the sample is offered only on a truly blank store; ?sample=1 by hand still works. */}
-              {readOnly ? <Btn href={ENGINE_HREF}>Leave sample</Btn> : campaigns.length === 0 ? <Btn href={`${ENGINE_HREF}?sample=1`}>Try the sample</Btn> : null}
+              {readOnly ? <Btn href={ENGINE_HREF}>{t('Leave sample')}</Btn> : campaigns.length === 0 ? <Btn href={`${ENGINE_HREF}?sample=1`}>{t('Try the sample')}</Btn> : null}
             </div>
           </div>
         </aside>
 
         {/* ── centre ── */}
         <main className="ae-dash-main">
-          <div role="tabpanel" id="ae-tabpanel" aria-labelledby={g ? undefined : `ae-tab-${tab}`} aria-label={g ? (tab === 'engine' ? 'Engine' : 'Runs') : undefined}>
+          <div role="tabpanel" id="ae-tabpanel" aria-labelledby={g ? undefined : `ae-tab-${tab}`} aria-label={g ? (tab === 'engine' ? t('Engine') : t('Runs')) : undefined}>
           {tab === 'engine' ? (
             <>
               {campaign ? (
                 <>
                   {/* S04 B44: the eyebrow says the headline is data, not the page title. */}
-                  <Eyebrow className="mb-1.5" cClassName="uppercase tracking-[0.08em]">Campaign</Eyebrow>
+                  <Eyebrow className="mb-1.5" cClassName="uppercase tracking-[0.08em]">{t('Campaign')}</Eyebrow>
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-                    {readOnly && <Badge className="self-center" data-sample-badge>Sample</Badge>}
+                    {readOnly && <Badge className="self-center" data-sample-badge>{t('Sample')}</Badge>}
                     {renamingH1 ? (
                       <RenameInput initial={campaign.name} className="ae-h1-input" onCancel={() => { setRenamingH1(false); }} onSave={async (name) => { const err = await renameCampaign(campaign.id, name); if (!err) setRenamingH1(false); return err; }} />
                     ) : (
@@ -433,13 +434,13 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                     )}
                     {!readOnly && !renamingH1 && (
                       <PopAnchor className="flex items-center gap-1 self-center">
-                        <Btn icon onClick={() => setRenamingH1(true)} aria-label="Rename campaign" title="Rename campaign"><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
+                        <Btn icon onClick={() => setRenamingH1(true)} aria-label="Rename campaign" title={t('Rename campaign')}><PenLine className="h-4 w-4" strokeWidth={1.6} /></Btn>
                         <ActionsMenu
                           label="Campaign actions"
                           triggerIcon={<MoreHorizontal className="h-4 w-4" strokeWidth={1.6} />}
                           items={[
-                            { id: 'rename', label: 'Rename', icon: <PenLine className="h-4 w-4" strokeWidth={1.6} />, onSelect: () => setRenamingH1(true) },
-                            { id: 'delete', label: 'Delete campaign', icon: <Trash2 className="h-4 w-4" strokeWidth={1.6} />, danger: true, onSelect: () => askDelete({ id: campaign.id, name: campaign.name, assets: campaign.assets.length }) },
+                            { id: 'rename', label: t('Rename'), icon: <PenLine className="h-4 w-4" strokeWidth={1.6} />, onSelect: () => setRenamingH1(true) },
+                            { id: 'delete', label: t('Delete campaign'), icon: <Trash2 className="h-4 w-4" strokeWidth={1.6} />, danger: true, onSelect: () => askDelete({ id: campaign.id, name: campaign.name, assets: campaign.assets.length }) },
                           ]}
                         />
                       </PopAnchor>
@@ -451,20 +452,20 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                 <>
                   <h1 className="ae-display">{ENGINE_NAME_SENTENCE}</h1>
                   {/* S03 FR-7: the empty state says what the engine does and offers the one next step. */}
-                  <p className="mt-3 max-w-[560px] text-[13.5px] leading-snug text-[var(--p-muted)]">Type an idea for your product and the engine finds ads that have been running for weeks, then turns them into angles, scripts and videos.</p>
+                  <p className="mt-3 max-w-[560px] text-[13.5px] leading-snug text-[var(--p-muted)]">{t('Type an idea for your product and the engine finds ads that have been running for weeks, then turns them into angles, scripts and videos.')}</p>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <Btn tone="ink" onClick={() => setSheet('generator')}>Start a concept</Btn>
-                    {hiddenText && <span className={g ? 'ae-cap flex items-center gap-2' : 'ae-cap'} data-hidden-line>{hiddenText} <TextButton onClick={() => setSwitcherOpen(true)} cClassName="underline underline-offset-2 hover:text-[var(--p-ink)]">Show</TextButton></span>}
+                    <Btn tone="ink" onClick={() => setSheet('generator')}>{t('Start a concept')}</Btn>
+                    {hiddenText && <span className={g ? 'ae-cap flex items-center gap-2' : 'ae-cap'} data-hidden-line>{hiddenText} <TextButton onClick={() => setSwitcherOpen(true)} cClassName="underline underline-offset-2 hover:text-[var(--p-ink)]">{t('Show')}</TextButton></span>}
                   </div>
                 </>
               )}
               {/* S07 F1 to F7: four stats, each a button to where its number lives; a true 0 when empty. */}
               <div className="ae-stats" aria-busy={loading || undefined} data-loading={loading || undefined}>
-                <Stat value={campaign?.research?.pooled ?? 0} badge="Pooled" lime tip="Ads the research pulled from the library for this concept." unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go({ sheet: 'generator', focus: campaign?.research ? 'research' : 'concept' })} />
-                <Stat value={campaign?.research ? proven.length : 0} badge={`Proven ${minDays}+ d`} tip={`Pooled ads still live after ${minDays} or more days. Longevity is the only spend proxy.`} unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go(campaign?.research ? { sheet: 'generator', focus: 'angles', proofOnly: true } : { sheet: 'generator', focus: 'concept' })} />
-                <Stat value={campaign?.angles.length ?? 0} badge="Angles" tip="Angles proposed from the pooled ads." onOpen={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
-                <Stat value={selected.length} badge="Selected" tip="Angles you picked to script." onOpen={() => void go(selected[0] ? { sheet: 'scripter', angleId: selected[0].id } : { sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
-                {loadError && <span className="ae-stat-err" role="status" title="Could not refresh. Retrying on the next tick." aria-label="Could not refresh. Retrying on the next tick." />}
+                <Stat value={campaign?.research?.pooled ?? 0} badge={t('Pooled')} lime tip={t('Ads the research pulled from the library for this concept.')} unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go({ sheet: 'generator', focus: campaign?.research ? 'research' : 'concept' })} />
+                <Stat value={campaign?.research ? proven.length : 0} badge={t('Proven {n}+ d', { n: minDays })} tip={t('Pooled ads still live after {n} or more days. Longevity is the only spend proxy.', { n: minDays })} unconfigured={noResearchKey} missing="FOREPLAY_API_KEY" onOpen={() => void go(campaign?.research ? { sheet: 'generator', focus: 'angles', proofOnly: true } : { sheet: 'generator', focus: 'concept' })} />
+                <Stat value={campaign?.angles.length ?? 0} badge={t('Angles')} tip={t('Angles proposed from the pooled ads.')} onOpen={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
+                <Stat value={selected.length} badge={t('Selected')} tip={t('Angles you picked to script.')} onOpen={() => void go(selected[0] ? { sheet: 'scripter', angleId: selected[0].id } : { sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} />
+                {loadError && <span className="ae-stat-err" role="status" title={t('Could not refresh. Retrying on the next tick.')} aria-label={t('Could not refresh. Retrying on the next tick.')} />}
               </div>
 
               {/* S07 F8 to F18: the "brief ready" strip is a run scrubber; the pill opens the selected run. */}
@@ -482,38 +483,38 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                   <>
                     <GHeroCard
                       variant="a"
-                      caption={`Proof strength${dryCampaign ? ' · dry-run fixtures' : ''}`}
+                      caption={`${t('Proof strength')}${dryCampaign ? t(' · dry-run fixtures') : ''}`}
                       value={proofStrength === null ? null : String(proofStrength)}
-                      label={proofStrength === null ? 'Proof strength: no proof set yet' : `Proof strength ${proofStrength} of 100`}
-                      title={proofStrength === null ? 'No proof set yet' : `Proof strength ${proofStrength} of 100: median days live of the ${selected.length ? 'proof behind the selected angles' : 'proven ads'}. 90 days live = 100; under 45 is thin.`}
-                      status={proofStrength === null || median === null ? 'No proof set yet' : `${proofStrength >= 45 ? 'On track' : 'Thin proof'} · median ${median} d live`}
-                      strip={<Cloud total={campaign?.research?.pooled ?? pool.length} lit={proven.length} label={`${campaign?.research?.pooled ?? pool.length} pooled · ${proven.length} proven ${minDays}+ days`} onHero />}
+                      label={proofStrength === null ? t('Proof strength: no proof set yet') : t('Proof strength {n} of 100', { n: proofStrength })}
+                      title={proofStrength === null ? t('No proof set yet') : `${t('Proof strength {n} of 100: median days live of the {what}.', { n: proofStrength, what: selected.length ? t('proof behind the selected angles') : t('proven ads') })} ${t('90 days live = 100; under 45 is thin.')}`}
+                      status={proofStrength === null || median === null ? t('No proof set yet') : `${proofStrength >= 45 ? t('On track') : t('Thin proof')} · ${t('median {n} d live', { n: median })}`}
+                      strip={<Cloud total={campaign?.research?.pooled ?? pool.length} lit={proven.length} label={t('{pooled} pooled · {proven} proven {days}+ days', { pooled: campaign?.research?.pooled ?? pool.length, proven: proven.length, days: minDays })} onHero />}
                       onClick={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })}
                     />
                     <GHeroCard
                       variant="b"
-                      caption="Credits this month"
+                      caption={t('Credits this month')}
                       value={health.arcads.configured ? fmtCredits(credits) : null}
-                      label={health.arcads.configured ? `${fmtCredits(credits)} Arcads credits this month` : 'Arcads not configured'}
-                      title={health.arcads.configured ? `${sessionLine}. Opens Credits and health.` : 'Arcads is not configured. Opens Connect Arcads.'}
-                      status={health.arcads.configured ? sessionLine : 'Not configured · opens Connect Arcads'}
-                      strip={health.arcads.configured ? <Gauge value={health.arcads.sessionSpent} max={Math.max(1, health.arcads.sessionCap)} tone={sessionPct >= 1 ? 'over' : sessionPct >= 0.8 ? 'warn' : undefined} label={`Session spend ${fmtCredits(health.arcads.sessionSpent)} of the ${fmtCredits(health.arcads.sessionCap)} credit cap`} onHero /> : undefined}
+                      label={health.arcads.configured ? t('{n} Arcads credits this month', { n: fmtCredits(credits) }) : t('Arcads not configured')}
+                      title={health.arcads.configured ? t('{line}. Opens Credits and health.', { line: sessionLine }) : t('Arcads is not configured. Opens Connect Arcads.')}
+                      status={health.arcads.configured ? sessionLine : t('Not configured · opens Connect Arcads')}
+                      strip={health.arcads.configured ? <Gauge value={health.arcads.sessionSpent} max={Math.max(1, health.arcads.sessionCap)} tone={sessionPct >= 1 ? 'over' : sessionPct >= 0.8 ? 'warn' : undefined} label={t('Session spend {spent} of the {cap} credit cap', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })} onHero /> : undefined}
                       onClick={() => (health.arcads.configured || readOnly ? setSheet('credits') : setSheet('connect'))}
                     />
                   </>
                 ) : (
                   <>
                     <ClassicHeroButton tone="green" onClick={() => void go({ sheet: 'generator', focus: campaign?.angles.length ? 'angles' : 'concept' })} className="min-h-[250px] p-6 text-left">
-                      <div className="text-center text-[13px] text-[var(--p-on-hero-dim)]">Proof strength{dryCampaign ? ' · dry-run fixtures' : ''}</div>
-                      <div className="mt-6 flex justify-center" title={proofStrength === null ? 'No proof set yet' : `Proof strength ${proofStrength} of 100: median days live of the ${selected.length ? 'proof behind the selected angles' : 'proven ads'}. 90 days live = 100; under 45 is thin.`}><Numeral value={proofStrength === null ? '—' : String(proofStrength)} size={7} onHero /></div>
-                      <div className="mt-3 text-center text-[13px] text-[var(--p-on-hero-dim)]" title="90 days live = 100. Under 45 is thin.">{proofStrength === null || median === null ? 'No proof set yet' : `${proofStrength >= 45 ? 'On track' : 'Thin proof'} · median ${median} d live`}</div>
-                      <div className="absolute inset-x-6 bottom-5"><Cloud total={campaign?.research?.pooled ?? pool.length} lit={proven.length} label={`${campaign?.research?.pooled ?? pool.length} pooled · ${proven.length} proven ${minDays}+ days`} /></div>
+                      <div className="text-center text-[13px] text-[var(--p-on-hero-dim)]">{t('Proof strength')}{dryCampaign ? t(' · dry-run fixtures') : ''}</div>
+                      <div className="mt-6 flex justify-center" title={proofStrength === null ? t('No proof set yet') : `${t('Proof strength {n} of 100: median days live of the {what}.', { n: proofStrength, what: selected.length ? t('proof behind the selected angles') : t('proven ads') })} ${t('90 days live = 100; under 45 is thin.')}`}><Numeral value={proofStrength === null ? '—' : String(proofStrength)} size={7} onHero /></div>
+                      <div className="mt-3 text-center text-[13px] text-[var(--p-on-hero-dim)]" title={t('90 days live = 100. Under 45 is thin.')}>{proofStrength === null || median === null ? t('No proof set yet') : `${proofStrength >= 45 ? t('On track') : t('Thin proof')} · ${t('median {n} d live', { n: median })}`}</div>
+                      <div className="absolute inset-x-6 bottom-5"><Cloud total={campaign?.research?.pooled ?? pool.length} lit={proven.length} label={t('{pooled} pooled · {proven} proven {days}+ days', { pooled: campaign?.research?.pooled ?? pool.length, proven: proven.length, days: minDays })} /></div>
                     </ClassicHeroButton>
                     <ClassicHeroButton tone="warm" onClick={() => (health.arcads.configured || readOnly ? setSheet('credits') : setSheet('connect'))} className="min-h-[250px] p-6 text-left">
-                      <div className="text-center text-[13px] text-[var(--p-on-hero-dim)]">Credits this month</div>
+                      <div className="text-center text-[13px] text-[var(--p-on-hero-dim)]">{t('Credits this month')}</div>
                       <div className="mt-6 flex justify-center"><Numeral value={health.arcads.configured ? fmtCredits(credits) : '—'} size={7} onHero /></div>
-                      <div className="mt-3 text-center text-[13px] text-[var(--p-on-hero-dim)]">{health.arcads.configured ? sessionLine : 'Arcads not connected'}</div>
-                      {health.arcads.configured && <div className="absolute inset-x-6 bottom-5"><Gauge value={health.arcads.sessionSpent} max={Math.max(1, health.arcads.sessionCap)} tone={sessionPct >= 1 ? 'over' : sessionPct >= 0.8 ? 'warn' : undefined} label={`Session spend ${fmtCredits(health.arcads.sessionSpent)} of the ${fmtCredits(health.arcads.sessionCap)} credit cap`} onHero /></div>}
+                      <div className="mt-3 text-center text-[13px] text-[var(--p-on-hero-dim)]">{health.arcads.configured ? sessionLine : t('Arcads not connected')}</div>
+                      {health.arcads.configured && <div className="absolute inset-x-6 bottom-5"><Gauge value={health.arcads.sessionSpent} max={Math.max(1, health.arcads.sessionCap)} tone={sessionPct >= 1 ? 'over' : sessionPct >= 0.8 ? 'warn' : undefined} label={t('Session spend {spent} of the {cap} credit cap', { spent: fmtCredits(health.arcads.sessionSpent), cap: fmtCredits(health.arcads.sessionCap) })} onHero /></div>}
                     </ClassicHeroButton>
                   </>
                 )}
@@ -522,10 +523,10 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
               {/* snapshot row */}
               <div className="mt-9 flex items-end justify-between">
                 <div>
-                  <h2 className="ae-section flex flex-wrap items-center gap-3">Angles{dryCampaign && <Tag>{DRY_CAMPAIGN_TAG}</Tag>}</h2>
-                  <div className="text-[13px] text-[var(--p-muted)]">A snapshot of what is proven in the library.</div>
+                  <h2 className="ae-section flex flex-wrap items-center gap-3">{t('Angles')}{dryCampaign && <Tag>{DRY_CAMPAIGN_TAG}</Tag>}</h2>
+                  <div className="text-[13px] text-[var(--p-muted)]">{t('A snapshot of what is proven in the library.')}</div>
                 </div>
-                <Btn onClick={() => setSheet('generator')}>See all</Btn>
+                <Btn onClick={() => setSheet('generator')}>{t('See all')}</Btn>
               </div>
               <div className="ae-angle-row mt-4">
                 {(campaign?.angles.slice(0, 3) ?? []).map((a) => {
@@ -533,15 +534,15 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                   const m = medianDays(proof);
                   return (
                     <CardButton key={a.id} onClick={() => void go({ sheet: 'generator', angleId: a.id })} className="min-h-[150px] p-4 text-left">
-                      <div className="flex items-center gap-2 text-[12px] text-[var(--p-muted)]"><Sparkles className="h-3.5 w-3.5" strokeWidth={1.6} />{a.confidence === 'strong' ? 'Strong' : 'Plausible'}{a.selected ? ' · selected' : ''}</div>
-                      <div className="mt-4 flex items-end gap-2"><Numeral value={m === null ? '—' : String(m)} size={4} /> <span className="pb-[2px] text-[12px] text-[var(--p-muted)]">days live</span></div>
+                      <div className="flex items-center gap-2 text-[12px] text-[var(--p-muted)]"><Sparkles className="h-3.5 w-3.5" strokeWidth={1.6} />{a.confidence === 'strong' ? t('Strong') : t('Plausible')}{a.selected ? t(' · selected') : ''}</div>
+                      <div className="mt-4 flex items-end gap-2"><Numeral value={m === null ? '—' : String(m)} size={4} /> <span className="pb-[2px] text-[12px] text-[var(--p-muted)]">{t('days live')}</span></div>
                       <div className="mt-2 line-clamp-1 text-[13px] text-[var(--p-ink)]">{a.title}</div>
-                      <div className="mt-3"><Gauge value={m} max={90} label={m === null ? 'No proof ads found for this angle' : `Median ${m} days live on a 0 to 90 day scale`} /></div>
+                      <div className="mt-3"><Gauge value={m} max={90} label={m === null ? t('No proof ads found for this angle') : t('Median {value} days live on a 0 to {max} day scale', { value: m, max: 90 })} /></div>
                     </CardButton>
                   );
                 })}
                 {(campaign?.angles.length ?? 0) === 0 && (
-                  <div className="ae-card-2 col-span-full p-5 text-[13px] text-[var(--p-muted)]">No angles yet. Open the Creative generator, type a concept, and the engine researches the library and proposes angles that cite live ads.</div>
+                  <div className="ae-card-2 col-span-full p-5 text-[13px] text-[var(--p-muted)]">{t('No angles yet. Open the Creative generator, type a concept, and the engine researches the library and proposes angles that cite live ads.')}</div>
                 )}
               </div>
             </>
@@ -555,12 +556,12 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
         <aside className="ae-dash-rail">
           <div className="grid grid-cols-2 gap-4">
             {/* S04 row 27: with no approved script the card leads to the Ad scripter instead. */}
-            <CardButton onClick={() => setSheet(approvedScripts.length || readOnly ? 'ugc' : 'scripter')} className="ae-rail-card relative min-h-[236px] p-4 text-left" title={approvedScripts.length || readOnly ? 'Open the UGC studio' : 'Approve a script first: opens the Ad scripter'}>
-              <div className="flex flex-1 items-center pr-9 text-[13px] leading-tight text-[var(--p-ink)]"><span>{approvedScripts.length || readOnly ? <>Make a<br />UGC video</> : <>Approve a<br />script first</>}</span></div>
+            <CardButton onClick={() => setSheet(approvedScripts.length || readOnly ? 'ugc' : 'scripter')} className="ae-rail-card relative min-h-[236px] p-4 text-left" title={approvedScripts.length || readOnly ? t('Open the UGC studio') : t('Approve a script first: opens the Ad scripter')}>
+              <div className="flex flex-1 items-center pr-9 text-[13px] leading-tight text-[var(--p-ink)]"><span>{approvedScripts.length || readOnly ? <>{t('Make a')}<br />{t('UGC video')}</> : <>{t('Approve a')}<br />{t('script first')}</>}</span></div>
               <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--p-card)]"><Plus className="h-4 w-4" strokeWidth={1.8} /></span>
               <div className="mt-3 rounded-[14px] bg-[var(--p-card)] p-3">
-                <div className="whitespace-nowrap text-[12.5px] text-[var(--p-ink)]">Approved</div>
-                <div className="whitespace-nowrap text-[11.5px] text-[var(--p-muted)]">{approvedScripts.length} ready</div>
+                <div className="whitespace-nowrap text-[12.5px] text-[var(--p-ink)]">{t('Approved')}</div>
+                <div className="whitespace-nowrap text-[11.5px] text-[var(--p-muted)]">{t('{n} ready', { n: approvedScripts.length })}</div>
               </div>
             </CardButton>
             {g ? (
@@ -568,17 +569,17 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
               // unconfigured, the Set up link (a link cannot sit inside a card button). A raised card, not a
               // third hero: at most two heroes per view (C22).
               <GCardRaised p={16} className="ae-rail-card ce-g-console-card relative min-h-[236px]" title={ringsLabel}>
-                <div className="pr-2 text-[13px] leading-tight text-[var(--p-ink)]">Motion<br />console</div>
+                <div className="pr-2 text-[13px] leading-tight text-[var(--p-ink)]">{t('Motion')}<br />{t('console')}</div>
                 <div className="flex flex-1 items-center justify-center py-2"><GRings value={inFlight} status={arcadsState} label={ringsLabel} size={76} /></div>
-                <div className="ce-g-console-status text-[11.5px] leading-snug text-[var(--p-muted)]">{inFlight > 0 ? `${inFlight} in flight` : 'Nothing in flight'} · {arcadsState === 'ok' ? 'Arcads connected' : arcadsState === 'warn' ? 'key not verified' : 'Arcads not set up'}</div>
+                <div className="ce-g-console-status text-[11.5px] leading-snug text-[var(--p-muted)]">{inFlight > 0 ? t('{n} in flight', { n: inFlight }) : t('Nothing in flight')} · {arcadsState === 'ok' ? t('Arcads connected') : arcadsState === 'warn' ? t('key not verified') : t('Arcads not set up')}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Btn size="sm" onClick={() => (health.arcads.configured ? setConsoleOpen(true) : setSheet('connect'))}>{health.arcads.configured ? 'Open' : 'Connect'}</Btn>
+                  <Btn size="sm" onClick={() => (health.arcads.configured ? setConsoleOpen(true) : setSheet('connect'))}>{health.arcads.configured ? t('Open') : t('Connect')}</Btn>
                   {!health.arcads.configured && !readOnly && <SetupLink href={health.arcads.setupHref} hint="ARCADS_BASIC_AUTH" />}
                 </div>
               </GCardRaised>
             ) : (
               <ClassicHeroButton tone="pink" onClick={() => (health.arcads.configured ? setConsoleOpen(true) : setSheet('connect'))} className="ae-rail-card relative min-h-[236px] p-4 text-left">
-                <div className="flex flex-1 items-center pr-9 text-[13px] leading-tight text-[var(--p-on-hero-dim)]"><span>{health.arcads.configured ? 'Open the' : 'Connect'}<br />{health.arcads.configured ? 'Motion console' : 'Arcads'}</span></div>
+                <div className="flex flex-1 items-center pr-9 text-[13px] leading-tight text-[var(--p-on-hero-dim)]"><span>{health.arcads.configured ? t('Open the') : t('Connect')}<br />{health.arcads.configured ? t('Motion console') : 'Arcads'}</span></div>
                 <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--p-on-hero-faint)] text-[var(--p-on-hero)]"><Plus className="h-4 w-4" strokeWidth={1.8} /></span>
                 <div className="flex justify-center pb-1 pt-3"><ClassicRings /></div>
               </ClassicHeroButton>
@@ -587,13 +588,13 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
 
           <CardButton onClick={() => setSheet('runs')} className="w-full p-5 text-left" p={20}>
             <div className="flex items-start justify-between">
-              <div className="text-[15px] text-[var(--p-ink)]">{running.length ? (running[0].kind === 'research' || running[0].kind === 'angles' || running[0].kind === 'script' ? 'Working' : 'Your video is rendering') : latestDone ? 'Nothing is pending' : 'Nothing is rendering'}</div>
+              <div className="text-[15px] text-[var(--p-ink)]">{running.length ? (running[0].kind === 'research' || running[0].kind === 'angles' || running[0].kind === 'script' ? t('Working') : t('Your video is rendering')) : latestDone ? t('Nothing is pending') : t('Nothing is rendering')}</div>
               {running.length > 0 && <Tag>{running.length}</Tag>}
             </div>
             {g ? (
-              <div className="mt-4"><GBigNumber value={running.length ? fmtMs(elapsedAt(running[0], now)) : '0'} unit={running.length ? 'elapsed' : 'in flight'} /></div>
+              <div className="mt-4"><GBigNumber value={running.length ? fmtMs(elapsedAt(running[0], now)) : '0'} unit={running.length ? t('elapsed') : t('in flight')} /></div>
             ) : (
-              <div className="mt-4 flex items-end gap-2"><span className="ae-title ae-tick text-[34px] leading-none text-[var(--p-ink)]">{running.length ? fmtMs(elapsedAt(running[0], now)) : '0'}</span><span className="pb-1 text-[12px] text-[var(--p-muted)]">{running.length ? 'elapsed' : 'in flight'}</span></div>
+              <div className="mt-4 flex items-end gap-2"><span className="ae-title ae-tick text-[34px] leading-none text-[var(--p-ink)]">{running.length ? fmtMs(elapsedAt(running[0], now)) : '0'}</span><span className="pb-1 text-[12px] text-[var(--p-muted)]">{running.length ? t('elapsed') : t('in flight')}</span></div>
             )}
             {/* S07 F19 to F22: elapsed against the kind's typical time (tick) and timeout (ring). */}
             <div className="mt-4"><RenderTrack runs={runs} now={now} /></div>
@@ -603,17 +604,17 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
           <div className="ae-rail-wide">
             <div className="flex items-end justify-between">
               <div>
-                <h2 className="ae-section !text-[22px]">Ready for you</h2>
-                <div className="text-[12.5px] text-[var(--p-muted)]">Scripts and briefs you can ship.</div>
+                <h2 className="ae-section !text-[22px]">{t('Ready for you')}</h2>
+                <div className="text-[12.5px] text-[var(--p-muted)]">{t('Scripts and briefs you can ship.')}</div>
               </div>
-              <Btn onClick={() => setSheet('briefings')}>See all</Btn>
+              <Btn onClick={() => setSheet('briefings')}>{t('See all')}</Btn>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">
               {readyOrder(campaign?.scripts ?? [], campaign?.briefs ?? []).slice(0, 2).map((s, i) => {
                 const v = s.versions.find((x) => x.n === s.approvedVersion) ?? s.versions.at(-1);
                 const angle = campaign?.angles.find((a) => a.id === s.angleId);
                 const brief = campaign?.briefs.find((b) => b.scriptId === s.id);
-                const label = `${angle?.title ?? 'Script'}${brief ? ', open the brief' : ', open the script'}`;
+                const label = `${angle?.title ?? t('Script')}${brief ? t(', open the brief') : t(', open the script')}`;
                 const state = brief ? (brief.status === 'sent' ? 'sent' : brief.status === 'ready' ? 'ready' : 'draft') : s.approvedVersion !== null ? 'approved' : 'draft';
                 return (
                   <div key={s.id} className="ae-card-2 ae-ready-card relative min-h-[190px] overflow-hidden p-3 text-left">
@@ -622,16 +623,16 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                     {/* F23, F24: the badge is the brief's stored status, and on a brief it is the control. */}
                     <div className="absolute inset-x-3 top-3 z-[1]">
                       {brief ? (
-                        <BriefStatusControl status={brief.status} disabled={readOnly} disabledReason="Sample data: actions are off" onChange={(st) => void setBriefStatus(brief.id, st)} />
+                        <BriefStatusControl status={brief.status} disabled={readOnly} disabledReason={t('Sample data: actions are off')} onChange={(st) => void setBriefStatus(brief.id, st)} />
                       ) : s.approvedVersion !== null ? (
-                        <Badge className="pointer-events-none" data-state="approved">Approved</Badge>
+                        <Badge className="pointer-events-none" data-state="approved">{t('Approved')}</Badge>
                       ) : (
-                        <Tag className="pointer-events-none" data-state="draft">Draft</Tag>
+                        <Tag className="pointer-events-none" data-state="draft">{t('Draft')}</Tag>
                       )}
                     </div>
                     {/* S04 B19: the blob colour is the item's state, not its position. */}
                     {g ? (
-                      <span className="pointer-events-none absolute" style={{ left: '22%', top: '26%' }}><GBlob state={state} label={`${state === 'ready' ? 'Brief ready' : state === 'sent' ? 'Sent' : state === 'approved' ? 'Approved' : 'Draft'}`} size={70} /></span>
+                      <span className="pointer-events-none absolute" style={{ left: '22%', top: '26%' }}><GBlob state={state} label={state === 'ready' ? t('Brief ready') : state === 'sent' ? t('Sent') : state === 'approved' ? t('Approved') : t('Draft')} size={70} /></span>
                     ) : (
                       <>
                         <span className="ae-blob" data-state={state} style={{ left: '22%', top: '26%', width: 70, height: 70 }} />
@@ -639,13 +640,13 @@ function DashboardBody({ campaigns: initialCampaigns, health: initialHealth, sav
                       </>
                     )}
                     <div className="pointer-events-none absolute inset-x-3 bottom-3">
-                      <div className="line-clamp-1 text-[11.5px] text-[var(--p-muted)]">{angle?.title ?? 'Script'}</div>
-                      <div className="text-[16px] text-[var(--p-ink)]">{v ? `${v.targetSeconds ?? '—'}s · ${v.wordCount} words` : 'draft'}</div>
+                      <div className="line-clamp-1 text-[11.5px] text-[var(--p-muted)]">{angle?.title ?? t('Script')}</div>
+                      <div className="text-[16px] text-[var(--p-ink)]">{v ? `${v.targetSeconds ?? '—'}s · ${t('{n} words', { n: v.wordCount })}` : t('draft')}</div>
                     </div>
                   </div>
                 );
               })}
-              {(campaign?.scripts.length ?? 0) === 0 && <div className="ae-card-2 col-span-2 p-4 text-[12.5px] text-[var(--p-muted)]">No scripts yet. Select angles, then write them in the Ad scripter.</div>}
+              {(campaign?.scripts.length ?? 0) === 0 && <div className="ae-card-2 col-span-2 p-4 text-[12.5px] text-[var(--p-muted)]">{t('No scripts yet. Select angles, then write them in the Ad scripter.')}</div>}
             </div>
           </div>
         </aside>
@@ -687,8 +688,8 @@ function RerunResearch({ campaign, health, onCampaign }: { campaign: Campaign; h
   if (!health.foreplay.configured) {
     return (
       <div className="mt-4 space-y-2">
-        <Btn size="sm" disabled title="Research needs the Foreplay key" disabledReason="Research needs the Foreplay key">Re-run research live</Btn>
-        <div><SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" label="Set up Foreplay" /></div>
+        <Btn size="sm" disabled title="Research needs the Foreplay key" disabledReason={t('Research needs the Foreplay key')}>{t('Re-run research live')}</Btn>
+        <div><SetupLink href={health.foreplay.setupHref} hint="FOREPLAY_API_KEY" label={t('Set up Foreplay')} /></div>
       </div>
     );
   }
@@ -701,22 +702,22 @@ function RerunResearch({ campaign, health, onCampaign }: { campaign: Campaign; h
       onCampaign((await api.angles(campaign.id)).campaign);
       setPhase('idle');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Research failed.');
+      setError(err instanceof Error ? err.message : t('Research failed.'));
       setPhase('error');
     }
   };
   return (
     <div className="mt-4" data-rerun-research>
       {phase === 'running' ? (
-        <Progress text="Researching: planning searches and keeping only ads still running" />
+        <Progress text={t('Researching: planning searches and keeping only ads still running')} />
       ) : phase === 'confirm' ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-[var(--p-ink)]">{health.dry ? 'Dry run: fixtures again, nothing is charged.' : `Spends up to ${max} Foreplay credits.`}</span>
-          <Btn tone="ink" size="sm" onClick={() => void run()}>Run</Btn>
-          <Btn size="sm" onClick={() => setPhase('idle')}>Cancel</Btn>
+          <span className="text-[12px] text-[var(--p-ink)]">{health.dry ? t('Dry run: fixtures again, nothing is charged.') : `Spends up to ${max} Foreplay credits.`}</span>
+          <Btn tone="ink" size="sm" onClick={() => void run()}>{t('Run')}</Btn>
+          <Btn size="sm" onClick={() => setPhase('idle')}>{t('Cancel')}</Btn>
         </div>
       ) : (
-        <Btn size="sm" onClick={() => setPhase('confirm')} title={`Standard depth, up to ${max} Foreplay credits; asks before it spends`}>Re-run research live</Btn>
+        <Btn size="sm" onClick={() => setPhase('confirm')} title={t('Standard depth, up to {n} Foreplay credits; asks before it spends', { n: max })}>{t('Re-run research live')}</Btn>
       )}
       {error && <ErrorLine text={error} />}
     </div>
@@ -744,18 +745,18 @@ function RunsTab({ runs, campaignId, readOnly, onChange, onOpen, onEmpty }: { ru
     <div className="ae-card p-5">
       <div className={g ? 'flex items-center justify-between gap-3' : 'flex items-start justify-between gap-3'}>
         <div>
-          {!g && <h1 className="ae-section !text-[30px]">Runs</h1>}
-          <div className="text-[12.5px] text-[var(--p-muted)]">Status is derived on every read; nothing is marked done by this page.</div>
+          {!g && <h1 className="ae-section !text-[30px]">{t('Runs')}</h1>}
+          <div className="text-[12.5px] text-[var(--p-muted)]">{t('Status is derived on every read; nothing is marked done by this page.')}</div>
         </div>
         <CheckNow busy={busy === 'refresh'} readOnly={readOnly} onClick={() => void refresh()} />
       </div>
       {error && <ErrorLine text={error} />}
       {runs.length === 0 ? (
-        <div className="flex flex-wrap items-center gap-3 py-6 text-[13px] text-[var(--p-muted)]">No runs yet. <Btn size="sm" onClick={onEmpty}>Open the Creative generator</Btn></div>
+        <div className="flex flex-wrap items-center gap-3 py-6 text-[13px] text-[var(--p-muted)]">{t('No runs yet.')} <Btn size="sm" onClick={onEmpty}>{t('Open the Creative generator')}</Btn></div>
       ) : (
         <ul className="mt-4 space-y-2">
           {runs.map((r) => (
-            <RunRow key={r.id} run={r} readOnly={readOnly} busy={busy === r.id} onOpen={onOpen} openLabel={opensElsewhere(r) ? 'Open what this run made' : 'Open this run in the Runs drawer'} onAbandon={(id) => void abandon(id)} />
+            <RunRow key={r.id} run={r} readOnly={readOnly} busy={busy === r.id} onOpen={onOpen} openLabel={opensElsewhere(r) ? t('Open what this run made') : t('Open this run in the Runs drawer')} onAbandon={(id) => void abandon(id)} />
           ))}
         </ul>
       )}

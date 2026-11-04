@@ -280,7 +280,7 @@ function StatusChip({
         <span aria-hidden className={`h-2 w-2 rounded-full ${dot}`} />
         {empty ? (
           <>
-            <span className="text-[13px] text-os-text">{t('No ad account connected')}</span>
+            <span className="text-[13px] text-os-text">No ad account connected</span>
             <SetupLink href={setupHrefFor('meta-ads')} hint={t('Connect a Meta ad account')} />
           </>
         ) : (

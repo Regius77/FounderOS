@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { t } from '@/lib/i18n';
 
 /**
  * The Claude-Code-style liveness readout: a plain "waiting" state reads as
@@ -10,20 +11,20 @@ import { useEffect, useState } from 'react';
  */
 const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const VERBS = [
-  'Synthesizing',
-  'Orchestrating',
-  'Consulting the board',
-  'Delegating',
-  'Reasoning',
-  'Wiring context',
-  'Composing',
+  t('Synthesizing'),
+  t('Orchestrating'),
+  t('Consulting the board'),
+  t('Delegating'),
+  t('Reasoning'),
+  t('Wiring context'),
+  t('Composing'),
 ];
 
 /**
  * Short verbs for the `compact` variant. A seat chip is ~5 columns wide, so
  * "Consulting the board" would truncate to noise; these always fit.
  */
-const SHORT_VERBS = ['Running', 'Thinking', 'Working', 'Reasoning', 'Acting'];
+const SHORT_VERBS = [t('Running'), t('Thinking'), t('Working'), t('Reasoning'), t('Acting')];
 
 export function Synthesizing({
   since,
@@ -40,7 +41,7 @@ export function Synthesizing({
 }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 100);
+    const id = setInterval(() => setTick((n) => n + 1), 100);
     return () => clearInterval(id);
   }, []);
   const frame = FRAMES[tick % FRAMES.length];
@@ -59,7 +60,7 @@ export function Synthesizing({
           style={{ animation: 'om-blink 1s steps(1) infinite' }}
         />
         <span className="synth-shimmer truncate">
-          synthesizing{secs !== null ? ` · ${secs}s` : ''}
+          {t('synthesizing')}{secs !== null ? ` · ${secs}s` : ''}
         </span>
       </span>
     );
